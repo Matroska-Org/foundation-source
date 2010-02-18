@@ -1,0 +1,15 @@
+#define TARGET_LINUX
+#define IX86
+#define GLIBC
+#define COMPILER_GCC
+#define RESOURCE_COREC
+
+#define ASM yasm
+#define ASMFLAGS -f elf
+
+#define OUTPUT_EXE %(NAME)
+#define OUTPUT_DLL lib%(NAME).la
+#define OUTPUT_LIB lib%(NAME).la
+#define OUTPUT_CON %(NAME)
+
+#include "automake.inc"

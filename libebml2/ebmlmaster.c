@@ -1,0 +1,242 @@
+/*
+ * $Id: ebmlmaster.c 1323 2008-10-05 12:07:46Z robux4 $
+ * Copyright (c) 2008, Matroska Foundation
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Matroska Foundation nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY The Matroska Foundation ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL The Matroska Foundation BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+#include "ebml/ebml.h"
+
+ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull)
+{
+    ebml_element *i;
+    for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+    {
+        if (i->Context->Id == Context->Id)
+            break;
+    }
+
+    if (!i && bCreateIfNull)
+    {
+        i = EBML_ElementCreate(Element,Context,0);
+        if (i)
+            if (EBML_MasterAppend(Element,i)!=ERR_NONE)
+            {
+                NodeDelete((node*)i);
+                i = NULL;
+            }
+    }
+
+    return i;
+}
+
+err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append)
+{
+    err_t Result = NodeTree_SetParent(Append,Element,NULL);
+    if (Result==ERR_NONE)
+        Element->bValueIsSet = 1;
+    return Result;
+}
+
+static bool_t IsDefaultValue(const ebml_element *Element)
+{
+    // TODO: a master element has the default value if all the sub elements are unique and have the default value
+    return 0;
+}
+
+static bool_t CheckMandatory(const ebml_element *Element)
+{
+    const ebml_semantic *i;
+    for (i=Element->Context->Semantic;i->Class;++i)
+    {
+        if (i->Mandatory && !EBML_MasterFindChild(Element,i->Class))
+            return 0;
+    }
+    return 1;
+}
+
+filepos_t UpdateSize(ebml_element *Element, bool_t bKeepIntact, bool_t bForceRender)
+{
+    ebml_element *i;
+
+	Element->Size = 0;
+
+	if (!EBML_ElementIsFiniteSize(Element))
+		return INVALID_FILEPOS_T;
+
+	if (!bForceRender) {
+		assert(CheckMandatory(Element));
+    }
+
+    for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+    {
+        if (!bKeepIntact && EBML_ElementIsDefaultValue(i))
+            continue;
+        EBML_ElementUpdateSize(i,bKeepIntact,bForceRender);
+        if (i->Size == INVALID_FILEPOS_T)
+            return INVALID_FILEPOS_T;
+        Element->Size += EBML_ElementFullSize(i,bKeepIntact);
+    }
+#ifdef TODO
+	if (bChecksumUsed) {
+		Element->Size += EBML_ElementFullSize(Element->Checksum,bKeepIntact);
+	}
+#endif
+	return Element->Size;
+}
+
+static void PostCreate(ebml_element *Element)
+{
+    const ebml_semantic *i;
+    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
+    for (i=Element->Context->Semantic;i->Class;++i)
+    {
+        if (i->Mandatory && i->Unique)
+            EBML_MasterFindFirstElt(Element,i->Class,1); // TODO: should it force the default value ?
+    }
+}
+
+static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+{
+	// remove all existing elements, including the mandatory ones...
+    NodeTree_Clear((nodetree*)Element);
+    Element->bValueIsSet = 0;
+
+	// read blocks and discard the ones we don't care about
+	if (Element->Size > 0) {
+	    ebml_element *SubElement;
+        ebml_parser_context Context;
+        int UpperEltFound = 0;
+        filepos_t MaxSizeToRead;
+
+        if (Stream_Seek(Input,EBML_ElementPositionData(Element),SEEK_SET)==INVALID_FILEPOS_T)
+            return ERR_END_OF_FILE;
+
+        MaxSizeToRead = Element->Size;
+        Context.UpContext = ParserContext;
+        Context.Context = Element->Context;
+        Context.EndPosition = EBML_ElementPositionEnd(Element);
+        SubElement = EBML_FindNextElement(Input,&Context,&UpperEltFound,AllowDummyElt);
+		while (SubElement && UpperEltFound<=0 && EBML_ElementPositionEnd(SubElement) <= EBML_ElementPositionEnd(Element))
+        {
+			if (!AllowDummyElt && EBML_ElementIsDummy(SubElement)) {
+                // TODO: this should never happen
+                EBML_ElementSkipData(SubElement,Input,&Context,NULL,AllowDummyElt);
+				NodeDelete((node*)SubElement); // forget this unknown element
+			} else {
+                EBML_ElementReadData(SubElement,Input,&Context,AllowDummyElt, Scope);
+                EBML_MasterAppend(Element,SubElement);
+
+				// just in case
+                EBML_ElementSkipData(SubElement,Input,&Context,NULL,AllowDummyElt);
+			}
+			MaxSizeToRead = EBML_ElementPositionEnd(Element) - EBML_ElementPositionEnd(SubElement); // even if it's the default value
+
+			if (UpperEltFound > 0) {
+				UpperEltFound--;
+				if (UpperEltFound > 0 || MaxSizeToRead <= 0)
+					goto processCrc;
+				continue;
+			} 
+			
+			if (UpperEltFound < 0) {
+				UpperEltFound++;
+				if (UpperEltFound < 0)
+					goto processCrc;
+			}
+
+			if (MaxSizeToRead <= 0) {
+				goto processCrc;// this level is finished
+			}
+			
+			SubElement = EBML_FindNextElement(Input,&Context,&UpperEltFound,AllowDummyElt);
+		}
+	}
+processCrc:
+#ifdef TODO
+	for (Index=0; Index<ElementList.size(); Index++) {
+		if (ElementList[Index]->Generic().GlobalId == EbmlCrc32::ClassInfos.GlobalId) {
+			bChecksumUsed = true;
+			// remove the element
+			Checksum = *(static_cast<EbmlCrc32*>(ElementList[Index]));
+			delete ElementList[Index];
+			Remove(Index--);
+		}
+	}
+#endif
+    Element->bValueIsSet = 1;
+    return ERR_NONE;
+}
+
+static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+{
+    ebml_element *i;
+    filepos_t _Rendered;
+    filepos_t ItemRendered;
+    err_t Err = ERR_NONE;
+
+    if (!Rendered)
+        Rendered = &_Rendered;
+    *Rendered = 0;
+
+	if (!bForceRender) {
+		assert(CheckMandatory(Element));
+	}
+
+#ifdef TODO
+	if (!bChecksumUsed) { // old school
+#endif
+        for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+        {
+			if (!bKeepIntact && EBML_ElementIsDefaultValue(i))
+				continue;
+			Err = EBML_ElementRender(i,Output, bKeepIntact, 0, bForceRender, &ItemRendered);
+            if (Err!=ERR_NONE)
+                return Err;
+            *Rendered += ItemRendered;
+		}
+#ifdef TODO
+	} else { // new school: render in memory and compute the CRC
+		MemIOCallback TmpBuf(Size - 6);
+		for (Index = 0; Index < ElementList.size(); Index++) {
+			if (!bKeepIntact && (ElementList[Index])->IsDefaultValue())
+				continue;
+			(ElementList[Index])->Render(TmpBuf, bKeepIntact, false ,bForceRender);
+		}
+		Checksum.FillCRC32(TmpBuf.GetDataBuffer(), TmpBuf.GetDataBufferSize());
+		Result += Checksum.Render(output, true, false ,bForceRender);
+		output.writeFully(TmpBuf.GetDataBuffer(), TmpBuf.GetDataBufferSize());
+		Result += TmpBuf.GetDataBufferSize();
+	}
+#endif
+
+	return Err;
+}
+
+META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
+META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+META_END(EBML_ELEMENT_CLASS)

@@ -1,0 +1,10 @@
+CON mkvtree
+{
+  USE matroska2
+  SOURCE mkvtree.c
+}
+
+GROUP mkvtests
+{
+  USE mkvtree
+}

@@ -1,0 +1,24 @@
+#define TARGET_WINCE
+#define TARGET_WIN
+#define IX86
+
+PLATFORMLIB = wince_x86
+
+TARGID = WCE emulator
+TARGCODE = 0xa6
+TARGCPU = "{32E52003-403E-442D-BE48-DE10F8C6131D}"
+TARGCC = cl.exe
+TARGDEFINE = STANDARDSHELL_UI_MODEL
+TARGDEFINE += _i386_
+TARGDEFINE += _X86_
+TARGDEFINE += x86
+TARGDEFINE += _WIN32_WCE_CEPC
+TARGCFLAGS = /Gs8192 /GF
+TARGLFLAGS_noMFC = $(CEx86Corelibc) /nodefaultlib:"OLDNAMES.lib"
+TARGLFLAGS = /MACHINE:IX86
+TARGASM = yasm -f win32 -D_WIN32 -o "$(IntDir)/$(InputName).obj" $(InputPath) %(AFLAGS)
+
+EVC     = "%ProgramFiles%\Microsoft eMbedded C++ 4.0\Common\EVC\Bin\evc.exe"
+EVC_SDK = STANDARDSDK_500
+
+#include "evc.inc"

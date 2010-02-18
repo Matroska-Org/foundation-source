@@ -1,0 +1,280 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<link href="corecdoc.css" rel="stylesheet" type="text/css">
+<link href="tabs.css" rel="stylesheet" type="text/css">
+<title>Core-C FAQ</title>
+</head><body>
+<div class="tabs"><ul>
+	<li><a href="index.html"><span>index</span></a></li>
+	<li><a href="classes.html"><span>classes</span></a></li>
+	<li><a href="classtree.html"><span>class tree</span></a></li>
+	<li><a href="singletons.html"><span>singletons</span></a></li>
+	<li><a href="corec.html"><span>Core-C FAQ</span></a></li>
+	<li><a href="coreui.html"><span>CoreUI FAQ</span></a></li>
+</ul></div>
+<h1 class="title">Core-C Frequently Asked Questions</h1>
+
+<h2><a class="anchor" name="intro"></a>Introduction</h2>
+<div class="parag">Core-C is a set of C structures that adds a whole <em>Object Oriented</em> layer to the C language. It is fully and only based on the C language.</div>
+<div class="parag">As any Object Oriented language it uses the concept of classes and of class instances, called <span class="code">node</span> in Core-C.
+  Each class can have <a href="#properties">properties</a>, <a href="#variables">instance variables</a>, <a href="#actions">actions</a> and <a href="#methods">methods</a>. 
+  And each class is identified in the code by its <span class="code">FourCC</span> value.</div>
+<div class="parag">Each class can only inherit from one other class (no multiple inheritences). The base class for all classes is the <a class="code" href="NODE.html">node</a> class.
+  It inherits its variables, actions and methods and can override them if needed.</div>
+
+
+<h2><a class="anchor" name="properties"></a>Class Properties</h2>
+<div class="parag">Each class has its own properties used by the Core-C engine to enable some special treatments depending on the flags. The properties are not inherited by child classes.</div>
+<div class="defblock">
+    <span class="variab">Local - <span class="code">CFLAG_LOCAL</span></span>
+    <div class="definfo">A local class is not saved during a NodeDump().</div>
+</div>
+<div class="defblock">
+    <span class="variab">Appears in Settings - <span class="code">CFLAG_SETTINGS</span></span>
+    <div class="definfo">This class is available in the user settings for configuration.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Saved Settings - <span class="code">CFLAG_CONFIG</span></span>
+    <div class="definfo">This class saves and restores its settings in the config.xml file.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Abstract - <span class="code">CFLAG_ABSTRACT</span></span>
+    <div class="definfo">This class defines an API via the variables, actions and methods. But only children of that class can be instanciated. It's equivalent to a virtual class in C++.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Singleton - <span class="code">CFLAG_SINGLETON</span></span>
+    <div class="definfo">see <a href="#singletons">Singleton Classes</a>.</div>
+</div>
+
+
+<h2><a class="anchor" name="variables"></a>Instance Variables</h2>
+<div class="parag">Most of a class is defined by its instance variables. It defines all that can be read/written on each class instance. 
+  The most basic features of a variable are the Set (<span class="code">Node_Set</span>) and Get (<span class="code">Node_Get</span>) calls.</div>
+<div class="parag">Each variable has a type and flags to define particular use of the variable. It can also have an internal name (use by CoreUI).</div>
+
+<h3>The possible types include:</h3>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_BOOLEAN</span></span>
+    <div class="definfo">a boolean value, with the type bool_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_INT</span></span>
+    <div class="definfo">a signed integer, with the type int.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_FRACTION</span></span>
+    <div class="definfo">a fraction, with the type fraction_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_STRING</span></span>
+    <div class="definfo">a NULL terminated string, with the type tchar_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_RECT</span></span>
+    <div class="definfo">a rectangle, with the type cc_rect.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_POINT</span></span>
+    <div class="definfo">a point/coordinate, with the type cc_point.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_RGB</span></span>
+    <div class="definfo">a RGB value, with the type rgbval_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_FOURCC</span></span>
+    <div class="definfo">a FourCC, with the type fourcc_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_FILEPOS</span></span>
+    <div class="definfo">a file position, with the type filepos_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_TICK</span></span>
+    <div class="definfo">a tick value, with the type tick_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_PTR</span></span>
+    <div class="definfo">a pointer, with the type void*.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_NOTIFY</span></span>
+    <div class="definfo">a notify callback, with the type notify.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_INT8</span></span>
+    <div class="definfo">an integer on 8 bits, with the type int8_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_INT16</span></span>
+    <div class="definfo">an integer on 16 bits, with the type int16_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_INT32</span></span>
+    <div class="definfo">an integer on 32 bits, with the type int32_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_INT64</span></span>
+    <div class="definfo">an integer on 64 bits, with the type int64_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_BOOL_BIT</span></span>
+    <div class="definfo">a boolean value that is internally mixed with other flags (to save memory), with the type bool_t.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_PIN</span></span>
+    <div class="definfo">a pin, ie the combination of a node and a variable ID, with the type pin.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_EVENT</span></span>
+    <div class="definfo">an event, see <a href="#actions">Actions</a>.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_ARRAY</span></span>
+    <div class="definfo">an array of values, with the type array.</div>
+</div>
+<div class="defblock">
+    <span class="variab"><span class="code">TYPE_DATETIME</span></span>
+    <div class="definfo">a date &amp; time value, with the type datetime_t.</div>
+</div>
+
+<h3>The possible variable flags include:</h3>
+<div class="defblock">
+    <span class="variab">Default - <span class="code">TFLAG_DEFAULT</span></span>
+    <div class="definfo">When reading data it's filled with a default empty value even if the data don't exist.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Read-Only - <span class="code">TFLAG_RDONLY</span></span>
+    <div class="definfo">The value can only be read, not written.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Setup - <span class="code">TFLAG_SETUP</span></span>
+    <div class="definfo">A variable that can be saved/restored into a XML file</div>
+</div>
+<div class="defblock">
+    <span class="variab">Settings - <span class="code">TFLAG_SETTINGS</span></span>
+    <div class="definfo">The variable can be displayed/changed in the user preferences.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Not Saved - <span class="code">TFLAG_NOSAVE</span></span>
+    <div class="definfo">The value isn't kept when a node is copied.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Notify When Changed - <span class="code">TFLAG_NOTIFY</span></span>
+    <div class="definfo">This variables can be monitored for changes using a notiyfunc callback.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Update Mode - <span class="code">TFLAG_UPDATEMODE</span></span>
+    <div class="definfo">In CoreUI, forces the update of the display when an event is fired.</div>
+</div>
+<div class="defblock">
+    <span class="variab">No Dump - <span class="code">TFLAG_NODUMP</span></span>
+    <div class="definfo">The value of this variable is not dump when a crash occurs.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Hotkey - <span class="code">TFLAG_HOTKEY</span></span>
+    <div class="definfo">Indicates that a hotkey can be assigned to toggle the value of this variable.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Hotkey - <span class="code">TFLAG_INPUT</span></span>
+    <div class="definfo">Indicates that a the data with PIN_FORMAT flag is available as input source.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Display - <span class="code">TFLAG_DISPLAY</span></span>
+    <div class="definfo">When reading a data as a string, indicates it's for displaying and not internal use.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Available - <span class="code">TFLAG_AVAILABLE</span></span>
+    <div class="definfo">The pin includes an entry with DATA_AVAILABLE to tell if the pin is usable or not.</div>
+</div>
+
+<h3>The possible variable unit modifiers are:</h3>
+<div class="defblock">
+    <span class="variab">Checklist - <span class="code">TUNIT_CHECKLIST</span></span>
+    <div class="definfo">The boolean value should be shown as a checklist.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Enumerate - <span class="code">TUNIT_ENUM</span></span>
+    <div class="definfo">The pin includes various possible values that can be read with the DATA_ENUM flag.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Enumerate - <span class="code">TUNIT_NUMBER</span></span>
+    <div class="definfo">The integer should be displayed with no type.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Hexadecimal - <span class="code">TUNIT_HEX</span></span>
+    <div class="definfo">The integer should be displayed as a value in hexadecimal.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Percent - <span class="code">TUNIT_PERCENT</span></span>
+    <div class="definfo">The integer should be displayed as a percentage.</div>
+</div>
+<div class="defblock">
+    <span class="variab">KiloBytes - <span class="code">TUNIT_KBYTE</span></span>
+    <div class="definfo">The integer should be displayed as a value in kilobytes.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Second - <span class="code">TUNIT_SECOND</span></span>
+    <div class="definfo">The integer should be displayed as a value in seconds.</div>
+</div>
+<div class="defblock">
+    <span class="variab">MegaHertz - <span class="code">TUNIT_MHZ</span></span>
+    <div class="definfo">The integer should be displayed as a value in MHz.</div>
+</div>
+<div class="defblock">
+    <span class="variab">BitRate - <span class="code">TUNIT_BYTERATE</span></span>
+    <div class="definfo">The integer should be displayed as a bitrate.</div>
+</div>
+<div class="defblock">
+    <span class="variab">X Coordinates - <span class="code">TUNIT_XCOORD</span></span>
+    <div class="definfo">The integer value represents a X coordinate.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Y Coordinates - <span class="code">TUNIT_YCOORD</span></span>
+    <div class="definfo">The integer value represents a Y coordinate.</div>
+</div>
+<div class="defblock">
+    <span class="variab">UpperCase - <span class="code">TUNIT_UPPER</span></span>
+    <div class="definfo">The string value should be shown and stored as uppercase.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Folder - <span class="code">TUNIT_FOLDER</span></span>
+    <div class="definfo">The string value represents a path to a folder.</div>
+</div>
+<div class="defblock">
+    <span class="variab">Hotkey - <span class="code">TUNIT_HOTKEY</span></span>
+    <div class="definfo">The value is representing a hotkey.</div>
+</div>
+<div class="defblock">
+    <span class="variab">AnyChar - <span class="code">TUNIT_ANYCHAR</span></span>
+    <div class="definfo">The node value can have any char in the expression ???</div>
+</div>
+
+
+
+<h2><a class="anchor" name="actions"></a>Class Actions</h2>
+<div class="parag">An action are implemented like <a href="#variables">variables</a> of type <span class="code">TYPE_EVENT</span>. These variables are only set and take no parameter.</div>
+<div class="parag"><span class="code">Node_Set(ClassInstance, ACTION_ID, NULL, 0)</span></div>
+<div class="parag">Actions used to make instances perform actions without having to call a method. It is useful for scripting like in CoreUI.</div>
+
+
+<h2><a class="anchor" name="methods"></a>Class Methods</h2>
+<div class="parag">Methods are functions that can be called directly on the class. A child class can override the methods of its parents, and add new methods.</div>
+<div class="parag">The basic <a class="code" href="NODE.html">node</a> class has 4 methods: Get(), Set(), Meta() and Enum().</div>
+
+
+<h2><a class="anchor" name="singletons"></a>Singleton Classes</h2>
+<div class="parag">Singleton classes are classes that can be used from anywhere in the code. They can be queried using <span class="code">NodeSingleton(&lt;Class_FourCC&gt;)</span>. They are created with the flag CFLAG_SINGLETON.</div>
+<div class="parag">A singleton class has no parent and only has one instance created. It's equivalent to the singleton design pattern.</div>
+
+<h2><a class="anchor" name="events"></a>Singleton Events</h2>
+<div class="parag">Classes can have their own events, but in addition Core-C provides some generic singleton events that every singleton classes receive:</div>
+<div class="parag"><ul>
+<li><span class="code">NODE_SINGLETON_STARTUP</span>: called when a module is loaded or the program is started.</li>
+<li><span class="code">NODE_SINGLETON_CONFIGURED</span>: called when all the modules are loaded and all the class are registered.</li>
+<li><span class="code">NODE_SINGLETON_SHUTDOWN</span>: called when a module is unloaded or the program is shutting down.</li>
+<li><span class="code">NODE_SINGLETON_INSTALL</span>: called when a CoreUI program is called with <span class="code">--install</span> in the command-line.</li>
+<li><span class="code">NODE_SINGLETON_UNINSTALL</span>: called when a CoreUI program is called with <span class="code">--uninstall</span> in the command-line.</li>
+</div>
+
+<hr><p><address style="text-align: center;"><small>Copyright &copy; 2008-2009 CoreCodec, Inc.</small></address><p></body></html>

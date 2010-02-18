@@ -1,0 +1,13 @@
+#define IX86
+#define DEBUG
+
+#define ASM yasm
+//#define STIP strip
+//#define STRIPFLAGS -s -x
+
+#define CCFLAGS -DDEBUG -ggdb -DTARGET_QTOPIA -DTARGET_DESKTOP -DQT_SHARED -pipe -m32 -march=i486 -msse -mmmx -Wno-multichar -fno-exceptions -fvisibility=hidden
+#define ASMFLAGS -f elf -D_HIDDEN
+#define LFLAGS
+#define SHFLAGS -shared
+
+#include "gcc_qtopia.inc"

@@ -1,0 +1,18 @@
+GROUP node
+{
+  USE corec
+  USE array
+  USE multithread
+  USE str
+
+  SOURCE node.c
+  SOURCE nodetree.c
+
+  HEADER node.h
+  HEADER nodebase.h
+  HEADER nodetree.h
+  HEADER nodetools.h
+  HEADER(TARGET_SYMBIAN) node_symbian.h
+
+  INSTALL(CONFIG_CORECDOC) corec.html
+}

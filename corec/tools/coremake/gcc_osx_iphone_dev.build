@@ -1,0 +1,21 @@
+#define TARGET_IPHONE
+#define TARGET_IPHONE_DEV
+#define ARM
+
+// pathes according to http://code.google.com/p/iphone-dev/wiki/Building
+
+#define CC /usr/local/bin/arm-apple-darwin-gcc
+#define CXX /usr/local/bin/arm-apple-darwin-gcc
+#define AR /usr/local/bin/arm-apple-darwin-ar
+#define LD /usr/local/bin/arm-apple-darwin-gcc
+#define STRIP /usr/local/bin/arm-apple-darwin-strip
+
+PLATFORMLIB = osx_arm
+SVNDIR = osx_iphone_dev
+SDK_PATH = /usr/local/arm-apple-darwin
+//SYSLIB_ROOT = /usr/local/arm-apple-darwin/heavenly
+//SYSLIB_ROOT = /usr/local/share/iphone-filesystem
+
+CCFLAGS=%(CCFLAGS) -DTARGET_IPHONE -DTARGET_IPHONE_DEV -DARM -arch arm -mdynamic-no-pic
+
+#include "gcc_osx.inc"

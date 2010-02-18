@@ -1,0 +1,33 @@
+#define TARGET_SYMBIAN
+#define SERIES60
+#define SYMBIAN90
+#define IX86
+
+PLATFORMLIB = symbian_s60_3rd_fp1_winscw
+
+TARGDEFINE = SERIES60
+TARGPLATFORM = WINSCW
+TARGMODE = UDEB
+TARGCPU = winscw
+DEVICES_ID = S60_3rd_FP1:com.nokia.s60
+
+CARBIDE_BASE = S60_3rd_com
+CARBIDE_SDK = S60_3rd_FP1
+CARBIDE_SDK_NAME = S60 3.0 Emulator
+CARBIDE_CDT_SDK = 91
+CARBIDE_NOKIA_SDK = S60_30
+CARBIDE_TOOLCHAIN_PREFIX = 
+CARBIDE_TOOLCHAIN = winscw
+CARBIDE_ERRORPARSERS = errorParsers="com.symbian.cdt.build.WinscwErrorParser;org.eclipse.cdt.core.MakeErrorParser;;com.symbian.cdt.build.RCOMPErrorParser;;com.symbian.cdt.build.MakeDefErrorParser"
+CARBIDE_DEFINE += _UNICODE
+CARBIDE_DEFINE += __SYMBIAN32__
+CARBIDE_DEFINE += __CW32__
+CARBIDE_DEFINE += __WINS__
+CARBIDE_DEFINE += __WINSCW__
+CARBIDE_DEFINE += __SUPPORT_CPP_EXCEPTIONS__
+CARBIDE_DEFINE += __SERIES60_31__
+CARBIDE_DEFINE += __SERIES60_3X__
+
+MIFCONV = /v1
+
+#include "symbian.inc"

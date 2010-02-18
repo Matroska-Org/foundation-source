@@ -1,0 +1,26 @@
+EVC     = "%ProgramFiles%\Microsoft eMbedded C++ 4.0\Common\EVC\Bin\evc.exe"
+EVC_SDK = STANDARDSDK_420
+
+CABWIZ  = "%ProgramFiles%\Windows CE Tools\wce420\POCKET PC 2003\Tools\Cabwiz.exe"
+CABNAME = Mips
+CABCPU  = 4000
+
+#define TARGET_WINCE
+#define TARGET_WIN
+#define MIPS
+
+PLATFORMLIB = wince_mips
+
+TARGID = WCE MIPSII
+TARGCODE = 0xa1
+TARGCPU = "{689DDC64-9D9D-11D5-96F8-00207802C01C}"
+TARGCC = clmips.exe
+TARGDEFINE = STANDARDSHELL_UI_MODEL
+TARGDEFINE += MIPS
+TARGDEFINE += _MIPS_
+TARGCFLAGS = /QMR4100
+TARGCFLAGS_REL = /Oxt
+TARGLFLAGS = /MACHINE:MIPS
+TARGS = mipsasm /QMmips32 /c "$(InputPath)" /Fo"$(IntDir)/$(InputName).obj"
+
+#include "evc.inc"

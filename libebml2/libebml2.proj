@@ -1,0 +1,33 @@
+#include "*/*.proj"
+
+PROJECT ebml2
+{
+  PROJECT_VERSION  0.0.1
+  PROJECT_VENDOR   "Matroska Foundation"
+}
+
+GROUP ebml2_group
+{
+  INCLUDE .
+  EXPINCLUDE .
+  USE node
+  USE file
+  USE date
+  USE(CONFIG_EBML_UNICODE) parser
+
+  HEADER ebml/ebml.h
+
+  SOURCE ebmlmain.c
+  SOURCE ebmlelement.c {class EBMLElement_Class}
+  SOURCE ebmlmaster.c  {class EBMLMaster_Class}
+  SOURCE ebmlbinary.c  {class EBMLBinary_Class}
+  SOURCE ebmlstring.c  {class EBMLString_Class}
+  SOURCE ebmlnumber.c  {class EBMLInteger_Class}
+  SOURCE ebmlcrc.c     {class EBMLCRC_Class}
+  SOURCE ebmldate.c    {class EBMLDate_Class}
+}
+
+DLL ebml2
+{
+  USE ebml2_group
+}

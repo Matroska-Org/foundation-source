@@ -1,0 +1,19 @@
+#define TARGET_SYMBIAN
+#define SERIES60
+#define IX86
+
+PLATFORMLIB = symbian_s60_2nd_fp3_winscw
+
+TARGDEFINE = SERIES60
+TARGDEFINE2 = __SERIES60_20__
+TARGPLATFORM = WINSCW
+TARGMODE = UDEB
+TARGCPU = winscw
+DEVICES_ID = S60_2nd_FP3:com.nokia.series60
+
+CARBIDE_SDK = S60_2nd_FP3
+CARBIDE_TOOLCHAIN = winscw
+
+#include "symbian.inc"
+
+

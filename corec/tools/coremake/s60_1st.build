@@ -1,0 +1,19 @@
+#define TARGET_SYMBIAN
+#define SERIES60
+#define SERIES60_1ST
+#define ARM
+#define COMPILER_GCC
+
+PLATFORMLIB = symbian_s60_1st
+
+TARGDEFINE = SERIES60
+TARGDEFINE2 = __SERIES60_10__
+TARGPLATFORM = ARMI
+TARGMODE = UREL
+TARGCPU = armi
+DEVICES_ID = S60_1st:com.nokia.series60
+
+TARGSIS = (0x101F6F88),0,0,0,{"Series60ProductID"}
+TARGSIS_S60_1st = 1
+
+#include "symbian.inc"

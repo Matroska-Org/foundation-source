@@ -1,0 +1,10 @@
+CON ebmltree
+{
+  USE ebml2
+  SOURCE ebmltree.c
+}
+
+GROUP ebmltests
+{
+  USE ebmltree
+}

@@ -1,0 +1,32 @@
+workspace corec_test
+{
+  use node_test
+  use file_test
+   
+  use string_test
+}
+
+CON node_test
+{
+  USE node
+  SOURCE node_test.c
+}
+
+CON string_test
+{
+  USE str
+  USE(COREMAKE_UNICODE) charconvert
+  SOURCE string_test.c
+}
+
+CON file_test
+{
+  USE file
+  SOURCE file_test.c
+}
+
+CON parser_test
+{
+  USE parser
+  SOURCE parser_test.c
+}

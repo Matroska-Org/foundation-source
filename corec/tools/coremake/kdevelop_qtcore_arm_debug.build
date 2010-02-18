@@ -1,0 +1,8 @@
+#define DEBUG
+#define QTOPIA_CORE 
+#define CCFLAGS -DDEBUG -DARM -DTARGET_QTOPIA -DTARGET_DESKTOP -DQTOPIA_CORE -DQT_SHARED -Wno-multichar -ggdb -g -fsigned-char -march=armv4t -mtune=xscale
+#define SFLAGS -DDEBUG -DARM -DTARGET_QTOPIA -DTARGET_DESKTOP -DQTOPIA_CORE -DQT_SHARED -Wno-multichar -ggdb -g -fsigned-char -mcpu=iwmmxt -mtune=xscale
+#define SHFLAGS -shared 
+#define CXXFLAGS -fno-rtti
+
+#include "kdevelop_qtopia_arm.inc"

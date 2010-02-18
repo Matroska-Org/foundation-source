@@ -1,0 +1,11 @@
+#define TARGET_OSX
+#define POWERPC
+
+PLATFORMLIB = osx_ppc
+SVNDIR = osx_ppc
+//SDK = /Developer/SDKs/MacOSX10.3.9.sdk
+SDK = /Developer/SDKs/MacOSX10.4u.sdk
+
+CCFLAGS=%(CCFLAGS) -arch ppc -faltivec -mdynamic-no-pic -mmacosx-version-min=10.3
+
+#include "gcc_osx.inc"

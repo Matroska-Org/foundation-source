@@ -1,0 +1,13 @@
+MSDEV = MSDEV.EXE
+
+#define TARGET_PALMOS
+#define IX86
+#define COMPILER_MSVC6
+
+PLATFORMLIB = palm_x86
+
+#define OUTPUT_EXE %(NAME).dll
+#define OUTPUT_DLL %(NAME).dll
+#define OUTPUT_LIB %(NAME).lib
+
+#include "vc6.inc"

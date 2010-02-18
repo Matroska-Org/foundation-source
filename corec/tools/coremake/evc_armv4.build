@@ -1,0 +1,19 @@
+#define TARGET_WINCE
+#define TARGET_WIN
+#define ARM
+
+PLATFORMLIB = wince_armv4
+
+TARGID = WCE ARMV4
+TARGCODE = 0xa3
+TARGCPU = "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
+TARGCC = clarm.exe
+TARGDEFINE = STANDARDSHELL_UI_MODEL
+TARGDEFINE += ARM
+TARGDEFINE += _ARM_
+TARGDEFINE += ARMV4
+TARGCFLAGS =
+TARGLFLAGS = /align:"4096" /MACHINE:ARM
+TARGASM = armasm -cpu xscale "$(InputPath)" "$(IntDir)/$(InputName).obj" -list "$(IntDir)/$(InputName).lst"
+
+#include "evc.inc"

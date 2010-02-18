@@ -1,0 +1,15 @@
+#define TARGET_IPHONE
+#define TARGET_IPHONE_DEV
+#define ARM
+
+// dummy SDK location
+//SDK = /Developer/SDKs/iPhone.sdk
+SDK_PATH = /usr/local/arm-apple-darwin
+CC_PREFIX = /usr/local/bin/arm-apple-darwin-
+FRAMEWORK_PATH = /usr/local/share/iphone-filesystem/
+ARCHS = arm
+#define USE_MAKEFILE
+
+CCFLAGS=%(CCFLAGS) -DTARGET_IPHONE -DTARGET_IPHONE_DEV -DARM -arch arm -mdynamic-no-pic
+
+#include "xcode.inc"

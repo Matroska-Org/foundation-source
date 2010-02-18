@@ -1,0 +1,23 @@
+#include "*/*.proj"
+
+PROJECT matroska2
+{
+  PROJECT_VERSION  0.0.1
+  PROJECT_VENDOR   "Matroska Foundation"
+}
+
+GROUP matroska2_group
+{
+  USE ebml2_group
+
+  INCLUDE .
+  EXPINCLUDE .
+  
+  SOURCE matroskamain.c
+  HEADER matroska/matroska.h
+}
+
+DLL matroska2
+{
+  USE matroska2_group
+}

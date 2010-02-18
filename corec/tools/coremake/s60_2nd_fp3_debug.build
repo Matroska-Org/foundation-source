@@ -1,0 +1,19 @@
+#define TARGET_SYMBIAN
+#define SERIES60
+#define ARM
+#define COMPILER_GCC
+
+PLATFORMLIB = symbian_s60_2nd_fp3
+
+TARGDEFINE = SERIES60
+TARGDEFINE2 = __SERIES60_20__
+TARGPLATFORM = ARMI
+TARGMODE = UDEB
+TARGCPU = armi
+DEVICES_ID = S60_2nd_FP3:com.nokia.series60
+
+TARGSIS = (0x101f7960),0,0,0,{"Series60ProductID"}
+
+CARBIDE_SDK = S60_2nd_FP3
+
+#include "symbian.inc"

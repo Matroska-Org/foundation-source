@@ -1,0 +1,17 @@
+PLATFORM_FILES .
+
+WORKSPACE coremake
+{
+  USE coremake
+  USE corerc
+}
+
+CON coremake
+{
+  SOURCE coremake.c
+}
+
+CON corerc
+{
+  SOURCE corerc.c
+}
