@@ -36,6 +36,10 @@
 #include "parser/parser.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SCOPE_PARTIAL_DATA  0  // useful for binary data with a (internal) header
 #define SCOPE_ALL_DATA      1
 #define SCOPE_NO_DATA       2
@@ -242,5 +246,9 @@ extern const ebml_context EBML_ContextCrc;
 
 extern const ebml_context EBML_ContextGlobals;
 extern const ebml_semantic EBML_GlobalsSemantic[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __LIBEBML2_H */
