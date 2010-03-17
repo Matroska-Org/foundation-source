@@ -1,15 +1,12 @@
 #include "*/*.proj"
 
-PROJECT ebml2
+GROUP ebml2_group
 {
   PROJECT_VERSION  0.0.1
   PROJECT_VENDOR   "Matroska Foundation"
-}
-
-GROUP ebml2_group
-{
+  
   INCLUDE .
-  EXPINCLUDE .
+  USE ebml2_project
   USE node
   USE file
   USE date
@@ -30,4 +27,5 @@ GROUP ebml2_group
 DLL ebml2
 {
   USE ebml2_group
+  EXPINCLUDE .
 }
