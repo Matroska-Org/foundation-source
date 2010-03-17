@@ -188,6 +188,7 @@ processCrc:
     return ERR_NONE;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
 {
     ebml_element *i;
@@ -232,11 +233,14 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 
 	return Err;
 }
+#endif
 
 META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+#if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
 META_END(EBML_ELEMENT_CLASS)

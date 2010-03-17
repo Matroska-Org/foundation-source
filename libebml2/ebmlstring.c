@@ -82,6 +82,7 @@ failed:
     return Result;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
 {
     size_t Written;
@@ -101,6 +102,7 @@ static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceRende
     }
     return Err;
 }
+#endif
 
 #if 0
 err_t EBML_AsciiStringRead(ebml_string *Element, stream *Input, tchar_t *Out, size_t OutLen)
@@ -163,7 +165,9 @@ META_CLASS(DELETE,Delete)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
 META_START_CONTINUE(EBML_UNISTRING_CLASS)
@@ -172,5 +176,7 @@ META_CLASS(DELETE,Delete)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
 META_END(EBML_ELEMENT_CLASS)

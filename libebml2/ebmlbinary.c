@@ -55,6 +55,7 @@ failed:
     return Result;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 static err_t RenderData(ebml_binary *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
 {
     size_t Written;
@@ -63,6 +64,7 @@ static err_t RenderData(ebml_binary *Element, stream *Output, bool_t bForceRende
         *Rendered = Written;
     return Err;
 }
+#endif
 
 err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize)
 {
@@ -104,5 +106,7 @@ META_DATA(TYPE_ARRAY,0,ebml_binary,Data)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
 META_END(EBML_ELEMENT_CLASS)

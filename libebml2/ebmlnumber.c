@@ -98,6 +98,7 @@ failed:
     return Result;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
 {
 	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
@@ -147,6 +148,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
         *Rendered = i;
     return Err;
 }
+#endif
 
 static bool_t ValidateSizeInt(ebml_element *p)
 {
@@ -294,7 +296,9 @@ META_CLASS(SIZE,sizeof(ebml_integer))
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValueInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataInt)
+#if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataInt)
+#endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
@@ -304,7 +308,9 @@ META_CLASS(SIZE,sizeof(ebml_integer))
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValueInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataSignedInt)
+#if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataSignedInt)
+#endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeSignedInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
