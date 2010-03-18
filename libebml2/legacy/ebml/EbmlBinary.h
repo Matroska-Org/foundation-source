@@ -42,8 +42,7 @@ namespace LIBEBML_NAMESPACE {
         virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
 
-        const binary* GetBuffer() const;
-        binary* GetData();
+        binary* GetBuffer() const;
     };
 
 };
