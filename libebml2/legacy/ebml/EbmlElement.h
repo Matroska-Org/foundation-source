@@ -43,12 +43,19 @@ typedef struct ebml_element ebml_element;
         virtual EbmlElement * Clone() const; \
 
 #define EBML_INFO(ref)  ref::ClassInfos        // TODO
-#define EBML_ID(ref)    ref::ClassInfos.EbmlID // TODO
-#define EBML_CONTEXT(e) (e)->Context()
+#define EBML_ID(ref)    ((const EbmlId &)ref::ClassInfos)
+#define EBML_CONTEXT(e) ((const EbmlSemanticContext &)(*e))
 #define EBML_NAME(e)    (e)->DebugName()
 
-#define EBML_INFO_ID(cb)      (cb).EbmlID
-#define EBML_INFO_CONTEXT(cb) (cb).mContext
+#define EBML_INFO_ID(cb)      ((const EbmlId &)(cb))
+#define EBML_INFO_NAME(cb)    (cb).ClassName()
+#define EBML_INFO_CONTEXT(cb) ((const EbmlSemanticContext &)(cb))
+
+#define EBML_SEM_UNIQUE(s)  (s).IsUnique()
+#define EBML_SEM_INFO(s)    (const EbmlCallbacks &)(s)
+#define EBML_SEM_ID(s)      ((const EbmlId &)(const EbmlCallbacks &)(s))
+#define EBML_SEM_CONTEXT(s) ((const EbmlSemanticContext &)(const EbmlCallbacks &)(s))
+#define EBML_SEM_CREATE(s)  (s).Create()
 
 #define EBML_CTX_SIZE(c)    (c).GetSize()
 
@@ -67,13 +74,23 @@ namespace LIBEBML_NAMESPACE {
     class EbmlCallbacks {
     public:
         EbmlCallbacks(EbmlElement & (*_Create)(),const EbmlId &_GlobalId, const char *_Debug, const EbmlSemanticContext &_Context);
-        const EbmlId & EbmlID; // TODO
-        const EbmlSemanticContext & mContext; // TODO
+
+        inline operator const EbmlId &() const { return EbmlID; }
+        inline operator const EbmlSemanticContext &() const { return mContext; }
+        const char* ClassName() const;
+
+    private:
+        const EbmlId & EbmlID;
+        const EbmlSemanticContext & mContext;
     };
 
     class EbmlSemantic {
     public:
         EbmlSemantic(bool _Mandatory,bool _Unique,const EbmlCallbacks & _GetCallbacks);
+
+        EbmlElement & Create() const;
+        operator const EbmlCallbacks &() const;
+        bool IsUnique() const;
     };
 
     class EbmlSemanticContext {
@@ -83,9 +100,10 @@ namespace LIBEBML_NAMESPACE {
 
         inline size_t GetSize() const { return Size; }
 
+        const EbmlSemantic *MyTable; // needs to be public for legacy reasons
+
     private:
         size_t Size;
-        const EbmlSemantic *MyTable;
     };
 
     class EbmlElement {
@@ -122,6 +140,7 @@ namespace LIBEBML_NAMESPACE {
         bool ValueIsSet() const;
 
         const char* DebugName() const;
+        operator const EbmlSemanticContext &() const;
 
     protected:
         EbmlElement();
