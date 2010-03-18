@@ -34,4 +34,12 @@
 static const std::string EbmlCodeVersion;
 static const std::string EbmlCodeDate;
 
+#define LIBEBML_VERSION  0x010000
+
+#if defined(EBML2_LEGACY_PROJECT_VERSION)
+# if (EBML2_LEGACY_PROJECT_VERSION > LIBEBML_VERSION)
+#  error mismatching LIBEBML_VERSION
+# endif
+#endif
+
 #endif // _EBML2_EBML_VERSION_H
