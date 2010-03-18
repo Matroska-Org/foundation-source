@@ -42,6 +42,9 @@
 #include "ebml/EbmlSubHead.h"
 #include "ebml/EbmlContexts.h"
 
+#include "ebml2_legacy_project.h"
+#include "ebml/EbmlVersion.h"
+
 #include "ebml/ebml.h"
 
 namespace LIBEBML_NAMESPACE
