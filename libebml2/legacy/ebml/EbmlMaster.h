@@ -29,12 +29,20 @@
 #ifndef _EBML2_EBML_MASTER_H
 #define _EBML2_EBML_MASTER_H
 
-#include <vector>
-
 #include "ebml/EbmlElement.h"
-#include "ebml/EbmlCrc32.h"
+
+#define EBML_MASTER_ITERATOR  EbmlMaster_itr
 
 namespace LIBEBML_NAMESPACE {
+
+    class EbmlMaster;
+
+    class EbmlMaster_itr {
+    public:
+        EbmlElement* operator*() const;
+        EbmlMaster_itr& operator++();
+        bool operator!=(const EbmlMaster_itr &) const;
+    };
 
     class EbmlMaster : public EbmlElement {
     public:
@@ -49,13 +57,13 @@ namespace LIBEBML_NAMESPACE {
 		bool InsertElement(EbmlElement & element, size_t position = 0);
 		bool PushElement(EbmlElement & element);
 
-        size_t ListSize() const {return ElementList.size();}
-		EbmlElement * operator[](unsigned int position) {return ElementList[position];}
-		const EbmlElement * operator[](unsigned int position) const {return ElementList[position];}
+        size_t ListSize() const;
+		EbmlElement * operator[](size_t position);
+		const EbmlElement * operator[](size_t position) const;
 		/*!
 			\brief remove all elements, even the mandatory ones
 		*/
-		void RemoveAll() {ElementList.clear();}
+		void RemoveAll();
 
         virtual uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
@@ -69,11 +77,8 @@ namespace LIBEBML_NAMESPACE {
 		void Remove(size_t Index);
         filepos_t WriteHead(IOCallback & output, size_t SizeLength, bool bKeepIntact = false);
 
-        std::vector<EbmlElement *>::const_iterator begin();
-        std::vector<EbmlElement *>::const_iterator end();
-
-    protected: // TODO: do not use a vector ?
-        std::vector<EbmlElement *> ElementList;
+        EBML_MASTER_ITERATOR begin() const;
+        EBML_MASTER_ITERATOR end() const;
     };
 
     template <typename Type>

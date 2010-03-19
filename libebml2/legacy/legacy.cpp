@@ -38,6 +38,7 @@
 #include "ebml/EbmlDate.h"
 #include "ebml/EbmlStream.h"
 #include "ebml/EbmlVoid.h"
+#include "ebml/EbmlCrc32.h"
 #include "ebml/EbmlHead.h"
 #include "ebml/EbmlSubHead.h"
 #include "ebml/EbmlContexts.h"
@@ -278,6 +279,28 @@ assert(0);
 
 
 /*****************
+ * EbmlMaster_itr
+ ****************/
+bool EbmlMaster_itr::operator!=(const EbmlMaster_itr &) const
+{
+assert(0);
+return false;
+}
+
+EbmlElement* EbmlMaster_itr::operator*() const
+{
+assert(0);
+return NULL;
+}
+
+EbmlMaster_itr& EbmlMaster_itr::operator++()
+{
+assert(0);
+    return *this;
+}
+
+
+/*****************
  * EbmlMaster
  ****************/
 EbmlMaster::EbmlMaster()
@@ -289,6 +312,18 @@ EbmlMaster::EbmlMaster(const EbmlSemanticContext &Context)
 :EbmlElement(Context)
 {
 assert(0);
+}
+
+EbmlMaster_itr EbmlMaster::begin() const
+{
+assert(0);
+return *static_cast<EbmlMaster_itr*>(NULL);
+}
+
+EbmlMaster_itr EbmlMaster::end() const
+{
+assert(0);
+return *static_cast<EbmlMaster_itr*>(NULL);
 }
 
 bool EbmlMaster::CheckMandatory() const
@@ -318,6 +353,17 @@ assert(0);
 void EbmlMaster::Sort()
 {
 assert(0);
+}
+
+void EbmlMaster::RemoveAll()
+{
+assert(0);
+}
+
+size_t EbmlMaster::ListSize() const
+{
+assert(0);
+return 0;
 }
 
 bool EbmlMaster::InsertElement(EbmlElement & element, size_t position)
