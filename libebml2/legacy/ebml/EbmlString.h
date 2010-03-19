@@ -39,9 +39,9 @@ namespace LIBEBML_NAMESPACE {
     public:
         EbmlString(const char *);
         EbmlString();
-        EbmlString & operator=(const std::string);
+        EbmlString & operator=(const std::string &);
         EbmlString & operator=(const char *);
-        operator const std::string &() const;
+        operator const std::string () const;
 
         virtual uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);

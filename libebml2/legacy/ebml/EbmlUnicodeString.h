@@ -53,7 +53,7 @@ namespace LIBEBML_NAMESPACE {
         EbmlUnicodeString(const UTFstring &);
         EbmlUnicodeString();
         EbmlUnicodeString & operator=(const UTFstring &);
-        operator const UTFstring &() const;
+        operator const UTFstring () const;
 
         virtual uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);

@@ -34,13 +34,14 @@
 #include "ebml/IOCallback.h"
 
 typedef struct ebml_element ebml_element;
+fourcc_t GetEbmlFourCC(ebml_element *);
 
 #define EBML_CONCRETE_CLASS(x) \
     public: \
-        operator const EbmlId &(void) const; \
+        operator const EbmlId (void) const { return EbmlId(GetEbmlFourCC(Node)); } \
         static const EbmlCallbacks ClassInfos; \
-        static EbmlElement & Create(); \
-        virtual EbmlElement * Clone() const; \
+        static EbmlElement & Create() {return *(new x);} \
+        virtual EbmlElement * Clone() const { return new x(*this); } \
 
 #define EBML_INFO(ref)  ref::ClassInfos        // TODO
 #define EBML_ID(ref)    ((const EbmlId &)ref::ClassInfos)
@@ -117,7 +118,7 @@ namespace LIBEBML_NAMESPACE {
         bool IsFiniteSize() const;
         virtual filepos_t GetSize() const;
         size_t GetSizeLength() const;
-        virtual operator const EbmlId &() const = 0;
+        virtual operator const EbmlId () const = 0;
 		virtual uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false) = 0; /// update the Size of the Data stored
         virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA) = 0;
         virtual EbmlElement * Clone() const = 0;
