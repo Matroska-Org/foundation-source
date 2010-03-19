@@ -38,8 +38,8 @@ namespace LIBEBML_NAMESPACE {
         EbmlUInteger(unsigned int);
         EbmlUInteger();
 		operator uint8_t() const;
-        virtual uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
-        virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+        virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
+        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
 
 		/*!

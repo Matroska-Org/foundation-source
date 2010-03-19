@@ -110,7 +110,7 @@ namespace LIBEBML_NAMESPACE {
     class EbmlElement {
     public:
         void SetSizeLength(size_t);
-        uint32 Render(IOCallback & output, bool bSaveDefault = false);
+        filepos_t Render(IOCallback & output, bool bSaveDefault = false);
         virtual bool SetSizeInfinite(bool bIsInfinite = true);
         filepos_t GetElementPosition() const;
         size_t HeadSize() const;
@@ -119,8 +119,8 @@ namespace LIBEBML_NAMESPACE {
         virtual filepos_t GetSize() const;
         size_t GetSizeLength() const;
         virtual operator const EbmlId () const = 0;
-		virtual uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false) = 0; /// update the Size of the Data stored
-        virtual uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA) = 0;
+		virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false) = 0; /// update the Size of the Data stored
+        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA) = 0;
         virtual EbmlElement * Clone() const = 0;
 
 		/*!
