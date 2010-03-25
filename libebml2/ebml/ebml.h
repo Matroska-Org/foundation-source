@@ -78,7 +78,7 @@ typedef struct ebml_semantic
 {
     bool_t Mandatory;
     bool_t Unique;
-    const struct ebml_context *Class; // TODO: rename this as it's confusing with Core-C/fourcc_t Class fields
+    const struct ebml_context *eClass;
 } ebml_semantic;
 
 

@@ -205,12 +205,12 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
         return NULL;
 
 	// elements at the current level
-    for (Semantic=Context->Context->Semantic;Semantic->Class;Semantic++)
+    for (Semantic=Context->Context->Semantic;Semantic->eClass;Semantic++)
     {
-		if (EBML_IdMatch(PossibleId, IdLength, Semantic->Class->Id))
+		if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id))
         {
-            Result = (ebml_element*)NodeCreate(AnyNode,Semantic->Class->Class);
-            Result->Context = Semantic->Class;
+            Result = (ebml_element*)NodeCreate(AnyNode,Semantic->eClass->Class);
+            Result->Context = Semantic->eClass;
 			return Result;
 		}
 	}

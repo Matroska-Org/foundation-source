@@ -67,9 +67,9 @@ static bool_t IsDefaultValue(const ebml_element *Element)
 static bool_t CheckMandatory(const ebml_element *Element)
 {
     const ebml_semantic *i;
-    for (i=Element->Context->Semantic;i->Class;++i)
+    for (i=Element->Context->Semantic;i->eClass;++i)
     {
-        if (i->Mandatory && !EBML_MasterFindChild(Element,i->Class))
+        if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass))
             return 0;
     }
     return 1;
@@ -109,10 +109,10 @@ static void PostCreate(ebml_element *Element)
 {
     const ebml_semantic *i;
     INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
-    for (i=Element->Context->Semantic;i->Class;++i)
+    for (i=Element->Context->Semantic;i->eClass;++i)
     {
         if (i->Mandatory && i->Unique)
-            EBML_MasterFindFirstElt(Element,i->Class,1); // TODO: should it force the default value ?
+            EBML_MasterFindFirstElt(Element,i->eClass,1); // TODO: should it force the default value ?
     }
 }
 
