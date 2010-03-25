@@ -27,6 +27,17 @@
  */
 #include "ebml/ebml.h"
 
+extern const nodemeta BufStream_Class[];
+extern const nodemeta MemStream_Class[];
+extern const nodemeta Streams_Class[];
+#if defined(CONFIG_EBML_UNICODE)
+extern const nodemeta LangStr_Class[];
+extern const nodemeta UrlPart_Class[];
+# if defined(CONFIG_STDIO)
+extern const nodemeta Stdio_Class[];
+# endif
+#endif
+
 extern const nodemeta EBMLElement_Class[];
 extern const nodemeta EBMLMaster_Class[];
 extern const nodemeta EBMLBinary_Class[];
@@ -38,7 +49,18 @@ extern const nodemeta EBMLDate_Class[];
 err_t EBML_Init(nodecontext *p)
 {
     // TODO: only when used as standalone (no coremake & core-c in the rest of the project)
-	NodeRegisterClassEx((nodemodule*)p,EBMLElement_Class);
+    NodeRegisterClassEx((nodemodule*)p,BufStream_Class);
+	NodeRegisterClassEx((nodemodule*)p,MemStream_Class);
+	NodeRegisterClassEx((nodemodule*)p,Streams_Class);
+#if defined(CONFIG_EBML_UNICODE)
+	NodeRegisterClassEx((nodemodule*)p,LangStr_Class);
+	NodeRegisterClassEx((nodemodule*)p,UrlPart_Class);
+# if defined(CONFIG_STDIO)
+	NodeRegisterClassEx((nodemodule*)p,Stdio_Class);
+# endif
+#endif
+
+    NodeRegisterClassEx((nodemodule*)p,EBMLElement_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLMaster_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLBinary_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLString_Class);

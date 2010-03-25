@@ -10,7 +10,11 @@ GROUP ebml2_group
   USE node
   USE file
   USE date
-  USE(CONFIG_EBML_UNICODE) parser
+  IF COREMAKE_UNICODE
+    USE parser
+    DEFINE CONFIG_EBML_UNICODE
+    EXPDEFINE CONFIG_EBML_UNICODE
+  ENDIF
 
   HEADER ebml/ebml.h
 

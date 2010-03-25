@@ -37,5 +37,15 @@ namespace LIBEBML_NAMESPACE {
 
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern void ebml_init();
+extern void ebml_done();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _EBML2_EBML_CONTEXTS_H

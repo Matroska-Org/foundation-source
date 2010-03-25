@@ -53,6 +53,21 @@ fourcc_t GetEbmlFourCC(ebml_element* p)
     return p->Context->Id;
 }
 
+static nodecontext ccContext;
+
+void ebml_init()
+{
+    NodeContext_Init(&ccContext,NULL,NULL,NULL);
+    EBML_Init(&ccContext);
+}
+
+void ebml_done()
+{
+    EBML_Done(&ccContext);
+    NodeContext_Done(&ccContext);
+}
+
+
 namespace LIBEBML_NAMESPACE
 {
 
@@ -161,7 +176,7 @@ assert(0);
 /*****************
  * EbmlElement
  ****************/
-EbmlElement::EbmlElement(const EbmlSemanticContext &)
+EbmlElement::EbmlElement(const EbmlSemanticContext & Context)
 {
 assert(0);
     Node = EBML_ElementCreate(NULL,NULL,0);
@@ -291,7 +306,7 @@ assert(0);
 /*****************
  * EbmlSemanticContext
  ****************/
-EbmlSemanticContext::EbmlSemanticContext(size_t,const EbmlSemantic*,const EbmlSemanticContext *,const EbmlSemanticContext & (*global)(), const EbmlCallbacks*)
+EbmlSemanticContext::EbmlSemanticContext(size_t Size,const EbmlSemantic* Sem,const EbmlSemanticContext* Context, const EbmlSemanticContext & (*global)(), const EbmlCallbacks* Callback)
 {
 assert(0);
 }
@@ -323,7 +338,7 @@ return NULL;
 /*****************
  * EbmlCallbacks
  ****************/
-EbmlSemantic::EbmlSemantic(bool _Mandatory,bool _Unique,const EbmlCallbacks & _GetCallbacks)
+EbmlSemantic::EbmlSemantic(bool Mandatory,bool Unique,const EbmlCallbacks & GetCallbacks)
 {
 assert(0);
 }
