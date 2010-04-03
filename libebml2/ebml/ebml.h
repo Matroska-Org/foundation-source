@@ -88,7 +88,7 @@ typedef struct ebml_context
     fourcc_t Class; // TODO: store a pointer to make creation faster 
     bool_t HasDefault;
     intptr_t DefaultValue;
-    char *ElementName;
+    const char *ElementName;
     // TODO: create sub class so we don't have to assign it all the time
     const ebml_semantic *Semantic; // table with last element class set to NULL
     const ebml_semantic *GlobalContext; // table with last element class set to NULL

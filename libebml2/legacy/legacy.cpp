@@ -366,9 +366,9 @@ return *static_cast<EbmlCallbacks*>(NULL);
  * EbmlId
  ****************/
 EbmlId::EbmlId(uint32_t Id, size_t Size)
-{
-assert(0);
-}
+:Value(Id)
+,Length(Size)
+{}
 
 EbmlId::EbmlId(const binary aValue[4], size_t aLength)
 {
