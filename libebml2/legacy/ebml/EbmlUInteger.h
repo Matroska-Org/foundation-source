@@ -46,6 +46,7 @@ namespace LIBEBML_NAMESPACE {
 			Set the default size of the integer (usually 1,2,4 or 8)
 		*/
 		void SetDefaultSize(filepos_t nDefaultSize = 0);
+        virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
     };
 
 };

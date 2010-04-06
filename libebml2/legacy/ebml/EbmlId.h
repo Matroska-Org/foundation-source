@@ -44,6 +44,7 @@ namespace LIBEBML_NAMESPACE {
         bool operator==(const EbmlId & TestId) const;
         bool operator!=(const EbmlId & TestId) const;
         void Fill(binary * Buffer) const;
+        operator fourcc_t() const;
     private:
         fourcc_t Value;
         size_t Length;

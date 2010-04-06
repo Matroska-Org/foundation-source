@@ -48,9 +48,54 @@
 
 #include "ebml/ebml.h"
 
-fourcc_t GetEbmlFourCC(ebml_element* p)
+fourcc_t GetEbmlFourCC(const ebml_element* p)
 {
     return p->Context->Id;
+}
+
+fourcc_t GetMasterFourCC()
+{
+    return EBML_MASTER_CLASS;
+}
+
+fourcc_t GetUIntegerFourCC()
+{
+    return EBML_INTEGER_CLASS;
+}
+
+fourcc_t GetSIntegerFourCC()
+{
+    return EBML_SINTEGER_CLASS;
+}
+
+fourcc_t GetStringFourCC()
+{
+    return EBML_STRING_CLASS;
+}
+
+fourcc_t GetUniStringFourCC()
+{
+    return EBML_UNISTRING_CLASS;
+}
+
+fourcc_t GetBinaryFourCC()
+{
+    return EBML_BINARY_CLASS;
+}
+
+fourcc_t GetFloatFourCC()
+{
+    return EBML_FLOAT_CLASS;
+}
+
+fourcc_t GetDateFourCC()
+{
+    return EBML_DATE_CLASS;
+}
+
+const ebml_semantic & GetGlobalEBMLSemantic()
+{
+    return *EBML_GlobalsSemantic;
 }
 
 static nodecontext ccContext;
@@ -80,8 +125,8 @@ return *static_cast<EbmlElement*>(NULL);
 static const EbmlSemanticContext EbmlCrc32_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 static const EbmlSemanticContext EbmlVoid_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 
-const EbmlCallbacks EbmlVoid::ClassInfos(DummyCreate, EBML_ContextVoid.Id, EBML_ContextVoid.ElementName, EbmlVoid_Context);
-const EbmlCallbacks EbmlCrc32::ClassInfos(DummyCreate, EBML_ContextCrc.Id, EBML_ContextCrc.ElementName, EbmlCrc32_Context);
+const EbmlCallbacks EbmlVoid::ClassInfos(DummyCreate, EBML_ContextVoid, EbmlVoid_Context);
+const EbmlCallbacks EbmlCrc32::ClassInfos(DummyCreate, EBML_ContextCrc, EbmlCrc32_Context);
 
 
 static const EbmlSemanticContext EbmlHead_Context            = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
@@ -93,14 +138,14 @@ static const EbmlSemanticContext EMaxIdLength_Context        = EbmlSemanticConte
 static const EbmlSemanticContext EReadVersion_Context        = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 static const EbmlSemanticContext EVersion_Context            = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 
-const EbmlCallbacks EbmlHead::ClassInfos(DummyCreate, EBML_ContextHead.Id, EBML_ContextHead.ElementName, EbmlHead_Context);
-const EbmlCallbacks EVersion::ClassInfos(DummyCreate, EBML_ContextVersion.Id, EBML_ContextVersion.ElementName, EVersion_Context);
-const EbmlCallbacks EReadVersion::ClassInfos(DummyCreate, EBML_ContextReadVersion.Id, EBML_ContextReadVersion.ElementName, EReadVersion_Context);
-const EbmlCallbacks EMaxSizeLength::ClassInfos(DummyCreate, EBML_ContextMaxSizeLength.Id, EBML_ContextMaxSizeLength.ElementName, EMaxSizeLength_Context);
-const EbmlCallbacks EMaxIdLength::ClassInfos(DummyCreate, EBML_ContextMaxIdLength.Id, EBML_ContextMaxIdLength.ElementName, EMaxIdLength_Context);
-const EbmlCallbacks EDocType::ClassInfos(DummyCreate, EBML_ContextDocType.Id, EBML_ContextDocType.ElementName, EDocType_Context);
-const EbmlCallbacks EDocTypeVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeVersion.Id, EBML_ContextDocTypeVersion.ElementName, EDocTypeVersion_Context);
-const EbmlCallbacks EDocTypeReadVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeReadVersion.Id, EBML_ContextDocTypeReadVersion.ElementName, EDocTypeReadVersion_Context);
+const EbmlCallbacks EbmlHead::ClassInfos(DummyCreate, EBML_ContextHead, EbmlHead_Context);
+const EbmlCallbacks EVersion::ClassInfos(DummyCreate, EBML_ContextVersion, EVersion_Context);
+const EbmlCallbacks EReadVersion::ClassInfos(DummyCreate, EBML_ContextReadVersion, EReadVersion_Context);
+const EbmlCallbacks EMaxSizeLength::ClassInfos(DummyCreate, EBML_ContextMaxSizeLength, EMaxSizeLength_Context);
+const EbmlCallbacks EMaxIdLength::ClassInfos(DummyCreate, EBML_ContextMaxIdLength, EMaxIdLength_Context);
+const EbmlCallbacks EDocType::ClassInfos(DummyCreate, EBML_ContextDocType, EDocType_Context);
+const EbmlCallbacks EDocTypeVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeVersion, EDocTypeVersion_Context);
+const EbmlCallbacks EDocTypeReadVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeReadVersion, EDocTypeReadVersion_Context);
 
 
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
@@ -178,8 +223,8 @@ assert(0);
  ****************/
 EbmlElement::EbmlElement(const EbmlSemanticContext & Context)
 {
+    Node = EBML_ElementCreate(&ccContext,Context.GetContext(),0);
 assert(0);
-    Node = EBML_ElementCreate(NULL,NULL,0);
     if (Node)
     {
         // TODO: throw some error
@@ -303,35 +348,101 @@ assert(0);
     return NULL;
 }
 
+bool EbmlElement::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	return EbmlId(*this) == EbmlId(*Cmp);
+}
+
+
 /*****************
  * EbmlSemanticContext
  ****************/
-EbmlSemanticContext::EbmlSemanticContext(size_t Size,const EbmlSemantic* Sem,const EbmlSemanticContext* Context, const EbmlSemanticContext & (*global)(), const EbmlCallbacks* Callback)
+EbmlSemanticContext::EbmlSemanticContext(size_t _Size,const EbmlSemantic* Table,const EbmlSemanticContext* Context, const EbmlSemanticContext & (*global)(), const EbmlCallbacks* Callback)
+:Size(_Size)
+,MyTable(Table)
+,pCallbacks(Callback)
 {
-assert(0);
+//    pContext = new ebml_parser_context;
+    // TODO: handle the internal data
+//assert(0);
 }
+
+EbmlSemanticContext::EbmlSemanticContext(size_t _Size,const EbmlSemantic* Table,const EbmlSemanticContext* Context, const EbmlCallbacks* Callback)
+:Size(_Size)
+,MyTable(Table)
+,pCallbacks(Callback)
+{
+}
+
 
 bool EbmlSemanticContext::operator!=(const EbmlSemanticContext & Elt) const
 {
-assert(0);
-    return false;
+	return (Size != Elt.Size) || (MyTable != Elt.MyTable); // TODO: handle more
+}
+
+const ebml_context * EbmlSemanticContext::GetContext() const
+{
+    EbmlCallbacks *Callbacks = const_cast<EbmlCallbacks *>(pCallbacks);
+    return Callbacks->GetContext();
+}
+
+EbmlSemanticContext::~EbmlSemanticContext()
+{
+//    delete pContext;
 }
 
 
 /*****************
  * EbmlCallbacks
  ****************/
-EbmlCallbacks::EbmlCallbacks(EbmlElement & (*_Create)(),const EbmlId &_GlobalId, const char *_Debug, const EbmlSemanticContext &_Context)
+EbmlCallbacks::EbmlCallbacks(EbmlElement & (*_Create)(),const EbmlId &_GlobalId, const char *Debug, const EbmlSemanticContext &_Context, fourcc_t (*GetClass)(), const ebml_semantic & (*global)())
 :EbmlID(_GlobalId)
 ,mContext(_Context)
+,Finalized(false) // TODO: handle the internal data
+,LocalContext(true)
 {
-assert(0);
+    pContext = new ebml_context;
+    pContext->ElementName = Debug;
+    pContext->Id = _GlobalId;
+// TODO: bring back    assert(GetClass!=NULL);
+    if (GetClass!=NULL)
+    {
+        size_t i,Size = _Context.GetSize();
+        ebml_semantic *pSemantic = new ebml_semantic[Size];
+        for (i=0;i<Size;++i)
+            pSemantic[i] = _Context.MyTable[i];
+        pContext->Semantic = pSemantic;
+        pContext->Class = GetClass();
+        pContext->GlobalContext = &(global());
+    }
+}
+
+EbmlCallbacks::EbmlCallbacks(EbmlElement & (*_Create)(),const ebml_context &eContext, const EbmlSemanticContext &_Context)
+:EbmlID(eContext.Id)
+,mContext(_Context)
+,Finalized(true)
+,LocalContext(false)
+{
+    pContext = (ebml_context*)&eContext;
+}
+
+void EbmlCallbacks::Finalize()
+{
+    if (LocalContext && !Finalized)
+    {
+        Finalized = true;
+    }
 }
 
 const char* EbmlCallbacks::ClassName() const
 {
-assert(0);
-return NULL;
+    return pContext->ElementName;
+}
+
+EbmlCallbacks::~EbmlCallbacks()
+{
+    if (LocalContext)
+        delete pContext;
 }
 
 
@@ -339,8 +450,18 @@ return NULL;
  * EbmlCallbacks
  ****************/
 EbmlSemantic::EbmlSemantic(bool Mandatory,bool Unique,const EbmlCallbacks & GetCallbacks)
+:Callbacks(GetCallbacks)
 {
-assert(0);
+    pSemantic = new ebml_semantic;
+    pSemantic->Mandatory = Mandatory;
+    pSemantic->Unique = Unique;
+    pSemantic->eClass = NULL;
+//    pSemantic->eClass = GetCallbacks.GetContext(); // TODO handle this after GetCallbacks is initialized
+}
+
+EbmlSemantic::~EbmlSemantic()
+{
+    delete pSemantic;
 }
 
 EbmlElement & EbmlSemantic::Create() const
@@ -351,14 +472,22 @@ return *static_cast<EbmlElement*>(NULL);
 
 bool EbmlSemantic::IsUnique() const
 {
-assert(0);
-return false;
+    return pSemantic->Unique!=0;
 }
 
 EbmlSemantic::operator const EbmlCallbacks &() const
 {
-assert(0);
-return *static_cast<EbmlCallbacks*>(NULL);
+    return Callbacks;
+}
+
+EbmlSemantic::operator const ebml_semantic &() const
+{
+    if (pSemantic->eClass == NULL)
+    {
+        EbmlCallbacks *pCallbacks = const_cast<EbmlCallbacks*>(&Callbacks);
+        pSemantic->eClass = pCallbacks->GetContext();
+    }
+    return *pSemantic;
 }
 
 
@@ -376,8 +505,9 @@ assert(0);
 }
 
 EbmlId::EbmlId(fourcc_t Id)
+:Value(Id)
 {
-assert(0);
+    // TODO: handle the size
 }
 
 bool EbmlId::operator==(const EbmlId & TestId) const
@@ -388,6 +518,11 @@ bool EbmlId::operator==(const EbmlId & TestId) const
 bool EbmlId::operator!=(const EbmlId & TestId) const
 {
     return (TestId.Value != Value || TestId.Length != Length);
+}
+
+EbmlId::operator fourcc_t() const
+{
+    return Value;
 }
 
 void EbmlId::Fill(binary * Buffer) const
@@ -757,6 +892,17 @@ assert(0);
     return NULL;
 }
 
+bool EbmlUInteger::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	if (EbmlId(*this) == EbmlId(*Cmp))
+    {
+        const EbmlUInteger *_Cmp = static_cast<const EbmlUInteger *>(Cmp);
+        return reinterpret_cast<const ebml_integer*>(Node)->Value < reinterpret_cast<const ebml_integer*>(_Cmp->Node)->Value;
+    }
+	else
+		return false;
+}
+
 
 /*****************
  * EbmlSInteger
@@ -794,6 +940,17 @@ EbmlElement * EbmlSInteger::Clone() const
 {
 assert(0);
     return NULL;
+}
+
+bool EbmlSInteger::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	if (EbmlId(*this) == EbmlId(*Cmp))
+    {
+        const EbmlSInteger *_Cmp = static_cast<const EbmlSInteger *>(Cmp);
+        return reinterpret_cast<const ebml_integer*>(Node)->Value < reinterpret_cast<const ebml_integer*>(_Cmp->Node)->Value;
+    }
+	else
+		return false;
 }
 
 
@@ -864,6 +1021,17 @@ filepos_t EbmlDate::UpdateSize(bool bKeepIntact, bool bForceRender)
 {
 assert(0);
     return INVALID_FILEPOS_T;
+}
+
+bool EbmlDate::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	if (EbmlId(*this) == EbmlId(*Cmp))
+    {
+        const EbmlDate *_Cmp = static_cast<const EbmlDate *>(Cmp);
+        return reinterpret_cast<const ebml_date*>(Node)->Value < reinterpret_cast<const ebml_date*>(_Cmp->Node)->Value;
+    }
+	else
+		return false;
 }
 
 EbmlElement * EbmlDate::Clone() const
