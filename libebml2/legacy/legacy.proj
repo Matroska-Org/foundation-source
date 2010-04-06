@@ -4,6 +4,7 @@ DLL ebml2_legacy
 {
   USE ebml2_group
   EXPINCLUDE .
+  EXPINCLUDE ..
   EXPDEFINE EBML_STRICT_API
   
   SOURCE legacy.cpp

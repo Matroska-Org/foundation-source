@@ -98,12 +98,12 @@ const ebml_semantic EBML_SemanticHead[] = {
 const ebml_context EBML_ContextHead = {FOURCC(0x1A,0x45,0xDF,0xA3), EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_GlobalsSemantic};
 
 
-const ebml_context EBML_ContextVoid   = {FOURCC(0xEC,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
-const ebml_context EBML_ContextCrc    = {FOURCC(0xBF,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
+const ebml_context EBML_ContextEbmlVoid   = {FOURCC(0xEC,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
+const ebml_context EBML_ContextEbmlCrc32    = {FOURCC(0xBF,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
 
 const ebml_semantic EBML_GlobalsSemantic[] = {
-    {0, 0, &EBML_ContextVoid},
-    {0, 1, &EBML_ContextCrc},
+    {0, 0, &EBML_ContextEbmlVoid},
+    {0, 1, &EBML_ContextEbmlCrc32},
     {0, 0, NULL} // end of the table
 };
 

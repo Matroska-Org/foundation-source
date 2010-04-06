@@ -34,31 +34,38 @@
 
 namespace LIBEBML_NAMESPACE {
 
-    class EVersion : public EbmlUInteger {
+    DECLARE_EBML_UINTEGER(EVersion)
+    {
         EBML_CONCRETE_CLASS(EVersion)
     };
 
-    class EReadVersion : public EbmlUInteger {
+    DECLARE_EBML_UINTEGER(EReadVersion)
+    {
         EBML_CONCRETE_CLASS(EReadVersion)
     };
 
-    class EMaxIdLength : public EbmlUInteger {
+    DECLARE_EBML_UINTEGER(EMaxIdLength)
+    {
         EBML_CONCRETE_CLASS(EMaxIdLength)
     };
 
-    class EMaxSizeLength : public EbmlUInteger {
+    DECLARE_EBML_UINTEGER(EMaxSizeLength)
+    {
         EBML_CONCRETE_CLASS(EMaxSizeLength)
     };
 
-    class EDocType : public EbmlString {
+    DECLARE_EBML_STRING(EDocType)
+    {
         EBML_CONCRETE_CLASS(EDocType)
     };
 
-    class EDocTypeVersion : public EbmlUInteger {
+    DECLARE_EBML_UINTEGER(EDocTypeVersion)
+    {
         EBML_CONCRETE_CLASS(EDocTypeVersion)
     };
 
-    class EDocTypeReadVersion : public EbmlUInteger {
+    DECLARE_EBML_UINTEGER(EDocTypeReadVersion)
+    {
         EBML_CONCRETE_CLASS(EDocTypeReadVersion)
     };
 };

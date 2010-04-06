@@ -32,11 +32,7 @@
 #include "ebml/EbmlConfig.h"
 #include "ebml/EbmlId.h"
 #include "ebml/IOCallback.h"
-
-typedef struct ebml_element ebml_element;
-typedef struct ebml_parser_context ebml_parser_context;
-typedef struct ebml_context ebml_context;
-typedef struct ebml_semantic ebml_semantic;
+#include "ebml/ebml.h"
 
 extern "C" fourcc_t GetEbmlFourCC(const ebml_element *);
 extern "C" fourcc_t GetMasterFourCC();
@@ -48,6 +44,19 @@ extern "C" fourcc_t GetStringFourCC();
 extern "C" fourcc_t GetBinaryFourCC();
 extern "C" fourcc_t GetDateFourCC();
 extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
+
+#if 1
+#define EBML_ID(ref)    (EBML_Context##ref.Id)
+#else
+#define EBML_ID(ref)    ((const EbmlId &)ref::ClassInfos)
+#endif
+
+#define DECLARE_EBML_CONTEXT(x)     extern const ebml_context EBML_Context##x;
+#define DECLARE_EBML_UINTEGER(x)    DECLARE_EBML_CONTEXT(x) \
+  class x : public EbmlUInteger
+#define DECLARE_EBML_STRING(x)    DECLARE_EBML_CONTEXT(x) \
+  class x : public EbmlString
+
 
 #define EBML_CONCRETE_CLASS(x) \
     public: \
@@ -64,56 +73,117 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(countof(ContextList_##x), ContextList_##x, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetMasterFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, NULL, NULL};
 
 #define DEFINE_xxx_MASTER_ORPHAN(x,id,idl,name,global) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(countof(ContextList_##x), ContextList_##x, NULL, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetMasterFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, NULL, NULL};
 
 #define DEFINE_xxx_UINTEGER(x,id,idl,parent,name,global) DEFINE_EBML_UINTEGER(x,id,idl,parent,name)
 #define DEFINE_EBML_UINTEGER(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetUIntegerFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_INTEGER_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
+
+#define DEFINE_xxx_UINTEGER_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval)
+#define DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetUIntegerFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_INTEGER_CLASS, 1, defval, name, NULL, NULL}; \
+    x::x() :EbmlUInteger(defval) {}
 
 #define DEFINE_xxx_SINTEGER(x,id,idl,parent,name,global) DEFINE_EBML_SINTEGER(x,id,idl,parent,name)
 #define DEFINE_EBML_SINTEGER(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetSIntegerFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_SINTEGER_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
+
+#define DEFINE_xxx_SINTEGER_CONS(x,id,idl,parent,name,global) DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name)
+#define DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetSIntegerFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_SINTEGER_CLASS, 0, 0, name, NULL, NULL}; \
 
 #define DEFINE_xxx_FLOAT(x,id,idl,parent,name,global) DEFINE_EBML_FLOAT(x,id,idl,parent,name)
 #define DEFINE_EBML_FLOAT(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetFloatFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_FLOAT_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
+
+#define DEFINE_xxx_FLOAT64(x,id,idl,parent,name,global) DEFINE_EBML_FLOAT64(x,id,idl,parent,name)
+#define DEFINE_EBML_FLOAT64(x,id,idl,parent,name) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetFloatFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_FLOAT_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() :EbmlFloat(EbmlFloat::FLOAT_64) {}
+
+#define DEFINE_xxx_FLOAT_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval)
+#define DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetFloatFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_FLOAT_CLASS, 1, (intptr_t)defval, name, NULL, NULL}; \
+    x::x() :EbmlFloat(defval) {}
 
 #define DEFINE_xxx_UNISTRING(x,id,idl,parent,name,global) DEFINE_EBML_UNISTRING(x,id,idl,parent,name)
 #define DEFINE_EBML_UNISTRING(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetUniStringFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_UNISTRING_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
 
 #define DEFINE_xxx_STRING(x,id,idl,parent,name,global) DEFINE_EBML_STRING(x,id,idl,parent,name)
 #define DEFINE_EBML_STRING(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetStringFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_STRING_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
+
+#define DEFINE_xxx_STRING_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval)
+#define DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetStringFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_STRING_CLASS, 1, (intptr_t)defval, name, NULL, NULL}; \
+    x::x() :EbmlString(defval) {}
 
 #define DEFINE_xxx_BINARY(x,id,idl,parent,name,global) DEFINE_EBML_BINARY(x,id,idl,parent,name)
 #define DEFINE_EBML_BINARY(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetBinaryFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
+
+#define DEFINE_xxx_BINARY_CONS(x,id,idl,parent,name,global) DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name)
+#define DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetBinaryFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL};
 
 #define DEFINE_xxx_DATE(x,id,idl,parent,name,global) DEFINE_EBML_DATE(x,id,idl,parent,name)
 #define DEFINE_EBML_DATE(x,id,idl,parent,name) \
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(0, NULL, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetDateFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_DATE_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() {}
 
 #define EBML_INFO(ref)  ref::ClassInfos        // TODO
-#define EBML_ID(ref)    ((const EbmlId &)ref::ClassInfos)
 #define EBML_CONTEXT(e) ((const EbmlSemanticContext &)(*e))
 #define EBML_NAME(e)    (e)->DebugName()
 
@@ -131,11 +201,7 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 
 namespace LIBEBML_NAMESPACE {
 
-    enum ScopeMode {
-	    SCOPE_PARTIAL_DATA = 0,
-	    SCOPE_ALL_DATA,
-	    SCOPE_NO_DATA
-    };
+    typedef int ScopeMode;
 
     class EbmlSemanticContext;
     class EbmlElement;

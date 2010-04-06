@@ -241,8 +241,8 @@ extern const ebml_context EBML_ContextDocType;
 extern const ebml_context EBML_ContextDocTypeVersion;
 extern const ebml_context EBML_ContextDocTypeReadVersion;
 
-extern const ebml_context EBML_ContextVoid;
-extern const ebml_context EBML_ContextCrc;
+extern const ebml_context EBML_ContextEbmlVoid;
+extern const ebml_context EBML_ContextEbmlCrc32;
 
 extern const ebml_context EBML_ContextGlobals;
 extern const ebml_semantic EBML_GlobalsSemantic[];

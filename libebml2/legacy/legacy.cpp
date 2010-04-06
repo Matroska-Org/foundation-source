@@ -125,8 +125,8 @@ return *static_cast<EbmlElement*>(NULL);
 static const EbmlSemanticContext EbmlCrc32_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 static const EbmlSemanticContext EbmlVoid_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 
-const EbmlCallbacks EbmlVoid::ClassInfos(DummyCreate, EBML_ContextVoid, EbmlVoid_Context);
-const EbmlCallbacks EbmlCrc32::ClassInfos(DummyCreate, EBML_ContextCrc, EbmlCrc32_Context);
+const EbmlCallbacks EbmlVoid::ClassInfos(DummyCreate, EBML_ContextEbmlVoid, EbmlVoid_Context);
+const EbmlCallbacks EbmlCrc32::ClassInfos(DummyCreate, EBML_ContextEbmlCrc32, EbmlCrc32_Context);
 
 
 static const EbmlSemanticContext EbmlHead_Context            = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
@@ -146,6 +146,14 @@ const EbmlCallbacks EMaxIdLength::ClassInfos(DummyCreate, EBML_ContextMaxIdLengt
 const EbmlCallbacks EDocType::ClassInfos(DummyCreate, EBML_ContextDocType, EDocType_Context);
 const EbmlCallbacks EDocTypeVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeVersion, EDocTypeVersion_Context);
 const EbmlCallbacks EDocTypeReadVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeReadVersion, EDocTypeReadVersion_Context);
+
+const ebml_context EBML_ContextEVersion            = EBML_ContextVersion;
+const ebml_context EBML_ContextEReadVersion        = EBML_ContextReadVersion;
+const ebml_context EBML_ContextEMaxIdLength        = EBML_ContextMaxIdLength;
+const ebml_context EBML_ContextEMaxSizeLength      = EBML_ContextMaxSizeLength;
+const ebml_context EBML_ContextEDocType            = EBML_ContextDocType;
+const ebml_context EBML_ContextEDocTypeVersion     = EBML_ContextDocTypeVersion;
+const ebml_context EBML_ContextEDocTypeReadVersion = EBML_ContextDocTypeReadVersion;
 
 
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
@@ -509,7 +517,7 @@ EbmlId::EbmlId(fourcc_t Id)
 {
     // TODO: handle the size
 }
-
+/*
 bool EbmlId::operator==(const EbmlId & TestId) const
 {
     return (TestId.Value == Value && TestId.Length == Length);
@@ -519,7 +527,7 @@ bool EbmlId::operator!=(const EbmlId & TestId) const
 {
     return (TestId.Value != Value || TestId.Length != Length);
 }
-
+*/
 EbmlId::operator fourcc_t() const
 {
     return Value;
