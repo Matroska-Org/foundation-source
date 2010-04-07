@@ -199,6 +199,8 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 #define EBML_INFO_NAME(cb)    (cb).ClassName()
 #define EBML_INFO_CONTEXT(cb) ((const EbmlSemanticContext &)(cb))
 
+#define EBML_CLASS_CONTEXT(ref) ((const EbmlSemanticContext &)(ref::ClassInfos))
+
 #define EBML_SEM_UNIQUE(s)  (s).IsUnique()
 #define EBML_SEM_INFO(s)    (const EbmlCallbacks &)(s)
 #define EBML_SEM_ID(s)      ((const EbmlId &)(const EbmlCallbacks &)(s))
