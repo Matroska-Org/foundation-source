@@ -73,6 +73,14 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
     EbmlId Id_##x    (id, idl); \
     const EbmlSemanticContext Context_##x = EbmlSemanticContext(countof(ContextList_##x), ContextList_##x, &Context_##parent, &EBML_INFO(x)); \
     const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetMasterFourCC); \
+    const ebml_context EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, NULL, NULL}; \
+    x::x() :EbmlMaster(Context_##x) {}
+
+#define DEFINE_xxx_MASTER_CONS(x,id,idl,parent,name,global)  DEFINE_EBML_MASTER_CONS(x,id,idl,parent,name)
+#define DEFINE_EBML_MASTER_CONS(x,id,idl,parent,name) \
+    EbmlId Id_##x    (id, idl); \
+    const EbmlSemanticContext Context_##x = EbmlSemanticContext(countof(ContextList_##x), ContextList_##x, &Context_##parent, &EBML_INFO(x)); \
+    const EbmlCallbacks x::ClassInfos(x::Create, Id_##x, name, Context_##x, GetMasterFourCC); \
     const ebml_context EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, NULL, NULL};
 
 #define DEFINE_xxx_MASTER_ORPHAN(x,id,idl,name,global) \
