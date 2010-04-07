@@ -95,7 +95,7 @@ fourcc_t GetDateFourCC()
 
 const ebml_semantic & GetGlobalEBMLSemantic()
 {
-    return *EBML_GlobalsSemantic;
+    return *EBML_SemanticGlobals;
 }
 
 static nodecontext ccContext;

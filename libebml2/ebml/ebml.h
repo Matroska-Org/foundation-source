@@ -245,7 +245,7 @@ extern const ebml_context EBML_ContextEbmlVoid;
 extern const ebml_context EBML_ContextEbmlCrc32;
 
 extern const ebml_context EBML_ContextGlobals;
-extern const ebml_semantic EBML_GlobalsSemantic[];
+extern const ebml_semantic EBML_SemanticGlobals[];
 
 #ifdef __cplusplus
 }
