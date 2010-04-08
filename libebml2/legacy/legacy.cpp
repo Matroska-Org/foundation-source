@@ -122,39 +122,26 @@ assert(0);
 return *static_cast<EbmlElement*>(NULL);
 }
 
-static const EbmlSemanticContext EbmlCrc32_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EbmlVoid_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
+DEFINE_EBML_BINARY_GLOBAL(EbmlCrc32, 0xBF, 1, "EBMLCrc32\0ratamadabapa");
+DEFINE_EBML_BINARY_GLOBAL(EbmlVoid,  0xEC, 1, "EBMLVoid");
 
-const EbmlCallbacks EbmlVoid::ClassInfos(DummyCreate, EBML_ContextEbmlVoid, EbmlVoid_Context);
-const EbmlCallbacks EbmlCrc32::ClassInfos(DummyCreate, EBML_ContextEbmlCrc32, EbmlCrc32_Context);
+const ebml_context EbmlHead::EBML_ContextEbmlHead                       = ::EBML_ContextHead; // dirty copy
+const ebml_context EDocType::EBML_ContextEDocType                       = ::EBML_ContextDocType; // dirty copy
+const ebml_context EVersion::EBML_ContextEVersion                       = ::EBML_ContextVersion; // dirty copy
+const ebml_context EReadVersion::EBML_ContextEReadVersion               = ::EBML_ContextReadVersion; // dirty copy
+const ebml_context EDocTypeVersion::EBML_ContextEDocTypeVersion         = ::EBML_ContextDocTypeVersion; // dirty copy
+const ebml_context EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion = ::EBML_ContextDocTypeReadVersion; // dirty copy
+const ebml_context EMaxSizeLength::EBML_ContextEMaxSizeLength           = ::EBML_ContextMaxSizeLength; // dirty copy
+const ebml_context EMaxIdLength::EBML_ContextEMaxIdLength               = ::EBML_ContextMaxIdLength; // dirty copy
 
-
-static const EbmlSemanticContext EbmlHead_Context            = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EDocType_Context            = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EDocTypeVersion_Context     = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EDocTypeReadVersion_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EMaxSizeLength_Context      = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EMaxIdLength_Context        = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EReadVersion_Context        = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-static const EbmlSemanticContext EVersion_Context            = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
-
-const EbmlCallbacks EbmlHead::ClassInfos(DummyCreate, EBML_ContextHead, EbmlHead_Context);
-const EbmlCallbacks EVersion::ClassInfos(DummyCreate, EBML_ContextVersion, EVersion_Context);
-const EbmlCallbacks EReadVersion::ClassInfos(DummyCreate, EBML_ContextReadVersion, EReadVersion_Context);
-const EbmlCallbacks EMaxSizeLength::ClassInfos(DummyCreate, EBML_ContextMaxSizeLength, EMaxSizeLength_Context);
-const EbmlCallbacks EMaxIdLength::ClassInfos(DummyCreate, EBML_ContextMaxIdLength, EMaxIdLength_Context);
-const EbmlCallbacks EDocType::ClassInfos(DummyCreate, EBML_ContextDocType, EDocType_Context);
-const EbmlCallbacks EDocTypeVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeVersion, EDocTypeVersion_Context);
-const EbmlCallbacks EDocTypeReadVersion::ClassInfos(DummyCreate, EBML_ContextDocTypeReadVersion, EDocTypeReadVersion_Context);
-
-const ebml_context EBML_ContextEVersion            = EBML_ContextVersion;
-const ebml_context EBML_ContextEReadVersion        = EBML_ContextReadVersion;
-const ebml_context EBML_ContextEMaxIdLength        = EBML_ContextMaxIdLength;
-const ebml_context EBML_ContextEMaxSizeLength      = EBML_ContextMaxSizeLength;
-const ebml_context EBML_ContextEDocType            = EBML_ContextDocType;
-const ebml_context EBML_ContextEDocTypeVersion     = EBML_ContextDocTypeVersion;
-const ebml_context EBML_ContextEDocTypeReadVersion = EBML_ContextDocTypeReadVersion;
-
+const ebml_context & EbmlHead::GetContext() { return EBML_ContextHead; }
+const ebml_context & EDocType::GetContext() { return EBML_ContextEDocType; }
+const ebml_context & EVersion::GetContext() { return EBML_ContextEVersion; }
+const ebml_context & EReadVersion::GetContext() { return EBML_ContextEReadVersion; }
+const ebml_context & EDocTypeVersion::GetContext() { return EBML_ContextEDocTypeVersion; }
+const ebml_context & EDocTypeReadVersion::GetContext() { return EBML_ContextEDocTypeReadVersion; }
+const ebml_context & EMaxSizeLength::GetContext() { return EBML_ContextEMaxSizeLength; }
+const ebml_context & EMaxIdLength::GetContext() { return EBML_ContextEMaxIdLength; }
 
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 {
@@ -229,6 +216,16 @@ assert(0);
 /*****************
  * EbmlElement
  ****************/
+EbmlElement::EbmlElement(const ebml_context & Context)
+{
+    Node = EBML_ElementCreate(&ccContext,&Context,0);
+assert(0);
+    if (Node)
+    {
+        // TODO: throw some error
+    }
+}
+
 EbmlElement::EbmlElement()
 {
 assert(0);
@@ -329,6 +326,11 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
+void EbmlElement::Read(EbmlStream & inDataStream, const ebml_parser_context & Context, int & UpperEltFound, EbmlElement * & FoundElt, bool AllowDummyElt, ScopeMode ReadFully)
+{
+assert(0);
+}
+
 void EbmlElement::Read(EbmlStream & inDataStream, const EbmlSemanticContext & Context, int & UpperEltFound, EbmlElement * & FoundElt, bool AllowDummyElt, ScopeMode ReadFully)
 {
 assert(0);
@@ -349,15 +351,32 @@ bool EbmlElement::IsSmallerThan(const EbmlElement *Cmp) const
 /*****************
  * EbmlSemanticContext
  ****************/
+EbmlSemanticContext::EbmlSemanticContext(const ebml_context & _Context)
+:Context(_Context)
+,Size(0)
+{
+    const ebml_semantic *s = Context.Semantic;
+    while (s->eClass!=NULL)
+    {
+        ++Size;
+        ++s;
+    }
+}
+
+const EbmlSemantic EbmlSemanticContext::GetSemantic(size_t i) const
+{
+    assert(i < Size);
+    return Context.Semantic[i];
+}
+
 bool EbmlSemanticContext::operator!=(const EbmlSemanticContext & Elt) const
 {
-	return (Size != Elt.Size) || (MyTable != Elt.MyTable); // TODO: handle more
+	return (Size != Elt.Size) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
 }
 
 const ebml_context * EbmlSemanticContext::GetContext() const
 {
-    EbmlCallbacks *Callbacks = const_cast<EbmlCallbacks *>(pCallbacks);
-    return Callbacks->GetContext();
+    return &Context;
 }
 
 EbmlSemanticContext::~EbmlSemanticContext()
@@ -367,24 +386,23 @@ EbmlSemanticContext::~EbmlSemanticContext()
 
 
 /*****************
- * EbmlCallbacks
- ****************/
-const char* EbmlCallbacks::ClassName() const
-{
-    return pContext->ElementName;
-}
-
-/*****************
- * EbmlCallbacks
+ * EbmlSemantic
  ****************/
 EbmlSemantic::EbmlSemantic(bool Mandatory,bool Unique,const EbmlCallbacks & GetCallbacks)
-:Callbacks(GetCallbacks)
+:Callbacks(&GetCallbacks)
 {
+assert(0); // should not exist anymore
     pSemantic = new ebml_semantic;
     pSemantic->Mandatory = Mandatory;
     pSemantic->Unique = Unique;
     pSemantic->eClass = NULL;
 //    pSemantic->eClass = GetCallbacks.GetContext(); // TODO handle this after GetCallbacks is initialized
+}
+
+EbmlSemantic::EbmlSemantic(const ebml_semantic & Semantic)
+:Callbacks(NULL)
+,pSemantic(const_cast<ebml_semantic*>(&Semantic))
+{
 }
 
 EbmlSemantic::~EbmlSemantic()
@@ -405,15 +423,14 @@ bool EbmlSemantic::IsUnique() const
 
 EbmlSemantic::operator const EbmlCallbacks &() const
 {
-    return Callbacks;
+    return *Callbacks;
 }
 
 EbmlSemantic::operator const ebml_semantic &() const
 {
     if (pSemantic->eClass == NULL)
     {
-        EbmlCallbacks *pCallbacks = const_cast<EbmlCallbacks*>(&Callbacks);
-        pSemantic->eClass = pCallbacks->GetContext();
+        pSemantic->eClass = Callbacks;
     }
     return *pSemantic;
 }
@@ -475,6 +492,12 @@ assert(0);
  * EbmlMaster
  ****************/
 EbmlMaster::EbmlMaster()
+{
+assert(0);
+}
+
+EbmlMaster::EbmlMaster(struct ebml_context const &Context)
+:EbmlElement(Context)
 {
 assert(0);
 }
@@ -549,19 +572,19 @@ assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindElt(const EbmlCallbacks & Callbacks) const
+EbmlElement *EbmlMaster::FindElt(const ebml_context & Callbacks) const
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindFirstElt(const EbmlCallbacks & Callbacks) const
+EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Callbacks) const
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindFirstElt(const EbmlCallbacks & Callbacks, const bool bCreateIfNull)
+EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Callbacks, const bool bCreateIfNull) const
 {
 assert(0);
     return NULL;
@@ -991,6 +1014,19 @@ assert(0);
     return *((IOCallback*)NULL);
 }
 
+#if 1
+EbmlElement * EbmlStream::FindNextID(const ebml_context & ClassInfos, filepos_t MaxDataSize)
+{
+assert(0);
+    return NULL;
+}
+
+EbmlElement * EbmlStream::FindNextElement(const ebml_context & Context, int & UpperLevel, filepos_t MaxDataSize, bool AllowDummyElt, size_t MaxLowerLevel)
+{
+assert(0);
+    return NULL;
+}
+#else
 EbmlElement * EbmlStream::FindNextID(const EbmlCallbacks & ClassInfos, filepos_t MaxDataSize)
 {
 assert(0);
@@ -1002,6 +1038,7 @@ EbmlElement * EbmlStream::FindNextElement(const EbmlSemanticContext & Context, i
 assert(0);
     return NULL;
 }
+#endif
 
 
 /*****************

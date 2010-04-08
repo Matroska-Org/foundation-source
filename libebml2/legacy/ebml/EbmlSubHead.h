@@ -35,38 +35,24 @@
 namespace LIBEBML_NAMESPACE {
 
     DECLARE_EBML_UINTEGER(EVersion)
-    {
-        EBML_CONCRETE_CLASS(EVersion)
     };
 
     DECLARE_EBML_UINTEGER(EReadVersion)
-    {
-        EBML_CONCRETE_CLASS(EReadVersion)
     };
 
     DECLARE_EBML_UINTEGER(EMaxIdLength)
-    {
-        EBML_CONCRETE_CLASS(EMaxIdLength)
     };
 
     DECLARE_EBML_UINTEGER(EMaxSizeLength)
-    {
-        EBML_CONCRETE_CLASS(EMaxSizeLength)
     };
 
     DECLARE_EBML_STRING(EDocType)
-    {
-        EBML_CONCRETE_CLASS(EDocType)
     };
 
     DECLARE_EBML_UINTEGER(EDocTypeVersion)
-    {
-        EBML_CONCRETE_CLASS(EDocTypeVersion)
     };
 
     DECLARE_EBML_UINTEGER(EDocTypeReadVersion)
-    {
-        EBML_CONCRETE_CLASS(EDocTypeReadVersion)
     };
 };
 

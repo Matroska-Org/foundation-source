@@ -36,8 +36,8 @@ namespace LIBEBML_NAMESPACE {
     public:
         EbmlStream(IOCallback &);
 
-        EbmlElement * FindNextID(const EbmlCallbacks & ClassInfos, filepos_t MaxDataSize);
-        EbmlElement * FindNextElement(const EbmlSemanticContext & Context, int & UpperLevel, filepos_t MaxDataSize, bool AllowDummyElt, size_t MaxLowerLevel = 1);
+        EbmlElement * FindNextID(const ebml_context & ClassInfos, filepos_t MaxDataSize);
+        EbmlElement * FindNextElement(const ebml_context & Context, int & UpperLevel, filepos_t MaxDataSize, bool AllowDummyElt, size_t MaxLowerLevel = 1);
 
         IOCallback & I_O();
     };

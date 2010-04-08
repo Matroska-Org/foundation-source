@@ -33,8 +33,7 @@
 
 namespace LIBEBML_NAMESPACE {
 
-    class EbmlCrc32 : public EbmlBinary {
-        EBML_CONCRETE_CLASS(EbmlCrc32)
+DECLARE_EBML_BINARY(EbmlCrc32)
     };
 
 };

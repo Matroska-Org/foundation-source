@@ -33,11 +33,10 @@
 
 namespace LIBEBML_NAMESPACE {
 
-    class EbmlVoid : public EbmlBinary {
+DECLARE_EBML_BINARY(EbmlVoid)
     public:
         void SetSize(filepos_t);
         filepos_t ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward = true, bool bKeepIntact = false);
-        EBML_CONCRETE_CLASS(EbmlVoid)
     };
 };
 
