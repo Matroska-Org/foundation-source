@@ -229,16 +229,6 @@ assert(0);
 /*****************
  * EbmlElement
  ****************/
-EbmlElement::EbmlElement(const EbmlSemanticContext & Context)
-{
-    Node = EBML_ElementCreate(&ccContext,Context.GetContext(),0);
-assert(0);
-    if (Node)
-    {
-        // TODO: throw some error
-    }
-}
-
 EbmlElement::EbmlElement()
 {
 assert(0);
@@ -247,12 +237,6 @@ assert(0);
     {
         // TODO: throw some error
     }
-}
-
-EbmlElement::operator const EbmlSemanticContext &() const
-{
-assert(0);
-return *static_cast<EbmlSemanticContext*>(NULL);
 }
 
 EbmlElement * EbmlElement::SkipData(EbmlStream & DataStream, const EbmlSemanticContext & Context, EbmlElement * TestReadElt, bool AllowDummyElt)
@@ -365,24 +349,6 @@ bool EbmlElement::IsSmallerThan(const EbmlElement *Cmp) const
 /*****************
  * EbmlSemanticContext
  ****************/
-EbmlSemanticContext::EbmlSemanticContext(size_t _Size,const EbmlSemantic* Table,const EbmlSemanticContext* Context, const EbmlSemanticContext & (*global)(), const EbmlCallbacks* Callback)
-:Size(_Size)
-,MyTable(Table)
-,pCallbacks(Callback)
-{
-//    pContext = new ebml_parser_context;
-    // TODO: handle the internal data
-//assert(0);
-}
-
-EbmlSemanticContext::EbmlSemanticContext(size_t _Size,const EbmlSemantic* Table,const EbmlSemanticContext* Context, const EbmlCallbacks* Callback)
-:Size(_Size)
-,MyTable(Table)
-,pCallbacks(Callback)
-{
-}
-
-
 bool EbmlSemanticContext::operator!=(const EbmlSemanticContext & Elt) const
 {
 	return (Size != Elt.Size) || (MyTable != Elt.MyTable); // TODO: handle more
@@ -403,56 +369,10 @@ EbmlSemanticContext::~EbmlSemanticContext()
 /*****************
  * EbmlCallbacks
  ****************/
-EbmlCallbacks::EbmlCallbacks(EbmlElement & (*_Create)(),const EbmlId &_GlobalId, const char *Debug, const EbmlSemanticContext &_Context, fourcc_t (*GetClass)(), const ebml_semantic & (*global)())
-:EbmlID(_GlobalId)
-,mContext(_Context)
-,Finalized(false) // TODO: handle the internal data
-,LocalContext(true)
-{
-    pContext = new ebml_context;
-    pContext->ElementName = Debug;
-    pContext->Id = _GlobalId;
-// TODO: bring back    assert(GetClass!=NULL);
-    if (GetClass!=NULL)
-    {
-        size_t i,Size = _Context.GetSize();
-        ebml_semantic *pSemantic = new ebml_semantic[Size];
-        for (i=0;i<Size;++i)
-            pSemantic[i] = _Context.MyTable[i];
-        pContext->Semantic = pSemantic;
-        pContext->Class = GetClass();
-        pContext->GlobalContext = &(global());
-    }
-}
-
-EbmlCallbacks::EbmlCallbacks(EbmlElement & (*_Create)(),const ebml_context &eContext, const EbmlSemanticContext &_Context)
-:EbmlID(eContext.Id)
-,mContext(_Context)
-,Finalized(true)
-,LocalContext(false)
-{
-    pContext = (ebml_context*)&eContext;
-}
-
-void EbmlCallbacks::Finalize()
-{
-    if (LocalContext && !Finalized)
-    {
-        Finalized = true;
-    }
-}
-
 const char* EbmlCallbacks::ClassName() const
 {
     return pContext->ElementName;
 }
-
-EbmlCallbacks::~EbmlCallbacks()
-{
-    if (LocalContext)
-        delete pContext;
-}
-
 
 /*****************
  * EbmlCallbacks
@@ -517,17 +437,7 @@ EbmlId::EbmlId(fourcc_t Id)
 {
     // TODO: handle the size
 }
-/*
-bool EbmlId::operator==(const EbmlId & TestId) const
-{
-    return (TestId.Value == Value && TestId.Length == Length);
-}
 
-bool EbmlId::operator!=(const EbmlId & TestId) const
-{
-    return (TestId.Value != Value || TestId.Length != Length);
-}
-*/
 EbmlId::operator fourcc_t() const
 {
     return Value;
@@ -565,12 +475,6 @@ assert(0);
  * EbmlMaster
  ****************/
 EbmlMaster::EbmlMaster()
-{
-assert(0);
-}
-
-EbmlMaster::EbmlMaster(const EbmlSemanticContext &Context)
-:EbmlElement(Context)
 {
 assert(0);
 }
