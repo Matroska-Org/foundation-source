@@ -241,6 +241,12 @@ assert(0);
     }
 }
 
+EbmlElement::~EbmlElement()
+{
+    if (Node)
+        NodeDelete((node*)Node);
+}
+
 EbmlElement * EbmlElement::SkipData(EbmlStream & DataStream, const EbmlSemanticContext & Context, EbmlElement * TestReadElt, bool AllowDummyElt)
 {
 assert(0);

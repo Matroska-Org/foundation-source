@@ -229,6 +229,7 @@ namespace LIBEBML_NAMESPACE {
 
     class EbmlElement {
     public:
+        virtual ~EbmlElement();
         void SetSizeLength(size_t);
         filepos_t Render(IOCallback & output, bool bSaveDefault = false);
         virtual bool SetSizeInfinite(bool bIsInfinite = true);
@@ -268,12 +269,6 @@ namespace LIBEBML_NAMESPACE {
     protected:
         EbmlElement();
         EbmlElement(const ebml_context &);
-        // TODO: add an EBML_LEGACY_STRICT define to avoid direct access to the class variables
-#if 0
-        bool bValueIsSet;
-        filepos_t Size;
-		bool bSizeIsFinite;
-#endif
         ebml_element *Node;
     };
 
