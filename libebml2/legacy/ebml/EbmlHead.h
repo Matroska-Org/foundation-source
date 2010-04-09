@@ -33,10 +33,7 @@
 
 namespace LIBEBML_NAMESPACE {
 
-    class EbmlHead : public EbmlMaster {
-    public:
-        EbmlHead();
-        EBML_CONCRETE_CLASS(EbmlHead)
+    DECLARE_EBML_MASTER(EbmlHead)
     };
 
 };

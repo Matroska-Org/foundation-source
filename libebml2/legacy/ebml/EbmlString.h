@@ -37,8 +37,8 @@ namespace LIBEBML_NAMESPACE {
 
     class EbmlString : public EbmlElement {
     public:
-        EbmlString(const char *);
-        EbmlString();
+        EbmlString(const ebml_context &,const char *);
+        EbmlString(const ebml_context &);
         EbmlString & operator=(const std::string &);
         EbmlString & operator=(const char *);
         operator const std::string () const;

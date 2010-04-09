@@ -231,16 +231,6 @@ EbmlElement::EbmlElement(const ebml_context & Context)
     }
 }
 
-EbmlElement::EbmlElement()
-{
-assert(0);
-    Node = EBML_ElementCreate(NULL,NULL,0);
-    if (Node)
-    {
-        // TODO: throw some error
-    }
-}
-
 EbmlElement::~EbmlElement()
 {
     if (Node)
@@ -283,8 +273,8 @@ void EbmlElement::SetValueIsSet(bool Set)
 
 bool EbmlElement::SetSizeInfinite(bool bIsInfinite)
 {
-assert(0);
-    return false;
+    EBML_ElementSetInfiniteSize(Node,bIsInfinite);
+    return true;
 }
 
 void EbmlElement::SetDefaultSize(filepos_t aDefaultSize)
@@ -303,9 +293,9 @@ assert(0);
     return false;
 }
 
-void EbmlElement::SetSizeLength(size_t)
+void EbmlElement::SetSizeLength(size_t Size)
 {
-assert(0);
+    Node->SizeLength = (int8_t)Size;
 }
 
 size_t EbmlElement::HeadSize() const
@@ -451,11 +441,6 @@ assert(0);
 /*****************
  * EbmlMaster
  ****************/
-EbmlMaster::EbmlMaster()
-{
-assert(0);
-}
-
 EbmlMaster::EbmlMaster(struct ebml_context const &Context)
 :EbmlElement(Context)
 {
@@ -626,13 +611,16 @@ assert(0);
 /*****************
  * EbmlString
  ****************/
-EbmlString::EbmlString(const char *)
+EbmlString::EbmlString(const ebml_context &ec, const char *)
+:EbmlElement(ec)
 {
 assert(0);
 }
 
-EbmlString::EbmlString()
-{}
+EbmlString::EbmlString(const ebml_context &ec)
+:EbmlElement(ec)
+{
+}
 
 filepos_t EbmlString::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
@@ -674,8 +662,10 @@ assert(0);
 /*****************
  * EbmlUnicodeString
  ****************/
-EbmlUnicodeString::EbmlUnicodeString()
-{}
+EbmlUnicodeString::EbmlUnicodeString(const ebml_context &ec)
+:EbmlElement(ec)
+{
+}
 
 filepos_t EbmlUnicodeString::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
@@ -748,11 +738,13 @@ assert(0);
 /*****************
  * EbmlUInteger
  ****************/
-EbmlUInteger::EbmlUInteger()
+EbmlUInteger::EbmlUInteger(const ebml_context &ec)
+:EbmlElement(ec)
 {
 }
 
-EbmlUInteger::EbmlUInteger(unsigned int DefaultValue)
+EbmlUInteger::EbmlUInteger(const ebml_context &ec, unsigned int DefaultValue)
+:EbmlElement(ec)
 {
 assert(0);
 }
@@ -775,6 +767,12 @@ assert(0);
 }
 
 EbmlUInteger::operator uint8_t() const
+{
+assert(0);
+    return 0;
+}
+
+uint64_t EbmlUInteger::operator =(uint64_t val)
 {
 assert(0);
     return 0;
@@ -818,7 +816,7 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-int64_t EbmlSInteger::operator =(int64_t)
+int64_t EbmlSInteger::operator =(int64_t val)
 {
 assert(0);
 return 0;
@@ -851,12 +849,14 @@ bool EbmlSInteger::IsSmallerThan(const EbmlElement *Cmp) const
 /*****************
  * EbmlFloat
  ****************/
-EbmlFloat::EbmlFloat(double DefaultValue, Precision prec)
+EbmlFloat::EbmlFloat(const ebml_context &ec, double DefaultValue, Precision prec)
+:EbmlElement(ec)
 {
 assert(0);
 }
 
-EbmlFloat::EbmlFloat(Precision prec)
+EbmlFloat::EbmlFloat(const ebml_context &ec, Precision prec)
+:EbmlElement(ec)
 {
 assert(0);
     SetPrecision(prec);
@@ -865,6 +865,12 @@ assert(0);
 EbmlFloat::operator double() const
 {
     return reinterpret_cast<const ebml_float*>(Node)->Value;
+}
+
+double EbmlFloat::operator =(double val)
+{
+assert(0);
+    return 0.0;
 }
 
 void EbmlFloat::SetPrecision(Precision prec)
@@ -998,15 +1004,6 @@ assert(0);
     return NULL;
 }
 #endif
-
-
-/*****************
- * EbmlHead
- ****************/
-EbmlHead::EbmlHead()
-{
-assert(0);
-}
 
 
 };

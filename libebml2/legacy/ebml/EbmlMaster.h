@@ -47,7 +47,6 @@ namespace LIBEBML_NAMESPACE {
     class EbmlMaster : public EbmlElement {
     public:
         EbmlMaster(const ebml_context &);
-        EbmlMaster();
         EbmlElement *FindElt(const ebml_context & Callbacks) const;
 		EbmlElement *FindFirstElt(const ebml_context & Callbacks) const;
 		EbmlElement *FindFirstElt(const ebml_context & Callbacks, const bool bCreateIfNull) const;

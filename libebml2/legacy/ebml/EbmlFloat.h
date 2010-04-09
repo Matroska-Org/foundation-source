@@ -40,9 +40,11 @@ namespace LIBEBML_NAMESPACE {
 			,FLOAT_64
 		};
 
-		EbmlFloat(Precision prec = FLOAT_32);
-		EbmlFloat(double DefaultValue, Precision prec = FLOAT_32);
+		EbmlFloat(const ebml_context &, Precision prec = FLOAT_32);
+		EbmlFloat(const ebml_context &, double DefaultValue, Precision prec = FLOAT_32);
         operator double() const;
+
+        double operator =(double val);
 
         void SetPrecision(Precision prec = FLOAT_32);
 

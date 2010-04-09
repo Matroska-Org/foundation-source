@@ -70,9 +70,9 @@ bool_t EBML_ElementIsFiniteSize(const ebml_element *Element)
     return (Node_GetData((const node*)Element,EBML_ELEMENT_INFINITESIZE,TYPE_BOOLEAN) == 0);
 }
 
-void EBML_ElementSetInfiniteSize(const ebml_element *Element)
+void EBML_ElementSetInfiniteSize(const ebml_element *Element, bool_t Set)
 {
-    bool_t b = 1;
+    bool_t b = Set;
     Node_SetData((node*)Element,EBML_ELEMENT_INFINITESIZE,TYPE_BOOLEAN,&b);
 }
 

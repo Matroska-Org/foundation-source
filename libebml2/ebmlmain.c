@@ -538,7 +538,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
 					if (EBML_ElementValidateSize(Result))
                     {
 						if (SizeFound == SizeUnknown) 
-                            EBML_ElementSetInfiniteSize(Result);
+                            EBML_ElementSetInfiniteSize(Result, 1);
 
                         if (LevelChange > 0)
                             *UpperLevels += LevelChange;

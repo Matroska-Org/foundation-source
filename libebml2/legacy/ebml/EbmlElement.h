@@ -46,13 +46,17 @@ extern "C" fourcc_t GetDateFourCC();
 extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 
 #define DECLARE_EBML_CONTEXT(x)     extern const ebml_context EBML_Context##x;
+#define DECLARE_EBML_MASTER(x)    DECLARE_EBML_CONTEXT(x) \
+  class x : public EbmlMaster { \
+  public: x() :EbmlMaster(EBML_Context##x) {} \
+  EBML_CONCRETE_CLASS(x)
 #define DECLARE_EBML_UINTEGER(x)    DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlUInteger { \
-  public: x(); \
+  public: x() :EbmlUInteger(EBML_Context##x) {} \
   EBML_CONCRETE_CLASS(x)
 #define DECLARE_EBML_STRING(x)      DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlString { \
-  public: x(); \
+  public: x() :EbmlString(EBML_Context##x) {} \
   EBML_CONCRETE_CLASS(x)
 #define DECLARE_EBML_BINARY(x)      DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlBinary { \
@@ -67,12 +71,10 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 #define EBML_CONCRETE_CLASS(x) \
     public: \
         operator const EbmlId (void) const { return EbmlId(GetEbmlFourCC(Node)); } \
-        static EbmlElement & Create() {return *(new x);} \
         virtual EbmlElement * Clone() const { return new x(*this); } \
         static const ebml_context EBML_Context##x; \
         static const EbmlCallbacks & ClassInfo(); \
         static const ebml_context & GetContext(); \
-static const EbmlCallbacks ClassInfos; \
 
 #define DEFINE_xxx_CONTEXT(x,global) \
     const ebml_context EBML_Context##x = {0, EBML_MASTER_CLASS, 0, 0, "##x", EBML_Semantic##x, NULL};
@@ -96,19 +98,19 @@ static const EbmlCallbacks ClassInfos; \
 #define DEFINE_EBML_UINTEGER(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_INTEGER_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlUInteger(EBML_Context##x) {}
 
 #define DEFINE_xxx_UINTEGER_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval)
 #define DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_INTEGER_CLASS, 1, defval, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() :EbmlUInteger(defval) {}
+    x::x() :EbmlUInteger(EBML_Context##x, defval) {}
 
 #define DEFINE_xxx_SINTEGER(x,id,idl,parent,name,global) DEFINE_EBML_SINTEGER(x,id,idl,parent,name)
 #define DEFINE_EBML_SINTEGER(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_SINTEGER_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlSInteger(EBML_Context##x) {}
 
 #define DEFINE_xxx_SINTEGER_CONS(x,id,idl,parent,name,global) DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name)
 #define DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name) \
@@ -119,43 +121,43 @@ static const EbmlCallbacks ClassInfos; \
 #define DEFINE_EBML_FLOAT(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlFloat(EBML_Context##x) {}
 
 #define DEFINE_xxx_FLOAT64(x,id,idl,parent,name,global) DEFINE_EBML_FLOAT64(x,id,idl,parent,name)
 #define DEFINE_EBML_FLOAT64(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() :EbmlFloat(EbmlFloat::FLOAT_64) {}
+    x::x() :EbmlFloat(EBML_Context##x, EbmlFloat::FLOAT_64) {}
 
 #define DEFINE_xxx_FLOAT_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval)
 #define DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_CLASS, 1, (intptr_t)defval, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() :EbmlFloat(defval) {}
+    x::x() :EbmlFloat(EBML_Context##x, defval) {}
 
 #define DEFINE_xxx_UNISTRING(x,id,idl,parent,name,global) DEFINE_EBML_UNISTRING(x,id,idl,parent,name)
 #define DEFINE_EBML_UNISTRING(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_UNISTRING_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlUnicodeString(EBML_Context##x) {}
 
 #define DEFINE_xxx_STRING(x,id,idl,parent,name,global) DEFINE_EBML_STRING(x,id,idl,parent,name)
 #define DEFINE_EBML_STRING(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_STRING_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlString(EBML_Context##x) {}
 
 #define DEFINE_xxx_STRING_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval)
 #define DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_STRING_CLASS, 1, (intptr_t)defval, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() :EbmlString(defval) {}
+    x::x() :EbmlString(EBML_Context##x, defval) {}
 
 #define DEFINE_xxx_BINARY(x,id,idl,parent,name,global) DEFINE_EBML_BINARY(x,id,idl,parent,name)
 #define DEFINE_EBML_BINARY(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlBinary(EBML_Context##x) {}
 
 #define DEFINE_xxx_BINARY_CONS(x,id,idl,parent,name,global) DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name)
 #define DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name) \
@@ -167,13 +169,21 @@ static const EbmlCallbacks ClassInfos; \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
     const EbmlCallbacks & x::ClassInfo() { return (const EbmlCallbacks &)EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlBinary(EBML_Context##x) {}
 
 #define DEFINE_xxx_DATE(x,id,idl,parent,name,global) DEFINE_EBML_DATE(x,id,idl,parent,name)
 #define DEFINE_EBML_DATE(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_DATE_CLASS, 0, 0, name, NULL, NULL}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    x::x() {}
+    x::x() :EbmlDate(EBML_Context##x)  {}
+
+#define EBML_DEF_SEP ,
+#define EBML_DEF_CONS           const ebml_context &ec
+#define EBML_DEF_PARAM          ec
+#define EBML_DEF_BINARY_INIT    EbmlBinary(ec)
+#define EBML_DEF_BINARY_CTX(x)  EBML_Context##x
+#define EBML_DEF_BINARY(x)      EbmlBinary(EBML_Context##x)
+#define EBML_DEF_SINTEGER(x)    EbmlSInteger(EBML_Context##x)
 
 #define EBML_ID(ref)               (ref::EBML_Context##ref.Id)
 #define EBML_INFO(ref)             ref::EBML_Context##ref
@@ -267,7 +277,6 @@ namespace LIBEBML_NAMESPACE {
         const char* DebugName() const;
 
     protected:
-        EbmlElement();
         EbmlElement(const ebml_context &);
         ebml_element *Node;
     };

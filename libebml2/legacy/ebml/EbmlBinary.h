@@ -35,6 +35,7 @@ namespace LIBEBML_NAMESPACE {
 
     class EbmlBinary : public EbmlElement {
     public:
+        EbmlBinary(const ebml_context &ec) :EbmlElement(ec) {}
         void CopyBuffer(const void *Buffer, size_t BufferSize);
         void SetBuffer(const binary *Buffer, size_t BufferSize);
 

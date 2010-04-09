@@ -35,12 +35,13 @@ namespace LIBEBML_NAMESPACE {
 
     class EbmlUInteger : public EbmlElement {
     public:
-        EbmlUInteger(unsigned int);
-        EbmlUInteger();
+        EbmlUInteger(const ebml_context &,unsigned int);
+        EbmlUInteger(const ebml_context &);
 		operator uint8_t() const;
         virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
+        uint64_t operator =(uint64_t val);
 
 		/*!
 			Set the default size of the integer (usually 1,2,4 or 8)
