@@ -216,6 +216,12 @@ assert(0);
 /*****************
  * EbmlElement
  ****************/
+EbmlElement & CreateEbmlElement(const ebml_semantic &Semantic)
+{
+assert(0);
+return *static_cast<EbmlElement*>(NULL);
+}
+
 EbmlElement::EbmlElement(const ebml_context & Context)
 {
     Node = EBML_ElementCreate(&ccContext,&Context,0);
@@ -363,7 +369,7 @@ EbmlSemanticContext::EbmlSemanticContext(const ebml_context & _Context)
     }
 }
 
-const EbmlSemantic EbmlSemanticContext::GetSemantic(size_t i) const
+const EbmlSemantic & EbmlSemanticContext::GetSemantic(size_t i) const
 {
     assert(i < Size);
     return Context.Semantic[i];
@@ -382,37 +388,6 @@ const ebml_context * EbmlSemanticContext::GetContext() const
 EbmlSemanticContext::~EbmlSemanticContext()
 {
 //    delete pContext;
-}
-
-
-/*****************
- * EbmlSemantic
- ****************/
-EbmlSemantic::EbmlSemantic(const ebml_semantic & _Semantic)
-:Callbacks(NULL)
-,Semantic(_Semantic)
-{
-}
-
-EbmlElement & EbmlSemantic::Create() const
-{
-assert(0);
-return *static_cast<EbmlElement*>(NULL);
-}
-
-bool EbmlSemantic::IsUnique() const
-{
-    return Semantic.Unique!=0;
-}
-
-EbmlSemantic::operator const EbmlCallbacks &() const
-{
-    return *Callbacks;
-}
-
-EbmlSemantic::operator const ebml_semantic &() const
-{
-    return Semantic;
 }
 
 
