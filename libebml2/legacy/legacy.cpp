@@ -388,26 +388,10 @@ EbmlSemanticContext::~EbmlSemanticContext()
 /*****************
  * EbmlSemantic
  ****************/
-EbmlSemantic::EbmlSemantic(bool Mandatory,bool Unique,const EbmlCallbacks & GetCallbacks)
-:Callbacks(&GetCallbacks)
-{
-assert(0); // should not exist anymore
-    pSemantic = new ebml_semantic;
-    pSemantic->Mandatory = Mandatory;
-    pSemantic->Unique = Unique;
-    pSemantic->eClass = NULL;
-//    pSemantic->eClass = GetCallbacks.GetContext(); // TODO handle this after GetCallbacks is initialized
-}
-
-EbmlSemantic::EbmlSemantic(const ebml_semantic & Semantic)
+EbmlSemantic::EbmlSemantic(const ebml_semantic & _Semantic)
 :Callbacks(NULL)
-,pSemantic(const_cast<ebml_semantic*>(&Semantic))
+,Semantic(_Semantic)
 {
-}
-
-EbmlSemantic::~EbmlSemantic()
-{
-    delete pSemantic;
 }
 
 EbmlElement & EbmlSemantic::Create() const
@@ -418,7 +402,7 @@ return *static_cast<EbmlElement*>(NULL);
 
 bool EbmlSemantic::IsUnique() const
 {
-    return pSemantic->Unique!=0;
+    return Semantic.Unique!=0;
 }
 
 EbmlSemantic::operator const EbmlCallbacks &() const
@@ -428,11 +412,7 @@ EbmlSemantic::operator const EbmlCallbacks &() const
 
 EbmlSemantic::operator const ebml_semantic &() const
 {
-    if (pSemantic->eClass == NULL)
-    {
-        pSemantic->eClass = Callbacks;
-    }
-    return *pSemantic;
+    return Semantic;
 }
 
 

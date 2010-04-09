@@ -189,13 +189,13 @@ static const EbmlCallbacks ClassInfos; \
 #define EBML_CLASS_CONTEXT(ref) ref::EBML_Context##ref
 
 #define EBML_SEM_UNIQUE(s)  (s).IsUnique()
-#define EBML_SEM_INFO(s)    (const EbmlCallbacks &)(s)
 #define EBML_SEM_ID(s)      ((const EbmlId &)(const EbmlCallbacks &)(s))
 #define EBML_SEM_CONTEXT(s) ((const EbmlSemanticContext &)(const EbmlCallbacks &)(s))
 #define EBML_SEM_CREATE(s)  (s).Create()
 
-#define EBML_CTX_SIZE(c)    (c).GetSize()
-#define EBML_CTX_IDX(c,i)   (c).GetSemantic(i)
+#define EBML_CTX_SIZE(c)       (c).GetSize()
+#define EBML_CTX_IDX(c,i)      (c).GetSemantic(i)
+#define EBML_CTX_IDX_INFO(c,i) *((const ebml_semantic &)(c).GetSemantic(i)).eClass
 
 namespace LIBEBML_NAMESPACE {
 
@@ -210,8 +210,6 @@ namespace LIBEBML_NAMESPACE {
     class EbmlSemantic {
     public:
         EbmlSemantic(const ebml_semantic &);
-        EbmlSemantic(bool Mandatory, bool Unique,const EbmlCallbacks & GetCallbacks);
-        ~EbmlSemantic();
 
         EbmlElement & Create() const;
         operator const EbmlCallbacks &() const;
@@ -220,7 +218,7 @@ namespace LIBEBML_NAMESPACE {
 
     private:
         const EbmlCallbacks * Callbacks;
-        ebml_semantic *pSemantic; // TODO: make it a const reference
+        const ebml_semantic & Semantic;
     };
 
     class EbmlSemanticContext {
