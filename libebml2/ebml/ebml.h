@@ -73,16 +73,19 @@ extern "C" {
 #define EBML_DLL
 #endif
 
-struct ebml_context;
-typedef struct ebml_semantic
+typedef struct ebml_context ebml_context;
+typedef struct ebml_parser_context ebml_parser_context;
+typedef struct ebml_semantic ebml_semantic;
+typedef struct ebml_element ebml_element;
+
+struct ebml_semantic
 {
     bool_t Mandatory;
     bool_t Unique;
-    const struct ebml_context *eClass;
-} ebml_semantic;
+    const ebml_context *eClass;
+};
 
-
-typedef struct ebml_context
+struct ebml_context
 {
     fourcc_t Id;
     fourcc_t Class; // TODO: store a pointer to make creation faster 
@@ -92,16 +95,16 @@ typedef struct ebml_context
     // TODO: create sub class so we don't have to assign it all the time
     const ebml_semantic *Semantic; // table with last element class set to NULL
     const ebml_semantic *GlobalContext; // table with last element class set to NULL
-} ebml_context;
+};
 
-typedef struct ebml_parser_context
+struct ebml_parser_context
 {
     const ebml_context *Context;
-    const struct ebml_parser_context *UpContext;
+    const ebml_parser_context *UpContext;
     filepos_t EndPosition;
-} ebml_parser_context;
+};
 
-typedef struct ebml_element
+struct ebml_element
 {
     nodetree Base;
     bool_t bValueIsSet;
@@ -113,7 +116,7 @@ typedef struct ebml_element
     const ebml_context *Context;
     int DefaultSize;
 
-} ebml_element;
+};
 
 typedef struct ebml_element_vmt
 {

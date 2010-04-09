@@ -225,8 +225,7 @@ return *static_cast<EbmlElement*>(NULL);
 EbmlElement::EbmlElement(const ebml_context & Context)
 {
     Node = EBML_ElementCreate(&ccContext,&Context,0);
-assert(0);
-    if (Node)
+    if (!Node)
     {
         // TODO: throw some error
     }
@@ -362,7 +361,7 @@ EbmlSemanticContext::EbmlSemanticContext(const ebml_context & _Context)
 ,Size(0)
 {
     const ebml_semantic *s = Context.Semantic;
-    while (s->eClass!=NULL)
+    while (s && s->eClass!=NULL)
     {
         ++Size;
         ++s;
@@ -377,7 +376,7 @@ const EbmlSemantic & EbmlSemanticContext::GetSemantic(size_t i) const
 
 bool EbmlSemanticContext::operator!=(const EbmlSemanticContext & Elt) const
 {
-	return (Size != Elt.Size) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
+	return (Size != Elt.Size) || (Context.Id != Elt.Context.Id) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
 }
 
 const ebml_context * EbmlSemanticContext::GetContext() const
@@ -454,7 +453,6 @@ assert(0);
 EbmlMaster::EbmlMaster(struct ebml_context const &Context)
 :EbmlElement(Context)
 {
-assert(0);
 }
 
 EbmlMaster_itr EbmlMaster::begin() const
