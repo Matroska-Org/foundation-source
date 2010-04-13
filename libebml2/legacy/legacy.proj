@@ -6,6 +6,7 @@ DLL ebml2_legacy
   EXPINCLUDE .
   EXPINCLUDE ..
   EXPDEFINE EBML_STRICT_API
+  DEFINE EBML_LEGACY_API
   
   SOURCE legacy.cpp
   

@@ -48,6 +48,9 @@
 
 #include "ebml/ebml.h"
 
+#define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)
+#define Ebml_Next(x)      (ebml_element*)NodeTree_Next(x)
+
 fourcc_t GetEbmlFourCC(const ebml_element* p)
 {
     return p->Context->Id;
@@ -100,10 +103,29 @@ const ebml_semantic & GetGlobalEBMLSemantic()
 
 static nodecontext ccContext;
 
+using namespace LIBEBML_NAMESPACE;
+
 void ebml_init()
 {
     NodeContext_Init(&ccContext,NULL,NULL,NULL);
     EBML_Init(&ccContext);
+
+    EbmlHead::EBML_ContextEbmlHead.PostCreate = EbmlHead::PostCreate;
+    ::EBML_ContextHead.PostCreate = EbmlHead::PostCreate;
+    EDocType::EBML_ContextEDocType.PostCreate = EDocType::PostCreate;
+    ::EBML_ContextDocType.PostCreate = EDocType::PostCreate;
+    EVersion::EBML_ContextEVersion.PostCreate = EVersion::PostCreate;
+    ::EBML_ContextVersion.PostCreate = EVersion::PostCreate;
+    EReadVersion::EBML_ContextEReadVersion.PostCreate = EReadVersion::PostCreate;
+    ::EBML_ContextReadVersion.PostCreate = EReadVersion::PostCreate;
+    EDocTypeVersion::EBML_ContextEDocTypeVersion.PostCreate = EDocTypeVersion::PostCreate;
+    ::EBML_ContextDocTypeVersion.PostCreate = EDocTypeVersion::PostCreate;
+    EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion.PostCreate = EDocTypeReadVersion::PostCreate;
+    ::EBML_ContextDocTypeReadVersion.PostCreate = EDocTypeReadVersion::PostCreate;
+    EMaxSizeLength::EBML_ContextEMaxSizeLength.PostCreate = EMaxSizeLength::PostCreate;
+    ::EBML_ContextMaxSizeLength.PostCreate = EMaxSizeLength::PostCreate;
+    EMaxIdLength::EBML_ContextEMaxIdLength.PostCreate  = EMaxIdLength::PostCreate;
+    ::EBML_ContextMaxIdLength.PostCreate  = EMaxIdLength::PostCreate;
 }
 
 void ebml_done()
@@ -125,16 +147,16 @@ return *static_cast<EbmlElement*>(NULL);
 DEFINE_EBML_BINARY_GLOBAL(EbmlCrc32, 0xBF, 1, "EBMLCrc32\0ratamadabapa");
 DEFINE_EBML_BINARY_GLOBAL(EbmlVoid,  0xEC, 1, "EBMLVoid");
 
-const ebml_context EbmlHead::EBML_ContextEbmlHead                       = ::EBML_ContextHead; // dirty copy
-const ebml_context EDocType::EBML_ContextEDocType                       = ::EBML_ContextDocType; // dirty copy
-const ebml_context EVersion::EBML_ContextEVersion                       = ::EBML_ContextVersion; // dirty copy
-const ebml_context EReadVersion::EBML_ContextEReadVersion               = ::EBML_ContextReadVersion; // dirty copy
-const ebml_context EDocTypeVersion::EBML_ContextEDocTypeVersion         = ::EBML_ContextDocTypeVersion; // dirty copy
-const ebml_context EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion = ::EBML_ContextDocTypeReadVersion; // dirty copy
-const ebml_context EMaxSizeLength::EBML_ContextEMaxSizeLength           = ::EBML_ContextMaxSizeLength; // dirty copy
-const ebml_context EMaxIdLength::EBML_ContextEMaxIdLength               = ::EBML_ContextMaxIdLength; // dirty copy
+ebml_context EbmlHead::EBML_ContextEbmlHead                       = ::EBML_ContextHead; // dirty copy
+ebml_context EDocType::EBML_ContextEDocType                       = ::EBML_ContextDocType; // dirty copy
+ebml_context EVersion::EBML_ContextEVersion                       = ::EBML_ContextVersion; // dirty copy
+ebml_context EReadVersion::EBML_ContextEReadVersion               = ::EBML_ContextReadVersion; // dirty copy
+ebml_context EDocTypeVersion::EBML_ContextEDocTypeVersion         = ::EBML_ContextDocTypeVersion; // dirty copy
+ebml_context EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion = ::EBML_ContextDocTypeReadVersion; // dirty copy
+ebml_context EMaxSizeLength::EBML_ContextEMaxSizeLength           = ::EBML_ContextMaxSizeLength; // dirty copy
+ebml_context EMaxIdLength::EBML_ContextEMaxIdLength               = ::EBML_ContextMaxIdLength; // dirty copy
 
-const ebml_context & EbmlHead::GetContext() { return EBML_ContextHead; }
+const ebml_context & EbmlHead::GetContext() { return EBML_ContextEbmlHead; }
 const ebml_context & EDocType::GetContext() { return EBML_ContextEDocType; }
 const ebml_context & EVersion::GetContext() { return EBML_ContextEVersion; }
 const ebml_context & EReadVersion::GetContext() { return EBML_ContextEReadVersion; }
@@ -142,6 +164,15 @@ const ebml_context & EDocTypeVersion::GetContext() { return EBML_ContextEDocType
 const ebml_context & EDocTypeReadVersion::GetContext() { return EBML_ContextEDocTypeReadVersion; }
 const ebml_context & EMaxSizeLength::GetContext() { return EBML_ContextEMaxSizeLength; }
 const ebml_context & EMaxIdLength::GetContext() { return EBML_ContextEMaxIdLength; }
+
+void EbmlHead::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EbmlHead(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EDocType::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EDocType(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EVersion::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EReadVersion::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EDocTypeVersion::PostCreate(ebml_element *p, const void *Cookie)     { if (!Cookie) Cookie=new EDocTypeVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EDocTypeReadVersion::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new EDocTypeReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EMaxSizeLength::PostCreate(ebml_element *p, const void *Cookie)      { if (!Cookie) Cookie=new EMaxSizeLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EMaxIdLength::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EMaxIdLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
 
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 {
@@ -222,9 +253,11 @@ assert(0);
 return *static_cast<EbmlElement*>(NULL);
 }
 
-EbmlElement::EbmlElement(const ebml_context & Context)
+EbmlElement::EbmlElement(const ebml_context & Context, ebml_element *WithNode)
+:Node(WithNode)
 {
-    Node = EBML_ElementCreate(&ccContext,&Context,0);
+    if (!WithNode)
+        Node = EBML_ElementCreate(&ccContext,&Context,0,this);
     if (!Node)
     {
         // TODO: throw some error
@@ -441,8 +474,8 @@ assert(0);
 /*****************
  * EbmlMaster
  ****************/
-EbmlMaster::EbmlMaster(struct ebml_context const &Context)
-:EbmlElement(Context)
+EbmlMaster::EbmlMaster(struct ebml_context const &Context, ebml_element *WithNode)
+:EbmlElement(Context, WithNode)
 {
 }
 
@@ -530,7 +563,16 @@ assert(0);
 
 EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Callbacks, const bool bCreateIfNull) const
 {
-assert(0);
+    ebml_element *i = EBML_MasterFindFirstElt(Node,&Callbacks,bCreateIfNull);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 
@@ -611,14 +653,14 @@ assert(0);
 /*****************
  * EbmlString
  ****************/
-EbmlString::EbmlString(const ebml_context &ec, const char *)
-:EbmlElement(ec)
+EbmlString::EbmlString(const ebml_context &ec, const char *DefaultValue, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
-assert(0);
+    Node->bDefaultIsSet = 1;
 }
 
-EbmlString::EbmlString(const ebml_context &ec)
-:EbmlElement(ec)
+EbmlString::EbmlString(const ebml_context &ec, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
 }
 
@@ -640,7 +682,7 @@ assert(0);
 return *static_cast<EbmlString*>(NULL);
 }
 
-EbmlString & EbmlString::operator=(const char *)
+EbmlString & EbmlString::operator=(const char *Value)
 {
 assert(0);
 return *static_cast<EbmlString*>(NULL);
@@ -662,8 +704,8 @@ assert(0);
 /*****************
  * EbmlUnicodeString
  ****************/
-EbmlUnicodeString::EbmlUnicodeString(const ebml_context &ec)
-:EbmlElement(ec)
+EbmlUnicodeString::EbmlUnicodeString(const ebml_context &ec, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
 }
 
@@ -738,15 +780,15 @@ assert(0);
 /*****************
  * EbmlUInteger
  ****************/
-EbmlUInteger::EbmlUInteger(const ebml_context &ec)
-:EbmlElement(ec)
+EbmlUInteger::EbmlUInteger(const ebml_context &ec, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
 }
 
-EbmlUInteger::EbmlUInteger(const ebml_context &ec, unsigned int DefaultValue)
-:EbmlElement(ec)
+EbmlUInteger::EbmlUInteger(const ebml_context &ec, unsigned int DefaultValue, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
-assert(0);
+    Node->bDefaultIsSet = 1;
 }
 
 void EbmlUInteger::SetDefaultSize(filepos_t aDefaultSize)
@@ -849,14 +891,14 @@ bool EbmlSInteger::IsSmallerThan(const EbmlElement *Cmp) const
 /*****************
  * EbmlFloat
  ****************/
-EbmlFloat::EbmlFloat(const ebml_context &ec, double DefaultValue, Precision prec)
-:EbmlElement(ec)
+EbmlFloat::EbmlFloat(const ebml_context &ec, double DefaultValue, Precision prec, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
-assert(0);
+    Node->bDefaultIsSet = 1;
 }
 
-EbmlFloat::EbmlFloat(const ebml_context &ec, Precision prec)
-:EbmlElement(ec)
+EbmlFloat::EbmlFloat(const ebml_context &ec, Precision prec, ebml_element *WithNode)
+:EbmlElement(ec, WithNode)
 {
 assert(0);
     SetPrecision(prec);

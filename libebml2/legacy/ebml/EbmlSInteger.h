@@ -35,7 +35,7 @@ namespace LIBEBML_NAMESPACE {
 
     class EbmlSInteger : public EbmlElement {
     public:
-        EbmlSInteger(const ebml_context &ec) :EbmlElement(ec) {}
+        EbmlSInteger(const ebml_context &ec, ebml_element *WithNode = NULL) :EbmlElement(ec,WithNode) {}
         operator int64_t() const;
 
         virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);

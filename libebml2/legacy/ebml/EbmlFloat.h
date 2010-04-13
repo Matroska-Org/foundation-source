@@ -40,8 +40,8 @@ namespace LIBEBML_NAMESPACE {
 			,FLOAT_64
 		};
 
-		EbmlFloat(const ebml_context &, Precision prec = FLOAT_32);
-		EbmlFloat(const ebml_context &, double DefaultValue, Precision prec = FLOAT_32);
+		EbmlFloat(const ebml_context &, Precision prec = FLOAT_32, ebml_element *WithNode = NULL);
+		EbmlFloat(const ebml_context &, double DefaultValue, Precision prec = FLOAT_32, ebml_element *WithNode = NULL);
         operator double() const;
 
         double operator =(double val);

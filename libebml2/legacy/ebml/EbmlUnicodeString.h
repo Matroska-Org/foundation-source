@@ -51,7 +51,7 @@ namespace LIBEBML_NAMESPACE {
     class EbmlUnicodeString : public EbmlElement {
     public:
         //EbmlUnicodeString(const ebml_context &,const UTFstring &);
-        EbmlUnicodeString(const ebml_context &);
+        EbmlUnicodeString(const ebml_context &, ebml_element *WithNode = NULL);
         EbmlUnicodeString & operator=(const UTFstring &);
         operator const UTFstring () const;
 
