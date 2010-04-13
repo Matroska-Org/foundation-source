@@ -33,6 +33,9 @@
 
 #include "ebml/EbmlConfig.h"
 
+typedef struct stream stream;
+typedef struct stream_io stream_io;
+
 namespace LIBEBML_NAMESPACE {
 
     enum seek_mode
@@ -51,9 +54,18 @@ namespace LIBEBML_NAMESPACE {
 
     class IOCallback {
     public:
-        void writeFully(const void* Buffer, size_t Size);
+        IOCallback();
+        virtual ~IOCallback();
         virtual uint32_t read(void* Buffer, size_t Size)=0;
+        virtual size_t write(const void *Buffer,size_t Size)=0;
+        virtual void setFilePointer(int64_t Offset, seek_mode Mode=seek_beginning)=0;
         virtual uint64_t getFilePointer()=0;
+        virtual void close()=0;
+
+        void writeFully(const void* Buffer, size_t Size);
+        stream *GetStream();
+    private:
+        stream_io *Stream;
     };
 };
 

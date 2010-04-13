@@ -31,8 +31,8 @@
 
 #include <string>
 
-static const std::string EbmlCodeVersion;
-static const std::string EbmlCodeDate;
+static const std::string EbmlCodeVersion = "1.0.0";
+static const std::string EbmlCodeDate = __TIMESTAMP__;
 
 #define LIBEBML_VERSION  0x010000
 

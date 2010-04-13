@@ -48,6 +48,8 @@
 
 #include "ebml/ebml.h"
 
+#define IOCALLBACK_STREAM_CLASS FOURCC('I','O','C','B')
+
 #define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)
 #define Ebml_Next(x)      (ebml_element*)NodeTree_Next(x)
 
@@ -105,10 +107,43 @@ static nodecontext ccContext;
 
 using namespace LIBEBML_NAMESPACE;
 
+struct stream_io
+{
+    stream Base;
+    IOCallback *cpp;
+};
+
+static filepos_t Seek(stream_io* p,filepos_t Pos,int SeekMode) 
+{
+    if (SeekMode == SEEK_CUR && Pos==0)
+        return p->cpp->getFilePointer();
+assert(0);
+    return INVALID_FILEPOS_T;
+}
+
+static err_t Write(stream_io* p,const void* Data,size_t Size, size_t* Written)
+{
+    size_t _Written;
+    if (!Written)
+        Written = &_Written;
+    _Written = p->cpp->write(Data,Size);
+    if (Written)
+        *Written = _Written;
+    return (_Written==Size)?ERR_NONE:ERR_DEVICE_ERROR;
+}
+
+META_START(IOCallback_Class,IOCALLBACK_STREAM_CLASS)
+META_CLASS(FLAGS,CFLAG_LOCAL)
+META_CLASS(SIZE,sizeof(stream_io))
+META_VMT(TYPE_FUNC,stream_vmt,Seek,Seek)
+META_VMT(TYPE_FUNC,stream_vmt,Write,Write)
+META_END(STREAM_CLASS)
+
 void ebml_init()
 {
     NodeContext_Init(&ccContext,NULL,NULL,NULL);
     EBML_Init(&ccContext);
+    NodeRegisterClassEx((nodemodule*)&ccContext,IOCallback_Class);
 
     EbmlHead::EBML_ContextEbmlHead.PostCreate = EbmlHead::PostCreate;
     ::EBML_ContextHead.PostCreate = EbmlHead::PostCreate;
@@ -348,10 +383,12 @@ filepos_t EbmlElement::GetElementPosition() const
     return Node->ElementPosition;
 }
 
-filepos_t EbmlElement::Render(IOCallback & output, bool bSaveDefault)
+filepos_t EbmlElement::Render(IOCallback & output, bool bKeepIntact, bool bKeepPosition, bool bForceRender)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    filepos_t Rendered = INVALID_FILEPOS_T;
+    if (EBML_ElementRender(Node, output.GetStream(), bKeepIntact, bKeepPosition, bForceRender, &Rendered)!=ERR_NONE)
+        return INVALID_FILEPOS_T;
+    return Rendered;
 }
 
 filepos_t EbmlElement::OverwriteHead(IOCallback & output, bool bKeepPosition)
@@ -563,7 +600,7 @@ assert(0);
 
 EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Kind, const bool bCreateIfNull) const
 {
-    ebml_element *i = EBML_MasterFindFirstElt(Node,&Kind,bCreateIfNull);
+    ebml_element *i = EBML_MasterFindFirstElt(Node,&Kind,bCreateIfNull,0);
     if (i)
     {
         EbmlElement *Result=NULL;
@@ -895,13 +932,13 @@ bool EbmlSInteger::IsSmallerThan(const EbmlElement *Cmp) const
 EbmlFloat::EbmlFloat(const ebml_context &ec, double DefaultValue, Precision prec, ebml_element *WithNode)
 :EbmlElement(ec, WithNode)
 {
+    SetPrecision(prec);
     Node->bDefaultIsSet = 1;
 }
 
 EbmlFloat::EbmlFloat(const ebml_context &ec, Precision prec, ebml_element *WithNode)
 :EbmlElement(ec, WithNode)
 {
-assert(0);
     SetPrecision(prec);
 }
 
@@ -912,13 +949,12 @@ EbmlFloat::operator double() const
 
 double EbmlFloat::operator =(double val)
 {
-assert(0);
-    return 0.0;
+    ((ebml_float*)Node)->Value = val;
+    return val;
 }
 
 void EbmlFloat::SetPrecision(Precision prec)
 {
-assert(0);
     reinterpret_cast<ebml_float*>(Node)->IsSimplePrecision = (prec==FLOAT_32);
 }
 
@@ -1002,9 +1038,30 @@ assert(0);
 /*****************
  * IOCallback
  ****************/
+IOCallback::IOCallback()
+:Stream(NULL)
+{
+}
+
+IOCallback::~IOCallback()
+{
+    if (Stream)
+        NodeDelete((node*)Stream);
+}
+
 void IOCallback::writeFully(const void* Buffer, size_t Size)
 {
 assert(0);
+}
+
+stream *IOCallback::GetStream()
+{
+    if (Stream==NULL)
+    {
+        Stream = (stream_io*)NodeCreate(&ccContext,IOCALLBACK_STREAM_CLASS);
+        Stream->cpp = this;
+    }
+    return (stream *)Stream;
 }
 
 

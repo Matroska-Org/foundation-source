@@ -27,7 +27,7 @@
  */
 #include "ebml/ebml.h"
 
-ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull)
+ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault)
 {
     ebml_element *i;
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
@@ -38,7 +38,7 @@ ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context 
 
     if (!i && bCreateIfNull)
     {
-        i = EBML_ElementCreate(Element,Context,0,NULL);
+        i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
         if (i)
             if (EBML_MasterAppend(Element,i)!=ERR_NONE)
             {
@@ -112,7 +112,7 @@ static void PostCreate(ebml_element *Element)
     for (i=Element->Context->Semantic;i->eClass;++i)
     {
         if (i->Mandatory && i->Unique)
-            EBML_MasterFindFirstElt(Element,i->eClass,1); // TODO: should it force the default value ?
+            EBML_MasterFindFirstElt(Element,i->eClass,1,1); // TODO: should it force the default value ?
     }
 }
 

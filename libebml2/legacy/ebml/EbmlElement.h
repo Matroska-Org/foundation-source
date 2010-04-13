@@ -268,7 +268,7 @@ namespace LIBEBML_NAMESPACE {
     public:
         virtual ~EbmlElement();
         void SetSizeLength(size_t);
-        filepos_t Render(IOCallback & output, bool bSaveDefault = false);
+        filepos_t Render(IOCallback & output, bool bKeepIntact = false, bool bKeepPosition = false, bool bForceRender = false);
         virtual bool SetSizeInfinite(bool bIsInfinite = true);
         filepos_t GetElementPosition() const;
         size_t HeadSize() const;
