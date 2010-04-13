@@ -286,8 +286,24 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bKeepIntact, bool_t
 
 static void PostCreateInt(ebml_element *Element)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->PostCreate(Element);
+    INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->PostCreate(Element);
     Element->DefaultSize = 1;
+    if (Element->bDefaultIsSet)
+    {
+        Element->bValueIsSet = 1;
+        ((ebml_integer*)Element)->Value = Element->Context->DefaultValue;
+    }
+}
+
+static void PostCreateFloat(ebml_element *Element)
+{
+    INHERITED(Element,ebml_element_vmt,EBML_FLOAT_CLASS)->PostCreate(Element);
+    Element->DefaultSize = 1;
+    if (Element->bDefaultIsSet)
+    {
+        Element->bValueIsSet = 1;
+        ((ebml_float*)Element)->Value = Element->Context->DefaultValue;
+    }
 }
 
 
@@ -312,6 +328,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataSignedInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataSignedInt)
 #endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeSignedInt)
+META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
 META_START_CONTINUE(EBML_BOOLEAN_CLASS)
@@ -322,4 +339,5 @@ META_CLASS(SIZE,sizeof(ebml_float))
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValueFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataFloat)
+META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateFloat)
 META_END(EBML_ELEMENT_CLASS)

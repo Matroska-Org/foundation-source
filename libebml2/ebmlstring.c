@@ -161,6 +161,16 @@ static bool_t IsDefaultValue(const ebml_string *Element)
     return Element->Base.Context->HasDefault && (!Element->Base.bValueIsSet || strcmp(Element->Buffer,(const char*)Element->Base.Context->DefaultValue)==0);
 }
 
+static void PostCreateString(ebml_element *Element)
+{
+    INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->PostCreate(Element);
+    if (Element->bDefaultIsSet)
+    {
+        Element->bValueIsSet = 1;
+        ((ebml_string*)Element)->Buffer = strdup((const char *)Element->Context->DefaultValue);
+    }
+}
+
 META_START(EBMLString_Class,EBML_STRING_CLASS)
 META_CLASS(SIZE,sizeof(ebml_string))
 META_CLASS(DELETE,Delete)
@@ -170,6 +180,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
+META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateString)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
 META_START_CONTINUE(EBML_UNISTRING_CLASS)
@@ -181,4 +192,5 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
+META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateString)
 META_END(EBML_ELEMENT_CLASS)
