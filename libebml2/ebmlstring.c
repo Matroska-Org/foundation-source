@@ -41,6 +41,8 @@ err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
 
 err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
 {
+    if (Element->Base.bValueIsSet && Element->Buffer)
+        free((char*)Element->Buffer);
     Element->Buffer = strdup(Value);
     Element->Base.bValueIsSet = 1;
     Element->Base.Size = strlen(Element->Buffer);

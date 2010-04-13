@@ -91,114 +91,114 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 #define DEFINE_EBML_MASTER(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, EBML_Semantic##x, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlMaster(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_MASTER_CONS(x,id,idl,parent,name,global)  DEFINE_EBML_MASTER_CONS(x,id,idl,parent,name)
 #define DEFINE_EBML_MASTER_CONS(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, EBML_Semantic##x, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
 
 #define DEFINE_xxx_MASTER_ORPHAN(x,id,idl,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_MASTER_CLASS, 0, 0, name, EBML_Semantic##x, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
 
 #define DEFINE_xxx_UINTEGER(x,id,idl,parent,name,global) DEFINE_EBML_UINTEGER(x,id,idl,parent,name)
 #define DEFINE_EBML_UINTEGER(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_INTEGER_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlUInteger(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_UINTEGER_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval)
 #define DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_INTEGER_CLASS, 1, defval, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlUInteger(EBML_Context##x, defval, WithNode) {}
 
 #define DEFINE_xxx_SINTEGER(x,id,idl,parent,name,global) DEFINE_EBML_SINTEGER(x,id,idl,parent,name)
 #define DEFINE_EBML_SINTEGER(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_SINTEGER_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlSInteger(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_SINTEGER_CONS(x,id,idl,parent,name,global) DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name)
 #define DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_SINTEGER_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
 
 #define DEFINE_xxx_FLOAT(x,id,idl,parent,name,global) DEFINE_EBML_FLOAT(x,id,idl,parent,name)
 #define DEFINE_EBML_FLOAT(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlFloat(EBML_Context##x, EbmlFloat::FLOAT_32, WithNode) {}
 
 #define DEFINE_xxx_FLOAT64(x,id,idl,parent,name,global) DEFINE_EBML_FLOAT64(x,id,idl,parent,name)
 #define DEFINE_EBML_FLOAT64(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlFloat(EBML_Context##x, EbmlFloat::FLOAT_64, WithNode) {}
 
 #define DEFINE_xxx_FLOAT_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval)
 #define DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_CLASS, 1, (intptr_t)defval, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlFloat(EBML_Context##x, defval, EbmlFloat::FLOAT_32, WithNode) {}
 
 #define DEFINE_xxx_UNISTRING(x,id,idl,parent,name,global) DEFINE_EBML_UNISTRING(x,id,idl,parent,name)
 #define DEFINE_EBML_UNISTRING(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_UNISTRING_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlUnicodeString(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_STRING(x,id,idl,parent,name,global) DEFINE_EBML_STRING(x,id,idl,parent,name)
 #define DEFINE_EBML_STRING(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_STRING_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlString(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_STRING_DEF(x,id,idl,parent,name,global,defval) DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval)
 #define DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_STRING_CLASS, 1, (intptr_t)defval, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlString(EBML_Context##x, defval, WithNode) {}
 
 #define DEFINE_xxx_BINARY(x,id,idl,parent,name,global) DEFINE_EBML_BINARY(x,id,idl,parent,name)
 #define DEFINE_EBML_BINARY(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlBinary(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_BINARY_CONS(x,id,idl,parent,name,global) DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name)
 #define DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
 
 #define DEFINE_xxx_BINARY_GLOBAL(x,id,idl,parent,name,global) DEFINE_EBML_BINARY_GLOBAL(x,id,idl,parent,name)
 #define DEFINE_EBML_BINARY_GLOBAL(x,id,idl,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlBinary(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_DATE(x,id,idl,parent,name,global) DEFINE_EBML_DATE(x,id,idl,parent,name)
 #define DEFINE_EBML_DATE(x,id,idl,parent,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_DATE_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
-    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlDate(EBML_Context##x, WithNode)  {}
 
 #define EBML_DEF_SEP ,

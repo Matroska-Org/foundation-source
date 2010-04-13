@@ -165,14 +165,14 @@ const ebml_context & EDocTypeReadVersion::GetContext() { return EBML_ContextEDoc
 const ebml_context & EMaxSizeLength::GetContext() { return EBML_ContextEMaxSizeLength; }
 const ebml_context & EMaxIdLength::GetContext() { return EBML_ContextEMaxIdLength; }
 
-void EbmlHead::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EbmlHead(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EDocType::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EDocType(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EVersion::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EReadVersion::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EDocTypeVersion::PostCreate(ebml_element *p, const void *Cookie)     { if (!Cookie) Cookie=new EDocTypeVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EDocTypeReadVersion::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new EDocTypeReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EMaxSizeLength::PostCreate(ebml_element *p, const void *Cookie)      { if (!Cookie) Cookie=new EMaxSizeLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
-void EMaxIdLength::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EMaxIdLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,Cookie,sizeof(Cookie)); }
+void EbmlHead::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EbmlHead(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EDocType::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EDocType(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EVersion::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EReadVersion::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EDocTypeVersion::PostCreate(ebml_element *p, const void *Cookie)     { if (!Cookie) Cookie=new EDocTypeVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EDocTypeReadVersion::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new EDocTypeReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EMaxSizeLength::PostCreate(ebml_element *p, const void *Cookie)      { if (!Cookie) Cookie=new EMaxSizeLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
+void EMaxIdLength::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EMaxIdLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
 
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 {
@@ -543,27 +543,27 @@ assert(0);
     return false;
 }
 
-EbmlElement *EbmlMaster::AddNewElt(const EbmlCallbacks & Callbacks)
+EbmlElement *EbmlMaster::AddNewElt(const EbmlCallbacks & Kind)
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindElt(const ebml_context & Callbacks) const
+EbmlElement *EbmlMaster::FindElt(const ebml_context & Kind) const
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Callbacks) const
+EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Kind) const
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Callbacks, const bool bCreateIfNull) const
+EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Kind, const bool bCreateIfNull) const
 {
-    ebml_element *i = EBML_MasterFindFirstElt(Node,&Callbacks,bCreateIfNull);
+    ebml_element *i = EBML_MasterFindFirstElt(Node,&Kind,bCreateIfNull);
     if (i)
     {
         EbmlElement *Result=NULL;
@@ -576,13 +576,13 @@ EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Callbacks, const bool
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & FromElt) const
+EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Kind) const
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & FromElt, const bool bCreateIfNull)
+EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Kind, const bool bCreateIfNull)
 {
 assert(0);
     return NULL;
@@ -684,8 +684,8 @@ return *static_cast<EbmlString*>(NULL);
 
 EbmlString & EbmlString::operator=(const char *Value)
 {
-assert(0);
-return *static_cast<EbmlString*>(NULL);
+    EBML_StringSetValue((ebml_string*)Node,Value);
+    return *this;
 }
 
 EbmlString::operator const std::string() const
@@ -816,8 +816,9 @@ assert(0);
 
 uint64_t EbmlUInteger::operator =(uint64_t val)
 {
-assert(0);
-    return 0;
+    reinterpret_cast<ebml_integer*>(Node)->Value = val;
+    Node->bValueIsSet = 1;
+    return val;
 }
 
 EbmlElement * EbmlUInteger::Clone() const
