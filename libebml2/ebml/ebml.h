@@ -63,7 +63,7 @@ extern "C" {
 #define EBML_DUMMY_ID        FOURCC('E','B','D','U')
 
 #define EBML_ELEMENT_INFINITESIZE   0x100
-#define EBML_ELEMENT_MASTERCONTEXT  0x101
+#define EBML_ELEMENT_OBJECT         0x101
 
 #if defined(EBML2_EXPORTS)
 #define EBML_DLL DLLEXPORT
@@ -95,6 +95,7 @@ struct ebml_context
     // TODO: create sub class so we don't have to assign it all the time
     const ebml_semantic *Semantic; // table with last element class set to NULL
     const ebml_semantic *GlobalContext; // table with last element class set to NULL
+    void (*PostCreate)(ebml_element *p, const void *Cookie);
 };
 
 struct ebml_parser_context
@@ -115,7 +116,6 @@ struct ebml_element
     filepos_t SizePosition; // TODO: is this needed since we have the ElementPosition and SizeLength ?
     const ebml_context *Context;
     int DefaultSize;
-
 };
 
 typedef struct ebml_element_vmt
@@ -182,7 +182,7 @@ typedef struct ebml_dummy
 EBML_DLL err_t EBML_Init(nodecontext *p);
 EBML_DLL err_t EBML_Done(nodecontext *p);
 
-EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault);
+EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, const void *Cookie);
 
 EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize);
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
@@ -233,21 +233,27 @@ EBML_DLL err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date);
 
 EBML_DLL err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize);
 
+#if defined(EBML_LEGACY_API)
+#define CONTEXT_CONST
+#else
+#define CONTEXT_CONST const
+#endif
+
 // EBML contexts
-extern const ebml_context EBML_ContextHead;
-extern const ebml_context EBML_ContextDummy;
-extern const ebml_context EBML_ContextVersion;
-extern const ebml_context EBML_ContextReadVersion;
-extern const ebml_context EBML_ContextMaxIdLength;
-extern const ebml_context EBML_ContextMaxSizeLength;
-extern const ebml_context EBML_ContextDocType;
-extern const ebml_context EBML_ContextDocTypeVersion;
-extern const ebml_context EBML_ContextDocTypeReadVersion;
+extern CONTEXT_CONST ebml_context EBML_ContextHead;
+extern CONTEXT_CONST ebml_context EBML_ContextDummy;
+extern CONTEXT_CONST ebml_context EBML_ContextVersion;
+extern CONTEXT_CONST ebml_context EBML_ContextReadVersion;
+extern CONTEXT_CONST ebml_context EBML_ContextMaxIdLength;
+extern CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength;
+extern CONTEXT_CONST ebml_context EBML_ContextDocType;
+extern CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion;
+extern CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion;
 
-extern const ebml_context EBML_ContextEbmlVoid;
-extern const ebml_context EBML_ContextEbmlCrc32;
+extern CONTEXT_CONST ebml_context EBML_ContextEbmlVoid;
+extern CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32;
 
-extern const ebml_context EBML_ContextGlobals;
+//extern const ebml_context EBML_ContextGlobals;
 extern const ebml_semantic EBML_SemanticGlobals[];
 
 #ifdef __cplusplus

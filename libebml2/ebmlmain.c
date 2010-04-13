@@ -75,15 +75,15 @@ err_t EBML_Done(nodecontext *p)
     return ERR_NONE;
 }
 
-const ebml_context EBML_ContextDummy = {FOURCC(0xFF,0,0,0), EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextDummy = {FOURCC(0xFF,0,0,0), EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
 
-const ebml_context EBML_ContextVersion            = {FOURCC(0x42,0x86,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLVersion", NULL, EBML_SemanticGlobals};
-const ebml_context EBML_ContextReadVersion        = {FOURCC(0x42,0xF7,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
-const ebml_context EBML_ContextMaxIdLength        = {FOURCC(0x42,0xF2,0,0), EBML_INTEGER_CLASS, 1, 4, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
-const ebml_context EBML_ContextMaxSizeLength      = {FOURCC(0x42,0xF3,0,0), EBML_INTEGER_CLASS, 1, 8, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
-const ebml_context EBML_ContextDocType            = {FOURCC(0x42,0x82,0,0), EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
-const ebml_context EBML_ContextDocTypeVersion     = {FOURCC(0x42,0x87,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
-const ebml_context EBML_ContextDocTypeReadVersion = {FOURCC(0x42,0x85,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
+CONTEXT_CONST ebml_context EBML_ContextVersion            = {FOURCC(0x42,0x86,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {FOURCC(0x42,0xF7,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {FOURCC(0x42,0xF2,0,0), EBML_INTEGER_CLASS, 1, 4, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {FOURCC(0x42,0xF3,0,0), EBML_INTEGER_CLASS, 1, 8, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextDocType            = {FOURCC(0x42,0x82,0,0), EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {FOURCC(0x42,0x87,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {FOURCC(0x42,0x85,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
 
 static const ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextVersion},
@@ -95,11 +95,11 @@ static const ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextDocTypeReadVersion},
     {0, 0, NULL} // end of the table
 };
-const ebml_context EBML_ContextHead = {FOURCC(0x1A,0x45,0xDF,0xA3), EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextHead = {FOURCC(0x1A,0x45,0xDF,0xA3), EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
 
 
-const ebml_context EBML_ContextEbmlVoid   = {FOURCC(0xEC,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
-const ebml_context EBML_ContextEbmlCrc32    = {FOURCC(0xBF,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {FOURCC(0xEC,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32    = {FOURCC(0xBF,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
 
 const ebml_semantic EBML_SemanticGlobals[] = {
     {0, 0, &EBML_ContextEbmlVoid},
@@ -174,7 +174,7 @@ static bool_t EBML_IdMatch(const uint8_t *PossibleId, int8_t IdLength, fourcc_t 
     return ContextId == EBML_IdFromBuffer(PossibleId,IdLength);
 }
 
-ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault)
+ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, const void *Cookie)
 {
     ebml_element *Result;
     Result = (ebml_element*)NodeCreate(Any,Context->Class);
@@ -182,6 +182,11 @@ ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool
     {
         Result->Context = Context;
         Result->bDefaultIsSet = (SetDefault && Context->HasDefault);
+#if defined(EBML_LEGACY_API)
+        assert(Context->PostCreate); // for projects with legacy access
+#endif
+        if (Context->PostCreate)
+            Context->PostCreate(Result,Cookie);
         VMT_FUNC(Result,ebml_element_vmt)->PostCreate(Result);
     }
     return Result;
@@ -193,11 +198,11 @@ static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8
     assert(Context!=NULL);
     if (EBML_IdMatch(PossibleId, IdLength, Context->Id))
     {
-        Result = EBML_ElementCreate(Any,Context,0);
+        Result = EBML_ElementCreate(Any,Context,0,NULL);
     }
     else
     {
-        Result = EBML_ElementCreate(Any,&EBML_ContextDummy,0);
+        Result = EBML_ElementCreate(Any,&EBML_ContextDummy,0,NULL);
         if (Result!=NULL)
         {
             // Fill a temp context

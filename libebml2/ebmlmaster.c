@@ -38,7 +38,7 @@ ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context 
 
     if (!i && bCreateIfNull)
     {
-        i = EBML_ElementCreate(Element,Context,0);
+        i = EBML_ElementCreate(Element,Context,0,NULL);
         if (i)
             if (EBML_MasterAppend(Element,i)!=ERR_NONE)
             {
