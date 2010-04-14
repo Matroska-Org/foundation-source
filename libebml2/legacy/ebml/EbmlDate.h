@@ -44,7 +44,7 @@ namespace LIBEBML_NAMESPACE {
 			\brief set the date with a UNIX/C/EPOCH form
 			\param NewDate UNIX/C date in UTC (no timezone)
 		*/
-		void SetEpochDate(datetime_t NewDate);
+		void SetEpochDate(int32_t NewDate);
         virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
     };
 

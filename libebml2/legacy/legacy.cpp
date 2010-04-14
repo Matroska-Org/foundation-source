@@ -368,8 +368,10 @@ void EbmlElement::SetSizeLength(size_t Size)
 
 size_t EbmlElement::HeadSize() const
 {
-assert(0);
-    return 0;
+    filepos_t Result = EBML_ElementFullSize(Node,1);
+    if (Result != INVALID_FILEPOS_T)
+        Result -= Node->Size; 
+    return Result;
 }
 
 filepos_t EbmlElement::ElementSize(bool bKeepIntact) const
@@ -542,8 +544,8 @@ assert(0);
 
 filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bKeepIntact)
 {
-    // TODO: support SizeLength
     filepos_t Rendered = INVALID_FILEPOS_T;
+    Node->SizeLength = (int8_t)SizeLength;
     if (EBML_ElementRenderHead(Node, output.GetStream(), 1, bKeepIntact, 0, &Rendered)!=ERR_NONE)
         return INVALID_FILEPOS_T;
     return Rendered;
@@ -1036,12 +1038,12 @@ assert(0);
  ****************/
 datetime_t EbmlDate::GetEpochDate() const
 {
-    return EBML_DateTime(reinterpret_cast<const ebml_date*>(Node));
+    return EBML_DateTime(reinterpret_cast<const ebml_date*>(Node)) + 978307200; // 1st January 2001 to January 1, 1970
 }
 
-void EbmlDate::SetEpochDate(datetime_t NewDate)
+void EbmlDate::SetEpochDate(int32_t NewDate)
 {
-    EBML_DateSetDateTime(reinterpret_cast<ebml_date*>(Node),NewDate);
+    EBML_DateSetDateTime(reinterpret_cast<ebml_date*>(Node),NewDate - 978307200); // January 1, 1970 to 1st January 2001
 }
 
 filepos_t EbmlDate::ReadData(IOCallback & input, ScopeMode ReadFully)

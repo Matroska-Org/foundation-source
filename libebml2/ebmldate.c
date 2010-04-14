@@ -32,14 +32,14 @@ datetime_t EBML_DateTime(const ebml_date *Element)
     assert(Node_IsPartOf(Element,EBML_DATE_CLASS));
     if (!Element->Base.bValueIsSet)
         return 0;
-    return (datetime_t)(Element->Value/1000000000); // nanoseconds to seconds
+    return (datetime_t)Scale32(Element->Value,1,1000000000); // nanoseconds to seconds
 }
 
 err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date)
 {
     if (Date == INVALID_DATETIME_T)
         return ERR_INVALID_PARAM;
-    Element->Value = Date;
+    Element->Value = Scale64(Date,1000000000,1); // seconds to nanoseconds
     Element->Base.bValueIsSet = 1;
     return ERR_NONE;
 }
