@@ -148,6 +148,26 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
         *Rendered = i;
     return Err;
 }
+
+static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+{
+    err_t Err;
+	size_t i = 0;
+    if (Element->Base.Size == 8)
+    {
+        uint64_t Buf = LOAD64BE(&Element->Value);
+        Err = Stream_Write(Output,&Buf,8,&i);
+    }
+    else
+    {
+        float data = (float)Element->Value;
+        uint32_t Buf = LOAD32BE(&data);
+        Err = Stream_Write(Output,&Buf,4,&i);
+    }
+    if (Rendered)
+        *Rendered = i;
+    return Err;
+}
 #endif
 
 static bool_t ValidateSizeInt(ebml_element *p)
@@ -184,7 +204,6 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
 	
 	if (Element->Base.Size == 4) {
         float Val;
-        Element->IsSimplePrecision = 1;
 #ifdef IS_BIG_ENDIAN
         memcpy(&Val,Value,4);
 #else
@@ -196,7 +215,6 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
         Element->Value = Val;
         Element->Base.bValueIsSet = 1;
 	} else if (Element->Base.Size == 8) {
-        Element->IsSimplePrecision = 0;
 #ifdef IS_BIG_ENDIAN
         memcpy(&Element->Value,Value,8);
 #else
@@ -284,6 +302,13 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bKeepIntact, bool_t
 	return Element->Base.Size;
 }
 
+static filepos_t UpdateSizeFloat(ebml_float *Element, bool_t bKeepIntact, bool_t bForceRender)
+{
+	if (!bKeepIntact && IsDefaultValueFloat(Element))
+		return 0;
+    return Element->Base.Size;
+}
+
 static void PostCreateInt(ebml_element *Element)
 {
     INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->PostCreate(Element);
@@ -309,7 +334,7 @@ static void PostCreateSignedInt(ebml_element *Element)
 static void PostCreateFloat(ebml_element *Element)
 {
     INHERITED(Element,ebml_element_vmt,EBML_FLOAT_CLASS)->PostCreate(Element);
-    Element->DefaultSize = 1;
+    Element->DefaultSize = 4;
     if (Element->bDefaultIsSet)
     {
         Element->bValueIsSet = 1;
@@ -351,4 +376,8 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValueFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateFloat)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeFloat)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataFloat)
+#endif
 META_END(EBML_ELEMENT_CLASS)

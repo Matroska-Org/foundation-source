@@ -304,6 +304,7 @@ namespace LIBEBML_NAMESPACE {
         const char* DebugName() const;
 
         inline ebml_element *GetNode() { return Node; }
+        inline const ebml_element *GetNode() const { return Node; }
 
     protected:
         EbmlElement(const ebml_context &, ebml_element *WithNode = NULL);

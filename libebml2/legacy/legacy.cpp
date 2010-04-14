@@ -542,8 +542,11 @@ assert(0);
 
 filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bKeepIntact)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    // TODO: support SizeLength
+    filepos_t Rendered = INVALID_FILEPOS_T;
+    if (EBML_ElementRenderHead(Node, output.GetStream(), 1, bKeepIntact, 0, &Rendered)!=ERR_NONE)
+        return INVALID_FILEPOS_T;
+    return Rendered;
 }
 
 filepos_t EbmlMaster::UpdateSize(bool bKeepIntact, bool bForceRender)
@@ -612,15 +615,24 @@ EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Kind, const bool bCre
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Kind) const
+EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Past) const
 {
 assert(0);
     return NULL;
 }
 
-EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Kind, const bool bCreateIfNull)
+EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Past, const bool bCreateIfNull)
 {
-assert(0);
+    ebml_element *i = EBML_MasterFindNextElt(Node,Past.GetNode(),bCreateIfNull,0);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 
@@ -653,7 +665,7 @@ assert(0);
  ****************/
 void EbmlBinary::CopyBuffer(const void *Buffer, size_t BufferSize)
 {
-assert(0);
+    EBML_BinarySetData((ebml_binary*)Node, (const uint8_t*)Buffer, BufferSize);
 }
 
 void EbmlBinary::SetBuffer(const binary *Buffer, size_t BufferSize)
@@ -712,10 +724,10 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-EbmlString & EbmlString::operator=(const std::string &)
+EbmlString & EbmlString::operator=(const std::string & Value)
 {
-assert(0);
-return *static_cast<EbmlString*>(NULL);
+    EBML_StringSetValue((ebml_string*)Node,Value.c_str());
+    return *this;
 }
 
 EbmlString & EbmlString::operator=(const char *Value)
@@ -859,7 +871,7 @@ EbmlUInteger::EbmlUInteger(const ebml_context &ec, unsigned int DefaultValue, eb
 
 void EbmlUInteger::SetDefaultSize(filepos_t aDefaultSize)
 {
-assert(0);
+    Node->DefaultSize = aDefaultSize;
 }
 
 filepos_t EbmlUInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
@@ -979,12 +991,16 @@ EbmlFloat::operator double() const
 double EbmlFloat::operator =(double val)
 {
     ((ebml_float*)Node)->Value = val;
+    Node->bValueIsSet = 1;
     return val;
 }
 
 void EbmlFloat::SetPrecision(Precision prec)
 {
-    reinterpret_cast<ebml_float*>(Node)->IsSimplePrecision = (prec==FLOAT_32);
+    if (prec==FLOAT_32)
+        Node->Size = 4;
+    else
+        Node->Size = 8;
 }
 
 filepos_t EbmlFloat::ReadData(IOCallback & input, ScopeMode ReadFully)
@@ -1058,9 +1074,15 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-void EbmlVoid::SetSize(filepos_t)
+void EbmlVoid::SetSize(filepos_t Size)
 {
-assert(0);
+    uint8_t *TmpBuf = (uint8_t*)malloc(Size);
+    if (TmpBuf)
+    {
+        memset(TmpBuf,0,Size); // for equal binary compared to v1 streams
+        EBML_BinarySetData((ebml_binary*)Node,TmpBuf,Size);
+        free(TmpBuf);
+    }
 }
 
 

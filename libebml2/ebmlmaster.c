@@ -50,6 +50,32 @@ ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context 
     return i;
 }
 
+ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault)
+{
+    ebml_element *i;
+    if (!Current)
+        return NULL;
+
+    for (i=EBML_MasterNext(Current);i;i=EBML_MasterNext(i))
+    {
+        if (i->Context->Id == Current->Context->Id)
+            break;
+    }
+
+    if (!i && bCreateIfNull)
+    {
+        i = EBML_ElementCreate(Element,Current->Context,SetDefault,NULL);
+        if (i)
+            if (EBML_MasterAppend(Element,i)!=ERR_NONE)
+            {
+                NodeDelete((node*)i);
+                i = NULL;
+            }
+    }
+
+    return i;
+}
+
 err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append)
 {
     err_t Result = NodeTree_SetParent(Append,Element,NULL);

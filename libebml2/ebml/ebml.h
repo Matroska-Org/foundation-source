@@ -159,7 +159,6 @@ typedef struct ebml_float
 {
     ebml_element Base;
     double Value;
-    bool_t IsSimplePrecision;
 
 } ebml_float;
 
@@ -218,6 +217,7 @@ EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, boo
 // type specific routines
 EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault);
 EBML_DLL err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append);
+EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault);
 #define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
 #define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_element*)e,c,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))
