@@ -134,21 +134,12 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 
 static size_t GetIdLength(fourcc_t Id)
 {
-#if defined(IS_BIG_ENDIAN)
-    if ((Id & 0x00FFFFFF)==0)
-        return 1;
-    if ((Id & 0x0000FFFF)==0)
-        return 2;
-    if ((Id & 0x000000FF)==0)
-        return 3;
-#else
     if ((Id & 0xFFFFFF00)==0)
         return 1;
     if ((Id & 0xFFFF0000)==0)
         return 2;
     if ((Id & 0xFF000000)==0)
         return 3;
-#endif
     return 4;
 }
 
@@ -207,7 +198,7 @@ static err_t MakeRenderHead(ebml_element *Element, stream *Output, bool_t bKeepP
     memcpy(FinalHead,&Element->Context->Id,FinalHeadSize);
 #else
     for (i=0;i<FinalHeadSize;++i)
-        FinalHead[i] = (uint8_t)(Element->Context->Id >> (i<<3));
+        FinalHead[FinalHeadSize-i-1] = (uint8_t)(Element->Context->Id >> (i<<3));
 #endif
 
 	CodedSize = EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));

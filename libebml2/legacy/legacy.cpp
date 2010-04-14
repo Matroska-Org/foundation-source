@@ -584,7 +584,16 @@ bool EbmlMaster::PushElement(EbmlElement & element)
 
 EbmlElement *EbmlMaster::AddNewElt(const EbmlCallbacks & Kind)
 {
-assert(0);
+    ebml_element *i = EBML_MasterAddElt(Node,&Kind,0);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 

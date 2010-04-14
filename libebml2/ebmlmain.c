@@ -75,15 +75,15 @@ err_t EBML_Done(nodecontext *p)
     return ERR_NONE;
 }
 
-CONTEXT_CONST ebml_context EBML_ContextDummy = {FOURCC(0xFF,0,0,0), EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextDummy = {0xFF, EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
 
-CONTEXT_CONST ebml_context EBML_ContextVersion            = {FOURCC(0x42,0x86,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {FOURCC(0x42,0xF7,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {FOURCC(0x42,0xF2,0,0), EBML_INTEGER_CLASS, 1, 4, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {FOURCC(0x42,0xF3,0,0), EBML_INTEGER_CLASS, 1, 8, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextDocType            = {FOURCC(0x42,0x82,0,0), EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {FOURCC(0x42,0x87,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {FOURCC(0x42,0x85,0,0), EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
+CONTEXT_CONST ebml_context EBML_ContextVersion            = {0x4286, EBML_INTEGER_CLASS, 1, 1, "EBMLVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {0x42F7, EBML_INTEGER_CLASS, 1, 1, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {0x42F2, EBML_INTEGER_CLASS, 1, 4, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {0x42F3, EBML_INTEGER_CLASS, 1, 8, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextDocType            = {0x4282, EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {0x4287, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {0x4285, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
 
 static const ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextVersion},
@@ -95,11 +95,11 @@ static const ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextDocTypeReadVersion},
     {0, 0, NULL} // end of the table
 };
-CONTEXT_CONST ebml_context EBML_ContextHead = {FOURCC(0x1A,0x45,0xDF,0xA3), EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
 
 
-CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {FOURCC(0xEC,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
-CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32    = {FOURCC(0xBF,0,0,0), EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32  = {0xBF, EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
 
 const ebml_semantic EBML_SemanticGlobals[] = {
     {0, 0, &EBML_ContextEbmlVoid},

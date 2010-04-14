@@ -27,6 +27,19 @@
  */
 #include "ebml/ebml.h"
 
+ebml_element *EBML_MasterAddElt(ebml_element *Element, const ebml_context *Context, bool_t SetDefault)
+{
+    ebml_element *i;
+    i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
+    if (i)
+        if (EBML_MasterAppend(Element,i)!=ERR_NONE)
+        {
+            NodeDelete((node*)i);
+            i = NULL;
+        }
+    return i;
+}
+
 ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault)
 {
     ebml_element *i;
@@ -37,15 +50,7 @@ ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context 
     }
 
     if (!i && bCreateIfNull)
-    {
-        i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
-        if (i)
-            if (EBML_MasterAppend(Element,i)!=ERR_NONE)
-            {
-                NodeDelete((node*)i);
-                i = NULL;
-            }
-    }
+        i = EBML_MasterAddElt(Element,Context,SetDefault);
 
     return i;
 }
@@ -63,15 +68,7 @@ ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *
     }
 
     if (!i && bCreateIfNull)
-    {
-        i = EBML_ElementCreate(Element,Current->Context,SetDefault,NULL);
-        if (i)
-            if (EBML_MasterAppend(Element,i)!=ERR_NONE)
-            {
-                NodeDelete((node*)i);
-                i = NULL;
-            }
-    }
+        i = EBML_MasterAddElt(Element,Current->Context,SetDefault);
 
     return i;
 }
