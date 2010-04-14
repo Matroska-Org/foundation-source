@@ -81,6 +81,55 @@ err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append)
     return Result;
 }
 
+size_t EBML_MasterCount(const ebml_element *Element)
+{
+    size_t Result = 0;
+    ebml_element *i;
+    for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+        ++Result;
+    return Result;
+}
+
+static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebml_element** b)
+{
+    if ((*a)->Context->Id == (*b)->Context->Id)
+        return EBML_ElementCmp(a,b);
+    return 0;
+}
+
+void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* CmpParam)
+{
+    array Elts;
+    ebml_element *i,**j;
+    ArrayInit(&Elts);
+    for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+        ArrayAppend(&Elts,&i,sizeof(i),64);
+    if (Cmp)
+        ArraySort(&Elts,ebml_element*,Cmp,CmpParam,0);
+    else
+        ArraySort(&Elts,ebml_element*,EbmlCmp,Element,0);
+
+    // refill the master with the new order
+    EBML_MasterClear(Element);
+    i = NULL;
+    for (j=ARRAYBEGIN(Elts,ebml_element*);j!=ARRAYEND(Elts,ebml_element*);++j)
+    {
+        NodeTree_SetParent(*j,Element,NULL);
+        i = *j;
+    }
+    ArrayClear(&Elts);
+}
+
+void EBML_MasterClear(ebml_element *Element)
+{
+    ebml_element *i = EBML_MasterChildren(Element);
+    while (i)
+    {
+        NodeTree_SetParent(i,NULL,NULL);
+        i = EBML_MasterChildren(Element);
+    }
+}
+
 static bool_t IsDefaultValue(const ebml_element *Element)
 {
     // TODO: a master element has the default value if all the sub elements are unique and have the default value

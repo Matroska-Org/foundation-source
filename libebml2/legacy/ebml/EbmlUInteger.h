@@ -37,7 +37,7 @@ namespace LIBEBML_NAMESPACE {
     public:
         EbmlUInteger(const ebml_context &,unsigned int, ebml_element *WithNode = NULL);
         EbmlUInteger(const ebml_context &, ebml_element *WithNode = NULL);
-		operator uint8_t() const;
+		operator uint64_t() const;
         virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;

@@ -309,6 +309,7 @@ namespace LIBEBML_NAMESPACE {
     protected:
         EbmlElement(const ebml_context &, ebml_element *WithNode = NULL);
         ebml_element *Node;
+        static err_t Deleting(EbmlElement *p, nodeevt *Evt);
     };
 
     size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite = true);

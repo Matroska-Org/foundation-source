@@ -288,6 +288,13 @@ assert(0);
 return *static_cast<EbmlElement*>(NULL);
 }
 
+err_t EbmlElement::Deleting(EbmlElement *p, nodeevt *Evt)
+{
+    p->Node = NULL;
+    delete p;
+    return ERR_NONE;
+}
+
 EbmlElement::EbmlElement(const ebml_context & Context, ebml_element *WithNode)
 :Node(WithNode)
 {
@@ -297,12 +304,17 @@ EbmlElement::EbmlElement(const ebml_context & Context, ebml_element *WithNode)
     {
         // TODO: throw some error
     }
+    Node_AddNotify((node*)Node,NODE_DELETING,(notifyproc)Deleting,this);
+
 }
 
 EbmlElement::~EbmlElement()
 {
     if (Node)
+    {
+        Node_RemoveNotify((node*)Node,NODE_DELETING,(notifyproc)Deleting,this);
         NodeDelete((node*)Node);
+    }
 }
 
 EbmlElement * EbmlElement::SkipData(EbmlStream & DataStream, const EbmlSemanticContext & Context, EbmlElement * TestReadElt, bool AllowDummyElt)
@@ -325,8 +337,7 @@ assert(0);
 
 filepos_t EbmlElement::GetSize() const
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    return Node->Size;
 }
 
 bool EbmlElement::ValueIsSet() const
@@ -376,8 +387,7 @@ size_t EbmlElement::HeadSize() const
 
 filepos_t EbmlElement::ElementSize(bool bKeepIntact) const
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    return EBML_ElementFullSize(Node,bKeepIntact);
 }
 
 filepos_t EbmlElement::GetElementPosition() const
@@ -553,24 +563,40 @@ filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bKe
 
 filepos_t EbmlMaster::UpdateSize(bool bKeepIntact, bool bForceRender)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    return EBML_ElementUpdateSize(Node, bKeepIntact, bForceRender);
+}
+
+static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebml_element** b)
+{
+    EbmlElement *A=NULL;
+    EbmlElement *B=NULL;
+    if (Node_Get((node*)*a,EBML_ELEMENT_OBJECT,&A,sizeof(A))!=ERR_NONE)
+    {
+        assert(0);
+    }
+    if (Node_Get((node*)*b,EBML_ELEMENT_OBJECT,&B,sizeof(B))!=ERR_NONE)
+    {
+        assert(0);
+    }
+    if (B->IsSmallerThan(A))
+        return -1;
+    else
+        return 0;
 }
 
 void EbmlMaster::Sort()
 {
-assert(0);
+    EBML_MasterSort(Node, (arraycmp)EbmlCmp, this);
 }
 
 void EbmlMaster::RemoveAll()
 {
-assert(0);
+    EBML_MasterClear(Node);
 }
 
 size_t EbmlMaster::ListSize() const
 {
-assert(0);
-return 0;
+    return EBML_MasterCount(Node);
 }
 
 bool EbmlMaster::InsertElement(EbmlElement & element, size_t position)
@@ -601,13 +627,31 @@ EbmlElement *EbmlMaster::AddNewElt(const EbmlCallbacks & Kind)
 
 EbmlElement *EbmlMaster::FindElt(const ebml_context & Kind) const
 {
-assert(0);
+    ebml_element *i = EBML_MasterFindChild(Node,&Kind);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 
 EbmlElement *EbmlMaster::FindFirstElt(const ebml_context & Kind) const
 {
-assert(0);
+    ebml_element *i = EBML_MasterFindFirstElt(Node,&Kind,0,0);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 
@@ -654,14 +698,36 @@ assert(0);
 
 EbmlElement * EbmlMaster::operator[](size_t position)
 {
-assert(0);
-return NULL;
+    ebml_element *i = Ebml_Children(Node);
+    while(i && position--)
+        i = Ebml_Next(i);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
+    return NULL;
 }
 
 const EbmlElement * EbmlMaster::operator[](size_t position) const
 {
-assert(0);
-return NULL;
+    ebml_element *i = Ebml_Children(Node);
+    while(i && position--)
+        i = Ebml_Next(i);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
+    return NULL;
 }
 
 EbmlElement * EbmlMaster::Clone() const
@@ -897,10 +963,9 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-EbmlUInteger::operator uint8_t() const
+EbmlUInteger::operator uint64_t() const
 {
-assert(0);
-    return 0;
+    return reinterpret_cast<ebml_integer*>(Node)->Value;
 }
 
 uint64_t EbmlUInteger::operator =(uint64_t val)
@@ -956,8 +1021,7 @@ return 0;
 
 EbmlSInteger::operator int64_t() const
 {
-assert(0);
-return 0;
+    return reinterpret_cast<ebml_integer*>(Node)->Value;
 }
 
 EbmlElement * EbmlSInteger::Clone() const
@@ -1012,6 +1076,17 @@ void EbmlFloat::SetPrecision(Precision prec)
         Node->Size = 4;
     else
         Node->Size = 8;
+}
+
+bool EbmlFloat::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	if (EbmlId(*this) == EbmlId(*Cmp))
+    {
+        const EbmlFloat *_Cmp = static_cast<const EbmlFloat *>(Cmp);
+        return reinterpret_cast<const ebml_float*>(Node)->Value < reinterpret_cast<const ebml_float*>(_Cmp->Node)->Value;
+    }
+	else
+		return false;
 }
 
 filepos_t EbmlFloat::ReadData(IOCallback & input, ScopeMode ReadFully)

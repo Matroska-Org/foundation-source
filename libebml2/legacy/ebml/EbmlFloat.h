@@ -45,6 +45,7 @@ namespace LIBEBML_NAMESPACE {
         operator double() const;
 
         double operator =(double val);
+        virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
 
         void SetPrecision(Precision prec = FLOAT_32);
 

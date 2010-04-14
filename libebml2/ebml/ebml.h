@@ -129,6 +129,7 @@ typedef struct ebml_element_vmt
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);
     filepos_t (*UpdateSize)(void*, bool_t bKeepIntact, bool_t bForceRender);
+    int (*Cmp)(const void*, const void*);
     
     // internal call only
     void (*PostCreate)(void*);
@@ -140,6 +141,7 @@ typedef struct ebml_element_vmt
 #define EBML_ElementRenderData(p,s,f,k,r)  VMT_FUNC(p,ebml_element_vmt)->RenderData(p,s,f,k,r)
 #define EBML_ElementIsDefaultValue(p)      VMT_FUNC(p,ebml_element_vmt)->IsDefaultValue(p)
 #define EBML_ElementUpdateSize(p,k,f)      VMT_FUNC(p,ebml_element_vmt)->UpdateSize(p,k,f)
+#define EBML_ElementCmp(p,e)               VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
 
 typedef struct ebml_string
 {
@@ -219,6 +221,9 @@ EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml
 EBML_DLL err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append);
 EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault);
 EBML_DLL ebml_element *EBML_MasterAddElt(ebml_element *Element, const ebml_context *Context, bool_t SetDefault);
+EBML_DLL size_t EBML_MasterCount(const ebml_element *Element);
+EBML_DLL void EBML_MasterClear(ebml_element *Element); // clear the list (the children and not freed)
+EBML_DLL void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* CmpParam);
 #define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
 #define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_element*)e,c,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))
