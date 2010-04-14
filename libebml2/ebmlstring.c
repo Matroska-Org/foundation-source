@@ -163,7 +163,17 @@ static bool_t IsDefaultValue(const ebml_string *Element)
 
 static void PostCreateString(ebml_element *Element)
 {
-    INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->PostCreate(Element);
+    INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->PostCreate(Element);
+    if (Element->bDefaultIsSet)
+    {
+        Element->bValueIsSet = 1;
+        ((ebml_string*)Element)->Buffer = strdup((const char *)Element->Context->DefaultValue);
+    }
+}
+
+static void PostCreateUniString(ebml_element *Element)
+{
+    INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->PostCreate(Element);
     if (Element->bDefaultIsSet)
     {
         Element->bValueIsSet = 1;
@@ -192,5 +202,5 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
-META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateString)
+META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateUniString)
 META_END(EBML_ELEMENT_CLASS)

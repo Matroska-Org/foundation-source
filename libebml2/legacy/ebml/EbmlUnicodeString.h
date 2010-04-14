@@ -42,10 +42,15 @@ namespace LIBEBML_NAMESPACE {
     public:
         UTFstring();
         UTFstring(const wchar_t *);
+        UTFstring(const UTFstring &);
+        ~UTFstring();
         const wchar_t* c_str() const;
         bool operator==(const UTFstring&) const;
+        UTFstring & operator=(const UTFstring &);
         operator const wchar_t*() const;
         size_t length() const;
+    protected:
+        wchar_t *Buffer;
     };
 
     class EbmlUnicodeString : public EbmlElement {

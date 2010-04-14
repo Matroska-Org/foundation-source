@@ -576,8 +576,7 @@ assert(0);
 
 bool EbmlMaster::PushElement(EbmlElement & element)
 {
-assert(0);
-    return false;
+    return EBML_MasterAppend(Node,element.GetNode())==ERR_NONE;
 }
 
 EbmlElement *EbmlMaster::AddNewElt(const EbmlCallbacks & Kind)
@@ -758,10 +757,10 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-EbmlUnicodeString & EbmlUnicodeString::operator=(const UTFstring &)
+EbmlUnicodeString & EbmlUnicodeString::operator=(const UTFstring &val)
 {
-assert(0);
-return *static_cast<EbmlUnicodeString*>(NULL);
+    EBML_UniStringSetValue((ebml_string*)Node,val);
+    return *this;
 }
 
 EbmlUnicodeString::operator const UTFstring() const
@@ -780,14 +779,42 @@ assert(0);
 /*****************
  * UTFstring
  ****************/
-UTFstring::UTFstring(const wchar_t*)
+UTFstring::UTFstring(const wchar_t* value)
+:Buffer(NULL)
 {
-assert(0);
+    size_t Size = wcslen(value);
+    Buffer = new wchar_t[(Size+1)*sizeof(wchar_t)];
+    if (Buffer)
+        memcpy(Buffer,value,(Size+1)*sizeof(wchar_t));
 }
 
 UTFstring::UTFstring()
+:Buffer(NULL)
 {
-assert(0);
+}
+
+UTFstring::UTFstring(const UTFstring &Clone)
+:Buffer(NULL)
+{
+    size_t Size = wcslen(Clone.Buffer);
+    Buffer = new wchar_t[(Size+1)*sizeof(wchar_t)];
+    if (Buffer)
+        memcpy(Buffer,Clone.Buffer,(Size+1)*sizeof(wchar_t));
+}
+
+UTFstring::~UTFstring()
+{
+    delete[] Buffer;
+}
+
+UTFstring & UTFstring::operator=(const UTFstring & Clone)
+{
+    delete[] Buffer;
+    size_t Size = wcslen(Clone.Buffer);
+    Buffer = new wchar_t[(Size+1)*sizeof(wchar_t)];
+    if (Buffer)
+        memcpy(Buffer,Clone.Buffer,(Size+1)*sizeof(wchar_t));
+    return *this;
 }
 
 const wchar_t* UTFstring::c_str() const
@@ -798,14 +825,16 @@ assert(0);
 
 UTFstring::operator const wchar_t*() const
 {
-assert(0);
-    return NULL;
+    return Buffer;
 }
 
-bool UTFstring::operator==(const UTFstring&) const
+bool UTFstring::operator==(const UTFstring &Cmp) const
 {
-assert(0);
-    return false;
+    size_t Size1 = wcslen(Buffer);
+    size_t Size2 = wcslen(Cmp.Buffer);
+    if (Size1 != Size2)
+        return false;
+    return memcmp(Buffer,Cmp.Buffer,(Size1+1)*sizeof(wchar_t))==0;
 }
 
 size_t UTFstring::length() const
