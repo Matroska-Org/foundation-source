@@ -62,6 +62,10 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
   class x : public EbmlBinary { \
   public: x(ebml_element *WithNode = NULL); \
   EBML_CONCRETE_CLASS(x)
+#define DECLARE_EBML_VOID(x)      DECLARE_EBML_CONTEXT(x) \
+  class x : public EbmlElement { \
+  public: x(ebml_element *WithNode = NULL); \
+  EBML_CONCRETE_CLASS(x)
 
 #define DEFINE_SEMANTIC_CONTEXT(x)
 #define DEFINE_START_SEMANTIC(x)     static const ebml_semantic EBML_Semantic##x[] = {
@@ -193,6 +197,12 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
     void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlBinary(EBML_Context##x, WithNode) {}
+
+#define DEFINE_EBML_VOID_GLOBAL(x,id,idl,name) \
+    const ebml_context x::EBML_Context##x = {id, EBML_VOID_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
+    const ebml_context & x::GetContext() { return EBML_Context##x; } \
+    void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
+    x::x(ebml_element *WithNode) :EbmlElement(EBML_Context##x, WithNode) {}
 
 #define DEFINE_xxx_DATE(x,id,idl,parent,name,global) DEFINE_EBML_DATE(x,id,idl,parent,name)
 #define DEFINE_EBML_DATE(x,id,idl,parent,name) \

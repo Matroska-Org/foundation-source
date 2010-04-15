@@ -33,8 +33,10 @@
 
 namespace LIBEBML_NAMESPACE {
 
-DECLARE_EBML_BINARY(EbmlVoid)
+DECLARE_EBML_VOID(EbmlVoid)
     public:
+        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+
         void SetSize(filepos_t);
         filepos_t ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward = true, bool bKeepIntact = false);
     };

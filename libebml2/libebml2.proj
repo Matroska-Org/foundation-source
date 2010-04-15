@@ -26,6 +26,7 @@ GROUP ebml2_group
   SOURCE ebmlnumber.c  {class EBMLInteger_Class}
   SOURCE ebmlcrc.c     {class EBMLCRC_Class}
   SOURCE ebmldate.c    {class EBMLDate_Class}
+  SOURCE ebmlvoid.c    {class EBMLVoid_Class}
 }
 
 DLL ebml2

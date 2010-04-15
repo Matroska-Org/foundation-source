@@ -115,9 +115,22 @@ struct stream_io
 
 static filepos_t Seek(stream_io* p,filepos_t Pos,int SeekMode) 
 {
-    if (SeekMode == SEEK_CUR && Pos==0)
+    if (SeekMode == SEEK_CUR)
+    {
+        if (Pos!=0)
+            p->cpp->setFilePointer(Pos,seek_current);
         return p->cpp->getFilePointer();
-assert(0);
+    }
+    if (SeekMode == SEEK_SET)
+    {
+        p->cpp->setFilePointer(Pos);
+        return Pos;
+    }
+    if (SeekMode == SEEK_END)
+    {
+        p->cpp->setFilePointer(Pos,seek_end);
+        return p->cpp->getFilePointer();
+    }
     return INVALID_FILEPOS_T;
 }
 
@@ -180,7 +193,7 @@ return *static_cast<EbmlElement*>(NULL);
 }
 
 DEFINE_EBML_BINARY_GLOBAL(EbmlCrc32, 0xBF, 1, "EBMLCrc32\0ratamadabapa");
-DEFINE_EBML_BINARY_GLOBAL(EbmlVoid,  0xEC, 1, "EBMLVoid");
+DEFINE_EBML_VOID_GLOBAL(EbmlVoid,  0xEC, 1, "EBMLVoid");
 
 ebml_context EbmlHead::EBML_ContextEbmlHead                       = ::EBML_ContextHead; // dirty copy
 ebml_context EDocType::EBML_ContextEDocType                       = ::EBML_ContextDocType; // dirty copy
@@ -1112,21 +1125,19 @@ assert(0);
 /*****************
  * EbmlVoid
  ****************/
+filepos_t EbmlVoid::ReadData(IOCallback & input, ScopeMode ReadFully)
+{
+    return 0;
+}
+
 filepos_t EbmlVoid::ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward, bool bKeepIntact)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    return EBML_VoidReplaceWith(Node, EltToReplaceWith.GetNode(), output.GetStream(), ComeBackAfterward, bKeepIntact);
 }
 
 void EbmlVoid::SetSize(filepos_t Size)
 {
-    uint8_t *TmpBuf = (uint8_t*)malloc(Size);
-    if (TmpBuf)
-    {
-        memset(TmpBuf,0,Size); // for equal binary compared to v1 streams
-        EBML_BinarySetData((ebml_binary*)Node,TmpBuf,Size);
-        free(TmpBuf);
-    }
+    EBML_VoidSetSize(Node,Size);
 }
 
 

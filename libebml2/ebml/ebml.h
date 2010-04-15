@@ -239,6 +239,11 @@ EBML_DLL err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date);
 
 EBML_DLL err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize);
 
+#if defined(CONFIG_EBML_WRITING)
+EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
+EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bKeepIntact);
+#endif
+
 #if defined(EBML_LEGACY_API)
 #define CONTEXT_CONST
 #else

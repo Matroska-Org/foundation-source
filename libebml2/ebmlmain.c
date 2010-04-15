@@ -45,6 +45,7 @@ extern const nodemeta EBMLString_Class[];
 extern const nodemeta EBMLInteger_Class[];
 extern const nodemeta EBMLCRC_Class[];
 extern const nodemeta EBMLDate_Class[];
+extern const nodemeta EBMLVoid_Class[];
 
 err_t EBML_Init(nodecontext *p)
 {
@@ -65,8 +66,9 @@ err_t EBML_Init(nodecontext *p)
 	NodeRegisterClassEx((nodemodule*)p,EBMLBinary_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLString_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLInteger_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLCRC_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLDate_Class);
+	NodeRegisterClassEx((nodemodule*)p,EBMLCRC_Class);
+	NodeRegisterClassEx((nodemodule*)p,EBMLVoid_Class);
     return ERR_NONE;
 }
 
@@ -98,7 +100,7 @@ static const ebml_semantic EBML_SemanticHead[] = {
 CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
 
 
-CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_BINARY_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_VOID_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
 CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32  = {0xBF, EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
 
 const ebml_semantic EBML_SemanticGlobals[] = {
