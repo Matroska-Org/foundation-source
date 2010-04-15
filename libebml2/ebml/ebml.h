@@ -194,6 +194,7 @@ EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bKee
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
 EBML_DLL bool_t EBML_ElementIsFiniteSize(const ebml_element *Element);
 EBML_DLL void EBML_ElementSetInfiniteSize(const ebml_element *Element, bool_t Set);
+EBML_DLL bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize);
 EBML_DLL bool_t EBML_ElementIsDummy(const ebml_element *Element);
 static INLINE filepos_t EBML_ElementPositionData(const ebml_element *Element)
 {

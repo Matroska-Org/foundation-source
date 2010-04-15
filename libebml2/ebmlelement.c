@@ -150,6 +150,29 @@ filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bKeepIntact)
 	return Element->Size + GetIdLength(Element->Context->Id) + EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
 }
 
+bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
+{
+	int OldSizeLen;
+	filepos_t OldSize;
+
+    assert(!EBML_ElementIsFiniteSize(Element));
+	if (EBML_ElementIsFiniteSize(Element))
+		return 0;
+
+	OldSizeLen = EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
+	OldSize = Element->Size;
+	Element->Size = NewSize;
+
+	if (EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element)) == OldSizeLen)
+    {
+		EBML_ElementSetInfiniteSize(Element,1);
+		return 1;
+	}
+	Element->Size = OldSize;
+
+	return 0;
+}
+
 #if defined(CONFIG_EBML_WRITING)
 err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bKeepIntact, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered)
 {

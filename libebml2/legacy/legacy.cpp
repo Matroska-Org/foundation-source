@@ -119,7 +119,7 @@ static filepos_t Seek(stream_io* p,filepos_t Pos,int SeekMode)
     {
         if (Pos!=0)
             p->cpp->setFilePointer(Pos,seek_current);
-        return p->cpp->getFilePointer();
+        return (filepos_t)p->cpp->getFilePointer();
     }
     if (SeekMode == SEEK_SET)
     {
@@ -129,7 +129,7 @@ static filepos_t Seek(stream_io* p,filepos_t Pos,int SeekMode)
     if (SeekMode == SEEK_END)
     {
         p->cpp->setFilePointer(Pos,seek_end);
-        return p->cpp->getFilePointer();
+        return (filepos_t)p->cpp->getFilePointer();
     }
     return INVALID_FILEPOS_T;
 }
@@ -386,8 +386,7 @@ assert(0);
 
 bool EbmlElement::ForceSize(filepos_t NewSize)
 {
-assert(0);
-    return false;
+    return EBML_ElementInfiniteForceSize(Node,NewSize)?true:false;
 }
 
 void EbmlElement::SetSizeLength(size_t Size)
@@ -423,8 +422,19 @@ filepos_t EbmlElement::Render(IOCallback & output, bool bKeepIntact, bool bKeepP
 
 filepos_t EbmlElement::OverwriteHead(IOCallback & output, bool bKeepPosition)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    if (Node->ElementPosition == INVALID_FILEPOS_T)
+		return INVALID_FILEPOS_T; // the element has not been written
+
+	filepos_t CurrentPosition = (filepos_t)output.getFilePointer();
+	output.setFilePointer(GetElementPosition());
+    if (EBML_ElementRenderHead(Node, output.GetStream(), 1, 1, bKeepPosition, NULL)!=ERR_NONE)
+        return INVALID_FILEPOS_T;
+    if (!bKeepPosition)
+    {
+	    output.setFilePointer(CurrentPosition);
+	    return CurrentPosition;
+    }
+    return Node->ElementPosition;
 }
 
 void EbmlElement::Read(EbmlStream & inDataStream, const ebml_parser_context & Context, int & UpperEltFound, EbmlElement * & FoundElt, bool AllowDummyElt, ScopeMode ReadFully)
