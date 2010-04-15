@@ -277,7 +277,7 @@ namespace LIBEBML_NAMESPACE {
         virtual filepos_t GetSize() const;
         size_t GetSizeLength() const;
         virtual operator const EbmlId () const = 0;
-		virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false) = 0; /// update the Size of the Data stored
+		filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false); /// update the Size of the Data stored
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA) = 0;
         virtual EbmlElement * Clone() const = 0;
 

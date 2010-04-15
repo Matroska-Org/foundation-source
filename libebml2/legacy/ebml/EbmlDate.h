@@ -36,7 +36,6 @@ namespace LIBEBML_NAMESPACE {
     class EbmlDate : public EbmlElement {
     public:
         EbmlDate(const ebml_context &ec, ebml_element *WithNode = NULL) :EbmlElement(ec, WithNode) {}
-        virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
         datetime_t GetEpochDate() const;

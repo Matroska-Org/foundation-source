@@ -39,7 +39,6 @@ namespace LIBEBML_NAMESPACE {
         void CopyBuffer(const void *Buffer, size_t BufferSize);
         void SetBuffer(const binary *Buffer, size_t BufferSize);
 
-        virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
 

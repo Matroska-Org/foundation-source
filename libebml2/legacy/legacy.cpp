@@ -323,6 +323,11 @@ assert(0);
     return NULL;
 }
 
+filepos_t EbmlElement::UpdateSize(bool bKeepIntact, bool bForceRender)
+{
+    return EBML_ElementUpdateSize(Node, bKeepIntact, bForceRender);
+}
+
 bool EbmlElement::IsFiniteSize() const
 {
 assert(0);
@@ -561,11 +566,6 @@ filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bKe
     return Rendered;
 }
 
-filepos_t EbmlMaster::UpdateSize(bool bKeepIntact, bool bForceRender)
-{
-    return EBML_ElementUpdateSize(Node, bKeepIntact, bForceRender);
-}
-
 static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebml_element** b)
 {
     EbmlElement *A=NULL;
@@ -762,12 +762,6 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-filepos_t EbmlBinary::UpdateSize(bool bKeepIntact, bool bForceRender)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
 EbmlElement * EbmlBinary::Clone() const
 {
 assert(0);
@@ -790,12 +784,6 @@ EbmlString::EbmlString(const ebml_context &ec, ebml_element *WithNode)
 }
 
 filepos_t EbmlString::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
-filepos_t EbmlString::UpdateSize(bool bKeepIntact, bool bForceRender)
 {
 assert(0);
     return INVALID_FILEPOS_T;
@@ -835,12 +823,6 @@ EbmlUnicodeString::EbmlUnicodeString(const ebml_context &ec, ebml_element *WithN
 }
 
 filepos_t EbmlUnicodeString::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
-filepos_t EbmlUnicodeString::UpdateSize(bool bKeepIntact, bool bForceRender)
 {
 assert(0);
     return INVALID_FILEPOS_T;
@@ -957,12 +939,6 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-filepos_t EbmlUInteger::UpdateSize(bool bKeepIntact, bool bForceRender)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
 EbmlUInteger::operator uint64_t() const
 {
     return reinterpret_cast<ebml_integer*>(Node)->Value;
@@ -1002,12 +978,6 @@ assert(0);
 }
 
 filepos_t EbmlSInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
-filepos_t EbmlSInteger::UpdateSize(bool bKeepIntact, bool bForceRender)
 {
 assert(0);
     return INVALID_FILEPOS_T;
@@ -1095,12 +1065,6 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-filepos_t EbmlFloat::UpdateSize(bool bKeepIntact, bool bForceRender)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
 EbmlElement * EbmlFloat::Clone() const
 {
 assert(0);
@@ -1122,12 +1086,6 @@ void EbmlDate::SetEpochDate(int32_t NewDate)
 }
 
 filepos_t EbmlDate::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
-filepos_t EbmlDate::UpdateSize(bool bKeepIntact, bool bForceRender)
 {
 assert(0);
     return INVALID_FILEPOS_T;

@@ -87,9 +87,6 @@ static bool_t IsDefaultValue(const ebml_binary *Element)
 
 static filepos_t UpdateSize(ebml_binary *Element, bool_t bKeepIntact, bool_t bForceRender)
 {
-	if (!bKeepIntact && EBML_ElementIsDefaultValue(Element))
-		return 0;
-
 	Element->Base.Size = ARRAYCOUNT(Element->Data,uint8_t);
 
 	if (Element->Base.DefaultSize > Element->Base.Size) {

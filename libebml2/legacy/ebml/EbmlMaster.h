@@ -64,7 +64,6 @@ namespace LIBEBML_NAMESPACE {
 		*/
 		void RemoveAll();
 
-        virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
 

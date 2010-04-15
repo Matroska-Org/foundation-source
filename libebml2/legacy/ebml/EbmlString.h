@@ -43,7 +43,6 @@ namespace LIBEBML_NAMESPACE {
         EbmlString & operator=(const char *);
         operator const std::string () const;
 
-        virtual filepos_t UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
     };
