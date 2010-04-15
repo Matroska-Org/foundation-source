@@ -113,12 +113,23 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
         return 0; // nothing to write
 	
 	TempValue = Element->Value;
-	for (i=(size_t)Element->Base.Size;i;--i) {
+    if (Element->Base.DefaultSize > Element->Base.Size)
+    {
+        for (i=Element->Base.DefaultSize - Element->Base.Size - 1;i;--i)
+            FinalData[i-1] = 0;
+        i = Element->Base.DefaultSize - Element->Base.Size;
+    }
+    else
+        i=(size_t)Element->Base.Size;
+	for (;i;--i) {
 		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
 		TempValue >>= 8;
 	}
 	
-    Err = Stream_Write(Output,FinalData,(size_t)Element->Base.Size,&i);
+    if (Element->Base.DefaultSize > Element->Base.Size)
+        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
+    else
+        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.Size,&i);
     if (Rendered)
         *Rendered = i;
     return Err;
@@ -138,12 +149,23 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
         return 0; // nothing to write
 	
 	TempValue = Element->Value;
-	for (i=(size_t)Element->Base.Size;i;--i) {
+    if (Element->Base.DefaultSize > Element->Base.Size)
+    {
+        for (i=Element->Base.DefaultSize - Element->Base.Size - 1;i;--i)
+            FinalData[i-1] = 0;
+        i = Element->Base.DefaultSize - Element->Base.Size;
+    }
+    else
+        i=(size_t)Element->Base.Size;
+	for (;i;--i) {
 		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
 		TempValue >>= 8;
 	}
 	
-    Err = Stream_Write(Output,FinalData,(size_t)Element->Base.Size,&i);
+    if (Element->Base.DefaultSize > Element->Base.Size)
+        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
+    else
+        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.Size,&i);
     if (Rendered)
         *Rendered = i;
     return Err;
