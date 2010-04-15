@@ -108,7 +108,7 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
             HeadAfter = EBML_ElementFullSize(aTmp,1) - aTmp->Size;
             if (HeadBefore != HeadAfter)
                 aTmp->SizeLength = (int8_t)(EBML_CodedSizeLength(aTmp->Size, aTmp->SizeLength, EBML_ElementIsFiniteSize(aTmp)) - (HeadAfter - HeadBefore));
-            EBML_ElementRenderHead(aTmp,Output,1,1,0,NULL);
+            EBML_ElementRenderHead(aTmp,Output,0,NULL);
             NodeDelete((node*)aTmp);
         }
     }

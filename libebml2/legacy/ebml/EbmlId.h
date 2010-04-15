@@ -31,8 +31,8 @@
 
 #include "ebml/EbmlConfig.h"
 
-#define EBML_ID_LENGTH(x)  0 // TODO
-#define EBML_ID_VALUE(x)   0 // TODO
+#define EBML_ID_LENGTH(x)  (x).GetLength()
+#define EBML_ID_VALUE(x)   (fourcc_t)(x)
 
 namespace LIBEBML_NAMESPACE {
 
@@ -41,13 +41,11 @@ namespace LIBEBML_NAMESPACE {
         EbmlId(uint32_t Id, size_t Size);
         EbmlId(const binary aValue[4], size_t aLength);
         EbmlId(fourcc_t Id);
-//        bool operator==(const EbmlId & TestId) const;
-//        bool operator!=(const EbmlId & TestId) const;
         void Fill(binary * Buffer) const;
         operator fourcc_t() const;
+        size_t GetLength() const;
     private:
         fourcc_t Value;
-        size_t Length;
     };
 };
 

@@ -427,7 +427,7 @@ filepos_t EbmlElement::OverwriteHead(IOCallback & output, bool bKeepPosition)
 
 	filepos_t CurrentPosition = (filepos_t)output.getFilePointer();
 	output.setFilePointer(GetElementPosition());
-    if (EBML_ElementRenderHead(Node, output.GetStream(), 1, 1, bKeepPosition, NULL)!=ERR_NONE)
+    if (EBML_ElementRenderHead(Node, output.GetStream(), bKeepPosition, NULL)!=ERR_NONE)
         return INVALID_FILEPOS_T;
     if (!bKeepPosition)
     {
@@ -501,18 +501,18 @@ EbmlSemanticContext::~EbmlSemanticContext()
  ****************/
 EbmlId::EbmlId(uint32_t Id, size_t Size)
 :Value(Id)
-,Length(Size)
-{}
+{
+    assert(Size==0); // otherwise we have to make sure the value is OK
+}
 
 EbmlId::EbmlId(const binary aValue[4], size_t aLength)
 {
-assert(0);
+    assert(aLength==0); // otherwise we have to make sure the value is OK
 }
 
 EbmlId::EbmlId(fourcc_t Id)
 :Value(Id)
 {
-    // TODO: handle the size
 }
 
 EbmlId::operator fourcc_t() const
@@ -520,9 +520,16 @@ EbmlId::operator fourcc_t() const
     return Value;
 }
 
+size_t EbmlId::GetLength() const
+{
+    return GetIdLength(Value);
+}
+
 void EbmlId::Fill(binary * Buffer) const
 {
-assert(0);
+    size_t i,Size = GetIdLength(Value);
+	for (i=0; i<Size; ++i)
+		Buffer[i] = (Value >> 8*(Size-i-1)) & 0xFF;
 }
 
 
@@ -584,7 +591,8 @@ filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bWi
 {
     filepos_t Rendered = INVALID_FILEPOS_T;
     Node->SizeLength = (int8_t)SizeLength;
-    if (EBML_ElementRenderHead(Node, output.GetStream(), 1, bWithDefault, 0, &Rendered)!=ERR_NONE)
+    EBML_ElementUpdateSize(Node,bWithDefault, 0);
+    if (EBML_ElementRenderHead(Node, output.GetStream(), 0, &Rendered)!=ERR_NONE)
         return INVALID_FILEPOS_T;
     return Rendered;
 }

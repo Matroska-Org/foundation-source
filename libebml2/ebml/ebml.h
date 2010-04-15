@@ -214,7 +214,7 @@ static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags
 EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
-EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, bool_t bKeepPosition, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 
 // type specific routines
@@ -244,6 +244,8 @@ EBML_DLL err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, siz
 EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
 EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
 #endif
+
+INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 
 #if defined(EBML_LEGACY_API)
 #define CONTEXT_CONST

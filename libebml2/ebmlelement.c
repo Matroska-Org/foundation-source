@@ -132,7 +132,7 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 	return Result;
 }
 
-static size_t GetIdLength(fourcc_t Id)
+size_t GetIdLength(fourcc_t Id)
 {
     if ((Id & 0xFFFFFF00)==0)
         return 1;
@@ -194,7 +194,7 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 #if !defined(NDEBUG)
 	SupposedSize = EBML_ElementUpdateSize(Element,bWithDefault, bForceRender);
 #endif
-	Result = EBML_ElementRenderHead(Element, Output, bForceRender, bWithDefault, bKeepPosition, &WrittenSize);
+	Result = EBML_ElementRenderHead(Element, Output, bKeepPosition, &WrittenSize);
     *Rendered += WrittenSize;
     if (Result != ERR_NONE)
         return Result;
@@ -208,7 +208,7 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
     return Result;
 }
 
-static err_t MakeRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered)
+err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered)
 {
     err_t Err;
 	uint8_t FinalHead[4+8]; // Class D + 64 bits coded size
@@ -237,12 +237,5 @@ static err_t MakeRenderHead(ebml_element *Element, stream *Output, bool_t bKeepP
     if (Rendered)
         *Rendered = PosAfter - PosBefore;
 	return Err;
-}
-
-err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, bool_t bKeepPosition, filepos_t *Rendered)
-{
-	EBML_ElementUpdateSize(Element,bWithDefault, bForceRender); // TODO: use a flag to tell wether the Size needs to be updated or not
-	
-	return MakeRenderHead(Element, Output, bKeepPosition,Rendered);
 }
 #endif
