@@ -85,7 +85,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     size_t Written;
     err_t Err = Stream_Write(Output,Element->Buffer,(size_t)Element->Base.Size,&Written);
@@ -142,9 +142,9 @@ static void Delete(ebml_string *p)
         free((char*)p->Buffer);
 }
 
-static filepos_t UpdateSize(ebml_string *Element, bool_t bKeepIntact, bool_t bForceRender)
+static filepos_t UpdateSize(ebml_string *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bKeepIntact && EBML_ElementIsDefaultValue(Element))
+	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return 0;
 
 	Element->Base.Size = strlen(Element->Buffer);

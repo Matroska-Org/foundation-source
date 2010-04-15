@@ -124,11 +124,11 @@ typedef struct ebml_element_vmt
     bool_t (*ValidateSize)(void*);
     err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope);
 #if defined(CONFIG_EBML_WRITING)
-    err_t (*RenderData)(void*, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered);
+    err_t (*RenderData)(void*, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered);
 #endif
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);
-    filepos_t (*UpdateSize)(void*, bool_t bKeepIntact, bool_t bForceRender);
+    filepos_t (*UpdateSize)(void*, bool_t bWithDefault, bool_t bForceRender);
     int (*Cmp)(const void*, const void*);
     
     // internal call only
@@ -189,7 +189,7 @@ EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Contex
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
 EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite);
 EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer);
-EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bKeepIntact);
+EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
 EBML_DLL bool_t EBML_ElementIsFiniteSize(const ebml_element *Element);
@@ -213,8 +213,8 @@ static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags
-EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bKeepIntact, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
-EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, bool_t bKeepPosition, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 
 // type specific routines
@@ -242,7 +242,7 @@ EBML_DLL err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, siz
 
 #if defined(CONFIG_EBML_WRITING)
 EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
-EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bKeepIntact);
+EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
 #endif
 
 #if defined(EBML_LEGACY_API)

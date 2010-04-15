@@ -147,7 +147,7 @@ static bool_t CheckMandatory(const ebml_element *Element)
     return 1;
 }
 
-filepos_t UpdateSize(ebml_element *Element, bool_t bKeepIntact, bool_t bForceRender)
+filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
 {
     ebml_element *i;
 
@@ -162,16 +162,16 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bKeepIntact, bool_t bForceRen
 
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
     {
-        if (!bKeepIntact && EBML_ElementIsDefaultValue(i))
+        if (!bWithDefault && EBML_ElementIsDefaultValue(i))
             continue;
-        EBML_ElementUpdateSize(i,bKeepIntact,bForceRender);
+        EBML_ElementUpdateSize(i,bWithDefault,bForceRender);
         if (i->Size == INVALID_FILEPOS_T)
             return INVALID_FILEPOS_T;
-        Element->Size += EBML_ElementFullSize(i,bKeepIntact);
+        Element->Size += EBML_ElementFullSize(i,bWithDefault);
     }
 #ifdef TODO
 	if (bChecksumUsed) {
-		Element->Size += EBML_ElementFullSize(Element->Checksum,bKeepIntact);
+		Element->Size += EBML_ElementFullSize(Element->Checksum,bWithDefault);
 	}
 #endif
 	return Element->Size;
@@ -261,7 +261,7 @@ processCrc:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     ebml_element *i;
     filepos_t _Rendered;
@@ -281,9 +281,9 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 #endif
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
         {
-			if (!bKeepIntact && EBML_ElementIsDefaultValue(i))
+			if (!bWithDefault && EBML_ElementIsDefaultValue(i))
 				continue;
-			Err = EBML_ElementRender(i,Output, bKeepIntact, 0, bForceRender, &ItemRendered);
+			Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered);
             if (Err!=ERR_NONE)
                 return Err;
             *Rendered += ItemRendered;
@@ -292,9 +292,9 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 	} else { // new school: render in memory and compute the CRC
 		MemIOCallback TmpBuf(Size - 6);
 		for (Index = 0; Index < ElementList.size(); Index++) {
-			if (!bKeepIntact && (ElementList[Index])->IsDefaultValue())
+			if (!bWithDefault && (ElementList[Index])->IsDefaultValue())
 				continue;
-			(ElementList[Index])->Render(TmpBuf, bKeepIntact, false ,bForceRender);
+			(ElementList[Index])->Render(TmpBuf, bWithDefault, false ,bForceRender);
 		}
 		Checksum.FillCRC32(TmpBuf.GetDataBuffer(), TmpBuf.GetDataBufferSize());
 		Result += Checksum.Render(output, true, false ,bForceRender);

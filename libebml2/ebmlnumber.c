@@ -99,7 +99,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
 	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
 	size_t i;
@@ -124,7 +124,7 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
     return Err;
 }
 
-static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
 	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
 	size_t i;
@@ -149,7 +149,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
     return Err;
 }
 
-static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, filepos_t *Rendered)
+static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     err_t Err;
 	size_t i = 0;
@@ -244,9 +244,9 @@ static bool_t IsDefaultValueFloat(const ebml_float *Element)
     return Element->Base.Context->HasDefault && (!Element->Base.bValueIsSet || (Element->Value == (double)Element->Base.Context->DefaultValue));
 }
 
-static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bKeepIntact, bool_t bForceRender)
+static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bKeepIntact && IsDefaultValueInt(Element))
+	if (!bWithDefault && IsDefaultValueInt(Element))
 		return 0;
 
 	if (Element->Value <= 0x7F && Element->Value >= (-0x80)) {
@@ -273,9 +273,9 @@ static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bKeepIntact, 
 	return Element->Base.Size;
 }
 
-static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bKeepIntact, bool_t bForceRender)
+static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bKeepIntact && IsDefaultValueInt(Element))
+	if (!bWithDefault && IsDefaultValueInt(Element))
 		return 0;
 
 	if (Element->Value <= 0xFF) {
@@ -302,9 +302,9 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bKeepIntact, bool_t
 	return Element->Base.Size;
 }
 
-static filepos_t UpdateSizeFloat(ebml_float *Element, bool_t bKeepIntact, bool_t bForceRender)
+static filepos_t UpdateSizeFloat(ebml_float *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bKeepIntact && IsDefaultValueFloat(Element))
+	if (!bWithDefault && IsDefaultValueFloat(Element))
 		return 0;
     return Element->Base.Size;
 }

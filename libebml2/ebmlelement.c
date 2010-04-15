@@ -143,9 +143,9 @@ static size_t GetIdLength(fourcc_t Id)
     return 4;
 }
 
-filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bKeepIntact)
+filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
 {
-	if (!bKeepIntact && EBML_ElementIsDefaultValue(Element))
+	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return INVALID_FILEPOS_T; // won't be saved
 	return Element->Size + GetIdLength(Element->Context->Id) + EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
 }
@@ -174,7 +174,7 @@ bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bKeepIntact, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered)
+err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered)
 {
     err_t Result;
     filepos_t _Rendered,WrittenSize;
@@ -186,20 +186,20 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bKeepInta
         Rendered = &_Rendered;
     *Rendered = 0;
 
-    assert(Element->bValueIsSet || (bKeepIntact && Element->bDefaultIsSet)); // an element is been rendered without a value set !!!
+    assert(Element->bValueIsSet || (bWithDefault && Element->bDefaultIsSet)); // an element is been rendered without a value set !!!
 		                 // it may be a mandatory element without a default value
-	if (!bKeepIntact && EBML_ElementIsDefaultValue(Element))
+	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return ERR_INVALID_DATA;
 
 #if !defined(NDEBUG)
-	SupposedSize = EBML_ElementUpdateSize(Element,bKeepIntact, bForceRender);
+	SupposedSize = EBML_ElementUpdateSize(Element,bWithDefault, bForceRender);
 #endif
-	Result = EBML_ElementRenderHead(Element, Output, bForceRender, bKeepIntact, bKeepPosition, &WrittenSize);
+	Result = EBML_ElementRenderHead(Element, Output, bForceRender, bWithDefault, bKeepPosition, &WrittenSize);
     *Rendered += WrittenSize;
     if (Result != ERR_NONE)
         return Result;
 
-    Result = EBML_ElementRenderData(Element, Output, bForceRender, bKeepIntact, &WrittenSize);
+    Result = EBML_ElementRenderData(Element, Output, bForceRender, bWithDefault, &WrittenSize);
 #if !defined(NDEBUG)
     if (SupposedSize != (0-1)) assert(WrittenSize == SupposedSize);
 #endif
@@ -239,9 +239,9 @@ static err_t MakeRenderHead(ebml_element *Element, stream *Output, bool_t bKeepP
 	return Err;
 }
 
-err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bKeepIntact, bool_t bKeepPosition, filepos_t *Rendered)
+err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, bool_t bKeepPosition, filepos_t *Rendered)
 {
-	EBML_ElementUpdateSize(Element,bKeepIntact, bForceRender); // TODO: use a flag to tell wether the Size needs to be updated or not
+	EBML_ElementUpdateSize(Element,bWithDefault, bForceRender); // TODO: use a flag to tell wether the Size needs to be updated or not
 	
 	return MakeRenderHead(Element, Output, bKeepPosition,Rendered);
 }

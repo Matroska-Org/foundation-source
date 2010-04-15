@@ -336,9 +336,9 @@ assert(0);
     return NULL;
 }
 
-filepos_t EbmlElement::UpdateSize(bool bKeepIntact, bool bForceRender)
+filepos_t EbmlElement::UpdateSize(bool bWithDefault, bool bForceRender)
 {
-    return EBML_ElementUpdateSize(Node, bKeepIntact, bForceRender);
+    return EBML_ElementUpdateSize(Node, bWithDefault, bForceRender);
 }
 
 bool EbmlElement::IsFiniteSize() const
@@ -402,9 +402,9 @@ size_t EbmlElement::HeadSize() const
     return Result;
 }
 
-filepos_t EbmlElement::ElementSize(bool bKeepIntact) const
+filepos_t EbmlElement::ElementSize(bool bWithDefault) const
 {
-    return EBML_ElementFullSize(Node,bKeepIntact);
+    return EBML_ElementFullSize(Node,bWithDefault);
 }
 
 filepos_t EbmlElement::GetElementPosition() const
@@ -412,10 +412,10 @@ filepos_t EbmlElement::GetElementPosition() const
     return Node->ElementPosition;
 }
 
-filepos_t EbmlElement::Render(IOCallback & output, bool bKeepIntact, bool bKeepPosition, bool bForceRender)
+filepos_t EbmlElement::Render(IOCallback & output, bool bWithDefault, bool bKeepPosition, bool bForceRender)
 {
     filepos_t Rendered = INVALID_FILEPOS_T;
-    if (EBML_ElementRender(Node, output.GetStream(), bKeepIntact, bKeepPosition, bForceRender, &Rendered)!=ERR_NONE)
+    if (EBML_ElementRender(Node, output.GetStream(), bWithDefault, bKeepPosition, bForceRender, &Rendered)!=ERR_NONE)
         return INVALID_FILEPOS_T;
     return Rendered;
 }
@@ -580,11 +580,11 @@ assert(0);
     return INVALID_FILEPOS_T;
 }
 
-filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bKeepIntact)
+filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bWithDefault)
 {
     filepos_t Rendered = INVALID_FILEPOS_T;
     Node->SizeLength = (int8_t)SizeLength;
-    if (EBML_ElementRenderHead(Node, output.GetStream(), 1, bKeepIntact, 0, &Rendered)!=ERR_NONE)
+    if (EBML_ElementRenderHead(Node, output.GetStream(), 1, bWithDefault, 0, &Rendered)!=ERR_NONE)
         return INVALID_FILEPOS_T;
     return Rendered;
 }
@@ -1140,9 +1140,9 @@ filepos_t EbmlVoid::ReadData(IOCallback & input, ScopeMode ReadFully)
     return 0;
 }
 
-filepos_t EbmlVoid::ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward, bool bKeepIntact)
+filepos_t EbmlVoid::ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward, bool bWithDefault)
 {
-    return EBML_VoidReplaceWith(Node, EltToReplaceWith.GetNode(), output.GetStream(), ComeBackAfterward, bKeepIntact);
+    return EBML_VoidReplaceWith(Node, EltToReplaceWith.GetNode(), output.GetStream(), ComeBackAfterward, bWithDefault);
 }
 
 void EbmlVoid::SetSize(filepos_t Size)

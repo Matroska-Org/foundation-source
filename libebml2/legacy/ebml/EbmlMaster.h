@@ -73,7 +73,7 @@ namespace LIBEBML_NAMESPACE {
 			\brief Remove an element from the list of the master
 		*/
 		void Remove(size_t Index);
-        filepos_t WriteHead(IOCallback & output, size_t SizeLength, bool bKeepIntact = false);
+        filepos_t WriteHead(IOCallback & output, size_t SizeLength, bool bWithDefault = false);
 
         EBML_MASTER_ITERATOR begin() const;
         EBML_MASTER_ITERATOR end() const;
