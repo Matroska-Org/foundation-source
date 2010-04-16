@@ -656,7 +656,7 @@ static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebm
         assert(0);
     }
     if (B->IsSmallerThan(A))
-        return -1;
+        return 1;
     else
         return 0;
 }
