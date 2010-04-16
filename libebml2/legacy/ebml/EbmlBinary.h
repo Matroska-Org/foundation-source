@@ -39,10 +39,15 @@ namespace LIBEBML_NAMESPACE {
         void CopyBuffer(const void *Buffer, size_t BufferSize);
         void SetBuffer(const binary *Buffer, size_t BufferSize);
 
-        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
 
-        binary* GetBuffer() const;
+        // TODO: move these calls in EbmlElement (needs an interim class for each EBML main type in legacy.cpp?)
+        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+        virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false);
+        virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
+
+        const binary* GetBuffer() const;
+        binary* GetBuffer();
     };
 
 };

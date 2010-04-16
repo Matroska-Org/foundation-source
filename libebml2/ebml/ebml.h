@@ -187,8 +187,10 @@ EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Cont
 
 EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize);
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
-EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite);
-EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer);
+EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite); // TODO: turn into a macro ?
+EBML_DLL int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
+EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer); // TODO: turn into a macro ?
+EBML_DLL int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
 EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
@@ -239,6 +241,7 @@ EBML_DLL datetime_t EBML_DateTime(const ebml_date *Element);
 EBML_DLL err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date);
 
 EBML_DLL err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize);
+EBML_DLL const uint8_t *EBML_BinaryGetData(ebml_binary *Element);
 
 #if defined(CONFIG_EBML_WRITING)
 EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);

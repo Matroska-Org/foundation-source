@@ -368,7 +368,8 @@ printf("Elt: size %d id %d %02X\n",SizeFound,PossibleID_Length,PossibleId[0]);
 int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite)
 {
 	int CodedSize;
-	if (bSizeIsFinite) {
+	if (bSizeIsFinite)
+    {
 		// prepare the head of the size (000...01xxxxxx)
 		// optimal size
 		if (Length < 127) // 2^7 - 1
@@ -380,7 +381,9 @@ int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFin
 		else if (Length < 268435455L) // 2^28 - 1
 			CodedSize = 4;
 		else CodedSize = 5;
-	} else {
+	}
+    else
+    {
 		if (Length <= 127) // 2^7 - 1
 			CodedSize = 1;
 		else if (Length <= 16383) // 2^14 - 1
@@ -392,13 +395,35 @@ int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFin
 		else CodedSize = 5;
 	}
 
-	if (SizeLength > 0 && CodedSize < SizeLength) {
+	if (SizeLength > 0 && CodedSize < SizeLength)
 		// defined size
 		CodedSize = SizeLength;
-	}
 
 	return CodedSize;
 }
+
+int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength)
+{
+	int CodedSize;
+	// prepare the head of the size (000...01xxxxxx)
+	// optimal size
+	if (Length > -64 && Length < 64) // 2^6
+		CodedSize = 1;
+	else if (Length > -8192 && Length < 8192) // 2^13
+		CodedSize = 2;
+	else if (Length > -1048576L && Length < 1048576L) // 2^20
+		CodedSize = 3;
+	else if (Length > -134217728L && Length < 134217728L) // 2^27
+		CodedSize = 4;
+	else CodedSize = 5;
+
+	if (SizeLength > 0 && CodedSize < SizeLength)
+		// defined size
+		CodedSize = SizeLength;
+
+	return CodedSize;
+}
+
 
 int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer)
 {
@@ -409,7 +434,8 @@ if (CodedSize==3)
 printf("%08X ",(int)Length);
 #endif
 	OutBuffer[0] = (uint8_t)(1 << (8 - CodedSize));
-	for (i=1; i<CodedSize; ++i) {
+	for (i=1; i<CodedSize; ++i)
+    {
 		OutBuffer[CodedSize-i] = (uint8_t)(Length & 0xFF);
 		Length >>= 8;
 		_SizeMask >>= 1;
@@ -421,6 +447,20 @@ if (CodedSize==3)
 printf("%02X%02X%02X\n",OutBuffer[0],OutBuffer[1],OutBuffer[2]);
 #endif
 	return CodedSize;
+}
+
+int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer)
+{
+	if (Length > -64 && Length < 64) // 2^6
+		Length += 63;
+	else if (Length > -8192 && Length < 8192) // 2^13
+		Length += 8191;
+	else if (Length > -1048576L && Length < 1048576L) // 2^20
+		Length += 1048575L;
+	else if (Length > -134217728L && Length < 134217728L) // 2^27
+		Length += 134217727L;
+
+	return EBML_CodedValueLength(Length, CodedSize, OutBuffer);
 }
 
 

@@ -48,7 +48,7 @@
 
 #include "ebml/ebml.h"
 
-#define IOCALLBACK_STREAM_CLASS FOURCC('I','O','C','B')
+#define IOCALLBACK_STREAM_CLASS  FOURCC('I','O','C','B')
 
 #define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)
 #define Ebml_Next(x)      (ebml_element*)NodeTree_Next(x)
@@ -145,12 +145,63 @@ static err_t Write(stream_io* p,const void* Data,size_t Size, size_t* Written)
     return (_Written==Size)?ERR_NONE:ERR_DEVICE_ERROR;
 }
 
+static err_t Create(ebml_binary *Element)
+{
+    return ERR_NONE;
+}
+
+static err_t ReadData(ebml_binary *Element, stream_io *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+{
+assert(0);
+    return ERR_NOT_SUPPORTED;
+}
+
+filepos_t UpdateSize(ebml_binary *Element, bool bWithDefault, bool bForceRender)
+{
+    filepos_t Size;
+    EbmlBinary *Result=NULL;
+    if (Node_Get(Element,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+    {
+        assert(0);
+    }
+    Size = Result->UpdateSize(bWithDefault!=0, bForceRender!=0);
+    return Size;
+}
+
+#if defined(CONFIG_EBML_WRITING)
+static err_t RenderData(ebml_binary *Element, stream_io *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+{
+    filepos_t Render;
+    EbmlBinary *Result=NULL;
+    assert(Output->cpp!=NULL);
+    if (Node_Get(Element,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+    {
+        assert(0);
+    }
+    if (!Rendered)
+        Rendered = &Render;
+    *Rendered = Result->RenderData(*Output->cpp,bForceRender!=0,bWithDefault!=0);
+    if (*Rendered == INVALID_FILEPOS_T)
+        return ERR_WRITE;
+    return ERR_NONE;
+}
+#endif
+
 META_START(IOCallback_Class,IOCALLBACK_STREAM_CLASS)
 META_CLASS(FLAGS,CFLAG_LOCAL)
 META_CLASS(SIZE,sizeof(stream_io))
 META_VMT(TYPE_FUNC,stream_vmt,Seek,Seek)
 META_VMT(TYPE_FUNC,stream_vmt,Write,Write)
-META_END(STREAM_CLASS)
+META_END_CONTINUE(STREAM_CLASS)
+
+META_START_CONTINUE(EBML_BINARY_LEGACY_CLASS)
+META_CLASS(CREATE,Create)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END(EBML_BINARY_CLASS)
 
 void ebml_init()
 {
@@ -224,26 +275,22 @@ void EMaxIdLength::PostCreate(ebml_element *p, const void *Cookie)        { if (
 
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 {
-assert(0);
-    return 0;
+    return EBML_CodedSizeLength(Length,(uint8_t)SizeLength,bSizeIsFinite);
 }
 
 size_t CodedValueLength(filepos_t Length, size_t CodedSize, binary * OutBuffer)
 {
-assert(0);
-    return 0;
+    return EBML_CodedValueLength(Length, CodedSize, OutBuffer);
 }
 
 size_t CodedSizeLengthSigned(filepos_t Length, size_t SizeLength)
 {
-assert(0);
-    return 0;
+    return EBML_CodedSizeLengthSigned(Length, (uint8_t)SizeLength);
 }
 
 size_t CodedValueLengthSigned(filepos_t Length, size_t CodedSize, binary * OutBuffer)
 {
-assert(0);
-    return 0;
+    return EBML_CodedValueLengthSigned(Length, CodedSize, OutBuffer);
 }
 
 filepos_t ReadCodedSizeValue(const binary * InBuffer, uint32_t & BufferSize, uint64_t & SizeUnknown)
@@ -264,9 +311,9 @@ assert(0);
     return *((EbmlSemanticContext*)NULL);
 }
 
-big_int16::big_int16(int16_t)
+big_int16::big_int16(int16_t Val)
+:Value(Val)
 {
-assert(0);
 }
 
 big_int16::big_int16()
@@ -282,7 +329,7 @@ assert(0);
 
 void big_int16::Fill(binary *Buffer) const
 {
-assert(0);
+    STORE16BE(Buffer,Value);
 }
 
 void big_int16::Eval(const binary *Buffer)
@@ -343,8 +390,7 @@ filepos_t EbmlElement::UpdateSize(bool bWithDefault, bool bForceRender)
 
 bool EbmlElement::IsFiniteSize() const
 {
-assert(0);
-    return false;
+    return EBML_ElementIsFiniteSize(Node)!=0;
 }
 
 size_t EbmlElement::GetSizeLength() const
@@ -379,9 +425,9 @@ void EbmlElement::SetDefaultSize(filepos_t aDefaultSize)
 assert(0);
 }
 
-void EbmlElement::SetSize_(filepos_t)
+void EbmlElement::SetSize_(filepos_t Size)
 {
-assert(0);
+    Node->Size = Size;
 }
 
 bool EbmlElement::ForceSize(filepos_t NewSize)
@@ -781,16 +827,34 @@ void EbmlBinary::SetBuffer(const binary *Buffer, size_t BufferSize)
 assert(0);
 }
 
-binary* EbmlBinary::GetBuffer() const
+const binary* EbmlBinary::GetBuffer() const
 {
-assert(0);
-return NULL;
+    return EBML_BinaryGetData((ebml_binary*)Node);
+}
+
+binary* EbmlBinary::GetBuffer()
+{
+    return const_cast<binary*>(EBML_BinaryGetData((ebml_binary*)Node));
 }
 
 filepos_t EbmlBinary::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
 assert(0);
     return INVALID_FILEPOS_T;
+}
+
+filepos_t EbmlBinary::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_BINARY_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlBinary::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_BINARY_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
 }
 
 EbmlElement * EbmlBinary::Clone() const
@@ -1175,7 +1239,8 @@ IOCallback::~IOCallback()
 
 void IOCallback::writeFully(const void* Buffer, size_t Size)
 {
-assert(0);
+    assert(Stream!=NULL);
+    Stream_Write(Stream,Buffer,Size,NULL); // TODO: handle errors and ERR_NEED_MORE_DATA
 }
 
 stream *IOCallback::GetStream()

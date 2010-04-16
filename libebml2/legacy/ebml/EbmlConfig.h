@@ -65,6 +65,8 @@ namespace LIBEBML_NAMESPACE {
         void Fill(binary *Buffer) const;
         void Eval(const binary *Buffer);
         operator int16() const;
+    private:
+        int16_t Value;
     };
 };
 

@@ -66,15 +66,6 @@ static err_t RenderData(ebml_binary *Element, stream *Output, bool_t bForceRende
 }
 #endif
 
-err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize)
-{
-    if (!ArrayResize(&Element->Data,DataSize,0))
-        return ERR_OUT_OF_MEMORY;
-    memcpy(ARRAYBEGIN(Element->Data,void),Data,DataSize);
-    Element->Base.bValueIsSet = 1;
-    return ERR_NONE;
-}
-
 static void Delete(ebml_binary *Element)
 {
     ArrayClear(&Element->Data);
@@ -107,3 +98,19 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_END(EBML_ELEMENT_CLASS)
+
+err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize)
+{
+    if (!ArrayResize(&Element->Data,DataSize,0))
+        return ERR_OUT_OF_MEMORY;
+    memcpy(ARRAYBEGIN(Element->Data,void),Data,DataSize);
+    Element->Base.bValueIsSet = 1;
+    return ERR_NONE;
+}
+
+const uint8_t *EBML_BinaryGetData(ebml_binary *Element)
+{
+    if (!ARRAYCOUNT(Element->Data,uint8_t))
+        return NULL;
+    return ARRAYBEGIN(Element->Data,uint8_t);
+}

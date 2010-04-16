@@ -45,6 +45,8 @@ extern "C" fourcc_t GetBinaryFourCC();
 extern "C" fourcc_t GetDateFourCC();
 extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 
+#define EBML_BINARY_LEGACY_CLASS   FOURCC('E','B','B','C')
+
 #define DECLARE_EBML_CONTEXT(x)     extern const ebml_context EBML_Context##x;
 #define DECLARE_EBML_MASTER(x)    DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlMaster { \
@@ -178,16 +180,14 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
     void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlString(EBML_Context##x, defval, WithNode) {}
 
-#define DEFINE_xxx_BINARY(x,id,idl,parent,name,global) DEFINE_EBML_BINARY(x,id,idl,parent,name)
-#define DEFINE_EBML_BINARY(x,id,idl,parent,name) \
-    const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
+#define DEFINE_xxx_BINARY(x,id,idl,parent,name,global) \
+    const ebml_context x::EBML_Context##x = {id, EBML_BINARY_LEGACY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
     void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
     x::x(ebml_element *WithNode) :EbmlBinary(EBML_Context##x, WithNode) {}
 
-#define DEFINE_xxx_BINARY_CONS(x,id,idl,parent,name,global) DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name)
-#define DEFINE_EBML_BINARY_CONS(x,id,idl,parent,name) \
-    const ebml_context x::EBML_Context##x = {id, EBML_BINARY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
+#define DEFINE_xxx_BINARY_CONS(x,id,idl,parent,name,global) \
+    const ebml_context x::EBML_Context##x = {id, EBML_BINARY_LEGACY_CLASS, 0, 0, name, NULL, NULL, x::PostCreate}; \
     const ebml_context & x::GetContext() { return EBML_Context##x; } \
     void x::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); } \
 
