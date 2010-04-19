@@ -183,8 +183,8 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 #define EBML_INFO(ref)             ref::EBML_Context##ref
 #define EBML_CLASS_SEMCONTEXT(ref) EBML_Context##ref
 #define EBML_CLASS_CALLBACK(ref)   ref::EBML_Context##ref
-#define EBML_CONTEXT(e) static_cast<const ebml_context &>(*e)
-#define EBML_NAME(e)    (e)->DebugName()
+#define EBML_CONTEXT(e)            static_cast<const ebml_context &>(*(e))
+#define EBML_NAME(e)               (e)->DebugName()
 
 #define EBML_INFO_ID(cb)      (cb).Id
 #define EBML_INFO_CONTEXT(cb) cb
@@ -193,13 +193,13 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 #define EBML_CLASS_CONTEXT(ref) ref::EBML_Context##ref
 
 #define EBML_SEM_UNIQUE(s)  (s).Unique
-#define EBML_SEM_ID(s)      ((const EbmlId &)(const EbmlCallbacks &)(s))
 #define EBML_SEM_CONTEXT(s) ((const EbmlSemanticContext)*(s).eClass) // EbmlSemantic/ebml_semantic -> EbmlSemanticContext
 #define EBML_SEM_CREATE(s)  CreateEbmlElement(s)
 
-#define EBML_CTX_SIZE(c)       (c).GetSize()                 // EbmlSemanticContext -> size_t
-#define EBML_CTX_IDX(c,i)      (c).GetSemantic(i)            // EbmlSemanticContext -> EbmlSemantic  / ebml_semantic
-#define EBML_CTX_IDX_INFO(c,i) (*(c).GetSemantic(i).eClass)  // EbmlSemanticContext -> EbmlCallbacks / ebml_context
+#define EBML_CTX_SIZE(c)       (c).GetSize()                  // EbmlSemanticContext -> size_t
+#define EBML_CTX_IDX(c,i)      (c).GetSemantic(i)             // EbmlSemanticContext -> EbmlSemantic  / ebml_semantic
+#define EBML_CTX_IDX_INFO(c,i) *(c).GetSemantic(i).eClass     // EbmlSemanticContext -> EbmlCallbacks / ebml_context
+#define EBML_CTX_IDX_ID(c,i)   (c).GetSemantic(i).eClass->Id  // EbmlSemanticContext -> EbmlId
 
 namespace LIBEBML_NAMESPACE {
 
