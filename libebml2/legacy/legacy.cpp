@@ -210,24 +210,6 @@ ebml_context EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion = ::EBML_Conte
 ebml_context EMaxSizeLength::EBML_ContextEMaxSizeLength           = ::EBML_ContextMaxSizeLength; // dirty copy
 ebml_context EMaxIdLength::EBML_ContextEMaxIdLength               = ::EBML_ContextMaxIdLength; // dirty copy
 
-const ebml_context & EbmlHead::GetContext() { return EBML_ContextEbmlHead; }
-const ebml_context & EDocType::GetContext() { return EBML_ContextEDocType; }
-const ebml_context & EVersion::GetContext() { return EBML_ContextEVersion; }
-const ebml_context & EReadVersion::GetContext() { return EBML_ContextEReadVersion; }
-const ebml_context & EDocTypeVersion::GetContext() { return EBML_ContextEDocTypeVersion; }
-const ebml_context & EDocTypeReadVersion::GetContext() { return EBML_ContextEDocTypeReadVersion; }
-const ebml_context & EMaxSizeLength::GetContext() { return EBML_ContextEMaxSizeLength; }
-const ebml_context & EMaxIdLength::GetContext() { return EBML_ContextEMaxIdLength; }
-
-void EbmlHead::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EbmlHead(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EDocType::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EDocType(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EVersion::PostCreate(ebml_element *p, const void *Cookie)            { if (!Cookie) Cookie=new EVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EReadVersion::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EDocTypeVersion::PostCreate(ebml_element *p, const void *Cookie)     { if (!Cookie) Cookie=new EDocTypeVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EDocTypeReadVersion::PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new EDocTypeReadVersion(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EMaxSizeLength::PostCreate(ebml_element *p, const void *Cookie)      { if (!Cookie) Cookie=new EMaxSizeLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-void EMaxIdLength::PostCreate(ebml_element *p, const void *Cookie)        { if (!Cookie) Cookie=new EMaxIdLength(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 {
     return EBML_CodedSizeLength(Length,(uint8_t)SizeLength,bSizeIsFinite);
