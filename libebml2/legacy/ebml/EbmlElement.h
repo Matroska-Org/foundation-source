@@ -34,15 +34,6 @@
 #include "ebml/IOCallback.h"
 #include "ebml/ebml.h"
 
-extern "C" fourcc_t GetEbmlFourCC(const ebml_element *);
-extern "C" fourcc_t GetMasterFourCC();
-extern "C" fourcc_t GetUIntegerFourCC();
-extern "C" fourcc_t GetSIntegerFourCC();
-extern "C" fourcc_t GetFloatFourCC();
-extern "C" fourcc_t GetUniStringFourCC();
-extern "C" fourcc_t GetStringFourCC();
-extern "C" fourcc_t GetBinaryFourCC();
-extern "C" fourcc_t GetDateFourCC();
 extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 
 #define EBML_BINARY_LEGACY_CLASS   FOURCC('E','B','B','C')
@@ -76,7 +67,7 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 
 #define EBML_CONCRETE_CLASS(x) \
     public: \
-        operator const EbmlId (void) const { return EbmlId(GetEbmlFourCC(Node)); } \
+        operator const EbmlId (void) const { return EbmlId(EBML_Context##x.Id); } \
         virtual EbmlElement * Clone() const { return new x(*this); } \
         static const ebml_context EBML_Context##x; \
         static const ebml_context & GetContext(); \
@@ -84,7 +75,7 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 
 #define EBML_CONCRETE_CLASS_LOOSE(x) \
     public: \
-        operator const EbmlId (void) const { return EbmlId(GetEbmlFourCC(Node)); } \
+        operator const EbmlId (void) const { return EbmlId(EBML_Context##x.Id); } \
         virtual EbmlElement * Clone() const { return new x(*this); } \
         static ebml_context EBML_Context##x; \
         static const ebml_context & GetContext(); \

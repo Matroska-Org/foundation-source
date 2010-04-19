@@ -53,51 +53,6 @@
 #define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)
 #define Ebml_Next(x)      (ebml_element*)NodeTree_Next(x)
 
-fourcc_t GetEbmlFourCC(const ebml_element* p)
-{
-    return p->Context->Id;
-}
-
-fourcc_t GetMasterFourCC()
-{
-    return EBML_MASTER_CLASS;
-}
-
-fourcc_t GetUIntegerFourCC()
-{
-    return EBML_INTEGER_CLASS;
-}
-
-fourcc_t GetSIntegerFourCC()
-{
-    return EBML_SINTEGER_CLASS;
-}
-
-fourcc_t GetStringFourCC()
-{
-    return EBML_STRING_CLASS;
-}
-
-fourcc_t GetUniStringFourCC()
-{
-    return EBML_UNISTRING_CLASS;
-}
-
-fourcc_t GetBinaryFourCC()
-{
-    return EBML_BINARY_CLASS;
-}
-
-fourcc_t GetFloatFourCC()
-{
-    return EBML_FLOAT_CLASS;
-}
-
-fourcc_t GetDateFourCC()
-{
-    return EBML_DATE_CLASS;
-}
-
 const ebml_semantic & GetGlobalEBMLSemantic()
 {
     return *EBML_SemanticGlobals;
