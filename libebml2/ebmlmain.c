@@ -168,7 +168,7 @@ static fourcc_t EBML_IdFromBuffer(const uint8_t *PossibleId, int8_t IdLength)
         d = PossibleId[3];
     else
         d = 0;
-    return FOURCC(a,b,c,d);
+    return FOURCCBE(a,b,c,d);
 }
 
 static bool_t EBML_IdMatch(const uint8_t *PossibleId, int8_t IdLength, fourcc_t ContextId)
