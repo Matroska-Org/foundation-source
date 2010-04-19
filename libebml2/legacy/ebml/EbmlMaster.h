@@ -32,6 +32,7 @@
 #include "ebml/EbmlElement.h"
 
 #define EBML_MASTER_ITERATOR  EbmlMaster_itr
+#define EBML_MASTER_RITERATOR EbmlMaster_rev_itr
 
 namespace LIBEBML_NAMESPACE {
 
@@ -42,6 +43,15 @@ namespace LIBEBML_NAMESPACE {
         EbmlElement* operator*() const;
         EbmlMaster_itr& operator++();
         bool operator!=(const EbmlMaster_itr &) const;
+        bool operator==(const EbmlMaster_itr &) const;
+    };
+
+    class EbmlMaster_rev_itr {
+    public:
+        EbmlElement* operator*() const;
+        EbmlMaster_rev_itr& operator--();
+        bool operator!=(const EbmlMaster_rev_itr &) const;
+        bool operator==(const EbmlMaster_rev_itr &) const;
     };
 
     class EbmlMaster : public EbmlElement {
@@ -63,6 +73,11 @@ namespace LIBEBML_NAMESPACE {
 			\brief remove all elements, even the mandatory ones
 		*/
 		void RemoveAll();
+		/*!
+			\brief Remove an element from the list of the master
+		*/
+        void Remove(const EBML_MASTER_ITERATOR & Itr);
+        void Remove(const EBML_MASTER_RITERATOR & Itr);
 
         virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
@@ -77,6 +92,8 @@ namespace LIBEBML_NAMESPACE {
 
         EBML_MASTER_ITERATOR begin() const;
         EBML_MASTER_ITERATOR end() const;
+        EBML_MASTER_RITERATOR rbegin() const;
+        EBML_MASTER_RITERATOR rend() const;
     };
 
     template <typename Type>

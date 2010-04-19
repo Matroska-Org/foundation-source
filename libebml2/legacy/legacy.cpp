@@ -588,6 +588,12 @@ assert(0);
 return false;
 }
 
+bool EbmlMaster_itr::operator==(const EbmlMaster_itr &) const
+{
+assert(0);
+return false;
+}
+
 EbmlElement* EbmlMaster_itr::operator*() const
 {
 assert(0);
