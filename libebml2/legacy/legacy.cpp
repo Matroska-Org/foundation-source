@@ -608,6 +608,34 @@ assert(0);
 
 
 /*****************
+ * EbmlMaster_rev_itr
+ ****************/
+bool EbmlMaster_rev_itr::operator!=(const EbmlMaster_rev_itr &) const
+{
+assert(0);
+return false;
+}
+
+bool EbmlMaster_rev_itr::operator==(const EbmlMaster_rev_itr &) const
+{
+assert(0);
+return false;
+}
+
+EbmlElement* EbmlMaster_rev_itr::operator*() const
+{
+assert(0);
+return NULL;
+}
+
+EbmlMaster_rev_itr& EbmlMaster_rev_itr::operator--()
+{
+assert(0);
+    return *this;
+}
+
+
+/*****************
  * EbmlMaster
  ****************/
 EbmlMaster::EbmlMaster(struct ebml_context const &Context, ebml_element *WithNode)
@@ -625,6 +653,18 @@ EbmlMaster_itr EbmlMaster::end() const
 {
 assert(0);
 return *static_cast<EbmlMaster_itr*>(NULL);
+}
+
+EbmlMaster_rev_itr EbmlMaster::rbegin() const
+{
+assert(0);
+return *static_cast<EbmlMaster_rev_itr*>(NULL);
+}
+
+EbmlMaster_rev_itr EbmlMaster::rend() const
+{
+assert(0);
+return *static_cast<EbmlMaster_rev_itr*>(NULL);
 }
 
 bool EbmlMaster::CheckMandatory() const
@@ -775,6 +815,16 @@ EbmlElement *EbmlMaster::FindNextElt(const EbmlElement & Past, const bool bCreat
 }
 
 void EbmlMaster::Remove(size_t Index)
+{
+assert(0);
+}
+
+void EbmlMaster::Remove(const EbmlMaster_itr & Item)
+{
+assert(0);
+}
+
+void EbmlMaster::Remove(const EbmlMaster_rev_itr & Item)
 {
 assert(0);
 }
