@@ -40,6 +40,8 @@ namespace LIBEBML_NAMESPACE {
         EbmlElement * FindNextElement(const ebml_context & Context, int & UpperLevel, filepos_t MaxDataSize, bool AllowDummyElt, size_t MaxLowerLevel = 1);
 
         IOCallback & I_O();
+    private:
+        IOCallback &mIO;
     };
 };
 

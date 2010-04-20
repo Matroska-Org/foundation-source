@@ -100,6 +100,14 @@ static err_t Write(stream_io* p,const void* Data,size_t Size, size_t* Written)
     return (_Written==Size)?ERR_NONE:ERR_DEVICE_ERROR;
 }
 
+static err_t Read(stream_io* p,void* Data,size_t Size,size_t* Readed)
+{ 
+    uint32_t Read = p->cpp->read(Data,Size);
+    if (Readed)
+        *Readed = Read;
+    return ERR_NONE;
+}
+
 static err_t Create(ebml_binary *Element)
 {
     return ERR_NONE;
@@ -147,6 +155,7 @@ META_CLASS(FLAGS,CFLAG_LOCAL)
 META_CLASS(SIZE,sizeof(stream_io))
 META_VMT(TYPE_FUNC,stream_vmt,Seek,Seek)
 META_VMT(TYPE_FUNC,stream_vmt,Write,Write)
+META_VMT(TYPE_FUNC,stream_vmt,Read,Read)
 META_END_CONTINUE(STREAM_CLASS)
 
 META_START_CONTINUE(EBML_BINARY_LEGACY_CLASS)
@@ -316,7 +325,18 @@ EbmlElement::~EbmlElement()
 
 EbmlElement * EbmlElement::SkipData(EbmlStream & DataStream, const EbmlSemanticContext & Context, EbmlElement * TestReadElt, bool AllowDummyElt)
 {
-assert(0);
+    ebml_parser_context pContext;
+    pContext.Context = Node->Context;
+    ebml_element *i = EBML_ElementSkipData(Node,DataStream.I_O().GetStream(),&pContext,TestReadElt?TestReadElt->Node:NULL,AllowDummyElt);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 
@@ -873,8 +893,13 @@ EbmlString::EbmlString(const ebml_context &ec, ebml_element *WithNode)
 
 filepos_t EbmlString::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    ebml_parser_context pContext;
+    pContext.Context = Node->Context;
+    filepos_t Now = (filepos_t)input.getFilePointer();
+    err_t Res = EBML_ElementReadData(Node,input.GetStream(),&pContext,0,ReadFully);
+    if (Res != ERR_NONE)
+        return INVALID_FILEPOS_T;
+    return (filepos_t)input.getFilePointer() - Now;
 }
 
 EbmlString & EbmlString::operator=(const std::string & Value)
@@ -891,8 +916,7 @@ EbmlString & EbmlString::operator=(const char *Value)
 
 EbmlString::operator const std::string() const
 {
-assert(0);
-return *static_cast<std::string*>(NULL);
+    return reinterpret_cast<const ebml_string*>(Node)->Buffer;
 }
 
 EbmlElement * EbmlString::Clone() const
@@ -1023,8 +1047,13 @@ void EbmlUInteger::SetDefaultSize(filepos_t aDefaultSize)
 
 filepos_t EbmlUInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    ebml_parser_context pContext;
+    pContext.Context = Node->Context;
+    filepos_t Now = (filepos_t)input.getFilePointer();
+    err_t Res = EBML_ElementReadData(Node,input.GetStream(),&pContext,0,ReadFully);
+    if (Res != ERR_NONE)
+        return INVALID_FILEPOS_T;
+    return (filepos_t)input.getFilePointer() - Now;
 }
 
 EbmlUInteger::operator uint64_t() const
@@ -1250,42 +1279,50 @@ stream *IOCallback::GetStream()
 /*****************
  * EbmlStream
  ****************/
-EbmlStream::EbmlStream(IOCallback &)
+EbmlStream::EbmlStream(IOCallback & IO)
+:mIO(IO)
 {
-assert(0);
 }
 
 IOCallback & EbmlStream::I_O()
 {
-assert(0);
-    return *((IOCallback*)NULL);
+    return mIO;
 }
 
-#if 1
-EbmlElement * EbmlStream::FindNextID(const ebml_context & ClassInfos, filepos_t MaxDataSize)
+EbmlElement * EbmlStream::FindNextID(const ebml_context & Context, filepos_t MaxDataSize)
 {
-assert(0);
+    ebml_element *i = EBML_FindNextId(mIO.GetStream(),&Context,MaxDataSize);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
 
 EbmlElement * EbmlStream::FindNextElement(const ebml_context & Context, int & UpperLevel, filepos_t MaxDataSize, bool AllowDummyElt, size_t MaxLowerLevel)
 {
-assert(0);
-    return NULL;
-}
-#else
-EbmlElement * EbmlStream::FindNextID(const EbmlCallbacks & ClassInfos, filepos_t MaxDataSize)
-{
-assert(0);
-    return NULL;
-}
+    ebml_parser_context pContext;
+    pContext.Context = &Context;
+    pContext.UpContext = NULL;
+    pContext.EndPosition = INVALID_FILEPOS_T;
 
-EbmlElement * EbmlStream::FindNextElement(const EbmlSemanticContext & Context, int & UpperLevel, filepos_t MaxDataSize, bool AllowDummyElt, size_t MaxLowerLevel)
-{
-assert(0);
+    ebml_element *i = EBML_FindNextElement(mIO.GetStream(),&pContext,&UpperLevel,AllowDummyElt);
+    if (i)
+    {
+        EbmlElement *Result=NULL;
+        if (Node_Get(i,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
+        {
+            assert(0);
+        }
+        return Result;
+    }
     return NULL;
 }
-#endif
 
 
 };
