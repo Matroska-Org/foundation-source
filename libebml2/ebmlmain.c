@@ -154,21 +154,13 @@ static size_t ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, si
 
 static fourcc_t EBML_IdFromBuffer(const uint8_t *PossibleId, int8_t IdLength)
 {
-    int a,b,c,d;
-    a = PossibleId[0];
-    if (IdLength > 1)
-        b = PossibleId[1];
-    else
-        b = 0;
-    if (IdLength > 2)
-        c = PossibleId[2];
-    else
-        c = 0;
-    if (IdLength > 3)
-        d = PossibleId[3];
-    else
-        d = 0;
-    return FOURCCBE(a,b,c,d);
+    if (IdLength == 1)
+        return FOURCCBE(0,0,0,PossibleId[0]);
+    if (IdLength == 2)
+        return FOURCCBE(0,0,PossibleId[0],PossibleId[1]);
+    if (IdLength == 3)
+        return FOURCCBE(0,PossibleId[0],PossibleId[1],PossibleId[2]);
+    return FOURCCBE(PossibleId[0],PossibleId[1],PossibleId[2],PossibleId[3]);
 }
 
 static bool_t EBML_IdMatch(const uint8_t *PossibleId, int8_t IdLength, fourcc_t ContextId)
@@ -238,8 +230,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
     {
 		if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id))
         {
-            Result = (ebml_element*)NodeCreate(AnyNode,Semantic->eClass->Class);
-            Result->Context = Semantic->eClass;
+            Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0,NULL);
 			return Result;
 		}
 	}

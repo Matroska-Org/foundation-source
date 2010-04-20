@@ -179,7 +179,7 @@ extern "C" const ebml_semantic & GetGlobalEBMLSemantic();
 #define EBML_EXTRA_CALL         WithNode
 #define EBML_EXTRA_DEF          ebml_element *WithNode
 
-#define EBML_ID(ref)               (ref::EBML_Context##ref.Id)
+#define EBML_ID(ref)               ref::EBML_Context##ref.Id
 #define EBML_INFO(ref)             ref::EBML_Context##ref
 #define EBML_CLASS_SEMCONTEXT(ref) EBML_Context##ref
 #define EBML_CLASS_CALLBACK(ref)   ref::EBML_Context##ref
