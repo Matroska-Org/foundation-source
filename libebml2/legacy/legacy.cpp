@@ -264,6 +264,12 @@ ebml_context EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion = ::EBML_Conte
 ebml_context EMaxSizeLength::EBML_ContextEMaxSizeLength           = ::EBML_ContextMaxSizeLength; // dirty copy
 ebml_context EMaxIdLength::EBML_ContextEMaxIdLength               = ::EBML_ContextMaxIdLength; // dirty copy
 
+const ebml_semantic EBML_SemanticGlobal[] = {
+    {0, 0, &EbmlVoid::EBML_ContextEbmlVoid},
+    {0, 1, &EbmlCrc32::EBML_ContextEbmlCrc32},
+    {0, 0, NULL} // end of the table
+};
+
 size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 {
     return EBML_CodedSizeLength(Length,(uint8_t)SizeLength,bSizeIsFinite);

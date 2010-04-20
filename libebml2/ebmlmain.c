@@ -241,8 +241,13 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
 		return NULL;
     else
     {
+        ebml_context ContextGlobals;
         ebml_parser_context GlobalContext;
-        GlobalContext.Context = &EBML_ContextGlobals;
+
+        ContextGlobals.Semantic = Context->Context->GlobalContext;
+        ContextGlobals.GlobalContext = Context->Context->GlobalContext;
+
+        GlobalContext.Context = &ContextGlobals;
         GlobalContext.UpContext = Context;
         GlobalContext.EndPosition = INVALID_FILEPOS_T;
 		(*LowLevel)--;
