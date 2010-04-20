@@ -1065,8 +1065,12 @@ filepos_t EbmlUnicodeString::UpdateSize(bool bWithDefault, bool bForceRender)
 
 EbmlUnicodeString::operator const UTFstring() const
 {
-assert(0);
-return *static_cast<UTFstring*>(NULL);
+    ebml_string *Value = (ebml_string*)Node;
+    wchar_t TmpStr[MAXLINE];
+    charconv *c = CharConvOpen(CHARSET_UTF8,CHARSET_WCHAR);
+    CharConvTS(c, TmpStr, sizeof(TmpStr)/sizeof(wchar_t),Value->Buffer);
+    CharConvClose(c);
+    return UTFstring(TmpStr);
 }
 
 EbmlElement * EbmlUnicodeString::Clone() const
@@ -1139,8 +1143,7 @@ bool UTFstring::operator==(const UTFstring &Cmp) const
 
 size_t UTFstring::length() const
 {
-assert(0);
-    return 0;
+    return wcslen(Buffer);
 }
 
 /*****************
