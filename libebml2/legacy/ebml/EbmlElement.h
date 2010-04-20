@@ -43,19 +43,19 @@
 #define EBML_STRING_LEGACY_CLASS    FOURCC('E','B','B','G')
 #define EBML_UNISTRING_LEGACY_CLASS FOURCC('E','B','B','U')
 
-#define DECLARE_EBML_CONTEXT(x)     extern const ebml_context EBML_Context##x;
+#define DECLARE_EBML_CONTEXT(x) 
 #define DECLARE_EBML_MASTER(x)    DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlMaster { \
-  public: x(ebml_element *WithNode = NULL) :EbmlMaster(EBML_Context##x, WithNode) {} \
-  EBML_CONCRETE_CLASS_LOOSE(x)
+  public: x(ebml_element *WithNode = NULL); \
+  EBML_CONCRETE_CLASS(x)
 #define DECLARE_EBML_UINTEGER(x)    DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlUInteger { \
-  public: x(ebml_element *WithNode = NULL) :EbmlUInteger(EBML_Context##x, WithNode) {} \
-  EBML_CONCRETE_CLASS_LOOSE(x)
+  public: x(ebml_element *WithNode = NULL); \
+  EBML_CONCRETE_CLASS(x)
 #define DECLARE_EBML_STRING(x)      DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlString { \
-  public: x(ebml_element *WithNode = NULL) :EbmlString(EBML_Context##x, WithNode) {} \
-  EBML_CONCRETE_CLASS_LOOSE(x)
+  public: x(ebml_element *WithNode = NULL); \
+  EBML_CONCRETE_CLASS(x)
 #define DECLARE_EBML_BINARY(x)      DECLARE_EBML_CONTEXT(x) \
   class x : public EbmlBinary { \
   public: x(ebml_element *WithNode = NULL); \
@@ -76,15 +76,6 @@
         virtual EbmlElement * Clone() const { return new x(*this); } \
         virtual operator const ebml_context &() const { return EBML_Context##x; } \
         static const ebml_context EBML_Context##x; \
-        static const ebml_context & GetContext() { return EBML_Context##x; } \
-        static void PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
-
-#define EBML_CONCRETE_CLASS_LOOSE(x) \
-    public: \
-        operator const EbmlId (void) const { return EbmlId(EBML_Context##x.Id); } \
-        virtual EbmlElement * Clone() const { return new x(*this); } \
-        virtual operator const ebml_context &() const { return EBML_Context##x; } \
-        static ebml_context EBML_Context##x; \
         static const ebml_context & GetContext() { return EBML_Context##x; } \
         static void PostCreate(ebml_element *p, const void *Cookie) { if (!Cookie) Cookie=new x(p); Node_Set(p,EBML_ELEMENT_OBJECT,&Cookie,sizeof(Cookie)); }
 
@@ -280,7 +271,7 @@ namespace LIBEBML_NAMESPACE {
 
 
         // virtual methods needed for the Core-C counterpart
-        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA) = 0;
         virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false) = 0;
         virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false) = 0; /// update the Size of the Data stored before rendering
     protected:

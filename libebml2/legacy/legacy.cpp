@@ -220,27 +220,39 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_END(EBML_UNISTRING_CLASS)
 
+
+DEFINE_START_SEMANTIC(EbmlHead)
+DEFINE_SEMANTIC_ITEM(true, true, EVersion)
+DEFINE_SEMANTIC_ITEM(true, true, EReadVersion)
+DEFINE_SEMANTIC_ITEM(true, true, EDocType)
+DEFINE_SEMANTIC_ITEM(true, true, EDocTypeVersion)
+DEFINE_SEMANTIC_ITEM(true, true, EDocTypeReadVersion)
+DEFINE_SEMANTIC_ITEM(true, true, EMaxIdLength)
+DEFINE_SEMANTIC_ITEM(true, true, EMaxSizeLength)
+DEFINE_END_SEMANTIC(EbmlHead)
+
+DEFINE_EBML_MASTER    (EbmlHead, ::EBML_ContextHead.Id, NULL, ::EBML_ContextHead.ElementName);
+DEFINE_EBML_UINTEGER  (EVersion, ::EBML_ContextVersion.Id, EbmlHead, ::EBML_ContextVersion.ElementName);
+DEFINE_EBML_UINTEGER  (EReadVersion, ::EBML_ContextReadVersion.Id, EbmlHead, ::EBML_ContextReadVersion.ElementName);
+DEFINE_EBML_STRING_DEF(EDocType, ::EBML_ContextDocType.Id, EbmlHead, ::EBML_ContextDocType.ElementName, "matroska");
+DEFINE_EBML_UINTEGER  (EDocTypeVersion, ::EBML_ContextDocTypeVersion.Id, EbmlHead, ::EBML_ContextDocTypeVersion.ElementName);
+DEFINE_EBML_UINTEGER  (EDocTypeReadVersion, ::EBML_ContextDocTypeReadVersion.Id, EbmlHead, ::EBML_ContextDocTypeReadVersion.ElementName);
+DEFINE_EBML_UINTEGER  (EMaxIdLength, ::EBML_ContextMaxIdLength.Id, EbmlHead, ::EBML_ContextMaxIdLength.ElementName);
+DEFINE_EBML_UINTEGER  (EMaxSizeLength, ::EBML_ContextMaxSizeLength.Id, EbmlHead, ::EBML_ContextMaxSizeLength.ElementName);
+
 void ebml_init()
 {
     NodeContext_Init(&ccContext,NULL,NULL,NULL);
     EBML_Init(&ccContext);
     NodeRegisterClassEx((nodemodule*)&ccContext,IOCallback_Class);
 
-    EbmlHead::EBML_ContextEbmlHead.PostCreate = EbmlHead::PostCreate;
     ::EBML_ContextHead.PostCreate = EbmlHead::PostCreate;
-    EDocType::EBML_ContextEDocType.PostCreate = EDocType::PostCreate;
     ::EBML_ContextDocType.PostCreate = EDocType::PostCreate;
-    EVersion::EBML_ContextEVersion.PostCreate = EVersion::PostCreate;
     ::EBML_ContextVersion.PostCreate = EVersion::PostCreate;
-    EReadVersion::EBML_ContextEReadVersion.PostCreate = EReadVersion::PostCreate;
     ::EBML_ContextReadVersion.PostCreate = EReadVersion::PostCreate;
-    EDocTypeVersion::EBML_ContextEDocTypeVersion.PostCreate = EDocTypeVersion::PostCreate;
     ::EBML_ContextDocTypeVersion.PostCreate = EDocTypeVersion::PostCreate;
-    EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion.PostCreate = EDocTypeReadVersion::PostCreate;
     ::EBML_ContextDocTypeReadVersion.PostCreate = EDocTypeReadVersion::PostCreate;
-    EMaxSizeLength::EBML_ContextEMaxSizeLength.PostCreate = EMaxSizeLength::PostCreate;
     ::EBML_ContextMaxSizeLength.PostCreate = EMaxSizeLength::PostCreate;
-    EMaxIdLength::EBML_ContextEMaxIdLength.PostCreate  = EMaxIdLength::PostCreate;
     ::EBML_ContextMaxIdLength.PostCreate  = EMaxIdLength::PostCreate;
 }
 
@@ -260,17 +272,8 @@ assert(0);
 return *static_cast<EbmlElement*>(NULL);
 }
 
-DEFINE_EBML_BINARY_GLOBAL(EbmlCrc32, 0xBF, 1, "EBMLCrc32\0ratamadabapa");
-DEFINE_EBML_VOID_GLOBAL(EbmlVoid,  0xEC, 1, "EBMLVoid");
-
-ebml_context EbmlHead::EBML_ContextEbmlHead                       = ::EBML_ContextHead; // dirty copy
-ebml_context EDocType::EBML_ContextEDocType                       = ::EBML_ContextDocType; // dirty copy
-ebml_context EVersion::EBML_ContextEVersion                       = ::EBML_ContextVersion; // dirty copy
-ebml_context EReadVersion::EBML_ContextEReadVersion               = ::EBML_ContextReadVersion; // dirty copy
-ebml_context EDocTypeVersion::EBML_ContextEDocTypeVersion         = ::EBML_ContextDocTypeVersion; // dirty copy
-ebml_context EDocTypeReadVersion::EBML_ContextEDocTypeReadVersion = ::EBML_ContextDocTypeReadVersion; // dirty copy
-ebml_context EMaxSizeLength::EBML_ContextEMaxSizeLength           = ::EBML_ContextMaxSizeLength; // dirty copy
-ebml_context EMaxIdLength::EBML_ContextEMaxIdLength               = ::EBML_ContextMaxIdLength; // dirty copy
+DEFINE_EBML_BINARY_GLOBAL(EbmlCrc32, 0xBF, "EBMLCrc32\0ratamadabapa");
+DEFINE_EBML_VOID_GLOBAL(EbmlVoid,  0xEC, "EBMLVoid");
 
 const ebml_semantic EBML_SemanticGlobal[] = {
     {0, 0, &EbmlVoid::EBML_ContextEbmlVoid},
