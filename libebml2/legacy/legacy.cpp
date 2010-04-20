@@ -53,11 +53,6 @@
 #define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)
 #define Ebml_Next(x)      (ebml_element*)NodeTree_Next(x)
 
-const ebml_semantic & GetGlobalEBMLSemantic()
-{
-    return *EBML_SemanticGlobals;
-}
-
 static nodecontext ccContext;
 
 using namespace LIBEBML_NAMESPACE;
