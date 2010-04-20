@@ -41,13 +41,12 @@ namespace LIBEBML_NAMESPACE {
 
         virtual EbmlElement * Clone() const;
 
-        // TODO: move these calls in EbmlElement (needs an interim class for each EBML main type in legacy.cpp?)
-        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-        virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false);
-        virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
-
         const binary* GetBuffer() const;
         binary* GetBuffer();
+
+        // virtual methods needed for the Core-C counterpart
+        virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false);
+        virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
     };
 
 };

@@ -108,11 +108,6 @@ static err_t Read(stream_io* p,void* Data,size_t Size,size_t* Readed)
     return ERR_NONE;
 }
 
-static err_t Create(ebml_binary *Element)
-{
-    return ERR_NONE;
-}
-
 static err_t ReadData(ebml_binary *Element, stream_io *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
 assert(0);
@@ -122,7 +117,7 @@ assert(0);
 filepos_t UpdateSize(ebml_binary *Element, bool bWithDefault, bool bForceRender)
 {
     filepos_t Size;
-    EbmlBinary *Result=NULL;
+    EbmlElement *Result=NULL;
     if (Node_Get(Element,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
     {
         assert(0);
@@ -135,7 +130,7 @@ filepos_t UpdateSize(ebml_binary *Element, bool bWithDefault, bool bForceRender)
 static err_t RenderData(ebml_binary *Element, stream_io *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     filepos_t Render;
-    EbmlBinary *Result=NULL;
+    EbmlElement *Result=NULL;
     assert(Output->cpp!=NULL);
     if (Node_Get(Element,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
     {
@@ -159,13 +154,68 @@ META_VMT(TYPE_FUNC,stream_vmt,Read,Read)
 META_END_CONTINUE(STREAM_CLASS)
 
 META_START_CONTINUE(EBML_BINARY_LEGACY_CLASS)
-META_CLASS(CREATE,Create)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
-META_END(EBML_BINARY_CLASS)
+META_END_CONTINUE(EBML_BINARY_CLASS)
+
+META_START_CONTINUE(EBML_DATE_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END_CONTINUE(EBML_DATE_CLASS)
+
+META_START_CONTINUE(EBML_INTEGER_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END_CONTINUE(EBML_INTEGER_CLASS)
+
+META_START_CONTINUE(EBML_SINTEGER_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END_CONTINUE(EBML_SINTEGER_CLASS)
+
+META_START_CONTINUE(EBML_FLOAT_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END_CONTINUE(EBML_FLOAT_CLASS)
+
+META_START_CONTINUE(EBML_MASTER_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END_CONTINUE(EBML_MASTER_CLASS)
+
+META_START_CONTINUE(EBML_STRING_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END_CONTINUE(EBML_STRING_CLASS)
+
+META_START_CONTINUE(EBML_UNISTRING_LEGACY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
+META_END(EBML_UNISTRING_CLASS)
 
 void ebml_init()
 {
@@ -321,6 +371,17 @@ EbmlElement::~EbmlElement()
         Node_RemoveNotify((node*)Node,NODE_DELETING,(notifyproc)Deleting,this);
         NodeDelete((node*)Node);
     }
+}
+
+filepos_t EbmlElement::ReadData(IOCallback & input, ScopeMode ReadFully)
+{
+    ebml_parser_context pContext;
+    pContext.Context = Node->Context;
+    filepos_t Now = (filepos_t)input.getFilePointer();
+    err_t Res = EBML_ElementReadData(Node,input.GetStream(),&pContext,0,ReadFully);
+    if (Res != ERR_NONE)
+        return INVALID_FILEPOS_T;
+    return (filepos_t)input.getFilePointer() - Now;
 }
 
 EbmlElement * EbmlElement::SkipData(EbmlStream & DataStream, const EbmlSemanticContext & Context, EbmlElement * TestReadElt, bool AllowDummyElt)
@@ -600,6 +661,20 @@ EbmlMaster::EbmlMaster(struct ebml_context const &Context, ebml_element *WithNod
 {
 }
 
+filepos_t EbmlMaster::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_MASTER_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlMaster::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_MASTER_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
+}
+
 EbmlMaster_itr EbmlMaster::begin() const
 {
 assert(0);
@@ -628,12 +703,6 @@ bool EbmlMaster::CheckMandatory() const
 {
 assert(0);
     return true;
-}
-
-filepos_t EbmlMaster::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
 }
 
 filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bWithDefault)
@@ -850,12 +919,6 @@ binary* EbmlBinary::GetBuffer()
     return const_cast<binary*>(EBML_BinaryGetData((ebml_binary*)Node));
 }
 
-filepos_t EbmlBinary::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
 filepos_t EbmlBinary::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
 {
     filepos_t Rendered;
@@ -891,15 +954,18 @@ EbmlString::EbmlString(const ebml_context &ec, ebml_element *WithNode)
 {
 }
 
-filepos_t EbmlString::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlString::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
 {
-    ebml_parser_context pContext;
-    pContext.Context = Node->Context;
-    filepos_t Now = (filepos_t)input.getFilePointer();
-    err_t Res = EBML_ElementReadData(Node,input.GetStream(),&pContext,0,ReadFully);
-    if (Res != ERR_NONE)
-        return INVALID_FILEPOS_T;
-    return (filepos_t)input.getFilePointer() - Now;
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_STRING_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlString::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_STRING_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
 }
 
 EbmlString & EbmlString::operator=(const std::string & Value)
@@ -934,16 +1000,24 @@ EbmlUnicodeString::EbmlUnicodeString(const ebml_context &ec, ebml_element *WithN
 {
 }
 
-filepos_t EbmlUnicodeString::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
 EbmlUnicodeString & EbmlUnicodeString::operator=(const UTFstring &val)
 {
     EBML_UniStringSetValue((ebml_string*)Node,val);
     return *this;
+}
+
+filepos_t EbmlUnicodeString::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_UNISTRING_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlUnicodeString::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_UNISTRING_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
 }
 
 EbmlUnicodeString::operator const UTFstring() const
@@ -1040,20 +1114,23 @@ EbmlUInteger::EbmlUInteger(const ebml_context &ec, unsigned int DefaultValue, eb
     Node->bDefaultIsSet = 1;
 }
 
+filepos_t EbmlUInteger::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_INTEGER_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlUInteger::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_INTEGER_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
+}
+
 void EbmlUInteger::SetDefaultSize(filepos_t aDefaultSize)
 {
     Node->DefaultSize = aDefaultSize;
-}
-
-filepos_t EbmlUInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-    ebml_parser_context pContext;
-    pContext.Context = Node->Context;
-    filepos_t Now = (filepos_t)input.getFilePointer();
-    err_t Res = EBML_ElementReadData(Node,input.GetStream(),&pContext,0,ReadFully);
-    if (Res != ERR_NONE)
-        return INVALID_FILEPOS_T;
-    return (filepos_t)input.getFilePointer() - Now;
 }
 
 EbmlUInteger::operator uint64_t() const
@@ -1089,21 +1166,29 @@ bool EbmlUInteger::IsSmallerThan(const EbmlElement *Cmp) const
 /*****************
  * EbmlSInteger
  ****************/
-void EbmlSInteger::SetDefaultSize(filepos_t aDefaultSize)
+filepos_t EbmlSInteger::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
 {
-assert(0);
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_SINTEGER_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
 }
 
-filepos_t EbmlSInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlSInteger::UpdateSize(bool bWithDefault, bool bForceRender)
 {
-assert(0);
-    return INVALID_FILEPOS_T;
+    return INHERITED(Node,ebml_element_vmt,EBML_SINTEGER_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
+}
+
+void EbmlSInteger::SetDefaultSize(filepos_t aDefaultSize)
+{
+    Node->DefaultSize = aDefaultSize;
 }
 
 int64_t EbmlSInteger::operator =(int64_t val)
 {
-assert(0);
-return 0;
+    reinterpret_cast<ebml_integer*>(Node)->Value = val;
+    return reinterpret_cast<ebml_integer*>(Node)->Value;
 }
 
 EbmlSInteger::operator int64_t() const
@@ -1145,6 +1230,20 @@ EbmlFloat::EbmlFloat(const ebml_context &ec, Precision prec, ebml_element *WithN
     SetPrecision(prec);
 }
 
+filepos_t EbmlFloat::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_FLOAT_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlFloat::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_FLOAT_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
+}
+
 EbmlFloat::operator double() const
 {
     return reinterpret_cast<const ebml_float*>(Node)->Value;
@@ -1176,12 +1275,6 @@ bool EbmlFloat::IsSmallerThan(const EbmlElement *Cmp) const
 		return false;
 }
 
-filepos_t EbmlFloat::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
-}
-
 EbmlElement * EbmlFloat::Clone() const
 {
 assert(0);
@@ -1192,6 +1285,20 @@ assert(0);
 /*****************
  * EbmlDate
  ****************/
+filepos_t EbmlDate::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_DATE_LEGACY_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlDate::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_DATE_LEGACY_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
+}
+
 datetime_t EbmlDate::GetEpochDate() const
 {
     return EBML_DateTime(reinterpret_cast<const ebml_date*>(Node)) + 978307200; // 1st January 2001 to January 1, 1970
@@ -1200,12 +1307,6 @@ datetime_t EbmlDate::GetEpochDate() const
 void EbmlDate::SetEpochDate(int32_t NewDate)
 {
     EBML_DateSetDateTime(reinterpret_cast<ebml_date*>(Node),NewDate - 978307200); // January 1, 1970 to 1st January 2001
-}
-
-filepos_t EbmlDate::ReadData(IOCallback & input, ScopeMode ReadFully)
-{
-assert(0);
-    return INVALID_FILEPOS_T;
 }
 
 bool EbmlDate::IsSmallerThan(const EbmlElement *Cmp) const
@@ -1231,7 +1332,21 @@ assert(0);
  ****************/
 filepos_t EbmlVoid::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
-    return 0;
+    return 0; // do nothing
+}
+
+filepos_t EbmlVoid::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault)
+{
+    filepos_t Rendered;
+    err_t Err = INHERITED(Node,ebml_element_vmt,EBML_VOID_CLASS)->RenderData(Node,output.GetStream(),bForceRender,bSaveDefault,&Rendered);
+    if (Err!=ERR_NONE)
+        return ERR_WRITE;
+    return Rendered;
+}
+
+filepos_t EbmlVoid::UpdateSize(bool bWithDefault, bool bForceRender)
+{
+    return INHERITED(Node,ebml_element_vmt,EBML_VOID_CLASS)->UpdateSize(Node,bWithDefault,bForceRender);
 }
 
 filepos_t EbmlVoid::ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward, bool bWithDefault)

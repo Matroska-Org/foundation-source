@@ -38,7 +38,6 @@ namespace LIBEBML_NAMESPACE {
         EbmlSInteger(const ebml_context &ec, ebml_element *WithNode = NULL) :EbmlElement(ec,WithNode) {}
         operator int64_t() const;
 
-        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
         int64_t operator =(int64_t);
 
@@ -47,6 +46,10 @@ namespace LIBEBML_NAMESPACE {
 		*/
 		void SetDefaultSize(filepos_t nDefaultSize = 1);
         virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
+
+        // virtual methods needed for the Core-C counterpart
+        virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false);
+        virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
     };
 
 };

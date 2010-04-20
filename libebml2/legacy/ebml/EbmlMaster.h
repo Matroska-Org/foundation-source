@@ -79,7 +79,6 @@ namespace LIBEBML_NAMESPACE {
         void Remove(const EBML_MASTER_ITERATOR & Itr);
         void Remove(const EBML_MASTER_RITERATOR & Itr);
 
-        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual EbmlElement * Clone() const;
 
         void Sort();
@@ -94,6 +93,10 @@ namespace LIBEBML_NAMESPACE {
         EBML_MASTER_ITERATOR end() const;
         EBML_MASTER_RITERATOR rbegin() const;
         EBML_MASTER_RITERATOR rend() const;
+
+        // virtual methods needed for the Core-C counterpart
+        virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false);
+        virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
     };
 
     template <typename Type>
