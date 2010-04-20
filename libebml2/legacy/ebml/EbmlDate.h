@@ -46,6 +46,7 @@ namespace LIBEBML_NAMESPACE {
         virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
 
         // virtual methods needed for the Core-C counterpart
+        virtual filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
         virtual filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault = false);
         virtual filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
     };
