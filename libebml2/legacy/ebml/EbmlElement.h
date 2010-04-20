@@ -91,85 +91,85 @@
 #define DEFINE_xxx_CONTEXT(x,global) \
     const ebml_context EBML_Context##x = {0, EBML_MASTER_LEGACY_CLASS, 0, 0, "##x", EBML_Semantic##x, NULL};
 
-#define DEFINE_EBML_MASTER(x,id,idl,parent,name) DEFINE_xxx_MASTER(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_MASTER(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_MASTER(x,id,parent,name) DEFINE_xxx_MASTER(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_MASTER(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_MASTER_LEGACY_CLASS, 0, 0, name, EBML_Semantic##x, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlMaster(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_MASTER_CONS(x,id,idl,parent,name) DEFINE_xxx_MASTER_CONS(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_MASTER_CONS(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_MASTER_CONS(x,id,parent,name) DEFINE_xxx_MASTER_CONS(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_MASTER_CONS(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_MASTER_LEGACY_CLASS, 0, 0, name, EBML_Semantic##x, global, x::PostCreate}; \
 
-#define DEFINE_xxx_MASTER_ORPHAN(x,id,idl,name,global) \
+#define DEFINE_xxx_MASTER_ORPHAN(x,id,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_MASTER_LEGACY_CLASS, 0, 0, name, EBML_Semantic##x, global, x::PostCreate}; \
 
-#define DEFINE_EBML_UINTEGER(x,id,idl,parent,name) DEFINE_xxx_UINTEGER(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_UINTEGER(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_UINTEGER(x,id,parent,name) DEFINE_xxx_UINTEGER(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_UINTEGER(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_INTEGER_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlUInteger(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_UINTEGER_DEF(x,id,idl,parent,name,defval) DEFINE_xxx_UINTEGER_DEF(x,id,idl,parent,name,global,defval)
-#define DEFINE_xxx_UINTEGER_DEF(x,id,idl,parent,name,global,defval) \
+#define DEFINE_EBML_UINTEGER_DEF(x,id,parent,name,defval) DEFINE_xxx_UINTEGER_DEF(x,id,parent,name,global,defval)
+#define DEFINE_xxx_UINTEGER_DEF(x,id,parent,name,global,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_INTEGER_LEGACY_CLASS, 1, defval, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlUInteger(EBML_Context##x, defval, WithNode) {}
 
-#define DEFINE_EBML_SINTEGER(x,id,idl,parent,name) DEFINE_xxx_SINTEGER(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_SINTEGER(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_SINTEGER(x,id,parent,name) DEFINE_xxx_SINTEGER(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_SINTEGER(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_SINTEGER_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlSInteger(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_SINTEGER_CONS(x,id,idl,parent,name) DEFINE_xxx_SINTEGER_CONS(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_SINTEGER_CONS(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_SINTEGER_CONS(x,id,parent,name) DEFINE_xxx_SINTEGER_CONS(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_SINTEGER_CONS(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_SINTEGER_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
 
-#define DEFINE_EBML_FLOAT(x,id,idl,parent,name) DEFINE_xxx_FLOAT(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_FLOAT(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_FLOAT(x,id,parent,name) DEFINE_xxx_FLOAT(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_FLOAT(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlFloat(EBML_Context##x, EbmlFloat::FLOAT_32, WithNode) {}
 
-#define DEFINE_EBML_FLOAT64(x,id,idl,parent,name) DEFINE_xxx_FLOAT64(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_FLOAT64(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_FLOAT64(x,id,parent,name) DEFINE_xxx_FLOAT64(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_FLOAT64(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlFloat(EBML_Context##x, EbmlFloat::FLOAT_64, WithNode) {}
 
-#define DEFINE_EBML_FLOAT_DEF(x,id,idl,parent,name,defval) DEFINE_xxx_FLOAT_DEF(x,id,idl,parent,name,EBML_SemanticGlobal,defval)
-#define DEFINE_xxx_FLOAT_DEF(x,id,idl,parent,name,global,defval) \
+#define DEFINE_EBML_FLOAT_DEF(x,id,parent,name,defval) DEFINE_xxx_FLOAT_DEF(x,id,parent,name,EBML_SemanticGlobal,defval)
+#define DEFINE_xxx_FLOAT_DEF(x,id,parent,name,global,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_FLOAT_LEGACY_CLASS, 1, (intptr_t)defval, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlFloat(EBML_Context##x, defval, EbmlFloat::FLOAT_32, WithNode) {}
 
-#define DEFINE_EBML_UNISTRING(x,id,idl,parent,name) DEFINE_xxx_UNISTRING(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_UNISTRING(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_UNISTRING(x,id,parent,name) DEFINE_xxx_UNISTRING(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_UNISTRING(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_UNISTRING_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlUnicodeString(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_STRING(x,id,idl,parent,name) DEFINE_xxx_STRING(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_STRING(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_STRING(x,id,parent,name) DEFINE_xxx_STRING(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_STRING(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_STRING_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlString(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_STRING_DEF(x,id,idl,parent,name,defval) DEFINE_xxx_STRING_DEF(x,id,idl,parent,name,EBML_SemanticGlobal,defval)
-#define DEFINE_xxx_STRING_DEF(x,id,idl,parent,name,global,defval) \
+#define DEFINE_EBML_STRING_DEF(x,id,parent,name,defval) DEFINE_xxx_STRING_DEF(x,id,parent,name,EBML_SemanticGlobal,defval)
+#define DEFINE_xxx_STRING_DEF(x,id,parent,name,global,defval) \
     const ebml_context x::EBML_Context##x = {id, EBML_STRING_LEGACY_CLASS, 1, (intptr_t)defval, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlString(EBML_Context##x, defval, WithNode) {}
 
-#define DEFINE_xxx_BINARY(x,id,idl,parent,name,global) \
+#define DEFINE_xxx_BINARY(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlBinary(EBML_Context##x, WithNode) {}
 
-#define DEFINE_xxx_BINARY_CONS(x,id,idl,parent,name,global) \
+#define DEFINE_xxx_BINARY_CONS(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
 
-#define DEFINE_EBML_BINARY_GLOBAL(x,id,idl,name) DEFINE_xxx_BINARY_GLOBAL(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_BINARY_GLOBAL(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_BINARY_GLOBAL(x,id,name) DEFINE_xxx_BINARY_GLOBAL(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_BINARY_GLOBAL(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_BINARY_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlBinary(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_VOID_GLOBAL(x,id,idl,name) \
+#define DEFINE_EBML_VOID_GLOBAL(x,id,name) \
     const ebml_context x::EBML_Context##x = {id, EBML_VOID_CLASS, 0, 0, name, NULL, EBML_SemanticGlobal, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlElement(EBML_Context##x, WithNode) {}
 
-#define DEFINE_EBML_DATE(x,id,idl,parent,name) DEFINE_xxx_DATE(x,id,idl,parent,name,EBML_SemanticGlobal)
-#define DEFINE_xxx_DATE(x,id,idl,parent,name,global) \
+#define DEFINE_EBML_DATE(x,id,parent,name) DEFINE_xxx_DATE(x,id,parent,name,EBML_SemanticGlobal)
+#define DEFINE_xxx_DATE(x,id,parent,name,global) \
     const ebml_context x::EBML_Context##x = {id, EBML_DATE_LEGACY_CLASS, 0, 0, name, NULL, global, x::PostCreate}; \
     x::x(ebml_element *WithNode) :EbmlDate(EBML_Context##x, WithNode)  {}
 
