@@ -32,7 +32,9 @@
 #include "ebml/EbmlElement.h"
 
 #define EBML_MASTER_ITERATOR  EbmlMaster_itr
+#define EBML_MASTER_CONST_ITERATOR  EbmlMaster_itr
 #define EBML_MASTER_RITERATOR EbmlMaster_rev_itr
+#define EBML_MASTER_CONST_RITERATOR EbmlMaster_rev_itr
 
 namespace LIBEBML_NAMESPACE {
 
