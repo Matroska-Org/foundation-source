@@ -40,11 +40,13 @@
 extern "C" {
 #endif
 
+#define CONTEXT_LIBEBML_VERSION  0x400
+
 #define EBML_MAX_VERSION    1
 #define EBML_MAX_ID         4
 #define EBML_MAX_SIZE       8
 
-#define SCOPE_PARTIAL_DATA  0  // useful for binary data with a (internal) header
+#define SCOPE_PARTIAL_DATA  0  // read all data, except inside some binary elements (useful for binary data with a (internal) header)
 #define SCOPE_ALL_DATA      1
 #define SCOPE_NO_DATA       2
 
