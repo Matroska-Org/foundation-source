@@ -136,12 +136,12 @@ static bool_t IsDefaultValue(const ebml_element *Element)
     return 0;
 }
 
-static bool_t CheckMandatory(const ebml_element *Element)
+static bool_t CheckMandatory(const ebml_element *Element, bool_t bWithDefault)
 {
     const ebml_semantic *i;
     for (i=Element->Context->Semantic;i->eClass;++i)
     {
-        if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass))
+        if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass) && (bWithDefault || !i->eClass->HasDefault))
             return 0;
     }
     return 1;
@@ -157,7 +157,7 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRe
 		return INVALID_FILEPOS_T;
 
 	if (!bForceRender) {
-		assert(CheckMandatory(Element));
+		assert(CheckMandatory(Element, bWithDefault));
     }
 
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
@@ -273,7 +273,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
     *Rendered = 0;
 
 	if (!bForceRender) {
-		assert(CheckMandatory(Element));
+		assert(CheckMandatory(Element, bWithDefault));
 	}
 
 #ifdef TODO
