@@ -73,7 +73,7 @@ err_t EBML_Init(nodecontext *p)
 	NodeRegisterClassEx((nodemodule*)p,EBMLCRC_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLVoid_Class);
 
-    tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" ") PROJECT_VERSION);
+    tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" v") PROJECT_VERSION);
     Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,LibName);
 
     return ERR_NONE;
