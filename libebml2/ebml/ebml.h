@@ -1,5 +1,5 @@
 /*
- * $Id: ebml.h 1323 2008-10-05 12:07:46Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *
@@ -39,6 +39,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define EBML_MAX_VERSION    1
+#define EBML_MAX_ID         4
+#define EBML_MAX_SIZE       8
 
 #define SCOPE_PARTIAL_DATA  0  // useful for binary data with a (internal) header
 #define SCOPE_ALL_DATA      1
@@ -191,6 +195,8 @@ EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t b
 EBML_DLL int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
 EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer); // TODO: turn into a macro ?
 EBML_DLL int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
+EBML_DLL size_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown);
+EBML_DLL int64_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown);
 EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
@@ -231,6 +237,7 @@ EBML_DLL void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* C
 #define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_element*)e,c,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))
 #define EBML_MasterNext(p)         ((ebml_element*)NodeTree_Next(p))
+#define EBML_ElementParent(p)      ((ebml_element*)NodeTree_Parent(p))
 
 EBML_DLL err_t EBML_StringSetValue(ebml_string *Element,const char *Value);
 #if defined(CONFIG_EBML_UNICODE)
@@ -246,6 +253,7 @@ EBML_DLL const uint8_t *EBML_BinaryGetData(ebml_binary *Element);
 #if defined(CONFIG_EBML_WRITING)
 EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
 EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
+EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
 #endif
 
 INTERNAL_C_API size_t GetIdLength(fourcc_t Id);

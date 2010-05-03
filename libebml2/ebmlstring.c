@@ -1,5 +1,5 @@
 /*
- * $Id: ebmlstring.c 1320 2008-10-04 15:03:47Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *

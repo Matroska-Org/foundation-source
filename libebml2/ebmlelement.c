@@ -1,5 +1,5 @@
 /*
- * $Id: ebmlelement.c 1323 2008-10-05 12:07:46Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *
@@ -208,6 +208,20 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
     return Result;
 }
 
+size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id)
+{
+    size_t i,FinalHeadSize = GetIdLength(Id);
+    if (BufSize < FinalHeadSize)
+        return 0;
+#if defined(IS_BIG_ENDIAN)
+    memcpy(Buffer,&Id,FinalHeadSize);
+#else
+    for (i=0;i<FinalHeadSize;++i)
+        Buffer[FinalHeadSize-i-1] = (uint8_t)(Id >> (i<<3));
+#endif
+    return FinalHeadSize;
+}
+
 err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered)
 {
     err_t Err;
@@ -216,13 +230,7 @@ err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeep
     int CodedSize;
     filepos_t PosAfter,PosBefore = Stream_Seek(Output,0,SEEK_CUR);
 	
-	FinalHeadSize = GetIdLength(Element->Context->Id);
-#if defined(IS_BIG_ENDIAN)
-    memcpy(FinalHead,&Element->Context->Id,FinalHeadSize);
-#else
-    for (i=0;i<FinalHeadSize;++i)
-        FinalHead[FinalHeadSize-i-1] = (uint8_t)(Element->Context->Id >> (i<<3));
-#endif
+	FinalHeadSize = EBML_FillBufferID(FinalHead,sizeof(FinalHead),Element->Context->Id);
 
 	CodedSize = EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
 	EBML_CodedValueLength(Element->Size, CodedSize, &FinalHead[FinalHeadSize]);

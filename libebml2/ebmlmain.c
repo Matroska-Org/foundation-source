@@ -1,5 +1,5 @@
 /*
- * $Id: ebmlmain.c 1323 2008-10-05 12:07:46Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *
@@ -79,10 +79,10 @@ err_t EBML_Done(nodecontext *p)
 
 CONTEXT_CONST ebml_context EBML_ContextDummy = {0xFF, EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
 
-CONTEXT_CONST ebml_context EBML_ContextVersion            = {0x4286, EBML_INTEGER_CLASS, 1, 1, "EBMLVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {0x42F7, EBML_INTEGER_CLASS, 1, 1, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {0x42F2, EBML_INTEGER_CLASS, 1, 4, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {0x42F3, EBML_INTEGER_CLASS, 1, 8, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextVersion            = {0x4286, EBML_INTEGER_CLASS, 1, EBML_MAX_VERSION, "EBMLVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {0x42F7, EBML_INTEGER_CLASS, 1, EBML_MAX_VERSION, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {0x42F2, EBML_INTEGER_CLASS, 1, EBML_MAX_ID, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
+CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {0x42F3, EBML_INTEGER_CLASS, 1, EBML_MAX_SIZE, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
 CONTEXT_CONST ebml_context EBML_ContextDocType            = {0x4282, EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
 CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {0x4287, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
 CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {0x4285, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
@@ -111,7 +111,7 @@ const ebml_semantic EBML_SemanticGlobals[] = {
 
 static const ebml_context EBML_ContextGlobals = {0, 0, 0, 0, "GlobalContext", EBML_SemanticGlobals, EBML_SemanticGlobals};
 
-static size_t ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown)
+size_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown)
 {
 	uint8_t SizeBitMask = 1 << 7;
 	size_t Result = 0x7F;
@@ -150,6 +150,32 @@ static size_t ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, si
 
 	*BufferSize = 0;
 	return 0;
+}
+
+int64_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown)
+{
+	int64_t Result = EBML_ReadCodedSizeValue(InBuffer, BufferSize, SizeUnknown);
+
+	if (*BufferSize != 0)
+	{
+		switch (*BufferSize)
+		{
+		case 1:
+			Result -= 63;
+			break;
+		case 2:
+			Result -= 8191;
+			break;
+		case 3:
+			Result -= 1048575L;
+			break;
+		case 4:
+			Result -= 134217727L;
+			break;
+		}
+	}
+
+	return Result;
 }
 
 static fourcc_t EBML_IdFromBuffer(const uint8_t *PossibleId, int8_t IdLength)
@@ -203,7 +229,7 @@ static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8
             ebml_dummy *Dummy = (ebml_dummy*)Result;
             memcpy(&Dummy->DummyContext,&EBML_ContextDummy,sizeof(Dummy->DummyContext));
             Dummy->DummyContext.Id = EBML_IdFromBuffer(PossibleId,IdLength);
-            Context = &Dummy->DummyContext;
+            Result->Context = &Dummy->DummyContext;
         }
     }
     if (Result && Parent)
@@ -331,7 +357,7 @@ ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t
                 break;
 		    ReadSize++;
 		    _SizeLength = PossibleSizeLength;
-		    SizeFound = ReadCodedSizeValue(&PossibleSize[0], &_SizeLength, &SizeUnknown);
+		    SizeFound = EBML_ReadCodedSizeValue(&PossibleSize[0], &_SizeLength, &SizeUnknown);
 	    } while (_SizeLength == 0);
     }
 
@@ -527,7 +553,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
 		while (1)
 		{
 			_SizeLength = PossibleSizeLength;
-			SizeFound = ReadCodedSizeValue(&PossibleIdNSize[PossibleID_Length], &_SizeLength, &SizeUnknown);
+			SizeFound = EBML_ReadCodedSizeValue(&PossibleIdNSize[PossibleID_Length], &_SizeLength, &SizeUnknown);
 			if (_SizeLength != 0) {
 				bFound = 1;
 				break;

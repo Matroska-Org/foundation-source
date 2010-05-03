@@ -1,5 +1,5 @@
 /*
- * $Id: ebmlmaster.c 1323 2008-10-05 12:07:46Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *

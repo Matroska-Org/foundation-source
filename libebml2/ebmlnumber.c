@@ -1,5 +1,5 @@
 /*
- * $Id: ebmlnumber.c 1319 2008-09-19 16:08:57Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *
@@ -141,7 +141,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
 	size_t i;
 	uint64_t TempValue = Element->Value;
     err_t Err;
-	
+
 	if (Element->Base.SizeLength > 8)
 		return 0; // integers larger than 64 bits are not supported
 
@@ -300,19 +300,19 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_
 	if (!bWithDefault && IsDefaultValueInt(Element))
 		return 0;
 
-	if (Element->Value <= 0xFF) {
+	if ((uint64_t)Element->Value <= 0xFF) {
 		Element->Base.Size = 1;
-	} else if (Element->Value <= 0xFFFF) {
+	} else if ((uint64_t)Element->Value <= 0xFFFF) {
 		Element->Base.Size = 2;
-	} else if (Element->Value <= 0xFFFFFF) {
+	} else if ((uint64_t)Element->Value <= 0xFFFFFF) {
 		Element->Base.Size = 3;
-	} else if (Element->Value <= 0xFFFFFFFF) {
+	} else if ((uint64_t)Element->Value <= 0xFFFFFFFF) {
 		Element->Base.Size = 4;
-	} else if (Element->Value <= 0xFFFFFFFFFF) {
+	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFF) {
 		Element->Base.Size = 5;
-	} else if (Element->Value <= 0xFFFFFFFFFFFF) {
+	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFF) {
 		Element->Base.Size = 6;
-	} else if (Element->Value <= 0xFFFFFFFFFFFFFF) {
+	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFFFF) {
 		Element->Base.Size = 7;
 	} else
 		Element->Base.Size = 8;

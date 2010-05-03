@@ -1,5 +1,5 @@
 /*
- * $Id: ebmlcrc.c 1311 2008-08-24 08:45:24Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *

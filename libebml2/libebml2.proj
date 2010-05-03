@@ -6,6 +6,7 @@ GROUP ebml2_group
   PROJECT_VENDOR   "Matroska Foundation"
   
   INCLUDE .
+  EXPINCLUDE .
   USE ebml2_project
   USE node
   USE file
