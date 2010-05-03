@@ -1,3 +1,31 @@
+/*
+ * $Id$
+ * Copyright (c) 2008-2010, Matroska Foundation
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Matroska Foundation nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY The Matroska Foundation ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL The Matroska Foundation BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <stdio.h>
 
 #include "matroska/matroska.h"
@@ -60,7 +88,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         {
             datepack_t Date;
             datetime_t DateTime = EBML_DateTime((ebml_date*)Element);
-            GetDatePacked(DateTime,&Date);
+            GetDatePacked(DateTime,&Date,1);
             fprintf(stdout,"%04d-%02d-%02d %02d:%02d:%02d UTC\r\n",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
         }
         else
@@ -144,7 +172,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
 
 static void OutputTree(stream *Input)
 {
-    ebml_element *Element = EBML_ElementCreate(Input,&MATROSKA_ContextStream,0);
+    ebml_element *Element = EBML_ElementCreate(Input,&MATROSKA_ContextStream,0,NULL);
     if (Element)
     {
         int Level = -1;
@@ -161,6 +189,7 @@ int main(int argc, const char *argv[])
     nodecontext p;
 #endif
     stream *Input;
+    tchar_t Path[MAXPATHFULL];
 
     if (argc != 2)
     {
@@ -179,7 +208,8 @@ int main(int argc, const char *argv[])
     MATROSKA_Init((nodecontext*)&p);
 
     // open the file to parse
-    Input = StreamOpen(&p,argv[1],SFLAG_RDONLY);
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[1]);
+    Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (Input == NULL)
         fprintf(stderr, "error: mkvtree cannot open file \"%s\"\r\n",argv[1]);
     else
