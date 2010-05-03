@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "matroska/matroska.h"
+#include "matroska2_project.h"
 
 #define MATROSKA_BLOCK_CLASS     FOURCC('M','K','B','L')
 #define MATROSKA_CUEPOINT_CLASS  FOURCC('M','K','C','P')
@@ -215,7 +216,7 @@ const ebml_semantic EBML_SemanticClusterSlices[] = {
 const ebml_context MATROSKA_ContextClusterBlock = {0xA1, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterBlock", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockAdditions = {0x75A1, EBML_MASTER_CLASS, 0, 0, "ClusterBlockAdditions", EBML_SemanticClusterBlockAdditions, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockDuration = {0x9B, EBML_INTEGER_CLASS, 0, 0, "ClusterBlockDuration", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterReferencePriority = {0xFA, EBML_INTEGER_CLASS, 0, 0, "ClusterReferencePriority", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextClusterReferencePriority = {0xFA, EBML_INTEGER_CLASS, 1, 0, "ClusterReferencePriority", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterReferenceBlock = {0xFB, EBML_SINTEGER_CLASS, 0, 0, "ClusterReferenceBlock", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterSlices = {0x8E, EBML_MASTER_CLASS, 0, 0, "ClusterSlices", EBML_SemanticClusterSlices, EBML_SemanticGlobals, NULL};
 
@@ -527,7 +528,14 @@ const ebml_context MATROSKA_ContextStream = {FOURCC('M','K','X','_'), EBML_MASTE
 
 err_t MATROSKA_Init(nodecontext *p)
 {
-    return EBML_Init(p);
+    tchar_t LibName[MAXPATH];
+    err_t Err = EBML_Init(p);
+    if (Err == ERR_NONE)
+    {
+        tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" ") PROJECT_VERSION);
+        Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,LibName);
+    }
+    return Err;
 }
 
 err_t MATROSKA_Done(nodecontext *p)
@@ -548,6 +556,7 @@ err_t MATROSKA_Done(nodecontext *p)
 #define LACING_XIPH  1
 #define LACING_FIXED 2
 #define LACING_EBML  3
+#define LACING_AUTO  4
 
 typedef struct matroska_block
 {
@@ -561,6 +570,7 @@ typedef struct matroska_block
     char Lacing;
     filepos_t FirstFrameLocation;
     array SizeList; // int32_t
+    array Data; // uint8_t
     ebml_element *Track;
     ebml_element *SegInfo;
 
@@ -706,9 +716,86 @@ timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue)
     return ((ebml_integer*)TimeCode)->Value * MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo);
 }
 
+err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
+{
+    ebml_element *TimeCode, *Elt, *PosInCluster;
+    assert(Cue->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
+    assert(Cue->Block);
+    assert(Cue->SegInfo);
+    assert(Segment); // we need the segment location
+    TimeCode = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTime,1,1);
+    if (!TimeCode)
+        return ERR_OUT_OF_MEMORY;
+    ((ebml_integer*)TimeCode)->Value = Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo));
+
+    Elt = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTrackPositions,1,1);
+    if (!Elt)
+        return ERR_OUT_OF_MEMORY;
+    PosInCluster = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextCueClusterPosition,1,1);
+    if (!PosInCluster)
+        return ERR_OUT_OF_MEMORY;
+
+    Elt = EBML_ElementParent(Cue->Block);
+    while (Elt && Elt->Context->Id != MATROSKA_ContextCluster.Id)
+        Elt = EBML_ElementParent(Elt);
+    if (!Elt)
+        return ERR_INVALID_DATA;
+    
+    ((ebml_integer*)PosInCluster)->Value = Elt->ElementPosition - EBML_ElementPositionData(Segment);
+
+    return ERR_NONE;
+}
+
+static size_t GetBlockHeadSize(const matroska_block *Element)
+{
+    assert(Element->TrackNumber < 0x4000);
+    if (Element->TrackNumber < 0x80)
+        return 4;
+    else
+        return 5;
+}
+
+err_t MATROSKA_BlockReleaseData(matroska_block *Block)
+{
+    ArrayClear(&Block->Data);
+    return ERR_NONE;
+}
+
+err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
+{
+    size_t Read;
+    err_t Err = ERR_NONE;
+    Element->Base.Base.bValueIsSet = 1;
+    switch (Element->Lacing)
+    {
+    case LACING_NONE:
+        ArrayResize(&Element->Data,Element->Base.Base.Size - GetBlockHeadSize(Element),0);
+        Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + GetBlockHeadSize(Element),SEEK_SET);
+        Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),Element->Base.Base.Size - GetBlockHeadSize(Element),&Read);
+        if (Err != ERR_NONE)
+            goto failed;
+        if (Read != Element->Base.Base.Size - GetBlockHeadSize(Element))
+        {
+            Err = ERR_READ;
+            goto failed;
+        }
+        break;
+    default:
+        assert(0); // we should support the other lacing modes
+        Err = ERR_NOT_SUPPORTED;
+    }
+
+failed:
+    return Err;
+}
+
 static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
     err_t Result;
+	uint8_t _TempHead[5];
+	uint8_t *cursor = _TempHead;
+	uint8_t *_tmpBuf;
+	uint8_t BlockHeadSize = 4; // default when the TrackNumber is < 16
 
     Element->Base.Base.bValueIsSet = 0;
 
@@ -721,150 +808,285 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
         goto failed;
     }
 
-    if (Scope == SCOPE_PARTIAL_DATA)
+	Result = Stream_Read(Input,_TempHead, 5, NULL);
+    if (Result != ERR_NONE)
+        goto failed;
+	// update internal values
+	Element->TrackNumber = *cursor++;
+	if (Element->TrackNumber & 0x80)
+		Element->TrackNumber &= 0x7F;
+    else
     {
-		uint8_t _TempHead[5];
-		uint8_t *cursor = _TempHead;
-		uint8_t *_tmpBuf;
-		uint8_t BlockHeadSize = 4; // default when the TrackNumber is < 16
-
-		Result = Stream_Read(Input,_TempHead, 5, NULL);
-        if (Result != ERR_NONE)
+		// there is extra data
+		if ((Element->TrackNumber & 0x40) == 0)
+        {
+			// We don't support track numbers that large !
+            Result = ERR_INVALID_DATA;
             goto failed;
-		// update internal values
-		Element->TrackNumber = *cursor++;
-		if (Element->TrackNumber & 0x80)
-			Element->TrackNumber &= 0x7F;
-        else
-        {
-			// there is extra data
-			if ((Element->TrackNumber & 0x40) == 0)
-            {
-				// We don't support track numbers that large !
-                Result = ERR_INVALID_DATA;
-                goto failed;
-			}
-			Element->TrackNumber = (Element->TrackNumber & 0x3F) << 8;
-			Element->TrackNumber += *cursor++;
-			BlockHeadSize++;
 		}
+		Element->TrackNumber = (Element->TrackNumber & 0x3F) << 8;
+		Element->TrackNumber += *cursor++;
+		BlockHeadSize++;
+	}
 
-		Element->LocalTimecode = LOAD16BE(cursor);
-		Element->LocalTimecodeUsed = 1;
-		cursor += 2;
+	Element->LocalTimecode = LOAD16BE(cursor);
+	Element->LocalTimecodeUsed = 1;
+	cursor += 2;
 
-		if (Element->Base.Base.Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-        {
-			Element->IsKeyframe = (*cursor & 0x80) != 0;
-			Element->IsDiscardable = (*cursor & 0x01) != 0;
-		}
-		Element->Invisible = (*cursor & 0x08) >> 3;
-		Element->Lacing = (*cursor++ & 0x06) >> 1;
-		if (cursor == &_TempHead[4])
-			_TempHead[0] = _TempHead[4];
-		else
-			Result += Stream_Read(Input,_TempHead, 1, NULL);
+	if (Element->Base.Base.Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+    {
+		Element->IsKeyframe = (*cursor & 0x80) != 0;
+		Element->IsDiscardable = (*cursor & 0x01) != 0;
+	}
+	Element->Invisible = (*cursor & 0x08) >> 3;
+	Element->Lacing = (*cursor++ & 0x06) >> 1;
+	if (cursor == &_TempHead[4])
+		_TempHead[0] = _TempHead[4];
+	else
+		Result += Stream_Read(Input,_TempHead, 1, NULL);
 
-		Element->FirstFrameLocation += cursor - _TempHead;
+	Element->FirstFrameLocation += cursor - _TempHead;
 
-		// put all Frames in the list
-		if (Element->Lacing == LACING_NONE)
-        {
-			ArrayResize(&Element->SizeList,sizeof(int32_t),0);
-			ARRAYBEGIN(Element->SizeList,int32_t)[0] = Element->Base.Base.Size - BlockHeadSize;
-        }
-        else
-        {
-			// read the number of frames in the lace
-			uint32_t LastBufferSize = Element->Base.Base.Size - BlockHeadSize - 1; // 1 for number of frame
-			uint8_t FrameNum = _TempHead[0]; // number of frames in the lace - 1
-			// read the list of frame sizes
-			uint8_t Index;
-			int32_t FrameSize;
-			size_t SizeRead;
-			size_t SizeUnknown;
-
-			ArrayResize(&Element->SizeList,sizeof(int32_t)*(FrameNum + 1),0);
-
-			switch (Element->Lacing)
-			{
-			case LACING_XIPH:
-				for (Index=0; Index<FrameNum; Index++)
-                {
-					// get the size of the frame
-					FrameSize = 0;
-					do {
-						Result += Stream_Read(Input,_TempHead, 1, NULL);
-						FrameSize += _TempHead[0];
-						LastBufferSize--;
-
-						Element->FirstFrameLocation++;
-					} while (_TempHead[0] == 0xFF);
-
-					Element->FirstFrameLocation++;
-					ARRAYBEGIN(Element->SizeList,int32_t)[Index] = FrameSize;
-					LastBufferSize -= FrameSize;
-				}
-				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = LastBufferSize;
-				break;
-			case LACING_EBML:
-				SizeRead = LastBufferSize;
-                _tmpBuf = malloc(FrameNum*4);
-				cursor = _tmpBuf; /// \warning assume the mean size will be coded in less than 4 bytes
-				Result += Stream_Read(Input,cursor, FrameNum*4,NULL);
-				FrameSize = EBML_ReadCodedSizeValue(cursor, &SizeRead, &SizeUnknown);
-				ARRAYBEGIN(Element->SizeList,int32_t)[0] = FrameSize;
-				cursor += SizeRead;
-				LastBufferSize -= FrameSize + SizeRead;
-
-				for (Index=1; Index<FrameNum; Index++)
-                {
-					// get the size of the frame
-					SizeRead = LastBufferSize;
-					FrameSize += EBML_ReadCodedSizeSignedValue(cursor, &SizeRead, &SizeUnknown);
-					ARRAYBEGIN(Element->SizeList,int32_t)[Index] = FrameSize;
-					cursor += SizeRead;
-					LastBufferSize -= FrameSize + SizeRead;
-				}
-
-				Element->FirstFrameLocation += cursor - _tmpBuf;
-
-				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = LastBufferSize;
-				free(_tmpBuf);
-				break;
-			case LACING_FIXED:
-				for (Index=0; Index<=FrameNum; Index++)
-					// get the size of the frame
-					ARRAYBEGIN(Element->SizeList,int32_t)[Index] = LastBufferSize / (FrameNum + 1);
-				break;
-			default: // other lacing not supported
-				assert(0);
-			}
-		}
-		Element->Base.Base.bValueIsSet = 0;
-		Result = ERR_NONE;
+	// put all Frames in the list
+	if (Element->Lacing == LACING_NONE)
+    {
+		ArrayResize(&Element->SizeList,sizeof(int32_t),0);
+		ARRAYBEGIN(Element->SizeList,int32_t)[0] = Element->Base.Base.Size - BlockHeadSize;
     }
     else
     {
-        assert(0);
-        if (!ArrayResize(&Element->Base.Data,(size_t)Element->Base.Base.Size,0))
-        {
-            Result = ERR_OUT_OF_MEMORY;
-            goto failed;
-        }
+		// read the number of frames in the lace
+		uint32_t LastBufferSize = Element->Base.Base.Size - BlockHeadSize - 1; // 1 for number of frame
+		uint8_t FrameNum = _TempHead[0]; // number of frames in the lace - 1
+		// read the list of frame sizes
+		uint8_t Index;
+		int32_t FrameSize;
+		size_t SizeRead;
+		size_t SizeUnknown;
 
-        Result = Stream_Read(Input,ARRAYBEGIN(Element->Base.Data,void),(size_t)Element->Base.Base.Size,NULL);
-        if (Result == ERR_NONE)
-            Element->Base.Base.bValueIsSet = 1;
-    }
+		ArrayResize(&Element->SizeList,sizeof(int32_t)*(FrameNum + 1),0);
+
+		switch (Element->Lacing)
+		{
+		case LACING_XIPH:
+			for (Index=0; Index<FrameNum; Index++)
+            {
+				// get the size of the frame
+				FrameSize = 0;
+				do {
+					Result += Stream_Read(Input,_TempHead, 1, NULL);
+					FrameSize += _TempHead[0];
+					LastBufferSize--;
+
+					Element->FirstFrameLocation++;
+				} while (_TempHead[0] == 0xFF);
+
+				Element->FirstFrameLocation++;
+				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = FrameSize;
+				LastBufferSize -= FrameSize;
+			}
+			ARRAYBEGIN(Element->SizeList,int32_t)[Index] = LastBufferSize;
+			break;
+		case LACING_EBML:
+			SizeRead = LastBufferSize;
+            _tmpBuf = malloc(FrameNum*4);
+			cursor = _tmpBuf; /// \warning assume the mean size will be coded in less than 4 bytes
+			Result += Stream_Read(Input,cursor, FrameNum*4,NULL);
+			FrameSize = EBML_ReadCodedSizeValue(cursor, &SizeRead, &SizeUnknown);
+			ARRAYBEGIN(Element->SizeList,int32_t)[0] = FrameSize;
+			cursor += SizeRead;
+			LastBufferSize -= FrameSize + SizeRead;
+
+			for (Index=1; Index<FrameNum; Index++)
+            {
+				// get the size of the frame
+				SizeRead = LastBufferSize;
+				FrameSize += EBML_ReadCodedSizeSignedValue(cursor, &SizeRead, &SizeUnknown);
+				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = FrameSize;
+				cursor += SizeRead;
+				LastBufferSize -= FrameSize + SizeRead;
+			}
+
+			Element->FirstFrameLocation += cursor - _tmpBuf;
+
+			ARRAYBEGIN(Element->SizeList,int32_t)[Index] = LastBufferSize;
+			free(_tmpBuf);
+			break;
+		case LACING_FIXED:
+			for (Index=0; Index<=FrameNum; Index++)
+				// get the size of the frame
+				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = LastBufferSize / (FrameNum + 1);
+			break;
+		default: // other lacing not supported
+			assert(0);
+		}
+	}
+
+    if (Scope == SCOPE_PARTIAL_DATA)
+	    Result = ERR_NONE;
+    else
+        Result = MATROSKA_BlockReadData(Element, Input);
+
 failed:
     return Result;
+}
+
+static char GetBestLacingType(const matroska_block *Element)
+{
+	int XiphLacingSize, EbmlLacingSize, i;
+	bool_t SameSize = 1;
+
+	if (ARRAYCOUNT(Element->SizeList,int32_t) <= 1)
+		return LACING_NONE;
+
+#ifdef TODO
+	XiphLacingSize = 1; // Number of laces is stored in 1 byte.
+	EbmlLacingSize = 1;
+	for (i = 0; i < (int)myBuffers.size() - 1; i++) {
+		if (myBuffers[i]->Size() != myBuffers[i + 1]->Size())
+			SameSize = false;
+		XiphLacingSize += myBuffers[i]->Size() / 255 + 1;
+	}
+	EbmlLacingSize += CodedSizeLength(myBuffers[0]->Size(), 0, IsFiniteSize());
+	for (i = 1; i < (int)myBuffers.size() - 1; i++)
+		EbmlLacingSize += CodedSizeLengthSigned(int64(myBuffers[i]->Size()) - int64(myBuffers[i - 1]->Size()), 0);
+#endif
+	if (SameSize)
+		return LACING_FIXED;
+	else if (XiphLacingSize < EbmlLacingSize)
+		return LACING_XIPH;
+	else
+		return LACING_EBML;
+}
+
+#if defined(CONFIG_EBML_WRITING)
+static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+{
+    err_t Err = ERR_NONE;
+    uint8_t BlockHead[5], *Cursor;
+    size_t Written, BlockHeadSize = 4;
+    assert(Element->Lacing != LACING_AUTO);
+
+    if (Element->TrackNumber < 0x80)
+    {
+        BlockHead[0] = 0x80 | (Element->TrackNumber & 0xFF);
+        Cursor = &BlockHead[1];
+    }
+    else if (Element->TrackNumber < 0x4000)
+    {
+        BlockHead[0] = 0x40 | (Element->TrackNumber >> 8);
+        BlockHead[1] = Element->TrackNumber & 0xFF;
+        Cursor = &BlockHead[2];
+        BlockHeadSize = 5;
+    }
+    else 
+        return ERR_INVALID_DATA;
+
+    STORE16BE(Cursor,Element->LocalTimecode);
+    Cursor += 2;
+
+    *Cursor = 0;
+    if (Element->Invisible)
+        *Cursor |= 0x08;
+    *Cursor |= Element->Lacing << 1;
+    if (Element->Base.Base.Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+    {
+        if (Element->IsKeyframe)
+            *Cursor |= 0x80;
+        if (Element->IsDiscardable)
+            *Cursor |= 0x01;
+    }
+
+    Err = Stream_Write(Output,BlockHead,BlockHeadSize,&Written);
+    if (Err != ERR_NONE)
+        goto failed;
+    if (Written != BlockHeadSize)
+    {
+        Err = ERR_WRITE;
+        goto failed;
+    }
+    if (Rendered)
+        *Rendered = Written;
+
+    assert(Element->Lacing == LACING_NONE); // TODO: the rest is not supported yet
+    if (Element->Lacing == LACING_NONE)
+        Err = Stream_Write(Output,ARRAYBEGIN(Element->Data,uint8_t),ARRAYBEGIN(Element->SizeList,int32_t)[0],&Written);
+
+    if (Rendered)
+        *Rendered += Written;
+
+failed:
+    return Err;
+}
+#endif
+
+static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)
+{
+    assert(Element->Lacing == LACING_NONE); // TODO: the rest is not supported yet
+    if (Element->Lacing == LACING_NONE)
+    {
+        assert(ARRAYCOUNT(Element->SizeList,int32_t) == 1);
+        return GetBlockHeadSize(Element) + ARRAYBEGIN(Element->SizeList,int32_t)[0];
+    }
+#ifdef TODO
+    char LacingHere;
+	// compute the final size of the data
+	switch (ARRAYCOUNT(Element->SizeList,int32_t))
+    {
+		case 0:
+			Element->Base.Base.Size = 0;
+			break;
+		case 1:
+			Element->Base.Base.Size = 4 + *ARRAYBEGIN(Element->SizeList,int32_t);
+			break;
+		default:
+			Element->Base.Base.Size = 4 + 1; // 1 for the lacing head
+			if (Element->Lacing == LACING_AUTO)
+				LacingHere = GetBestLacingType(Element);
+			else
+				LacingHere = Element->Lacing;
+			switch (LacingHere)
+			{
+			case LACING_XIPH:
+				for (i=0; i<myBuffers.size()-1; i++) {
+					SetSize_(GetSize() + myBuffers[i]->Size() + (myBuffers[i]->Size() / 0xFF + 1));
+				}
+				break;
+			case LACING_EBML:
+				SetSize_(GetSize() + myBuffers[0]->Size() + CodedSizeLength(myBuffers[0]->Size(), 0, IsFiniteSize()));
+				for (i=1; i<myBuffers.size()-1; i++) {
+					SetSize_(GetSize() + myBuffers[i]->Size() + CodedSizeLengthSigned(int64(myBuffers[i]->Size()) - int64(myBuffers[i-1]->Size()), 0));
+				}
+				break;
+			case LACING_FIXED:
+				for (i=0; i<myBuffers.size()-1; i++) {
+					SetSize_(GetSize() + myBuffers[i]->Size());
+				}
+				break;
+			default:
+				assert(0);
+			}
+			// Size of the last frame (not in lace)
+			SetSize_(GetSize() + myBuffers[i]->Size());
+			break;
+	}
+
+	if (Element->Base.Base.Size && Element->TrackNumber >= 0x80)
+		++Element->Base.Base.Size; // the size will be coded with one more octet
+#endif
+
+	return Element->Base.Base.Size;
 }
 
 META_START(Matroska_Class,MATROSKA_BLOCK_CLASS)
 META_CLASS(SIZE,sizeof(matroska_block))
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadBlockData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateBlockSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderBlockData)
+#endif
 META_DATA(TYPE_ARRAY,0,matroska_block,SizeList)
+META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_PARAM(TYPE,MATROSKA_BLOCK_TRACK,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_TRACK,matroska_block,Track)
 META_PARAM(TYPE,MATROSKA_BLOCK_SEGMENTINFO,TYPE_NODE)
