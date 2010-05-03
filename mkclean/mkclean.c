@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "mkclean_stdafx.h"
+#include "mkclean_project.h"
 #include "matroska/matroska.h"
 
 #ifdef TARGET_WIN
@@ -92,8 +93,133 @@ void DebugMessage(const tchar_t* Msg,...)
 #endif
 
 static int DocVersion = 1;
+static textwriter *StdErr = NULL;
 
-static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_parser_context *Parser, stream *Input, textwriter *StdErr)
+static void ReduceSize(ebml_element *Element)
+{
+    Element->SizeLength = 0; // reset
+    if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
+    {
+        ebml_element *i;
+        for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+            ReduceSize(i);
+    }
+}
+
+static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_element *Cues, ebml_element *Segment)
+{
+    ebml_element **Cluster;
+    ebml_element *Cue;
+    filepos_t OriginalSize = Cues->Size;
+    filepos_t ClusterPos = ClusterStart + EBML_ElementFullSize(Cues,0);
+    // reposition all the Clusters
+    for (Cluster=ARRAYBEGIN(*Clusters,ebml_element*);Cluster!=ARRAYEND(*Clusters,ebml_element*);++Cluster)
+    {
+        (*Cluster)->ElementPosition = ClusterPos;
+        EBML_ElementUpdateSize(*Cluster,0,0);
+        ClusterPos += EBML_ElementFullSize(*Cluster,0);
+    }
+
+    // reevaluate the size needed for the Cues
+    for (Cue=EBML_MasterChildren(Cues);Cue;Cue=EBML_MasterNext(Cue))
+        MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, Segment);
+    ClusterPos = EBML_ElementUpdateSize(Cues,0,0);
+    if (ClusterPos != OriginalSize)
+        SettleClustersWithCues(Clusters,ClusterStart,Cues,Segment);
+}
+
+static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Tracks, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment)
+{
+    matroska_cluster **Cluster;
+    ebml_element *Block, *GBlock;
+    matroska_cuepoint *Cue;
+    int16_t CueTrack;
+    timecode_t CueTimecode;
+    bool_t Found;
+
+    ReduceSize(Cues);
+
+    // link each Block/SimpleBlock with its Track and SegmentInfo
+    for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
+    {
+        ReduceSize((ebml_element*)*Cluster);
+        MATROSKA_LinkClusterSegmentInfo(*Cluster,RSegmentInfo);
+        for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
+        {
+            if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+            {
+                for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+                {
+                    if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                    {
+                        MATROSKA_LinkBlockTrack((matroska_block*)GBlock,Tracks);
+                        MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
+                        break;
+                    }
+                }
+            }
+            else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+            {
+                MATROSKA_LinkBlockTrack((matroska_block*)Block,Tracks);
+                MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
+            }
+        }
+    }
+
+    // link each Cue entry to the segment
+    for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
+        MATROSKA_LinkCueSegmentInfo(Cue,RSegmentInfo);
+
+    // link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
+    for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
+    {
+        CueTrack = MATROSKA_CueTrackNum(Cue);
+        CueTimecode = MATROSKA_CueTimecode(Cue);
+        Found = 0;
+        for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);!Found && Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
+        {
+            for (Block = EBML_MasterChildren(*Cluster);!Found && Block;Block=EBML_MasterNext(Block))
+            {
+                if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+                {
+                    for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+                    {
+                        if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                        {
+                            if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == CueTrack &&
+                                MATROSKA_BlockTimecode((matroska_block*)GBlock) == CueTimecode)
+                            {
+                                MATROSKA_LinkCueBlock(Cue,(matroska_block*)GBlock);
+                                Found = 1;
+                            }
+                            break;
+                        }
+                    }
+                }
+                else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+                {
+                    if (MATROSKA_BlockTrackNum((matroska_block*)Block) == CueTrack &&
+                        MATROSKA_BlockTimecode((matroska_block*)Block) == CueTimecode)
+                    {
+                        MATROSKA_LinkCueBlock(Cue,(matroska_block*)Block);
+                        Found = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!Found)
+        {
+            TextPrintf(StdErr,T("Could not find the matching block for timecode %0.3f s"),CueTimecode/1000000000.0);
+        }
+    }
+
+    // TODO: sort the Cues
+
+    SettleClustersWithCues(Clusters,StartPos,Cues,WSegment);
+}
+
+static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_parser_context *Parser, stream *Input)
 {
     ebml_parser_context SubContext;
     ebml_element *SubElement;
@@ -186,25 +312,74 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     return NULL;
 }
 
+static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input)
+{
+    filepos_t IntendedPosition = Cluster->ElementPosition;
+    ebml_element *Block, *GBlock;
+    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+    {
+        if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+        {
+            for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+            {
+                if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                {
+                    MATROSKA_BlockReadData((matroska_block*)GBlock, Input);
+                    break;
+                }
+            }
+        }
+        else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+            MATROSKA_BlockReadData((matroska_block*)Block, Input);
+    }
+
+    EBML_ElementRender(Cluster,Output,0,0,1,NULL);
+
+    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+    {
+        if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+        {
+            for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+            {
+                if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                {
+                    MATROSKA_BlockReleaseData((matroska_block*)GBlock);
+                    break;
+                }
+            }
+        }
+        else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+            MATROSKA_BlockReleaseData((matroska_block*)Block);
+    }
+
+    if (Cluster->ElementPosition != IntendedPosition)
+    {
+        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %ld vs %ld"),(long)Cluster->ElementPosition,(long)IntendedPosition);
+    }
+}
+
 
 int main(int argc, const char *argv[])
 {
     int Result = 0;
     parsercontext p;
-    textwriter StdErr;
+    textwriter _StdErr;
     stream *Input = NULL,*Output = NULL;
     tchar_t Path[MAXPATHFULL];
+    tchar_t String[MAXLINE],Original[MAXLINE],*s;
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
     ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
     ebml_element *WSegment = NULL, *WMetaSeek = NULL, *WSeekPoint = NULL, *WSeekID = NULL;
     ebml_element *WSeekPosSegmentInfo = NULL, *WSeekPosTrackInfo = NULL, *WSeekPosChapters = NULL, *WSeekPosTags = NULL, *WSeekPosCues = NULL, *WSeekPosAttachments = NULL;
+    ebml_string *LibName, *AppName;
     array RClusters;
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
     int UpperElement;
 	uint8_t IdBuffer[4]; // Class D ID
     size_t IdSize;
-    filepos_t NextPos;
+    filepos_t MetaSeekBefore, MetaSeekAfter;
+    filepos_t NextPos, SegmentSize = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -216,12 +391,13 @@ int main(int argc, const char *argv[])
 
     ArrayInit(&RClusters);
 
-    memset(&StdErr,0,sizeof(StdErr));
-    StdErr.Stream = (stream*)NodeSingleton(&p,STDERR_ID);
+    StdErr = &_StdErr;
+    memset(StdErr,0,sizeof(_StdErr));
+    StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
 
     if (argc != 3)
     {
-        TextWrite(&StdErr,T("Usage: mkclean [matroska_src] [matroska_dst]\r\n"));
+        TextWrite(StdErr,T("Usage: mkclean [matroska_src] [matroska_dst]\r\n"));
         Result = -1;
         goto exit;
     }
@@ -230,7 +406,7 @@ int main(int argc, const char *argv[])
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
-        TextPrintf(&StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
+        TextPrintf(StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
         Result = -2;
         goto exit;
     }
@@ -239,7 +415,7 @@ int main(int argc, const char *argv[])
     Output = StreamOpen(&p,Path,SFLAG_WRONLY|SFLAG_CREATE);
     if (!Output)
     {
-        TextPrintf(&StdErr,T("Could not open file \"%s\" for writing\r\n"),Path);
+        TextPrintf(StdErr,T("Could not open file \"%s\" for writing\r\n"),Path);
         Result = -3;
         goto exit;
     }
@@ -251,12 +427,12 @@ int main(int argc, const char *argv[])
     EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
     if (!EbmlHead)
     {
-        TextPrintf(&StdErr,T("Could not find an EBML head!\r\n"),Path);
+        TextWrite(StdErr,T("Could not find an EBML head!\r\n"));
         Result = -4;
         goto exit;
     }
 
-    RSegment = CheckMatroskaHead(EbmlHead,&RContext,Input,&StdErr);
+    RSegment = CheckMatroskaHead(EbmlHead,&RContext,Input);
     if (!RSegment)
     {
         Result = -5;
@@ -283,15 +459,30 @@ int main(int argc, const char *argv[])
                 RTrackInfo = RLevel1;
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextChapters.Id)
-            RChapters = RLevel1;
+        {
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+                RChapters = RLevel1;
+        }
         else if (RLevel1->Context->Id == MATROSKA_ContextTags.Id)
-            RTags = RLevel1;
+        {
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+                RTags = RLevel1;
+        }
         else if (RLevel1->Context->Id == MATROSKA_ContextCues.Id)
-            RCues = RLevel1;
+        {
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+                RCues = RLevel1;
+        }
         else if (RLevel1->Context->Id == MATROSKA_ContextAttachments.Id)
-            RAttachments = RLevel1;
+        {
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+                RAttachments = RLevel1;
+        }
         else if (RLevel1->Context->Id == MATROSKA_ContextCluster.Id)
-            ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
+        {
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
+                ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
+        }
         else
             NodeDelete((node*)RLevel1);
         RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
@@ -333,7 +524,7 @@ int main(int argc, const char *argv[])
     WSegment->Size = RSegment->Size; // temporary value
     if (EBML_ElementRenderHead(WSegment,Output,0,NULL)!=ERR_NONE)
     {
-        TextPrintf(&StdErr,T("Failed to write the (temporary) Segment head\r\n"),Path);
+        TextWrite(StdErr,T("Failed to write the (temporary) Segment head\r\n"));
         Result = -10;
         goto exit;
     }
@@ -407,39 +598,148 @@ int main(int argc, const char *argv[])
         NextPos += RAttachments->Size;
     }
 
-    // temporarily render the SeekHead
-    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,NULL)!=ERR_NONE)
+    // temporarily render the Meta Seek Head
+    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekBefore)!=ERR_NONE)
     {
-        TextPrintf(&StdErr,T("Failed to write the (temporary) Seek Head\r\n"),Path);
+        TextWrite(StdErr,T("Failed to write the (temporary) Seek Head\r\n"));
         Result = -10;
         goto exit;
     }
+    SegmentSize += EBML_ElementFullSize(WMetaSeek,0);
 
 
     //  Write the Segment Info
+    ReduceSize(RSegmentInfo);
+    // change the library names & app name
+    LibName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
+    stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
+    Node_FromUTF8(RSegmentInfo,Original,TSIZEOF(Original),LibName->Buffer);
+    EBML_UniStringSetValue(LibName,String);
+
+    AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
+    tcscat_s(Original,TSIZEOF(Original),T(" + "));
+    Node_FromUTF8(RSegmentInfo,String,TSIZEOF(String),AppName->Buffer);
+    tcscat_s(Original,TSIZEOF(Original),String);
+    s = Original;
+    if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
+        s += 14;
+    stprintf_s(String,TSIZEOF(String),T("mkclean %s from %s"),PROJECT_VERSION,s);
+    EBML_UniStringSetValue(AppName,String);
     if (EBML_ElementRender(RSegmentInfo,Output,0,0,1,NULL)!=ERR_NONE)
     {
-        TextPrintf(&StdErr,T("Failed to write the Segment Info\r\n"),Path);
+        TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
         Result = -11;
         goto exit;
     }
     ((ebml_integer*)WSeekPosSegmentInfo)->Value = RSegmentInfo->ElementPosition - EBML_ElementPositionData(WSegment);
+    SegmentSize += EBML_ElementFullSize(RSegmentInfo,0);
 
     //  Write the Track Info
+    ReduceSize(RTrackInfo);
     if (EBML_ElementRender(RTrackInfo,Output,0,0,1,NULL)!=ERR_NONE)
     {
-        TextPrintf(&StdErr,T("Failed to write the Segment Info\r\n"),Path);
-        Result = -11;
+        TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
+        Result = -12;
         goto exit;
     }
     ((ebml_integer*)WSeekPosTrackInfo)->Value = RTrackInfo->ElementPosition - EBML_ElementPositionData(WSegment);
+    SegmentSize += EBML_ElementFullSize(RTrackInfo,0);
 
     //  Write the Chapters
+    if (RChapters)
+    {
+        ReduceSize(RChapters);
+        if (EBML_ElementRender(RChapters,Output,0,0,1,NULL)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Chapters\r\n"));
+            Result = -13;
+            goto exit;
+        }
+        ((ebml_integer*)WSeekPosChapters)->Value = RChapters->ElementPosition - EBML_ElementPositionData(WSegment);
+        SegmentSize += EBML_ElementFullSize(RChapters,0);
+    }
+
     //  Write the Tags
+    if (RTags)
+    {
+        ReduceSize(RTags);
+        if (EBML_ElementRender(RTags,Output,0,0,1,NULL)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Tags\r\n"));
+            Result = -14;
+            goto exit;
+        }
+        ((ebml_integer*)WSeekPosTags)->Value = RTags->ElementPosition - EBML_ElementPositionData(WSegment);
+        SegmentSize += EBML_ElementFullSize(RTags,0);
+    }
+
     //  Write the Cues
-    //  Write the Clusters*
+    OptimizeCues(RCues,&RClusters,RTrackInfo,RSegmentInfo,Stream_Seek(Output,0,SEEK_CUR), WSegment);
+    if (EBML_ElementRender(RCues,Output,0,0,1,NULL)!=ERR_NONE)
+    {
+        TextWrite(StdErr,T("Failed to write the Cues\r\n"));
+        Result = -15;
+        goto exit;
+    }
+    ((ebml_integer*)WSeekPosCues)->Value = RCues->ElementPosition - EBML_ElementPositionData(WSegment);
+    SegmentSize += EBML_ElementFullSize(RCues,0);
+
+    //  Write the Clusters
+    for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
+    {
+        WriteCluster(*Cluster,Output,Input);
+        SegmentSize += EBML_ElementFullSize(*Cluster,0);
+    }
+
     //  Write the Attachments
+    if (RAttachments)
+    {
+        ReduceSize(RAttachments);
+        if (EBML_ElementRender(RAttachments,Output,0,0,1,NULL)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Attachments\r\n"));
+            Result = -17;
+            goto exit;
+        }
+        ((ebml_integer*)WSeekPosAttachments)->Value = RAttachments->ElementPosition - EBML_ElementPositionData(WSegment);
+        SegmentSize += EBML_ElementFullSize(RAttachments,0);
+    }
+
     // update the WSegment size
+    if (SegmentSize > WSegment->Size)
+    {
+        if (EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0))
+        {
+            TextPrintf(StdErr,T("The segment written is much bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->Size);
+            Result = -20;
+            goto exit;
+        }
+        TextPrintf(StdErr,T("The segment written is bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->Size);
+    }
+    WSegment->Size = SegmentSize;
+    Stream_Seek(Output,WSegment->ElementPosition,SEEK_SET);
+    if (EBML_ElementRenderHead(WSegment, Output, 0, NULL)!=ERR_NONE)
+    {
+        TextWrite(StdErr,T("Failed to write the final Segment size !\r\n"));
+        Result = -21;
+        goto exit;
+    }
+
+    // update the Meta Seek
+    Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
+    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
+    {
+        TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
+        Result = -22;
+        goto exit;
+    }
+    if (MetaSeekBefore != MetaSeekAfter)
+    {
+        TextPrintf(StdErr,T("The final Seek Head size has changed %ld vs %ld !\r\n"),(long)MetaSeekBefore,(long)MetaSeekAfter);
+        Result = -23;
+        goto exit;
+    }
+    TextPrintf(StdErr,T("Finished cleaning & optimizing \"%s\"\r\n"),Path);
 
 exit:
     if (WSegment)
