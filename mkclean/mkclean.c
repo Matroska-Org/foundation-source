@@ -244,8 +244,6 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)((ebml_integer*)SubElement)->Value);
                 break;
             }
-            else
-                DocVersion = (int)((ebml_integer*)SubElement)->Value;
         }
         else if (SubElement->Context->Id == EBML_ContextMaxIdLength.Id)
         {
@@ -302,9 +300,13 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)((ebml_integer*)SubElement)->Value);
                 break;
             }
+            else
+                DocVersion = (int)((ebml_integer*)SubElement)->Value;
         }
         else if (SubElement->Context->Id == MATROSKA_ContextSegment.Id)
             return SubElement;
+        else
+            EBML_ElementSkipData(SubElement,Input,NULL,NULL,0);
         NodeDelete((node*)SubElement);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
     }
@@ -537,9 +539,9 @@ int main(int argc, const char *argv[])
     IdSize = EBML_FillBufferID(IdBuffer,sizeof(IdBuffer),MATROSKA_ContextSegmentInfo.Id);
     EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
     WSeekPosSegmentInfo = EBML_MasterFindFirstElt(WSeekPoint,&MATROSKA_ContextSeekPosition,1,0);
-    ((ebml_integer*)WSeekPosSegmentInfo)->Value = 100; // dummy value
+    ((ebml_integer*)WSeekPosSegmentInfo)->Value = 80; // dummy value
     WSeekPosSegmentInfo->bValueIsSet = 1;
-    NextPos = ((ebml_integer*)WSeekPosSegmentInfo)->Value + RSegmentInfo->Size;
+    NextPos = ((ebml_integer*)WSeekPosSegmentInfo)->Value + RSegmentInfo->Size + 40;
     // track info
     WSeekPoint = EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
     WSeekID = EBML_MasterFindFirstElt(WSeekPoint,&MATROSKA_ContextSeekId,1,0);
@@ -617,9 +619,12 @@ int main(int argc, const char *argv[])
     EBML_UniStringSetValue(LibName,String);
 
     AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
-    tcscat_s(Original,TSIZEOF(Original),T(" + "));
     Node_FromUTF8(RSegmentInfo,String,TSIZEOF(String),AppName->Buffer);
-    tcscat_s(Original,TSIZEOF(Original),String);
+    if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
+    {
+        tcscat_s(Original,TSIZEOF(Original),T(" + "));
+        tcscat_s(Original,TSIZEOF(Original),String);
+    }
     s = Original;
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
