@@ -532,7 +532,7 @@ err_t MATROSKA_Init(nodecontext *p)
     err_t Err = EBML_Init(p);
     if (Err == ERR_NONE)
     {
-        tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" ") PROJECT_VERSION);
+        tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" v") PROJECT_VERSION);
         Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,LibName);
     }
     return Err;
@@ -764,13 +764,14 @@ err_t MATROSKA_BlockReleaseData(matroska_block *Block)
 err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 {
     size_t Read;
+    size_t NumFrame;
     err_t Err = ERR_NONE;
     Element->Base.Base.bValueIsSet = 1;
     switch (Element->Lacing)
     {
     case LACING_NONE:
-        ArrayResize(&Element->Data,Element->Base.Base.Size - GetBlockHeadSize(Element),0);
         Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + GetBlockHeadSize(Element),SEEK_SET);
+        ArrayResize(&Element->Data,Element->Base.Base.Size - GetBlockHeadSize(Element),0);
         Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),Element->Base.Base.Size - GetBlockHeadSize(Element),&Read);
         if (Err != ERR_NONE)
             goto failed;
@@ -779,6 +780,18 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             Err = ERR_READ;
             goto failed;
         }
+        break;
+    case LACING_EBML:
+    case LACING_XIPH:
+    case LACING_FIXED:
+        Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + Element->FirstFrameLocation,SEEK_SET);
+        Read = 0;
+        for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
+            Read += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+        ArrayResize(&Element->Data,Read,0);
+        Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),Read,&Read);
+        if (Err != ERR_NONE)
+            goto failed;
         break;
     default:
         assert(0); // we should support the other lacing modes
@@ -864,6 +877,7 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 		size_t SizeRead;
 		size_t SizeUnknown;
 
+        Element->FirstFrameLocation++; // for the number of frame
 		ArrayResize(&Element->SizeList,sizeof(int32_t)*(FrameNum + 1),0);
 
 		switch (Element->Lacing)
@@ -881,7 +895,6 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 					Element->FirstFrameLocation++;
 				} while (_TempHead[0] == 0xFF);
 
-				Element->FirstFrameLocation++;
 				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = FrameSize;
 				LastBufferSize -= FrameSize;
 			}
@@ -901,7 +914,7 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
             {
 				// get the size of the frame
 				SizeRead = LastBufferSize;
-				FrameSize += EBML_ReadCodedSizeSignedValue(cursor, &SizeRead, &SizeUnknown);
+				FrameSize += (int32_t)EBML_ReadCodedSizeSignedValue(cursor, &SizeRead, &SizeUnknown);
 				ARRAYBEGIN(Element->SizeList,int32_t)[Index] = FrameSize;
 				cursor += SizeRead;
 				LastBufferSize -= FrameSize + SizeRead;
@@ -933,7 +946,7 @@ failed:
 
 static char GetBestLacingType(const matroska_block *Element)
 {
-	int XiphLacingSize, EbmlLacingSize, i;
+	int XiphLacingSize, EbmlLacingSize;
 	bool_t SameSize = 1;
 
 	if (ARRAYCOUNT(Element->SizeList,int32_t) <= 1)
@@ -1008,9 +1021,53 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     if (Rendered)
         *Rendered = Written;
 
-    assert(Element->Lacing == LACING_NONE); // TODO: the rest is not supported yet
-    if (Element->Lacing == LACING_NONE)
-        Err = Stream_Write(Output,ARRAYBEGIN(Element->Data,uint8_t),ARRAYBEGIN(Element->SizeList,int32_t)[0],&Written);
+    assert(Element->Lacing != LACING_AUTO); // TODO: the rest is not supported yet
+    if (Element->Lacing != LACING_NONE)
+    {
+        uint8_t *LaceHead = malloc(1 + ARRAYCOUNT(Element->SizeList,int32_t)*4);
+        size_t i,LaceSize = 1;
+        int32_t Size;
+        if (!LaceHead)
+        {
+            Err = ERR_OUT_OF_MEMORY;;
+            goto failed;
+        }
+        LaceHead[0] = (ARRAYCOUNT(Element->SizeList,int32_t)-1) & 0xFF;
+        if (Element->Lacing == LACING_EBML)
+        {
+            LaceSize += EBML_CodedValueLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],0,1),LaceHead+LaceSize);
+            for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
+            {
+                Size = ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1];
+                LaceSize += EBML_CodedValueLengthSigned(Size,EBML_CodedSizeLengthSigned(Size,0),LaceHead+LaceSize);
+            }
+        }
+        else if (Element->Lacing == LACING_XIPH)
+        {
+            for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
+            {
+                Size = ARRAYBEGIN(Element->SizeList,int32_t)[i];
+                while (Size >= 0xFF)
+                {
+                    LaceHead[LaceSize++] = 0xFF;
+                    Size -= 0xFF;
+                }
+                LaceHead[LaceSize++] = Size;
+            }
+        }
+        else if (Element->Lacing == LACING_FIXED)
+        {
+            // nothing to write
+        }
+        assert(LaceSize <= (1 + ARRAYCOUNT(Element->SizeList,int32_t)*4));
+        Err = Stream_Write(Output,LaceHead,LaceSize,&Written);
+        if (Err != ERR_NONE)
+            goto failed;
+        if (Rendered)
+            *Rendered += Written;
+        free(LaceHead);
+    }
+    Err = Stream_Write(Output,ARRAYBEGIN(Element->Data,uint8_t),ARRAYCOUNT(Element->Data,uint8_t),&Written);
 
     if (Rendered)
         *Rendered += Written;
@@ -1022,11 +1079,38 @@ failed:
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-    assert(Element->Lacing == LACING_NONE); // TODO: the rest is not supported yet
+    assert(Element->Lacing != LACING_AUTO); // TODO: not supported yet
     if (Element->Lacing == LACING_NONE)
     {
         assert(ARRAYCOUNT(Element->SizeList,int32_t) == 1);
-        return GetBlockHeadSize(Element) + ARRAYBEGIN(Element->SizeList,int32_t)[0];
+        Element->Base.Base.Size = GetBlockHeadSize(Element) + ARRAYBEGIN(Element->SizeList,int32_t)[0];
+    }
+    else if (Element->Lacing == LACING_EBML)
+    {
+        size_t i;
+        filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
+        Result += ARRAYBEGIN(Element->SizeList,int32_t)[0] + EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],0,1);
+        for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
+            Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] + EBML_CodedSizeLengthSigned(ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1],0);
+        Result += ARRAYBEGIN(Element->SizeList,int32_t)[i];
+        Element->Base.Base.Size = Result;
+    }
+    else if (Element->Lacing == LACING_XIPH)
+    {
+        size_t i;
+        filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
+        for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
+            Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] + (ARRAYBEGIN(Element->SizeList,int32_t)[i] / 0xFF + 1);
+        Result += ARRAYBEGIN(Element->SizeList,int32_t)[i];
+        Element->Base.Base.Size = Result;
+    }
+    else if (Element->Lacing == LACING_FIXED)
+    {
+        size_t i;
+        filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
+        for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t);++i)
+            Result += ARRAYBEGIN(Element->SizeList,int32_t)[i];
+        Element->Base.Base.Size = Result;
     }
 #ifdef TODO
     char LacingHere;
