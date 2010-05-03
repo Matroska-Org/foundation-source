@@ -38,12 +38,39 @@
 EBML_DLL err_t MATROSKA_Init(nodecontext *p);
 EBML_DLL err_t MATROSKA_Done(nodecontext *p);
 
+#define INVALID_TIMECODE_T      MAX_INT64
+typedef int64_t    timecode_t; // in nanoseconds
+
+typedef struct matroska_block matroska_block;
+typedef struct matroska_cuepoint matroska_cuepoint;
+typedef struct matroska_cluster matroska_cluster;
+
+EBML_DLL err_t MATROSKA_LinkClusterSegmentInfo(matroska_cluster *Cluster, ebml_element *SegmentInfo);
+EBML_DLL err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks);
+EBML_DLL err_t MATROSKA_LinkBlockSegmentInfo(matroska_block *Block, ebml_element *SegmentInfo);
+//EBML_DLL err_t MATROSKA_LinkCueTrack(const ebml_element *Cue, ebml_element *Tracks);
+EBML_DLL err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentInfo);
+EBML_DLL err_t MATROSKA_LinkCueBlock(matroska_cuepoint *Cue, matroska_block *Block);
+EBML_DLL double MATROSKA_TrackTimecodeScale(const ebml_element *Track);
+EBML_DLL timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_element *SegmentInfo);
+EBML_DLL timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster);
+EBML_DLL timecode_t MATROSKA_BlockTimecode(const matroska_block *Block);
+EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
+EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
+EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
+
+#define MATROSKA_VERSION  2
+
 // EBML contexts
 extern const ebml_context MATROSKA_ContextStream;
 
 extern const ebml_context MATROSKA_ContextSegment;
 
 extern const ebml_context MATROSKA_ContextSeekHead;
+extern const ebml_context MATROSKA_ContextSeek;
+extern const ebml_context MATROSKA_ContextSeekId;
+extern const ebml_context MATROSKA_ContextSeekPosition;
+
 extern const ebml_context MATROSKA_ContextSegmentInfo;
 extern const ebml_context MATROSKA_ContextCluster;
 extern const ebml_context MATROSKA_ContextTracks;
@@ -53,3 +80,7 @@ extern const ebml_context MATROSKA_ContextChapters;
 extern const ebml_context MATROSKA_ContextTags;
 
 extern const ebml_context MATROSKA_ContextChapterAtom;
+
+extern const ebml_context MATROSKA_ContextClusterBlockGroup;
+extern const ebml_context MATROSKA_ContextClusterBlock;
+extern const ebml_context MATROSKA_ContextClusterSimpleBlock;

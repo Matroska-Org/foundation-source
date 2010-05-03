@@ -8,12 +8,12 @@ PROJECT matroska2
 
 GROUP matroska2_group
 {
-  USE(CONFIG_EBML2) ebml2_group
+  USE(HAVE_EBML2) ebml2_group
 
   INCLUDE .
   EXPINCLUDE .
   
-  SOURCE matroskamain.c
+  SOURCE matroskamain.c {class Matroska_Class}
   HEADER matroska/matroska.h
 }
 
