@@ -1,0 +1,13 @@
+CON mkclean
+{
+  PROJECT_VERSION  0.1.0
+  PROJECT_VENDOR   "Matroska Foundation"
+  USE matroska2
+  SOURCE mkclean.c
+}
+
+
+WORKSPACE mkclean
+{
+  USE mkclean
+}
