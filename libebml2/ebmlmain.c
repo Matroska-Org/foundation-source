@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml/ebml.h"
+#include "ebml2_project.h"
 
 extern const nodemeta BufStream_Class[];
 extern const nodemeta MemStream_Class[];
@@ -50,6 +51,8 @@ extern const nodemeta EBMLVoid_Class[];
 err_t EBML_Init(nodecontext *p)
 {
     // TODO: only when used as standalone (no coremake & core-c in the rest of the project)
+    tchar_t LibName[MAXPATH];
+
     NodeRegisterClassEx((nodemodule*)p,BufStream_Class);
 	NodeRegisterClassEx((nodemodule*)p,MemStream_Class);
 	NodeRegisterClassEx((nodemodule*)p,Streams_Class);
@@ -69,6 +72,10 @@ err_t EBML_Init(nodecontext *p)
 	NodeRegisterClassEx((nodemodule*)p,EBMLDate_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLCRC_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLVoid_Class);
+
+    tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" ") PROJECT_VERSION);
+    Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,LibName);
+
     return ERR_NONE;
 }
 

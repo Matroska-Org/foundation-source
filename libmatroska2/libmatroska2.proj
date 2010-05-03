@@ -2,13 +2,14 @@
 
 PROJECT matroska2
 {
-  PROJECT_VERSION  0.0.1
+  PROJECT_NAME  "libmatroska2"
+  PROJECT_VERSION  0.9.0
   PROJECT_VENDOR   "Matroska Foundation"
 }
 
 GROUP matroska2_group
 {
-  USE(HAVE_EBML2) ebml2_group
+  USE(HAVE_EBML2) ebml2
 
   INCLUDE .
   EXPINCLUDE .

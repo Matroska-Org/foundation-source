@@ -35,6 +35,8 @@
 #define MATROSKA_DLL
 #endif
 
+#define CONTEXT_LIBMATROSKA_VERSION  0x401
+
 EBML_DLL err_t MATROSKA_Init(nodecontext *p);
 EBML_DLL err_t MATROSKA_Done(nodecontext *p);
 
@@ -57,7 +59,10 @@ EBML_DLL timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster);
 EBML_DLL timecode_t MATROSKA_BlockTimecode(const matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
 EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
+EBML_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
+EBML_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block);
 EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
+EBML_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment);
 
 #define MATROSKA_VERSION  2
 
@@ -72,6 +77,9 @@ extern const ebml_context MATROSKA_ContextSeekId;
 extern const ebml_context MATROSKA_ContextSeekPosition;
 
 extern const ebml_context MATROSKA_ContextSegmentInfo;
+extern const ebml_context MATROSKA_ContextWritingApp;
+extern const ebml_context MATROSKA_ContextMuxingApp;
+
 extern const ebml_context MATROSKA_ContextCluster;
 extern const ebml_context MATROSKA_ContextTracks;
 extern const ebml_context MATROSKA_ContextCues;
