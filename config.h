@@ -1,28 +1,9 @@
 #define COREMAKE_STATIC
-//#define COREMAKE_UNICODE
-
-//#define CONFIG_MULTITHREAD
-#define CONFIG_DEBUGCHECKS
-
-#define CONFIG_FILEPOS_64
-#define CONFIG_EBML_UNICODE
-#define CONFIG_EBML_WRITING
-
-//-----------
-// failsafes
-
-#if !defined(COREMAKE_UNICODE) && (defined(TARGET_WINCE) || defined(TARGET_SYMBIAN))
 #define COREMAKE_UNICODE
-#endif
-
-#if defined(CONFIG_MULTITHREAD) && (defined(TARGET_SYMBIAN) || defined(TARGET_PALMOS))
-#undef CONFIG_MULTITHREAD
-#endif
-
-#if defined(COREMAKE_UNICODE) && (defined(TARGET_PALMOS) || defined(TARGET_LINUX))
-#undef COREMAKE_UNICODE
-#endif
-
-#if !defined(COREMAKE_STATIC) && defined(TARGET_PALMOS) && defined(IX86)
-#define COREMAKE_STATIC
-#endif
+#define CONFIG_EBML_WRITING
+#define HAVE_EBML2
+#define CONFIG_MATROSKA2
+#define USE_PRECOMPILED_HEADERS
+#define CONFIG_DEBUGCHECKS
+#define CONFIG_STDIO
+//#define CONFIG_DEBUG_LEAKS

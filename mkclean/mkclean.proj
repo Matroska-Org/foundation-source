@@ -1,5 +1,6 @@
 CON mkclean
 {
+  PROJECT_NAME "mkclean"
   PROJECT_VERSION  0.1.0
   PROJECT_VENDOR   "Matroska Foundation"
   USE matroska2

@@ -30,10 +30,15 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo if a Cues section doesn't exist, create one
+ * \todo change the Segment UID (when key parts are altered)
  * \todo start a new cluster boundary with each video keyframe
  * \todo add error types (numbers) to show to that each type can be disabled on demand
  * \todo forbid the use of SimpleBlock in v1
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
+ * \todo allow adding/replacing Tags
+ * \todo allow adding/replacing Chapters
+ * \todo allow adding/replacing Attachments
  */
 
 #ifdef TARGET_WIN
@@ -406,6 +411,7 @@ int main(int argc, const char *argv[])
 
     if (argc != 3)
     {
+        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
         TextWrite(StdErr,T("Usage: mkclean [matroska_src] [matroska_dst]\r\n"));
         Result = -1;
         goto exit;
@@ -447,7 +453,7 @@ int main(int argc, const char *argv[])
         Result = -5;
         goto exit;
     }
-    NodeDelete(EbmlHead);
+    NodeDelete((node*)EbmlHead);
     EbmlHead = NULL;
 
     // locate the Segment Info, Track Info, Chapters, Tags, Attachments, Cues Clusters*
@@ -503,7 +509,7 @@ int main(int argc, const char *argv[])
     EbmlHead = EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
         goto exit;
-    NodeTree_Clear(EbmlHead); // remove the default values
+    NodeTree_Clear((nodetree*)EbmlHead); // remove the default values
     // DocType
     RLevel1 = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
     if (!RLevel1)
@@ -552,7 +558,7 @@ int main(int argc, const char *argv[])
     WSeekPosSegmentInfo = EBML_MasterFindFirstElt(WSeekPoint,&MATROSKA_ContextSeekPosition,1,0);
     ((ebml_integer*)WSeekPosSegmentInfo)->Value = 80; // dummy value
     WSeekPosSegmentInfo->bValueIsSet = 1;
-    NextPos = ((ebml_integer*)WSeekPosSegmentInfo)->Value + RSegmentInfo->Size + 40;
+    NextPos = (filepos_t)((ebml_integer*)WSeekPosSegmentInfo)->Value + RSegmentInfo->Size + 40;
     // track info
     WSeekPoint = EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
     WSeekID = EBML_MasterFindFirstElt(WSeekPoint,&MATROSKA_ContextSeekId,1,0);
