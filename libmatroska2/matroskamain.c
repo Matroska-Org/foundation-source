@@ -31,6 +31,7 @@
 #define MATROSKA_BLOCK_CLASS     FOURCC('M','K','B','L')
 #define MATROSKA_CUEPOINT_CLASS  FOURCC('M','K','C','P')
 #define MATROSKA_CLUSTER_CLASS   FOURCC('M','K','C','U')
+#define MATROSKA_SEEKPOINT_CLASS FOURCC('M','K','S','K')
 
 // Seek Header
 const ebml_context MATROSKA_ContextSeekId = {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_SemanticGlobals, NULL};
@@ -41,7 +42,7 @@ const ebml_semantic EBML_SemanticSeekPoint[] = {
     {1, 1, &MATROSKA_ContextSeekPosition},
     {0, 0, NULL} // end of the table
 };
-const ebml_context MATROSKA_ContextSeek = {0x4DBB, EBML_MASTER_CLASS, 0, 0, "SeekPoint", EBML_SemanticSeekPoint, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextSeek = {0x4DBB, MATROSKA_SEEKPOINT_CLASS, 0, 0, "SeekPoint", EBML_SemanticSeekPoint, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticSeekHead[] = {
     {1, 0, &MATROSKA_ContextSeek},
@@ -285,15 +286,15 @@ const ebml_semantic EBML_SemanticTrackVideo[] = {
     {1, 1, &MATROSKA_SemanticTrackVideoInterlaced},
     {1, 1, &MATROSKA_SemanticTrackVideoPixelWidth},
     {1, 1, &MATROSKA_SemanticTrackVideoPixelHeight},
-    {1, 0, &MATROSKA_SemanticTrackVideoPixelCropBottom},
-    {1, 0, &MATROSKA_SemanticTrackVideoPixelCropTop},
-    {1, 0, &MATROSKA_SemanticTrackVideoPixelCropLeft},
-    {1, 0, &MATROSKA_SemanticTrackVideoPixelCropRight},
-    {1, 0, &MATROSKA_SemanticTrackVideoDisplayWidth},
-    {1, 0, &MATROSKA_SemanticTrackVideoDisplayHeight},
-    {1, 0, &MATROSKA_SemanticTrackVideoDisplayUnit},
-    {1, 0, &MATROSKA_SemanticTrackVideoAspectRatio},
-    {1, 0, &MATROSKA_SemanticTrackVideoColourSpace},
+    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropBottom},
+    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropTop},
+    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropLeft},
+    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropRight},
+    {0, 0, &MATROSKA_SemanticTrackVideoDisplayWidth},
+    {0, 0, &MATROSKA_SemanticTrackVideoDisplayHeight},
+    {0, 0, &MATROSKA_SemanticTrackVideoDisplayUnit},
+    {0, 0, &MATROSKA_SemanticTrackVideoAspectRatio},
+    {0, 0, &MATROSKA_SemanticTrackVideoColourSpace},
     {0, 0, NULL} // end of the table
 };
 
@@ -552,6 +553,8 @@ err_t MATROSKA_Done(nodecontext *p)
 
 #define MATROSKA_CLUSTER_SEGMENTINFO 0x100
 
+#define MATROSKA_SEEKPOINT_ELEMENT   0x100
+
 #define LACING_NONE  0
 #define LACING_XIPH  1
 #define LACING_FIXED 2
@@ -591,6 +594,12 @@ typedef struct matroska_cluster
 
 } matroska_cluster;
 
+struct matroska_seekpoint
+{
+    ebml_element Base;
+    ebml_element *Link;
+};
+
 err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks)
 {
     ebml_element *Track, *TrackNum;
@@ -606,6 +615,45 @@ err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks)
         }
     }
     return ERR_INVALID_DATA;
+}
+
+err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link)
+{
+    assert(MetaSeek->Base.Context->Id == MATROSKA_ContextSeek.Id);
+    Node_SET(MetaSeek,MATROSKA_SEEKPOINT_ELEMENT,&Link);
+    return ERR_NONE;
+}
+
+err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
+{
+    ebml_element *WSeekID, *WSeekPosSegmentInfo, *WSegment, *Link = NULL;
+    size_t IdSize;
+    err_t Err;
+    uint8_t IdBuffer[4];
+
+    assert(MetaSeek->Base.Context->Id == MATROSKA_ContextSeek.Id);
+    WSegment = EBML_ElementParent(MetaSeek);
+    while (WSegment && WSegment->Context->Id != MATROSKA_ContextSegment.Id)
+        WSegment = EBML_ElementParent(WSegment);
+
+    if (!WSegment)
+        return ERR_INVALID_DATA;
+
+    Err = Node_GET(MetaSeek,MATROSKA_SEEKPOINT_ELEMENT,&Link);
+    if (Err != ERR_NONE)
+        return Err;
+    if (Link==NULL)
+        return ERR_INVALID_DATA;
+
+    WSeekID = EBML_MasterFindFirstElt((ebml_element*)MetaSeek,&MATROSKA_ContextSeekId,1,0);
+    IdSize = EBML_FillBufferID(IdBuffer,sizeof(IdBuffer),Link->Context->Id);
+    EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
+
+    WSeekPosSegmentInfo = EBML_MasterFindFirstElt((ebml_element*)MetaSeek,&MATROSKA_ContextSeekPosition,1,0);
+    ((ebml_integer*)WSeekPosSegmentInfo)->Value = Link->ElementPosition - EBML_ElementPositionData(WSegment);
+    WSeekPosSegmentInfo->bValueIsSet = 1;
+
+    return Err;
 }
 
 err_t MATROSKA_LinkClusterSegmentInfo(matroska_cluster *Cluster, ebml_element *SegmentInfo)
@@ -632,7 +680,7 @@ err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentI
     return ERR_NONE;
 }
 
-err_t MATROSKA_LinkCueBlock(matroska_cuepoint *Cue, matroska_block *Block)
+err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *Cue, matroska_block *Block)
 {
     assert(Cue->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
@@ -1052,7 +1100,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
                     LaceHead[LaceSize++] = 0xFF;
                     Size -= 0xFF;
                 }
-                LaceHead[LaceSize++] = Size;
+                LaceHead[LaceSize++] = (uint8_t)Size;
             }
         }
         else if (Element->Lacing == LACING_FIXED)
@@ -1189,4 +1237,10 @@ META_START_CONTINUE(MATROSKA_CLUSTER_CLASS)
 META_CLASS(SIZE,sizeof(matroska_cluster))
 META_PARAM(TYPE,MATROSKA_CLUSTER_SEGMENTINFO,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_CLUSTER_SEGMENTINFO,matroska_cluster,SegInfo)
+META_END_CONTINUE(EBML_MASTER_CLASS)
+
+META_START_CONTINUE(MATROSKA_SEEKPOINT_CLASS)
+META_CLASS(SIZE,sizeof(matroska_seekpoint))
+META_PARAM(TYPE,MATROSKA_SEEKPOINT_ELEMENT,TYPE_NODE)
+META_DATA(TYPE_NODE_REF,MATROSKA_SEEKPOINT_ELEMENT,matroska_seekpoint,Link)
 META_END(EBML_MASTER_CLASS)

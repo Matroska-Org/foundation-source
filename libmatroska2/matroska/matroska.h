@@ -46,13 +46,17 @@ typedef int64_t    timecode_t; // in nanoseconds
 typedef struct matroska_block matroska_block;
 typedef struct matroska_cuepoint matroska_cuepoint;
 typedef struct matroska_cluster matroska_cluster;
+typedef struct matroska_seekpoint matroska_seekpoint;
 
+EBML_DLL err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link);
+EBML_DLL err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek);
 EBML_DLL err_t MATROSKA_LinkClusterSegmentInfo(matroska_cluster *Cluster, ebml_element *SegmentInfo);
 EBML_DLL err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks);
 EBML_DLL err_t MATROSKA_LinkBlockSegmentInfo(matroska_block *Block, ebml_element *SegmentInfo);
 //EBML_DLL err_t MATROSKA_LinkCueTrack(const ebml_element *Cue, ebml_element *Tracks);
 EBML_DLL err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentInfo);
-EBML_DLL err_t MATROSKA_LinkCueBlock(matroska_cuepoint *Cue, matroska_block *Block);
+EBML_DLL err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *Cue, matroska_block *Block);
+EBML_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment);
 EBML_DLL double MATROSKA_TrackTimecodeScale(const ebml_element *Track);
 EBML_DLL timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_element *SegmentInfo);
 EBML_DLL timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster);
@@ -62,7 +66,6 @@ EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 EBML_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
 EBML_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block);
 EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
-EBML_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment);
 
 #define MATROSKA_VERSION  2
 
