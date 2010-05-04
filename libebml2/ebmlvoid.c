@@ -93,7 +93,7 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
 	CurrentPosition = Stream_Seek(Output,0,SEEK_CUR);
 
     Stream_Seek(Output,Void->ElementPosition,SEEK_SET);
-    EBML_ElementRender(ReplacedWith,Output,bWithDefault,0,1,NULL);
+    EBML_ElementRender(ReplacedWith,Output,bWithDefault,0,1,NULL,0);
 
     if (EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1) > 1)
     {

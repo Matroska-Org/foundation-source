@@ -283,7 +283,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
         {
 			if (!bWithDefault && EBML_ElementIsDefaultValue(i))
 				continue;
-			Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered);
+			Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered,0);
             if (Err!=ERR_NONE)
                 return Err;
             *Rendered += ItemRendered;

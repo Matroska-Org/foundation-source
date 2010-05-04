@@ -174,7 +174,7 @@ bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered)
+err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered, bool_t UpdateSize)
 {
     err_t Result;
     filepos_t _Rendered,WrittenSize;
@@ -192,8 +192,11 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 		return ERR_INVALID_DATA;
 
 #if !defined(NDEBUG)
-	SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
+	SupposedSize = 
+#else
+    if (UpdateSize)
 #endif
+	    EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
 	Result = EBML_ElementRenderHead(Element, Output, bKeepPosition, &WrittenSize);
     *Rendered += WrittenSize;
     if (Result != ERR_NONE)

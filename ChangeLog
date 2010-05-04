@@ -1,4 +1,7 @@
 2010-05-04
+version 0.1.2:
+    - Fix the wrong EBML header in release builds (doh!)
+
 version 0.1.1:
     - Fix the Seek Head computing mismatch for large files
     - Add a progress info during the cleaning (in 3 phases)

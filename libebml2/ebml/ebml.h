@@ -223,7 +223,7 @@ static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags
-EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered, bool_t UpdateSize);
 EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 

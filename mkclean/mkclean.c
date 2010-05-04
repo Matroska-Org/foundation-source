@@ -360,7 +360,7 @@ static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input)
             MATROSKA_BlockReadData((matroska_block*)Block, Input);
     }
 
-    EBML_ElementRender(Cluster,Output,0,0,1,NULL);
+    EBML_ElementRender(Cluster,Output,0,0,1,NULL,0);
 
     for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
     {
@@ -553,7 +553,7 @@ int main(int argc, const char *argv[])
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     ((ebml_integer*)RLevel1)->Value = DocVersion;
 
-    if (EBML_ElementRender(EbmlHead,Output,1,0,1,NULL)!=ERR_NONE)
+    if (EBML_ElementRender(EbmlHead,Output,1,0,1,NULL,1)!=ERR_NONE)
         goto exit;
     NodeDelete((node*)EbmlHead);
     EbmlHead = NULL;
@@ -675,21 +675,21 @@ int main(int argc, const char *argv[])
     MetaSeekUpdate(WMetaSeek);
     MetaSeekBefore = EBML_ElementFullSize(WMetaSeek,0);
     Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
-    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
+    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,NULL,0)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
         Result = -22;
         goto exit;
     }
     SegmentSize += EBML_ElementFullSize(WMetaSeek,0);
-    if (EBML_ElementRender(RSegmentInfo,Output,0,0,1,NULL)!=ERR_NONE)
+    if (EBML_ElementRender(RSegmentInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
         Result = -11;
         goto exit;
     }
     SegmentSize += EBML_ElementFullSize(RSegmentInfo,0);
-    if (EBML_ElementRender(RTrackInfo,Output,0,0,1,NULL)!=ERR_NONE)
+    if (EBML_ElementRender(RTrackInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
         Result = -12;
@@ -698,7 +698,7 @@ int main(int argc, const char *argv[])
     SegmentSize += EBML_ElementFullSize(RTrackInfo,0);
     if (RChapters)
     {
-        if (EBML_ElementRender(RChapters,Output,0,0,1,NULL)!=ERR_NONE)
+        if (EBML_ElementRender(RChapters,Output,0,0,1,NULL,0)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Chapters\r\n"));
             Result = -13;
@@ -708,7 +708,7 @@ int main(int argc, const char *argv[])
     }
     if (RTags)
     {
-        if (EBML_ElementRender(RTags,Output,0,0,1,NULL)!=ERR_NONE)
+        if (EBML_ElementRender(RTags,Output,0,0,1,NULL,0)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Tags\r\n"));
             Result = -14;
@@ -716,7 +716,7 @@ int main(int argc, const char *argv[])
         }
         SegmentSize += EBML_ElementFullSize(RTags,0);
     }
-    if (EBML_ElementRender(RCues,Output,0,0,1,NULL)!=ERR_NONE)
+    if (EBML_ElementRender(RCues,Output,0,0,1,NULL,0)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the Cues\r\n"));
         Result = -15;
@@ -737,7 +737,7 @@ int main(int argc, const char *argv[])
     if (RAttachments)
     {
         ReduceSize(RAttachments);
-        if (EBML_ElementRender(RAttachments,Output,0,0,1,NULL)!=ERR_NONE)
+        if (EBML_ElementRender(RAttachments,Output,0,0,1,NULL,0)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Attachments\r\n"));
             Result = -17;
@@ -770,7 +770,7 @@ int main(int argc, const char *argv[])
     MetaSeekUpdate(WMetaSeek);
 
     Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
-    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
+    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekAfter,0)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
         Result = -22;
