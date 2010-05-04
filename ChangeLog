@@ -1,3 +1,8 @@
 2010-05-04
+version 0.1.1:
+    - Fix the Seek Head computing mismatch for large files
+    - Add a progress info during the cleaning (in 3 phases)
+
+2010-05-04
 version 0.1.0:
     - Initial public release
