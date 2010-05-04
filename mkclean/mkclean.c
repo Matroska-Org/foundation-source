@@ -29,6 +29,13 @@
 #include "mkclean_project.h"
 #include "matroska/matroska.h"
 
+/*!
+ * \todo start a new cluster boundary with each video keyframe
+ * \todo add error types (numbers) to show to that each type can be disabled on demand
+ * \todo forbid the use of SimpleBlock in v1
+ * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
+ */
+
 #ifdef TARGET_WIN
 #include <windows.h>
 void DebugMessage(const tchar_t* Msg,...)
@@ -280,7 +287,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else
             {
-                Node_FromUTF8(Input,String,TSIZEOF(String),((ebml_string*)SubElement)->Buffer);
+                Node_FromStr(Input,String,TSIZEOF(String),((ebml_string*)SubElement)->Buffer);
                 if (tcscmp(String,T("matroska"))!=0)
                 {
                     TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)((ebml_integer*)SubElement)->Value);
@@ -440,6 +447,8 @@ int main(int argc, const char *argv[])
         Result = -5;
         goto exit;
     }
+    NodeDelete(EbmlHead);
+    EbmlHead = NULL;
 
     // locate the Segment Info, Track Info, Chapters, Tags, Attachments, Cues Clusters*
     RSegmentContext.Context = &MATROSKA_ContextSegment;
@@ -494,6 +503,7 @@ int main(int argc, const char *argv[])
     EbmlHead = EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
         goto exit;
+    NodeTree_Clear(EbmlHead); // remove the default values
     // DocType
     RLevel1 = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
     if (!RLevel1)
@@ -516,10 +526,11 @@ int main(int argc, const char *argv[])
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     ((ebml_integer*)RLevel1)->Value = DocVersion;
 
-    if (EBML_ElementRender(EbmlHead,Output,1,0,0,NULL)!=ERR_NONE)
+    if (EBML_ElementRender(EbmlHead,Output,1,0,1,NULL)!=ERR_NONE)
         goto exit;
     NodeDelete((node*)EbmlHead);
     EbmlHead = NULL;
+    RLevel1 = NULL;
 
     // Write the Matroska Segment Head
     WSegment = EBML_ElementCreate(&p,&MATROSKA_ContextSegment,0,NULL);
