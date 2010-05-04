@@ -115,17 +115,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     }
     else if (EBML_ElementIsDummy(Element))
     {
-#ifdef IS_BIG_ENDIAN
-        fprintf(stdout,"%x\r\n",Element->Context->Id);
-#else
-        fourcc_t Id = Element->Context->Id;
-        while (Id & 0xFF)
-        {
-            fprintf(stdout,"[%x]",Id & 0xFF);
-            Id >>= 8;
-        }
-        fprintf(stdout,"\r\n");
-#endif
+        fprintf(stdout,"[%X]\r\n",Element->Context->Id);
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
     }
     else if (Node_IsPartOf(Element,EBML_BINARY_CLASS))
