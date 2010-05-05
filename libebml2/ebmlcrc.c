@@ -29,7 +29,7 @@
 
 static bool_t ValidateSize(ebml_element *p)
 {
-    return (p->Size == 4);
+    return (p->DataSize == 4);
 }
 
 META_START(EBMLCRC_Class,EBML_CRC_CLASS)

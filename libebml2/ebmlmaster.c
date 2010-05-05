@@ -151,7 +151,7 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRe
 {
     ebml_element *i;
 
-	Element->Size = 0;
+	Element->DataSize = 0;
 
 	if (!EBML_ElementIsFiniteSize(Element))
 		return INVALID_FILEPOS_T;
@@ -165,16 +165,16 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRe
         if (!bWithDefault && EBML_ElementIsDefaultValue(i))
             continue;
         EBML_ElementUpdateSize(i,bWithDefault,bForceRender);
-        if (i->Size == INVALID_FILEPOS_T)
+        if (i->DataSize == INVALID_FILEPOS_T)
             return INVALID_FILEPOS_T;
-        Element->Size += EBML_ElementFullSize(i,bWithDefault);
+        Element->DataSize += EBML_ElementFullSize(i,bWithDefault);
     }
 #ifdef TODO
 	if (bChecksumUsed) {
-		Element->Size += EBML_ElementFullSize(Element->Checksum,bWithDefault);
+		Element->DataSize += EBML_ElementFullSize(Element->Checksum,bWithDefault);
 	}
 #endif
-	return Element->Size;
+	return Element->DataSize;
 }
 
 static void PostCreate(ebml_element *Element)
@@ -195,7 +195,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
     Element->bValueIsSet = 0;
 
 	// read blocks and discard the ones we don't care about
-	if (Element->Size > 0) {
+	if (Element->DataSize > 0) {
 	    ebml_element *SubElement;
         ebml_parser_context Context;
         int UpperEltFound = 0;
@@ -204,7 +204,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
         if (Stream_Seek(Input,EBML_ElementPositionData(Element),SEEK_SET)==INVALID_FILEPOS_T)
             return ERR_END_OF_FILE;
 
-        MaxSizeToRead = Element->Size;
+        MaxSizeToRead = Element->DataSize;
         Context.UpContext = ParserContext;
         Context.Context = Element->Context;
         Context.EndPosition = EBML_ElementPositionEnd(Element);
@@ -290,7 +290,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 		}
 #ifdef TODO
 	} else { // new school: render in memory and compute the CRC
-		MemIOCallback TmpBuf(Size - 6);
+		MemIOCallback TmpBuf(DataSize - 6);
 		for (Index = 0; Index < ElementList.size(); Index++) {
 			if (!bWithDefault && (ElementList[Index])->IsDefaultValue())
 				continue;

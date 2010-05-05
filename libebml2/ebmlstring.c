@@ -45,7 +45,7 @@ err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
         free((char*)Element->Buffer);
     Element->Buffer = strdup(Value);
     Element->Base.bValueIsSet = 1;
-    Element->Base.Size = strlen(Element->Buffer);
+    Element->Base.DataSize = strlen(Element->Buffer);
     return ERR_NONE;
 }
 
@@ -65,15 +65,15 @@ static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_con
         goto failed;
     }
 
-    Buffer = malloc((size_t)Element->Base.Size+1);
+    Buffer = malloc((size_t)Element->Base.DataSize+1);
     if (!Buffer)
         return ERR_OUT_OF_MEMORY;
 
-    Result = Stream_Read(Input,Buffer,(size_t)Element->Base.Size,NULL);
+    Result = Stream_Read(Input,Buffer,(size_t)Element->Base.DataSize,NULL);
     if (Result != ERR_NONE)
         goto failed;
 
-    Buffer[Element->Base.Size] = 0;
+    Buffer[Element->Base.DataSize] = 0;
     Element->Buffer = Buffer;
     Element->Base.bValueIsSet = 1;
     return ERR_NONE;
@@ -88,16 +88,16 @@ failed:
 static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     size_t Written;
-    err_t Err = Stream_Write(Output,Element->Buffer,(size_t)Element->Base.Size,&Written);
+    err_t Err = Stream_Write(Output,Element->Buffer,(size_t)Element->Base.DataSize,&Written);
     if (Rendered)
         *Rendered = Written;
-    if ((Err == ERR_NONE) && (Element->Base.DefaultSize > (int)Element->Base.Size))
+    if ((Err == ERR_NONE) && (Element->Base.DefaultSize > (int)Element->Base.DataSize))
     {
-        char *Padding = malloc(Element->Base.DefaultSize - (int)Element->Base.Size);
+        char *Padding = malloc(Element->Base.DefaultSize - (int)Element->Base.DataSize);
         if (!Padding)
             return ERR_OUT_OF_MEMORY;
-        memset(Padding,0,Element->Base.DefaultSize - (int)Element->Base.Size);
-        Err = Stream_Write(Output,Padding,Element->Base.DefaultSize - (int)Element->Base.Size,&Written);
+        memset(Padding,0,Element->Base.DefaultSize - (int)Element->Base.DataSize);
+        Err = Stream_Write(Output,Padding,Element->Base.DefaultSize - (int)Element->Base.DataSize,&Written);
         if (Rendered)
             *Rendered += Written;
         free(Padding);
@@ -147,13 +147,13 @@ static filepos_t UpdateSize(ebml_string *Element, bool_t bWithDefault, bool_t bF
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return 0;
 
-	Element->Base.Size = strlen(Element->Buffer);
+	Element->Base.DataSize = strlen(Element->Buffer);
 
-	if (Element->Base.DefaultSize > Element->Base.Size) {
-		Element->Base.Size = Element->Base.DefaultSize;
+	if (Element->Base.DefaultSize > Element->Base.DataSize) {
+		Element->Base.DataSize = Element->Base.DefaultSize;
 	}
 
-	return Element->Base.Size;
+	return Element->Base.DataSize;
 }
 
 static bool_t IsDefaultValue(const ebml_string *Element)

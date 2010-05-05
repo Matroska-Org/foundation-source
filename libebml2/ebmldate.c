@@ -46,13 +46,13 @@ err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date)
 
 static bool_t ValidateSize(ebml_element *p)
 {
-    return (p->Size == 8 || p->Size == 0);
+    return (p->DataSize == 8 || p->DataSize == 0);
 }
 
 static err_t ReadData(ebml_date *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
     err_t Result;
-    int Size;
+    int DataSize;
     uint8_t Value[8];
 
     Element->Base.bValueIsSet = 0;
@@ -66,17 +66,17 @@ static err_t ReadData(ebml_date *Element, stream *Input, const ebml_parser_conte
         goto failed;
     }
 
-    assert(Element->Base.Size<=8);
-    Result = Stream_Read(Input,Value,(size_t)Element->Base.Size,NULL);
+    assert(Element->Base.DataSize<=8);
+    Result = Stream_Read(Input,Value,(size_t)Element->Base.DataSize,NULL);
     if (Result != ERR_NONE)
         goto failed;
 
 #ifdef IS_BIG_ENDIAN
-    memcpy(&Element->Value,Value,Element->Base.Size);
+    memcpy(&Element->Value,Value,Element->Base.DataSize);
 #else
     Element->Value = 0;
-    for (Size=0;Size<Element->Base.Size;++Size)
-        ((uint8_t*)&Element->Value)[Size] = Value[Element->Base.Size-Size-1];
+    for (DataSize=0;DataSize<Element->Base.DataSize;++DataSize)
+        ((uint8_t*)&Element->Value)[DataSize] = Value[Element->Base.DataSize-DataSize-1];
 #endif
     Element->Base.bValueIsSet = 1;
 failed:

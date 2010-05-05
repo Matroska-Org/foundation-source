@@ -33,7 +33,7 @@ static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser
     char Buffer[8];
     int i;
 
-    assert(Element->Base.Size <= 8);
+    assert(Element->Base.DataSize <= 8);
 
     Element->Base.bValueIsSet = 0;
 
@@ -46,12 +46,12 @@ static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser
         goto failed;
     }
 
-    Result = Stream_Read(Input,Buffer,(size_t)Element->Base.Size,NULL);
+    Result = Stream_Read(Input,Buffer,(size_t)Element->Base.DataSize,NULL);
     if (Result != ERR_NONE)
         return Result;
 
     Element->Value = 0;
-	for (i=0; i<(int)Element->Base.Size; i++)
+	for (i=0; i<(int)Element->Base.DataSize; i++)
 	{
 		Element->Value <<= 8;
 		Element->Value |= (uint8_t)Buffer[i];
@@ -67,7 +67,7 @@ static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_
     char Buffer[8];
     int i;
 
-    assert(Element->Base.Size <= 8);
+    assert(Element->Base.DataSize <= 8);
 
     Element->Base.bValueIsSet = 0;
 
@@ -80,7 +80,7 @@ static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_
         goto failed;
     }
 
-    Result = Stream_Read(Input,Buffer,(size_t)Element->Base.Size,NULL);
+    Result = Stream_Read(Input,Buffer,(size_t)Element->Base.DataSize,NULL);
     if (Result != ERR_NONE)
         goto failed;
 
@@ -88,7 +88,7 @@ static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_
         Element->Value = -1;
     else
         Element->Value = 0;
-	for (i=0; i<(int)Element->Base.Size; i++)
+	for (i=0; i<(int)Element->Base.DataSize; i++)
 	{
 		Element->Value <<= 8;
 		Element->Value |= Buffer[i];
@@ -109,27 +109,27 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
 	if (Element->Base.SizeLength > 8)
 		return 0; // integers larger than 64 bits are not supported
 
-    if (Element->Base.Size == 0)
+    if (Element->Base.DataSize == 0)
         return 0; // nothing to write
 	
 	TempValue = Element->Value;
-    if (Element->Base.DefaultSize > Element->Base.Size)
+    if (Element->Base.DefaultSize > Element->Base.DataSize)
     {
-        for (i=Element->Base.DefaultSize - Element->Base.Size - 1;i;--i)
+        for (i=Element->Base.DefaultSize - (int)Element->Base.DataSize - 1;i;--i)
             FinalData[i-1] = 0;
-        i = Element->Base.DefaultSize - Element->Base.Size;
+        i = Element->Base.DefaultSize - (int)Element->Base.DataSize;
     }
     else
-        i=(size_t)Element->Base.Size;
+        i=(size_t)Element->Base.DataSize;
 	for (;i;--i) {
 		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
 		TempValue >>= 8;
 	}
 	
-    if (Element->Base.DefaultSize > Element->Base.Size)
+    if (Element->Base.DefaultSize > Element->Base.DataSize)
         Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
     else
-        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.Size,&i);
+        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DataSize,&i);
     if (Rendered)
         *Rendered = i;
     return Err;
@@ -145,27 +145,27 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
 	if (Element->Base.SizeLength > 8)
 		return 0; // integers larger than 64 bits are not supported
 
-    if (Element->Base.Size == 0)
+    if (Element->Base.DataSize == 0)
         return 0; // nothing to write
 	
 	TempValue = Element->Value;
-    if (Element->Base.DefaultSize > Element->Base.Size)
+    if (Element->Base.DefaultSize > Element->Base.DataSize)
     {
-        for (i=Element->Base.DefaultSize - Element->Base.Size - 1;i;--i)
+        for (i=Element->Base.DefaultSize - (int)Element->Base.DataSize - 1;i;--i)
             FinalData[i-1] = 0;
-        i = Element->Base.DefaultSize - Element->Base.Size;
+        i = Element->Base.DefaultSize - (int)Element->Base.DataSize;
     }
     else
-        i=(size_t)Element->Base.Size;
+        i=(size_t)Element->Base.DataSize;
 	for (;i;--i) {
 		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
 		TempValue >>= 8;
 	}
 	
-    if (Element->Base.DefaultSize > Element->Base.Size)
+    if (Element->Base.DefaultSize > Element->Base.DataSize)
         Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
     else
-        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.Size,&i);
+        Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DataSize,&i);
     if (Rendered)
         *Rendered = i;
     return Err;
@@ -175,7 +175,7 @@ static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceR
 {
     err_t Err;
 	size_t i = 0;
-    if (Element->Base.Size == 8)
+    if (Element->Base.DataSize == 8)
     {
         uint64_t Buf = LOAD64BE(&Element->Value);
         Err = Stream_Write(Output,&Buf,8,&i);
@@ -194,12 +194,12 @@ static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceR
 
 static bool_t ValidateSizeInt(ebml_element *p)
 {
-    return (p->Size <= 8);
+    return (p->DataSize <= 8);
 }
 
 static bool_t ValidateSizeFloat(ebml_element *p)
 {
-    return (p->Size == 8 || p->Size == 4);
+    return (p->DataSize == 8 || p->DataSize == 4);
 }
 
 static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
@@ -207,7 +207,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
     uint8_t Value[8];
     err_t Result;
 
-	assert(Element->Base.Size == 8 || Element->Base.Size == 4);
+	assert(Element->Base.DataSize == 8 || Element->Base.DataSize == 4);
 
     Element->Base.bValueIsSet = 0;
 
@@ -220,11 +220,11 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
         goto failed;
     }
 
-    Result = Stream_Read(Input,Value,min((size_t)Element->Base.Size,sizeof(Value)),NULL); // min is for code safety
+    Result = Stream_Read(Input,Value,min((size_t)Element->Base.DataSize,sizeof(Value)),NULL); // min is for code safety
     if (Result != ERR_NONE)
         goto failed;
 	
-	if (Element->Base.Size == 4) {
+	if (Element->Base.DataSize == 4) {
         float Val;
 #ifdef IS_BIG_ENDIAN
         memcpy(&Val,Value,4);
@@ -236,7 +236,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
 #endif
         Element->Value = Val;
         Element->Base.bValueIsSet = 1;
-	} else if (Element->Base.Size == 8) {
+	} else if (Element->Base.DataSize == 8) {
 #ifdef IS_BIG_ENDIAN
         memcpy(&Element->Value,Value,8);
 #else
@@ -272,27 +272,27 @@ static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault,
 		return 0;
 
 	if (Element->Value <= 0x7F && Element->Value >= (-0x80)) {
-		Element->Base.Size = 1;
+		Element->Base.DataSize = 1;
 	} else if (Element->Value <= 0x7FFF && Element->Value >= (-0x8000)) {
-		Element->Base.Size = 2;
+		Element->Base.DataSize = 2;
 	} else if (Element->Value <= 0x7FFFFF && Element->Value >= (-0x800000)) {
-		Element->Base.Size = 3;
+		Element->Base.DataSize = 3;
 	} else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= (int64_t)(-0x80000000)) {
-		Element->Base.Size = 4;
+		Element->Base.DataSize = 4;
 	} else if (Element->Value <= 0x7FFFFFFFFF && Element->Value >= (-0x8000000000)) {
-		Element->Base.Size = 5;
+		Element->Base.DataSize = 5;
 	} else if (Element->Value <= 0x7FFFFFFFFFFF && Element->Value >= (-0x800000000000)) {
-		Element->Base.Size = 6;
+		Element->Base.DataSize = 6;
 	} else if (Element->Value <= 0x7FFFFFFFFFFFFF && Element->Value >= (-0x80000000000000)) {
-		Element->Base.Size = 7;
+		Element->Base.DataSize = 7;
 	} else
-		Element->Base.Size = 8;
+		Element->Base.DataSize = 8;
 
-	if (Element->Base.DefaultSize > Element->Base.Size) {
-		Element->Base.Size = Element->Base.DefaultSize;
+	if (Element->Base.DefaultSize > Element->Base.DataSize) {
+		Element->Base.DataSize = Element->Base.DefaultSize;
 	}
 
-	return Element->Base.Size;
+	return Element->Base.DataSize;
 }
 
 static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
@@ -301,34 +301,34 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_
 		return 0;
 
 	if ((uint64_t)Element->Value <= 0xFF) {
-		Element->Base.Size = 1;
+		Element->Base.DataSize = 1;
 	} else if ((uint64_t)Element->Value <= 0xFFFF) {
-		Element->Base.Size = 2;
+		Element->Base.DataSize = 2;
 	} else if ((uint64_t)Element->Value <= 0xFFFFFF) {
-		Element->Base.Size = 3;
+		Element->Base.DataSize = 3;
 	} else if ((uint64_t)Element->Value <= 0xFFFFFFFF) {
-		Element->Base.Size = 4;
+		Element->Base.DataSize = 4;
 	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFF) {
-		Element->Base.Size = 5;
+		Element->Base.DataSize = 5;
 	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFF) {
-		Element->Base.Size = 6;
+		Element->Base.DataSize = 6;
 	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFFFF) {
-		Element->Base.Size = 7;
+		Element->Base.DataSize = 7;
 	} else
-		Element->Base.Size = 8;
+		Element->Base.DataSize = 8;
 
-	if (Element->Base.DefaultSize > Element->Base.Size) {
-		Element->Base.Size = Element->Base.DefaultSize;
+	if (Element->Base.DefaultSize > Element->Base.DataSize) {
+		Element->Base.DataSize = Element->Base.DefaultSize;
 	}
 
-	return Element->Base.Size;
+	return Element->Base.DataSize;
 }
 
 static filepos_t UpdateSizeFloat(ebml_float *Element, bool_t bWithDefault, bool_t bForceRender)
 {
 	if (!bWithDefault && IsDefaultValueFloat(Element))
 		return 0;
-    return Element->Base.Size;
+    return Element->Base.DataSize;
 }
 
 static void PostCreateInt(ebml_element *Element)

@@ -41,7 +41,7 @@ static void PostCreate(ebml_element *Element)
 
 static err_t Create(ebml_element *Element)
 {
-    Element->Size = INVALID_FILEPOS_T;
+    Element->DataSize = INVALID_FILEPOS_T;
     return ERR_NONE;
 }
 
@@ -87,7 +87,7 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 	if (EBML_ElementIsFiniteSize(p)) {
 		assert(TestReadElt == NULL);
 		assert(p->ElementPosition < p->SizePosition);
-		Stream_Seek(Input, p->SizePosition + EBML_CodedSizeLength(p->Size, p->SizeLength, 1) + p->Size, SEEK_SET);
+		Stream_Seek(Input, p->SizePosition + EBML_CodedSizeLength(p->DataSize, p->SizeLength, 1) + p->DataSize, SEEK_SET);
 	} else {
 		// read elements until an upper element is found
 		bool_t bEndFound = 0;
@@ -103,7 +103,7 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 #ifdef TODO
 				unsigned int EltIndex;
 				// data known in this Master's context
-				for (EltIndex = 0; EltIndex < Context.Size; EltIndex++) {
+				for (EltIndex = 0; EltIndex < Context.DataSize; EltIndex++) {
 					if (EbmlId(*Result) == Context.MyTable[EltIndex].GetCallbacks.GlobalId) {
 						// skip the data with its own context
 						Result = Result->SkipData(DataStream, Context.MyTable[EltIndex].GetCallbacks.Context, NULL);
@@ -111,7 +111,7 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 					}
 				}
 
-				if (EltIndex >= Context.Size) {
+				if (EltIndex >= Context.DataSize) {
 					if (Context.UpTable != NULL) {
 						Result = SkipData(DataStream, *Context.UpTable, Result);
 					} else {
@@ -147,7 +147,7 @@ filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
 {
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return INVALID_FILEPOS_T; // won't be saved
-	return Element->Size + GetIdLength(Element->Context->Id) + EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
+	return Element->DataSize + GetIdLength(Element->Context->Id) + EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
 }
 
 bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
@@ -159,16 +159,16 @@ bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
 	if (EBML_ElementIsFiniteSize(Element))
 		return 0;
 
-	OldSizeLen = EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
-	OldSize = Element->Size;
-	Element->Size = NewSize;
+	OldSizeLen = EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
+	OldSize = Element->DataSize;
+	Element->DataSize = NewSize;
 
-	if (EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element)) == OldSizeLen)
+	if (EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element)) == OldSizeLen)
     {
 		EBML_ElementSetInfiniteSize(Element,1);
 		return 1;
 	}
-	Element->Size = OldSize;
+	Element->DataSize = OldSize;
 
 	return 0;
 }
@@ -235,8 +235,8 @@ err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeep
 	
 	FinalHeadSize = EBML_FillBufferID(FinalHead,sizeof(FinalHead),Element->Context->Id);
 
-	CodedSize = EBML_CodedSizeLength(Element->Size, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
-	EBML_CodedValueLength(Element->Size, CodedSize, &FinalHead[FinalHeadSize]);
+	CodedSize = EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
+	EBML_CodedValueLength(Element->DataSize, CodedSize, &FinalHead[FinalHeadSize]);
 	FinalHeadSize += CodedSize;
 	
 	Err = Stream_Write(Output, FinalHead, FinalHeadSize, &i);

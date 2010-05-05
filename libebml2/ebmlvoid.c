@@ -39,13 +39,13 @@ static bool_t IsDefaultValue(const ebml_element *Element)
 
 static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-    return Element->Size;
+    return Element->DataSize;
 }
 
 #if defined(CONFIG_EBML_WRITING)
 static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
-    size_t Written, Left = Element->Size;
+    size_t Written, Left = (size_t)Element->DataSize;
     err_t Err = ERR_NONE;
     uint8_t Buf[2*1024]; // write 2 KB chunks at a time
     memset(Buf,0,sizeof(Buf));
@@ -56,7 +56,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
             Left -= min(Left,sizeof(Buf));
     }
     if (Rendered)
-        *Rendered = Element->Size - Left;
+        *Rendered = Element->DataSize - Left;
     return Err;
 }
 #endif
@@ -70,10 +70,10 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_END(EBML_ELEMENT_CLASS)
 
-void EBML_VoidSetSize(ebml_element *Void, filepos_t Size)
+void EBML_VoidSetSize(ebml_element *Void, filepos_t DataSize)
 {
     assert(Node_IsPartOf(Void,EBML_VOID_CLASS));
-    Void->Size = Size;
+    Void->DataSize = DataSize;
     Void->bValueIsSet = 1;
 }
 
@@ -103,11 +103,11 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
         {
             filepos_t HeadBefore,HeadAfter;
             EBML_VoidSetSize(aTmp, EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1) - 1); // 1 is the length of the Void ID
-            HeadBefore = EBML_ElementFullSize(aTmp,1) - aTmp->Size;
-            aTmp->Size = aTmp->Size - EBML_CodedSizeLength(aTmp->Size, aTmp->SizeLength, EBML_ElementIsFiniteSize(aTmp));
-            HeadAfter = EBML_ElementFullSize(aTmp,1) - aTmp->Size;
+            HeadBefore = EBML_ElementFullSize(aTmp,1) - aTmp->DataSize;
+            aTmp->DataSize = aTmp->DataSize - EBML_CodedSizeLength(aTmp->DataSize, aTmp->SizeLength, EBML_ElementIsFiniteSize(aTmp));
+            HeadAfter = EBML_ElementFullSize(aTmp,1) - aTmp->DataSize;
             if (HeadBefore != HeadAfter)
-                aTmp->SizeLength = (int8_t)(EBML_CodedSizeLength(aTmp->Size, aTmp->SizeLength, EBML_ElementIsFiniteSize(aTmp)) - (HeadAfter - HeadBefore));
+                aTmp->SizeLength = (int8_t)(EBML_CodedSizeLength(aTmp->DataSize, aTmp->SizeLength, EBML_ElementIsFiniteSize(aTmp)) - (HeadAfter - HeadBefore));
             EBML_ElementRenderHead(aTmp,Output,0,NULL);
             NodeDelete((node*)aTmp);
         }

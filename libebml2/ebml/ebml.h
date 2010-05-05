@@ -116,7 +116,7 @@ struct ebml_element
     nodetree Base;
     bool_t bValueIsSet;
     bool_t bDefaultIsSet;
-    filepos_t Size; // size of the data inside the element
+    filepos_t DataSize; // size of the data inside the element
     int8_t SizeLength;
     filepos_t ElementPosition;
     filepos_t SizePosition; // TODO: is this needed since we have the ElementPosition and SizeLength ?
@@ -197,8 +197,8 @@ EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t b
 EBML_DLL int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
 EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer); // TODO: turn into a macro ?
 EBML_DLL int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
-EBML_DLL size_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown);
-EBML_DLL int64_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown);
+EBML_DLL filepos_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
+EBML_DLL filepos_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
 EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
@@ -211,14 +211,14 @@ static INLINE filepos_t EBML_ElementPositionData(const ebml_element *Element)
     if (!EBML_ElementIsFiniteSize(Element))
         return INVALID_FILEPOS_T;
     else
-        return Element->SizePosition + EBML_CodedSizeLength(Element->Size,Element->SizeLength,1);
+        return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1);
 }
 static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 {
     if (!EBML_ElementIsFiniteSize(Element))
         return INVALID_FILEPOS_T;
     else
-        return Element->SizePosition + EBML_CodedSizeLength(Element->Size,Element->SizeLength,1) + Element->Size;
+        return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1) + Element->DataSize;
 }
 
 #if defined(CONFIG_EBML_WRITING)

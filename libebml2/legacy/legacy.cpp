@@ -105,14 +105,14 @@ static err_t Read(stream_io* p,void* Data,size_t Size,size_t* Readed)
 
 static err_t ReadData(ebml_element *Element, stream_io *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
-    filepos_t Size;
+    filepos_t DataSize;
     EbmlElement *Result=NULL;
     if (Node_Get(Element,EBML_ELEMENT_OBJECT,&Result,sizeof(Result))!=ERR_NONE)
     {
         assert(0);
     }
-    Size = Result->ReadData(*Input->cpp,Scope);
-    if (Size==Element->Size)
+    DataSize = Result->ReadData(*Input->cpp,Scope);
+    if (DataSize==Element->DataSize)
         return ERR_NONE;
     return ERR_INVALID_DATA;
 }
@@ -420,7 +420,7 @@ assert(0);
 
 filepos_t EbmlElement::GetSize() const
 {
-    return Node->Size;
+    return Node->DataSize;
 }
 
 bool EbmlElement::ValueIsSet() const
@@ -444,9 +444,9 @@ void EbmlElement::SetDefaultSize(filepos_t aDefaultSize)
 assert(0);
 }
 
-void EbmlElement::SetSize_(filepos_t Size)
+void EbmlElement::SetSize_(filepos_t DataSize)
 {
-    Node->Size = Size;
+    Node->DataSize = DataSize;
 }
 
 bool EbmlElement::ForceSize(filepos_t NewSize)
@@ -463,7 +463,7 @@ size_t EbmlElement::HeadSize() const
 {
     filepos_t Result = EBML_ElementFullSize(Node,1);
     if (Result != INVALID_FILEPOS_T)
-        Result -= Node->Size; 
+        Result -= Node->DataSize; 
     return Result;
 }
 
@@ -511,7 +511,7 @@ void EbmlElement::Read(EbmlStream & inDataStream, const EbmlSemanticContext & Co
 {
     ebml_parser_context ParserContext;
     ParserContext.Context = Context.GetContext();
-    ParserContext.EndPosition = Node->ElementPosition + Node->Size;
+    ParserContext.EndPosition = Node->ElementPosition + Node->DataSize;
     ParserContext.UpContext = NULL;
 
     err_t Res = EBML_ElementReadData(Node,inDataStream.I_O().GetStream(),&ParserContext,AllowDummyElt,ReadFully);
@@ -534,25 +534,25 @@ bool EbmlElement::IsSmallerThan(const EbmlElement *Cmp) const
  ****************/
 EbmlSemanticContext::EbmlSemanticContext(const ebml_context & _Context)
 :Context(_Context)
-,Size(0)
+,DataSize(0)
 {
     const ebml_semantic *s = Context.Semantic;
     while (s && s->eClass!=NULL)
     {
-        ++Size;
+        ++DataSize;
         ++s;
     }
 }
 
 const EbmlSemantic & EbmlSemanticContext::GetSemantic(size_t i) const
 {
-    assert(i < Size);
+    assert(i < DataSize);
     return Context.Semantic[i];
 }
 
 bool EbmlSemanticContext::operator!=(const EbmlSemanticContext & Elt) const
 {
-	return (Size != Elt.Size) || (Context.Id != Elt.Context.Id) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
+	return (DataSize != Elt.DataSize) || (Context.Id != Elt.Context.Id) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
 }
 
 const ebml_context * EbmlSemanticContext::GetContext() const
@@ -597,9 +597,9 @@ size_t EbmlId::GetLength() const
 
 void EbmlId::Fill(binary * Buffer) const
 {
-    size_t i,Size = GetIdLength(Value);
-	for (i=0; i<Size; ++i)
-		Buffer[i] = (Value >> 8*(Size-i-1)) & 0xFF;
+    size_t i,DataSize = GetIdLength(Value);
+	for (i=0; i<DataSize; ++i)
+		Buffer[i] = (Value >> 8*(DataSize-i-1)) & 0xFF;
 }
 
 
@@ -1332,9 +1332,9 @@ double EbmlFloat::operator =(double val)
 void EbmlFloat::SetPrecision(Precision prec)
 {
     if (prec==FLOAT_32)
-        Node->Size = 4;
+        Node->DataSize = 4;
     else
-        Node->Size = 8;
+        Node->DataSize = 8;
 }
 
 bool EbmlFloat::IsSmallerThan(const EbmlElement *Cmp) const

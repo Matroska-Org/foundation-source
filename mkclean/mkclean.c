@@ -122,7 +122,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 {
     ebml_element **Cluster;
     ebml_element *Cue;
-    filepos_t OriginalSize = Cues->Size;
+    filepos_t OriginalSize = Cues->DataSize;
     filepos_t ClusterPos = ClusterStart + EBML_ElementFullSize(Cues,0);
     // reposition all the Clusters
     for (Cluster=ARRAYBEGIN(*Clusters,ebml_element*);Cluster!=ARRAYEND(*Clusters,ebml_element*);++Cluster)
@@ -142,7 +142,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 
 static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegment, int phase)
 {
-    TextPrintf(StdErr,T("Progress %d/3: %3d%%\r"),phase,Scale32(100,RCluster->ElementPosition,RSegment->Size)+1);
+    TextPrintf(StdErr,T("Progress %d/3: %3d%%\r"),phase,Scale32(100,RCluster->ElementPosition,RSegment->DataSize)+1);
 }
 
 static void EndProgress(const ebml_element *RSegment, int phase)
@@ -561,7 +561,7 @@ int main(int argc, const char *argv[])
 
     // Write the Matroska Segment Head
     WSegment = EBML_ElementCreate(&p,&MATROSKA_ContextSegment,0,NULL);
-    WSegment->Size = RSegment->Size; // temporary value
+    WSegment->DataSize = RSegment->DataSize; // temporary value
     if (EBML_ElementRenderHead(WSegment,Output,0,NULL)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the (temporary) Segment head\r\n"));
@@ -747,17 +747,17 @@ int main(int argc, const char *argv[])
     }
 
     // update the WSegment size
-    if (SegmentSize > WSegment->Size)
+    if (SegmentSize > WSegment->DataSize)
     {
         if (EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0))
         {
-            TextPrintf(StdErr,T("The segment written is much bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->Size);
+            TextPrintf(StdErr,T("The segment written is much bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->DataSize);
             Result = -20;
             goto exit;
         }
-        TextPrintf(StdErr,T("The segment written is bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->Size);
+        TextPrintf(StdErr,T("The segment written is bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->DataSize);
     }
-    WSegment->Size = SegmentSize;
+    WSegment->DataSize = SegmentSize;
     Stream_Seek(Output,WSegment->ElementPosition,SEEK_SET);
     if (EBML_ElementRenderHead(WSegment, Output, 0, NULL)!=ERR_NONE)
     {

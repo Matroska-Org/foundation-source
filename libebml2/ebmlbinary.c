@@ -42,13 +42,13 @@ static err_t ReadData(ebml_binary *Element, stream *Input, const ebml_parser_con
         goto failed;
     }
 
-    if (!ArrayResize(&Element->Data,(size_t)Element->Base.Size,0))
+    if (!ArrayResize(&Element->Data,(size_t)Element->Base.DataSize,0))
     {
         Result = ERR_OUT_OF_MEMORY;
         goto failed;
     }
 
-    Result = Stream_Read(Input,ARRAYBEGIN(Element->Data,void),(size_t)Element->Base.Size,NULL);
+    Result = Stream_Read(Input,ARRAYBEGIN(Element->Data,void),(size_t)Element->Base.DataSize,NULL);
     if (Result == ERR_NONE)
         Element->Base.bValueIsSet = 1;
 failed:
@@ -78,13 +78,13 @@ static bool_t IsDefaultValue(const ebml_binary *Element)
 
 static filepos_t UpdateSize(ebml_binary *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	Element->Base.Size = ARRAYCOUNT(Element->Data,uint8_t);
+	Element->Base.DataSize = ARRAYCOUNT(Element->Data,uint8_t);
 
-	if (Element->Base.DefaultSize > Element->Base.Size) {
-		Element->Base.Size = Element->Base.DefaultSize;
+	if (Element->Base.DefaultSize > Element->Base.DataSize) {
+		Element->Base.DataSize = Element->Base.DefaultSize;
 	}
 
-	return Element->Base.Size;
+	return Element->Base.DataSize;
 }
 
 META_START(EBMLBinary_Class,EBML_BINARY_CLASS)

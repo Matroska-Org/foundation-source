@@ -118,10 +118,10 @@ const ebml_semantic EBML_SemanticGlobals[] = {
 
 static const ebml_context EBML_ContextGlobals = {0, 0, 0, 0, "GlobalContext", EBML_SemanticGlobals, EBML_SemanticGlobals};
 
-size_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown)
+filepos_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown)
 {
 	uint8_t SizeBitMask = 1 << 7;
-	size_t Result = 0x7F;
+	filepos_t Result = 0x7F;
 	unsigned int SizeIdx, PossibleSizeLength = 0;
 	uint8_t PossibleSize[8];
     unsigned int i;
@@ -159,9 +159,9 @@ size_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, size
 	return 0;
 }
 
-int64_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, size_t *SizeUnknown)
+filepos_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown)
 {
-	int64_t Result = EBML_ReadCodedSizeValue(InBuffer, BufferSize, SizeUnknown);
+	filepos_t Result = EBML_ReadCodedSizeValue(InBuffer, BufferSize, SizeUnknown);
 
 	if (*BufferSize != 0)
 	{
@@ -320,7 +320,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
 ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize)
 {
     filepos_t aElementPosition, aSizePosition;
-    size_t SizeFound=0, SizeUnknown;
+    filepos_t SizeFound=0, SizeUnknown;
     int ReadSize;
     uint8_t BitMask;
     uint8_t PossibleId[4];
@@ -382,8 +382,8 @@ else if (PossibleID_Length==1)
 printf("Elt: size %d id %d %02X\n",SizeFound,PossibleID_Length,PossibleId[0]);
 #endif
 	Result->SizeLength = PossibleSizeLength;
-	Result->Size = SizeFound;
-    if (!EBML_ElementValidateSize(Result) || (SizeFound != SizeUnknown && MaxDataSize < (size_t)Result->Size))
+	Result->DataSize = SizeFound;
+    if (!EBML_ElementValidateSize(Result) || (SizeFound != SizeUnknown && MaxDataSize < (size_t)Result->DataSize))
     {
         NodeDelete((node*)Result);
         return NULL;
@@ -498,10 +498,10 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
 	uint8_t PossibleID_Length = 0;
 	uint8_t PossibleIdNSize[16];
 	int PossibleSizeLength;
-	size_t SizeUnknown;
+	filepos_t SizeUnknown;
 	int8_t SizeIdx,ReadIndex = 0; // trick for the algo, start index at 0
 	uint32_t ReadSize = 0;
-	size_t SizeFound;
+	filepos_t SizeFound;
 	bool_t bFound;
 	int UpperLevel_original = *UpperLevels;
     filepos_t CurrentPos;
@@ -605,7 +605,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
                     assert(_SizeLength <= 8);
                     Result->SizeLength = (int8_t)_SizeLength;
 					
-					Result->Size = SizeFound;
+					Result->DataSize = SizeFound;
 					// LevelChange values
 					// -1 : global element
 					//  0 : child
