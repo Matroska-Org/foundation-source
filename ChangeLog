@@ -1,6 +1,8 @@
 2010-05-05
 version 0.1.3:
     - By default build with support for large files (>4GB)
+    - Sort the Cue entries
+    - Optimize the Cue/Block linking speed by starting from, the previous matching Cluster found
 
 2010-05-04
 version 0.1.2:

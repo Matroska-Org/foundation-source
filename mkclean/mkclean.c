@@ -151,14 +151,81 @@ static void EndProgress(const ebml_element *RSegment, int phase)
     TextWrite(StdErr,T("\n"));
 }
 
-static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Tracks, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, ebml_element *RSegment)
+static matroska_block *GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track)
+{
+    ebml_element *Block, *GBlock;
+    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+    {
+        if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+        {
+            for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+            {
+                if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                {
+                    if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == Track &&
+                        MATROSKA_BlockTimecode((matroska_block*)GBlock) == Timecode)
+                    {
+                        return (matroska_block*)GBlock;
+                    }
+                }
+            }
+        }
+        else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+        {
+            if (MATROSKA_BlockTrackNum((matroska_block*)Block) == Track &&
+                MATROSKA_BlockTimecode((matroska_block*)Block) == Timecode)
+            {
+                return (matroska_block*)Block;
+            }
+        }
+    }
+    return NULL;
+}
+
+static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, const ebml_element *RSegment)
+{
+    matroska_cluster **Cluster;
+    matroska_block *Block;
+    int16_t CueTrack;
+    timecode_t CueTimecode;
+    size_t StartBoost = 7;
+
+    CueTrack = MATROSKA_CueTrackNum(Cue);
+    CueTimecode = MATROSKA_CueTimecode(Cue);
+    if (StartCluster)
+    {
+        for (Cluster=StartCluster;StartBoost && Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster,--StartBoost)
+        {
+            Block = GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
+            if (Block)
+            {
+                MATROSKA_LinkCuePointBlock(Cue,Block);
+                ShowProgress((ebml_element*)(*Cluster),RSegment,2);
+                return Cluster;
+            }
+        }
+    }
+
+    for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
+    {
+        Block = GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
+        if (Block)
+        {
+            MATROSKA_LinkCuePointBlock(Cue,Block);
+            ShowProgress((ebml_element*)(*Cluster),RSegment,2);
+            return Cluster;
+        }
+    }
+
+    TextPrintf(StdErr,T("Could not find the matching block for timecode %0.3f s\r\n"),CueTimecode/1000000000.0);
+    return NULL;
+}
+
+static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Tracks, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment)
 {
     matroska_cluster **Cluster;
     ebml_element *Block, *GBlock;
     matroska_cuepoint *Cue;
-    int16_t CueTrack;
-    timecode_t CueTimecode;
-    bool_t Found;
 
     ReduceSize(Cues);
 
@@ -197,50 +264,9 @@ static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Trac
     MATROSKA_CuesSort(Cues);
 
     // link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
+    Cluster = NULL;
     for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
-    {
-        CueTrack = MATROSKA_CueTrackNum(Cue);
-        CueTimecode = MATROSKA_CueTimecode(Cue);
-        Found = 0;
-        for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);!Found && Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
-        {
-            for (Block = EBML_MasterChildren(*Cluster);!Found && Block;Block=EBML_MasterNext(Block))
-            {
-                if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-                {
-                    for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
-                    {
-                        if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
-                        {
-                            if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == CueTrack &&
-                                MATROSKA_BlockTimecode((matroska_block*)GBlock) == CueTimecode)
-                            {
-                                MATROSKA_LinkCuePointBlock(Cue,(matroska_block*)GBlock);
-                                Found = 1;
-                            }
-                            ShowProgress((ebml_element*)(*Cluster),RSegment,2);
-                            break;
-                        }
-                    }
-                }
-                else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-                {
-                    if (MATROSKA_BlockTrackNum((matroska_block*)Block) == CueTrack &&
-                        MATROSKA_BlockTimecode((matroska_block*)Block) == CueTimecode)
-                    {
-                        MATROSKA_LinkCuePointBlock(Cue,(matroska_block*)Block);
-                        Found = 1;
-                        ShowProgress((ebml_element*)(*Cluster),RSegment,2);
-                        break;
-                    }
-                }
-            }
-        }
-        if (!Found)
-        {
-            TextPrintf(StdErr,T("Could not find the matching block for timecode %0.3f s\r\n"),CueTimecode/1000000000.0);
-        }
-    }
+        Cluster = LinkCueCluster(Cue,Clusters,Cluster,RSegment);
     EndProgress(RSegment,2);
 
     SettleClustersWithCues(Clusters,StartPos,Cues,WSegment);
