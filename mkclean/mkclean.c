@@ -32,6 +32,7 @@
 /*!
  * \todo change the Segment UID (when key parts are altered)
  * \todo optionally add a CRC32 on level1 elements
+ * \todo generate the cues if they are missing
  * \todo start a new cluster boundary with each video keyframe
  * \todo add error types (numbers) to show to that each type can be disabled on demand
  * \todo forbid the use of SimpleBlock in v1
@@ -192,6 +193,9 @@ static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Trac
     for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
         MATROSKA_LinkCueSegmentInfo(Cue,RSegmentInfo);
 
+    // sort the Cues
+    MATROSKA_CuesSort(Cues);
+
     // link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
     for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
     {
@@ -238,8 +242,6 @@ static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Trac
         }
     }
     EndProgress(RSegment,2);
-
-    // TODO: sort the Cues
 
     SettleClustersWithCues(Clusters,StartPos,Cues,WSegment);
 }
