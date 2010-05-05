@@ -731,6 +731,12 @@ int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
     return (int16_t)((ebml_integer*)CueTrack)->Value;
 }
 
+void MATROSKA_CuesSort(ebml_element *Cues)
+{
+    assert(Cues->Context->Id == MATROSKA_ContextCues.Id);
+    EBML_MasterSort(Cues,NULL,NULL);
+}
+
 timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_element *SegmentInfo)
 {
     ebml_element *TimecodeScale;
@@ -1210,6 +1216,24 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
 	return Element->Base.Base.DataSize;
 }
 
+static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)
+{
+    timecode_t TA = MATROSKA_CueTimecode(a);
+    timecode_t TB = MATROSKA_CueTimecode(b);
+    int NA,NB;
+    if (TB < TA)
+        return 1;
+    if (TB > TA)
+        return -1;
+    NA = MATROSKA_CueTrackNum(a);
+    NB = MATROSKA_CueTrackNum(b);
+    if (NB < NA)
+        return 1;
+    if (NB > NA)
+        return -1;
+    return 0;
+}
+
 META_START(Matroska_Class,MATROSKA_BLOCK_CLASS)
 META_CLASS(SIZE,sizeof(matroska_block))
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadBlockData)
@@ -1227,6 +1251,7 @@ META_END_CONTINUE(EBML_BINARY_CLASS)
 
 META_START_CONTINUE(MATROSKA_CUEPOINT_CLASS)
 META_CLASS(SIZE,sizeof(matroska_cuepoint))
+META_VMT(TYPE_FUNC,ebml_element_vmt,Cmp,CmpCuePoint)
 META_PARAM(TYPE,MATROSKA_CUE_SEGMENTINFO,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_CUE_SEGMENTINFO,matroska_cuepoint,SegInfo)
 META_PARAM(TYPE,MATROSKA_CUE_BLOCK,TYPE_NODE)

@@ -66,6 +66,7 @@ EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 EBML_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
 EBML_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block);
 EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
+EBML_DLL void MATROSKA_CuesSort(ebml_element *Cues);
 
 #define MATROSKA_VERSION  2
 
