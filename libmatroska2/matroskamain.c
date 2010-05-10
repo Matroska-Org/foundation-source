@@ -1,5 +1,5 @@
 /*
- * $Id: matroskamain.c 1319 2008-09-19 16:08:57Z robux4 $
+ * $Id$
  * Copyright (c) 2008, Matroska Foundation
  * All rights reserved.
  *
