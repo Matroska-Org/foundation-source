@@ -28,25 +28,26 @@
 #include "matroska/matroska.h"
 #include "matroska2_project.h"
 
-#define MATROSKA_BLOCK_CLASS     FOURCC('M','K','B','L')
-#define MATROSKA_CUEPOINT_CLASS  FOURCC('M','K','C','P')
-#define MATROSKA_CLUSTER_CLASS   FOURCC('M','K','C','U')
-#define MATROSKA_SEEKPOINT_CLASS FOURCC('M','K','S','K')
+#define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
+#define MATROSKA_CUEPOINT_CLASS   FOURCC('M','K','C','P')
+#define MATROSKA_CLUSTER_CLASS    FOURCC('M','K','C','U')
+#define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
+#define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
 
 // Seek Header
 const ebml_context MATROSKA_ContextSeekId = {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextSeekPosition = {0x53AC, EBML_INTEGER_CLASS, 0, 0, "SeekPosition", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticSeekPoint[] = {
-    {1, 1, &MATROSKA_ContextSeekId},
-    {1, 1, &MATROSKA_ContextSeekPosition},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextSeekId       ,0},
+    {1, 1, &MATROSKA_ContextSeekPosition ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSeek = {0x4DBB, MATROSKA_SEEKPOINT_CLASS, 0, 0, "SeekPoint", EBML_SemanticSeekPoint, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticSeekHead[] = {
-    {1, 0, &MATROSKA_ContextSeek},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextSeek ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSeekHead = {0x114D9B74, EBML_MASTER_CLASS, 0, 0, "SeekHeader", EBML_SemanticSeekHead, EBML_SemanticGlobals, NULL};
 
@@ -55,18 +56,18 @@ const ebml_context MATROSKA_ContextTranslateEditionUID = {0x69FC, EBML_INTEGER_C
 const ebml_context MATROSKA_ContextTranslateCodec = {0x69BF, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTranslateID = {0x69A5, EBML_BINARY_CLASS, 0, 0, "ChapterTranslateID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticCodecTranslate[] = {
-    {0, 0, &MATROSKA_ContextTranslateEditionUID},
-    {1, 1, &MATROSKA_ContextTranslateCodec},
-    {1, 1, &MATROSKA_ContextTranslateID},
-    {0, 0, NULL} // end of the table
+    {0, 0, &MATROSKA_ContextTranslateEditionUID ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextTranslateCodec      ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextTranslateID         ,PROFILE_TEST},
+    {0, 0, NULL, 0} // end of the table
 };
 const ebml_context MATROSKA_ContextChapterTranslate = {0x6924, EBML_MASTER_CLASS, 0, 0, "ChapterTranslate", EBML_SemanticCodecTranslate, EBML_SemanticGlobals, NULL};
 
-const ebml_context MATROSKA_ContextSegmentUid = {0x73A4, EBML_BINARY_CLASS, 0, 0, "SegmentUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextSegmentUid = {0x73A4, MATROSKA_SEGMENTUID_CLASS, 0, 0, "SegmentUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextSegmentFilename = {0x7384, EBML_UNISTRING_CLASS, 0, 0, "SegmentFilename", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextPrevUid = {0x3CB923, EBML_BINARY_CLASS, 0, 0, "PrevUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrevUid = {0x3CB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "PrevUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextPrevFilename = {0x3C83AB, EBML_UNISTRING_CLASS, 0, 0, "PrevFilename", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextNextUid = {0x3EB923, EBML_BINARY_CLASS, 0, 0, "NextUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextNextUid = {0x3EB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "NextUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextNextFilename = {0x3E83BB, EBML_UNISTRING_CLASS, 0, 0, "NextFilename", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextSegmentFamily = {0x4444, EBML_BINARY_CLASS, 0, 0, "SegmentFamily", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTimecodeScale = {0x2AD7B1, EBML_INTEGER_CLASS, 1, 1000000, "TimecodeScale", NULL, EBML_SemanticGlobals, NULL};
@@ -77,21 +78,21 @@ const ebml_context MATROSKA_ContextMuxingApp = {0x4D80, EBML_UNISTRING_CLASS, 0,
 const ebml_context MATROSKA_ContextWritingApp = {0x5741, EBML_UNISTRING_CLASS, 0, 0, "WritingApp", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticSegmentInfo[] = {
-    {0, 0, &MATROSKA_ContextSegmentUid},
-    {0, 0, &MATROSKA_ContextSegmentFilename},
-    {0, 0, &MATROSKA_ContextPrevUid},
-    {0, 0, &MATROSKA_ContextPrevFilename},
-    {0, 0, &MATROSKA_ContextNextUid},
-    {0, 0, &MATROSKA_ContextNextFilename},
-    {0, 0, &MATROSKA_ContextSegmentFamily},
-    {0, 0, &MATROSKA_ContextChapterTranslate},
-    {0, 0, &MATROSKA_ContextTimecodeScale},
-    {0, 0, &MATROSKA_ContextDuration},
-    {0, 0, &MATROSKA_ContextSegmentDate},
-    {0, 0, &MATROSKA_ContextSegmentTitle},
-    {0, 0, &MATROSKA_ContextMuxingApp},
-    {0, 0, &MATROSKA_ContextWritingApp},
-    {0, 0, NULL} // end of the table
+    {0, 1, &MATROSKA_ContextSegmentUid       ,0},
+    {0, 1, &MATROSKA_ContextSegmentFilename  ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextPrevUid          ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextPrevFilename     ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextNextUid          ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextNextFilename     ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextSegmentFamily    ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextChapterTranslate ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextTimecodeScale    ,0},
+    {0, 1, &MATROSKA_ContextDuration         ,0},
+    {0, 1, &MATROSKA_ContextSegmentDate      ,0},
+    {0, 1, &MATROSKA_ContextSegmentTitle     ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextMuxingApp        ,0},
+    {1, 1, &MATROSKA_ContextWritingApp       ,0},
+    {0, 0, NULL, 0} // end of the table
 };
 const ebml_context MATROSKA_ContextSegmentInfo = {0x1549A966, EBML_MASTER_CLASS, 0, 0, "Info", EBML_SemanticSegmentInfo, EBML_SemanticGlobals, NULL};
 
@@ -100,28 +101,28 @@ const ebml_context MATROSKA_ContextSegmentInfo = {0x1549A966, EBML_MASTER_CLASS,
 const ebml_context MATROSKA_ContextChapterTrackNumber = {0x89, EBML_INTEGER_CLASS, 0, 0, "ChapterFlagEnabled", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterTrack[] = {
-    {1, 0, &MATROSKA_ContextChapterTrackNumber},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextChapterTrackNumber ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextChapterProcessTime = {0x6922, EBML_INTEGER_CLASS, 0, 0, "ChapterProcessTime", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterProcessData = {0x6933, EBML_BINARY_CLASS, 0, 0, "ChapterProcessData", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterProcessCommand[] = {
-    {1, 1, &MATROSKA_ContextChapterProcessTime},
-    {1, 1, &MATROSKA_ContextChapterProcessData},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextChapterProcessTime ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextChapterProcessData ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_ContextChapterProcessCodecID = {0x6955, EBML_INTEGER_CLASS, 0, 0, "ChapterProcessCodecID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChapterProcessCodecID = {0x6955, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ChapterProcessCodecID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterProcessPrivate = {0x450D, EBML_BINARY_CLASS, 0, 0, "ChapterProcessPrivate", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterProcessCommand = {0x6911, EBML_MASTER_CLASS, 0, 0, "ChapterProcessCommand", EBML_SemanticChapterProcessCommand, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterProcess[] = {
-    {1, 1, &MATROSKA_ContextChapterProcessCodecID},
-    {0, 1, &MATROSKA_ContextChapterProcessPrivate},
-    {0, 0, &MATROSKA_ContextChapterProcessCommand},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextChapterProcessCodecID ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapterProcessPrivate ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextChapterProcessCommand ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextChapterString = {0x85, EBML_UNISTRING_CLASS, 0, 0, "ChapterString", NULL, EBML_SemanticGlobals, NULL};
@@ -129,10 +130,10 @@ const ebml_context MATROSKA_ContextChapterLanguage = {0x437C, EBML_STRING_CLASS,
 const ebml_context MATROSKA_ContextChapterCountry = {0x437E, EBML_STRING_CLASS, 0, 0, "ChapterCountry", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterDisplay[] = {
-    {1, 1, &MATROSKA_ContextChapterString},
-    {1, 0, &MATROSKA_ContextChapterLanguage},
-    {0, 0, &MATROSKA_ContextChapterCountry},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextChapterString   ,PROFILE_TEST},
+    {1, 0, &MATROSKA_ContextChapterLanguage ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextChapterCountry  ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextChapterUID = {0x73C4, EBML_INTEGER_CLASS, 0, 0, "ChapterUID", NULL, EBML_SemanticGlobals, NULL};
@@ -147,41 +148,41 @@ const ebml_context MATROSKA_ContextChapterTrack = {0x8F, EBML_MASTER_CLASS, 0, 0
 const ebml_context MATROSKA_ContextChapterDisplay = {0x80, EBML_MASTER_CLASS, 0, 0, "ChapterDisplay", EBML_SemanticChapterDisplay, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterProcess = {0x6944, EBML_MASTER_CLASS, 0, 0, "ChapterProcess", EBML_SemanticChapterProcess, EBML_SemanticGlobals, NULL};
 
+const ebml_semantic EBML_SemanticChapterAtom[] = {
+    {0, 0, &MATROSKA_ContextChapterAtom              ,PROFILE_TEST}, // recursive
+    {1, 1, &MATROSKA_ContextChapterUID               ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextChapterTimeStart         ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapterTimeEnd           ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextChapterHidden            ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextChapterEnabled           ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapterSegmentUID        ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapterSegmentEditionUID ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapterPhysical          ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapterTrack             ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextChapterDisplay           ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextChapterProcess           ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextChapterAtom = {0xB6, EBML_MASTER_CLASS, 0, 0, "ChapterAtom", EBML_SemanticChapterAtom, EBML_SemanticGlobals, NULL};
+
 const ebml_context MATROSKA_ContextEditionUID = {0x45BC, EBML_INTEGER_CLASS, 0, 0, "EditionUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextEditionHidden = {0x45BD, EBML_BOOLEAN_CLASS, 0, 0, "EditionFlagHidden", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextEditionDefault = {0x45DB, EBML_BOOLEAN_CLASS, 0, 0, "EditionFlagDefault", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextEditionOrdered = {0x45DD, EBML_BOOLEAN_CLASS, 0, 0, "EditionFlagOrdered", NULL, EBML_SemanticGlobals, NULL};
 
-const ebml_semantic EBML_SemanticChapterAtom[] = {
-    {0, 0, &MATROSKA_ContextChapterAtom},
-    {0, 1, &MATROSKA_ContextChapterUID},
-    {1, 1, &MATROSKA_ContextChapterTimeStart},
-    {0, 1, &MATROSKA_ContextChapterTimeEnd},
-    {1, 1, &MATROSKA_ContextChapterHidden},
-    {1, 1, &MATROSKA_ContextChapterEnabled},
-    {0, 1, &MATROSKA_ContextChapterSegmentUID},
-    {0, 1, &MATROSKA_ContextChapterSegmentEditionUID},
-    {0, 1, &MATROSKA_ContextChapterPhysical},
-    {0, 0, &MATROSKA_ContextChapterTrack},
-    {0, 0, &MATROSKA_ContextChapterDisplay},
-    {0, 0, &MATROSKA_ContextChapterProcess},
-    {0, 0, NULL} // end of the table
-};
-const ebml_context MATROSKA_ContextChapterAtom = {0xB6, EBML_MASTER_CLASS, 0, 0, "ChapterAtom", EBML_SemanticChapterAtom, EBML_SemanticGlobals, NULL};
-
 const ebml_semantic EBML_SemanticEdition[] = {
-    {1, 0, &MATROSKA_ContextEditionUID},
-    {0, 1, &MATROSKA_ContextEditionHidden},
-    {1, 1, &MATROSKA_ContextEditionDefault},
-    {0, 1, &MATROSKA_ContextEditionOrdered},
-    {1, 0, &MATROSKA_ContextChapterAtom},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextEditionUID     ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextEditionHidden  ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextEditionDefault ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextEditionOrdered ,PROFILE_TEST},
+    {1, 0, &MATROSKA_ContextChapterAtom    ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextChapterEntry = {0x45B9, EBML_MASTER_CLASS, 0, 0, "EditionEntry", EBML_SemanticEdition, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapters[] = {
-    {1, 0, &MATROSKA_ContextChapterEntry},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextChapterEntry ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextChapters = {0x1043A770, EBML_MASTER_CLASS, 0, 0, "Chapters", EBML_SemanticChapters, EBML_SemanticGlobals, NULL};
 
@@ -189,53 +190,55 @@ const ebml_context MATROSKA_ContextChapters = {0x1043A770, EBML_MASTER_CLASS, 0,
 const ebml_context MATROSKA_ContextClusterBlockAdditionalID = {0xEE, EBML_INTEGER_CLASS, 1, (intptr_t)1, "ClusterBlockAdditionalID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockAdditional = {0xA5, EBML_BINARY_CLASS, 0, 0, "BlockAdditional", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticClusterBlockMore[] = {
-    {1, 1, &MATROSKA_ContextClusterBlockAdditionalID},
-    {1, 1, &MATROSKA_ContextClusterBlockAdditional},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextClusterBlockAdditionalID ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextClusterBlockAdditional   ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextClusterBlockMore = {0xA6, EBML_MASTER_CLASS, 0, 0, "ClusterBlockMore", EBML_SemanticClusterBlockMore, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticClusterBlockAdditions[] = {
-    {1, 0, &MATROSKA_ContextClusterBlockMore},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextClusterBlockMore ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextClusterLaceNumber = {0xCC, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ClusterLaceNumber", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterSliceDuation = {0xCF, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ClusterSliceDuation", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticClusterTimeSlice[] = {
-    {0, 1, &MATROSKA_ContextClusterLaceNumber},
-    {0, 1, &MATROSKA_ContextClusterSliceDuation},
-    {0, 0, NULL} // end of the table
+    {0, 1, &MATROSKA_ContextClusterLaceNumber   ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextClusterSliceDuation ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextClusterTimeSlice = {0xE8, EBML_MASTER_CLASS, 0, 0, "ClusterTimeSlice", EBML_SemanticClusterTimeSlice, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticClusterSlices[] = {
-    {0, 0, &MATROSKA_ContextClusterTimeSlice},
-    {0, 0, NULL} // end of the table
+    {0, 0, &MATROSKA_ContextClusterTimeSlice ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextClusterBlock = {0xA1, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterBlock", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockAdditions = {0x75A1, EBML_MASTER_CLASS, 0, 0, "ClusterBlockAdditions", EBML_SemanticClusterBlockAdditions, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockDuration = {0x9B, EBML_INTEGER_CLASS, 0, 0, "ClusterBlockDuration", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterReferencePriority = {0xFA, EBML_INTEGER_CLASS, 1, 0, "ClusterReferencePriority", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextClusterReferencePriority = {0xFA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ClusterReferencePriority", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterReferenceBlock = {0xFB, EBML_SINTEGER_CLASS, 0, 0, "ClusterReferenceBlock", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextClusterCodecState = {0xA4, EBML_BINARY_CLASS, 0, 0, "CodecState", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterSlices = {0x8E, EBML_MASTER_CLASS, 0, 0, "ClusterSlices", EBML_SemanticClusterSlices, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticClusterBlockGroup[] = {
-    {1, 1, &MATROSKA_ContextClusterBlock},
-    {0, 1, &MATROSKA_ContextClusterBlockDuration},
-    {1, 1, &MATROSKA_ContextClusterReferencePriority},
-    {0, 0, &MATROSKA_ContextClusterReferenceBlock},
-    {0, 0, &MATROSKA_ContextClusterSlices},
-    {0, 1, &MATROSKA_ContextClusterBlockAdditions},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextClusterBlock             ,0},
+    {0, 1, &MATROSKA_ContextClusterBlockDuration     ,0},
+    {1, 1, &MATROSKA_ContextClusterReferencePriority ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextClusterReferenceBlock    ,0},
+    {0, 1, &MATROSKA_ContextClusterCodecState        ,PROFILE_MATROSKA_V1|PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextClusterSlices            ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextClusterBlockAdditions    ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextClusterSilentTrackNumber = {0x58D7, EBML_INTEGER_CLASS, 0, 0, "ClusterSilentTrackNumber", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticClusterSilentTracks[] = {
-    {0, 0, &MATROSKA_ContextClusterSilentTrackNumber},
-    {0, 0, NULL} // end of the table
+    {0, 0, &MATROSKA_ContextClusterSilentTrackNumber ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextClusterTimecode = {0xE7, EBML_INTEGER_CLASS, 0, 0, "ClusterTimecode", NULL, EBML_SemanticGlobals, NULL};
@@ -246,13 +249,13 @@ const ebml_context MATROSKA_ContextClusterBlockGroup = {0xA0, EBML_MASTER_CLASS,
 const ebml_context MATROSKA_ContextClusterSimpleBlock = {0xA3, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterSimpleBlock", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticCluster[] = {
-    {1, 1, &MATROSKA_ContextClusterTimecode},
-    {0, 1, &MATROSKA_ContextClusterPosition},
-    {0, 1, &MATROSKA_ContextClusterPrevSize},
-    {0, 0, &MATROSKA_ContextClusterBlockGroup},
-    {0, 0, &MATROSKA_ContextClusterSimpleBlock},
-    {0, 1, &MATROSKA_ContextClusterSilentTracks},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextClusterTimecode     ,0},
+    {0, 1, &MATROSKA_ContextClusterPosition     ,0},
+    {0, 1, &MATROSKA_ContextClusterPrevSize     ,0},
+    {0, 0, &MATROSKA_ContextClusterBlockGroup   ,0},
+    {0, 0, &MATROSKA_ContextClusterSimpleBlock  ,PROFILE_MATROSKA_V1},
+    {0, 1, &MATROSKA_ContextClusterSilentTracks ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextCluster = {0x1F43B675, MATROSKA_CLUSTER_CLASS, 0, 0, "Cluster", EBML_SemanticCluster, EBML_SemanticGlobals, NULL};
@@ -263,14 +266,15 @@ const ebml_context MATROSKA_SemanticTrackAudioOutputSamplingFreq = {0x78B5, EBML
 const ebml_context MATROSKA_SemanticTrackAudioChannels = {0x9F, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackAudioChannels", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackAudioBitDepth = {0x6264, EBML_INTEGER_CLASS, 0, 0, "TrackAudioBitDepth", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackAudio[] = {
-    {1, 1, &MATROSKA_SemanticTrackAudioSamplingFreq},
-    {0, 1, &MATROSKA_SemanticTrackAudioOutputSamplingFreq},
-    {1, 1, &MATROSKA_SemanticTrackAudioChannels},
-    {0, 1, &MATROSKA_SemanticTrackAudioBitDepth},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_SemanticTrackAudioSamplingFreq       ,0},
+    {0, 1, &MATROSKA_SemanticTrackAudioOutputSamplingFreq ,PROFILE_TEST},
+    {1, 1, &MATROSKA_SemanticTrackAudioChannels           ,0},
+    {0, 1, &MATROSKA_SemanticTrackAudioBitDepth           ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_SemanticTrackVideoInterlaced = {0x9A, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "TrackVideoInterlaced", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_SemanticTrackVideoStereo = {0x53B8, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoStereo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackVideoPixelWidth = {0xB0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelWidth", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackVideoPixelHeight = {0xBA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelHeight", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackVideoPixelCropBottom = {0x54AA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropBottom", NULL, EBML_SemanticGlobals, NULL};
@@ -282,28 +286,31 @@ const ebml_context MATROSKA_SemanticTrackVideoDisplayHeight = {0x54BA, EBML_INTE
 const ebml_context MATROSKA_SemanticTrackVideoDisplayUnit = {0x54B2, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoDisplayUnit", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackVideoAspectRatio = {0x54B3, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoAspectRatio", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackVideoColourSpace = {0x2EB524, EBML_BINARY_CLASS, 0, 0, "TrackVideoColourSpace", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_SemanticTrackVideoFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "TrackVideoFrameRate", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackVideo[] = {
-    {1, 1, &MATROSKA_SemanticTrackVideoInterlaced},
-    {1, 1, &MATROSKA_SemanticTrackVideoPixelWidth},
-    {1, 1, &MATROSKA_SemanticTrackVideoPixelHeight},
-    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropBottom},
-    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropTop},
-    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropLeft},
-    {0, 0, &MATROSKA_SemanticTrackVideoPixelCropRight},
-    {0, 0, &MATROSKA_SemanticTrackVideoDisplayWidth},
-    {0, 0, &MATROSKA_SemanticTrackVideoDisplayHeight},
-    {0, 0, &MATROSKA_SemanticTrackVideoDisplayUnit},
-    {0, 0, &MATROSKA_SemanticTrackVideoAspectRatio},
-    {0, 0, &MATROSKA_SemanticTrackVideoColourSpace},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_SemanticTrackVideoInterlaced      ,PROFILE_MATROSKA_V1},
+    {1, 1, &MATROSKA_SemanticTrackVideoPixelWidth      ,0},
+    {1, 1, &MATROSKA_SemanticTrackVideoPixelHeight     ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropBottom ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropTop    ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropLeft   ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropRight  ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoDisplayWidth    ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoDisplayHeight   ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoDisplayUnit     ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoAspectRatio     ,0},
+    {0, 1, &MATROSKA_SemanticTrackVideoColourSpace     ,PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackVideoFrameRate       ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_SemanticTrackEncodingCompressionAlgo = {0x4254, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingCompressionAlgo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackEncodingCompressionSetting = {0x4255, EBML_BINARY_CLASS, 0, 0, "TrackEncodingCompressionSetting", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncodingCompression[] = {
-    {1, 1, &MATROSKA_SemanticTrackEncodingCompressionAlgo},
-    {0, 1, &MATROSKA_SemanticTrackEncodingCompressionSetting},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_SemanticTrackEncodingCompressionAlgo    ,0},
+    {0, 1, &MATROSKA_SemanticTrackEncodingCompressionSetting ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_SemanticTrackEncodingEncryptionAlgo = {0x47E1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionAlgo", NULL, EBML_SemanticGlobals, NULL};
@@ -313,13 +320,13 @@ const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignatureKeyID = {0x4
 const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignatureAlgo = {0x47E5, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureAlgo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignatureHashAlgo = {0x47E6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureHashAlgo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncodingEncryption[] = {
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionAlgo},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionKeyID},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignature},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureKeyID},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureAlgo},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureHashAlgo},
-    {0, 0, NULL} // end of the table
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionAlgo              ,PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionKeyID             ,PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignature         ,PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureKeyID    ,PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureAlgo     ,PROFILE_TEST},
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureHashAlgo ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_SemanticTrackEncodingOrder = {0x5031, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingOrder", NULL, EBML_SemanticGlobals, NULL};
@@ -328,28 +335,28 @@ const ebml_context MATROSKA_SemanticTrackEncodingType = {0x5033, EBML_INTEGER_CL
 const ebml_context MATROSKA_SemanticTrackEncodingCompression = {0x5034, EBML_MASTER_CLASS, 0, 0, "TrackEncodingCompression", EBML_SemanticTrackEncodingCompression, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackEncodingEncryption = {0x5035, EBML_MASTER_CLASS, 0, 0, "TrackEncodingEncryption", EBML_SemanticTrackEncodingEncryption, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncoding[] = {
-    {1, 1, &MATROSKA_SemanticTrackEncodingOrder},
-    {1, 1, &MATROSKA_SemanticTrackEncodingScope},
-    {1, 1, &MATROSKA_SemanticTrackEncodingType},
-    {0, 1, &MATROSKA_SemanticTrackEncodingCompression},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryption},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_SemanticTrackEncodingOrder       ,0},
+    {1, 1, &MATROSKA_SemanticTrackEncodingScope       ,0},
+    {1, 1, &MATROSKA_SemanticTrackEncodingType        ,0},
+    {0, 1, &MATROSKA_SemanticTrackEncodingCompression ,0},
+    {0, 1, &MATROSKA_SemanticTrackEncodingEncryption  ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_SemanticTrackEncoding = {0x6240, EBML_MASTER_CLASS, 0, 0, "TrackEncoding", EBML_SemanticTrackEncoding, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncodings[] = {
-    {1, 0, &MATROSKA_SemanticTrackEncoding},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_SemanticTrackEncoding ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_SemanticTrackTranslateEditionUID = {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackTranslateCodec = {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_SemanticTrackTranslateID = {0x66A5, EBML_BINARY_CLASS, 0, 0, "TrackTranslateID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackTranslate[] = {
-    {0, 0, &MATROSKA_SemanticTrackTranslateEditionUID},
-    {1, 1, &MATROSKA_SemanticTrackTranslateCodec},
-    {1, 1, &MATROSKA_SemanticTrackTranslateID},
-    {0, 0, NULL} // end of the table
+    {0, 0, &MATROSKA_SemanticTrackTranslateEditionUID ,PROFILE_TEST},
+    {1, 1, &MATROSKA_SemanticTrackTranslateCodec      ,PROFILE_TEST},
+    {1, 1, &MATROSKA_SemanticTrackTranslateID         ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 
 const ebml_context MATROSKA_ContextTrackNumber = {0xD7, EBML_INTEGER_CLASS, 0, 0, "TrackNumber", NULL, EBML_SemanticGlobals, NULL};
@@ -375,67 +382,76 @@ const ebml_context MATROSKA_ContextTrackTranslate = {0x6624, EBML_MASTER_CLASS, 
 const ebml_context MATROSKA_ContextTrackVideo = {0xE0, EBML_MASTER_CLASS, 0, 0, "TrackVideo", EBML_SemanticTrackVideo, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackAudio = {0xE1, EBML_MASTER_CLASS, 0, 0, "TrackAudio", EBML_SemanticTrackAudio, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackEncodings = {0x6D80, EBML_MASTER_CLASS, 0, 0, "TrackEncodings", EBML_SemanticTrackEncodings, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackCodecDecodeAll = {0xAA, EBML_INTEGER_CLASS, 1, 1, "TrackCodecDecodeAll", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackCodecDecodeAll = {0xAA, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackCodecDecodeAll", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTrackEntry[] = {
-    {1, 1, &MATROSKA_ContextTrackNumber},
-    {1, 1, &MATROSKA_ContextTrackUID},
-    {1, 1, &MATROSKA_ContextTrackType},
-    {1, 1, &MATROSKA_ContextTrackEnabled},
-    {1, 1, &MATROSKA_ContextTrackDefault},
-    {1, 0, &MATROSKA_ContextTrackForced},
-    {0, 1, &MATROSKA_ContextTrackVideo},
-    {0, 1, &MATROSKA_ContextTrackAudio},
-    {1, 1, &MATROSKA_ContextTrackLacing},
-    {1, 1, &MATROSKA_ContextTrackMinCache},
-    {0, 1, &MATROSKA_ContextTrackMaxCache},
-    {0, 1, &MATROSKA_ContextTrackDefaultDuration},
-    {1, 1, &MATROSKA_ContextTrackTimecodeScale},
-    {1, 1, &MATROSKA_ContextTrackMaxBlockAdditionID},
-    {0, 1, &MATROSKA_ContextTrackName},
-    {0, 1, &MATROSKA_ContextTrackLanguage},
-    {1, 1, &MATROSKA_ContextTrackCodecID},
-    {0, 1, &MATROSKA_ContextTrackCodecPrivate},
-    {0, 1, &MATROSKA_ContextTrackCodecName},
-    {0, 1, &MATROSKA_ContextTrackAttachmentLink},
-    {0, 0, &MATROSKA_ContextTrackOverlay},
-    {0, 1, &MATROSKA_ContextTrackEncodings},
-    {0, 0, &MATROSKA_ContextTrackTranslate},
-    {1, 1, &MATROSKA_ContextTrackCodecDecodeAll},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextTrackNumber             ,0},
+    {1, 1, &MATROSKA_ContextTrackUID                ,0},
+    {1, 1, &MATROSKA_ContextTrackType               ,0},
+    {1, 1, &MATROSKA_ContextTrackEnabled            ,PROFILE_MATROSKA_V1},
+    {1, 1, &MATROSKA_ContextTrackDefault            ,0},
+    {1, 0, &MATROSKA_ContextTrackForced             ,0},
+    {0, 1, &MATROSKA_ContextTrackVideo              ,0},
+    {0, 1, &MATROSKA_ContextTrackAudio              ,0},
+    {1, 1, &MATROSKA_ContextTrackLacing             ,0},
+    {1, 1, &MATROSKA_ContextTrackMinCache           ,0},
+    {0, 1, &MATROSKA_ContextTrackMaxCache           ,0},
+    {0, 1, &MATROSKA_ContextTrackDefaultDuration    ,0},
+    {1, 1, &MATROSKA_ContextTrackTimecodeScale      ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextTrackMaxBlockAdditionID ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextTrackName               ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextTrackLanguage           ,0},
+    {1, 1, &MATROSKA_ContextTrackCodecID            ,0},
+    {0, 1, &MATROSKA_ContextTrackCodecPrivate       ,0},
+    {0, 1, &MATROSKA_ContextTrackCodecName          ,0},
+    {0, 1, &MATROSKA_ContextTrackAttachmentLink     ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextTrackOverlay            ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextTrackEncodings          ,0},
+    {0, 0, &MATROSKA_ContextTrackTranslate          ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextTrackCodecDecodeAll     ,PROFILE_MATROSKA_V1},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTrackEntry = {0xAE, EBML_MASTER_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTracks[] = {
-    {1, 0, &MATROSKA_ContextTrackEntry},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextTrackEntry ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTracks = {0x1654AE6B, EBML_MASTER_CLASS, 0, 0, "Tracks", EBML_SemanticTracks, EBML_SemanticGlobals, NULL};
 
 // Cues
+const ebml_context MATROSKA_ContextRefTime = {0x96, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
+const ebml_semantic EBML_SemanticCueReference[] = {
+    {1, 1, &MATROSKA_ContextRefTime ,PROFILE_MATROSKA_V1},
+    {0, 0, NULL ,0} // end of the table
+};
 const ebml_context MATROSKA_ContextCueTrack = {0xF7, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueClusterPosition = {0xF1, EBML_INTEGER_CLASS, 0, 0, "CueClusterPosition", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueBlockNumber = {0x5378, EBML_INTEGER_CLASS, 1, (intptr_t)1, "CueBlockNumber", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextCueCodecState = {0xEA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "CueCodecState", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextCueReference = {0xDB, EBML_MASTER_CLASS, 0, 0, "CueReference", EBML_SemanticCueReference, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticCueTrackPosition[] = {
-    {1, 1, &MATROSKA_ContextCueTrack},
-    {1, 1, &MATROSKA_ContextCueClusterPosition},
-    {0, 1, &MATROSKA_ContextCueBlockNumber},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextCueTrack           ,0},
+    {1, 1, &MATROSKA_ContextCueClusterPosition ,0},
+    {0, 1, &MATROSKA_ContextCueBlockNumber     ,0},
+    {0, 1, &MATROSKA_ContextCueCodecState      ,PROFILE_MATROSKA_V1},
+    {0, 1, &MATROSKA_ContextCueReference       ,PROFILE_MATROSKA_V1},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextCueTrackPositions = {0xB7, EBML_MASTER_CLASS, 0, 0, "CueTrackPosition", EBML_SemanticCueTrackPosition, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueTime = {0xB3, EBML_INTEGER_CLASS, 0, 0, "CueTime", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticCuePoint[] = {
-    {1, 1, &MATROSKA_ContextCueTime},
-    {1, 0, &MATROSKA_ContextCueTrackPositions},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextCueTime           ,0},
+    {1, 0, &MATROSKA_ContextCueTrackPositions ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextCuePoint = {0xBB, MATROSKA_CUEPOINT_CLASS, 0, 0, "CuePoint", EBML_SemanticCuePoint, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticCues[] = {
-    {1, 0, &MATROSKA_ContextCuePoint},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextCuePoint ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextCues = {0x1C53BB6B, EBML_MASTER_CLASS, 0, 0, "Cues", EBML_SemanticCues, EBML_SemanticGlobals, NULL};
 
@@ -446,18 +462,18 @@ const ebml_context MATROSKA_ContextAttachedFileMimeType = {0x4660, EBML_STRING_C
 const ebml_context MATROSKA_ContextAttachedFileData = {0x465C, EBML_BINARY_CLASS, 0, 0, "AttachedFileData", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextAttachedFileUID = {0x46AE, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticAttachedFile[] = {
-    {1, 1, &MATROSKA_ContextAttachedFileName},
-    {1, 1, &MATROSKA_ContextAttachedFileMimeType},
-    {1, 1, &MATROSKA_ContextAttachedFileData},
-    {1, 1, &MATROSKA_ContextAttachedFileUID},
-    {0, 1, &MATROSKA_ContextAttachedFileDescription},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextAttachedFileName        ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextAttachedFileMimeType    ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextAttachedFileData        ,PROFILE_TEST},
+    {1, 1, &MATROSKA_ContextAttachedFileUID         ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextAttachedFileDescription ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextAttachedFile = {0x61A7, EBML_MASTER_CLASS, 0, 0, "AttachedFile", EBML_SemanticAttachedFile, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticAttachments[] = {
-    {1, 0, &MATROSKA_ContextAttachedFile},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextAttachedFile ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextAttachments = {0x1941A469, EBML_MASTER_CLASS, 0, 0, "Attachments", EBML_SemanticAttachments, EBML_SemanticGlobals, NULL};
 
@@ -469,13 +485,13 @@ const ebml_context MATROSKA_ContextTagTargetEditionUID = {0x63C9, EBML_INTEGER_C
 const ebml_context MATROSKA_ContextTagTargetChapterUID = {0x63C4, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetChapterUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagTargetAttachmentUID = {0x63C6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetAttachmentUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTagTargets[] = {
-    {0, 1, &MATROSKA_ContextTagTargetTypeValue},
-    {0, 1, &MATROSKA_ContextTagTargetType},
-    {0, 0, &MATROSKA_ContextTagTargetTrackUID},
-    {0, 0, &MATROSKA_ContextTagTargetEditionUID},
-    {0, 0, &MATROSKA_ContextTagTargetChapterUID},
-    {0, 0, &MATROSKA_ContextTagTargetAttachmentUID},
-    {0, 0, NULL} // end of the table
+    {0, 1, &MATROSKA_ContextTagTargetTypeValue     ,0},
+    {0, 1, &MATROSKA_ContextTagTargetType          ,0},
+    {0, 0, &MATROSKA_ContextTagTargetTrackUID      ,0},
+    {0, 0, &MATROSKA_ContextTagTargetEditionUID    ,0},
+    {0, 0, &MATROSKA_ContextTagTargetChapterUID    ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextTagTargetAttachmentUID ,PROFILE_TEST},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTagTargets = {0x63C0, EBML_MASTER_CLASS, 0, 0, "TagTargets", EBML_SemanticTagTargets, EBML_SemanticGlobals, NULL};
 
@@ -485,45 +501,46 @@ const ebml_context MATROSKA_ContextTagDefault = {0x4484, EBML_BOOLEAN_CLASS, 1, 
 const ebml_context MATROSKA_ContextTagString = {0x4487, EBML_UNISTRING_CLASS, 0, 0, "TagString", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagBinary = {0x4485, EBML_BINARY_CLASS, 0, 0, "TagBinary", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticSimpleTag[] = {
-    {1, 1, &MATROSKA_ContextTagName},
-    {1, 1, &MATROSKA_ContextTagLanguage},
-    {1, 1, &MATROSKA_ContextTagDefault},
-    {0, 1, &MATROSKA_ContextTagString},
-    {0, 1, &MATROSKA_ContextTagBinary},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextTagName     ,0},
+    {1, 1, &MATROSKA_ContextTagLanguage ,0},
+    {1, 1, &MATROSKA_ContextTagDefault  ,0},
+    {0, 1, &MATROSKA_ContextTagString   ,0},
+    {0, 1, &MATROSKA_ContextTagBinary   ,0},
+    {0, 0, &MATROSKA_ContextSimpleTag   ,0}, // recursive
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSimpleTag = {0x67C8, EBML_MASTER_CLASS, 0, 0, "SimpleTag", EBML_SemanticSimpleTag, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTag[] = {
-    {1, 1, &MATROSKA_ContextTagTargets},
-    {1, 0, &MATROSKA_ContextSimpleTag},
-    {0, 0, NULL} // end of the table
+    {1, 1, &MATROSKA_ContextTagTargets ,0},
+    {1, 0, &MATROSKA_ContextSimpleTag  ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTag = {0x7373, EBML_MASTER_CLASS, 0, 0, "Tag", EBML_SemanticTag, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTags[] = {
-    {1, 0, &MATROSKA_ContextTag},
-    {0, 0, NULL} // end of the table
+    {1, 0, &MATROSKA_ContextTag ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTags = {0x1254C367, EBML_MASTER_CLASS, 0, 0, "Tags", EBML_SemanticTags, EBML_SemanticGlobals, NULL};
 
 // Segment
 const ebml_semantic EBML_SemanticSegment[] = {
-    {0, 0, &MATROSKA_ContextSeekHead},
-    {1, 0, &MATROSKA_ContextSegmentInfo},
-    {0, 0, &MATROSKA_ContextCluster},
-    {0, 0, &MATROSKA_ContextTracks},
-    {0, 1, &MATROSKA_ContextCues},
-    {0, 1, &MATROSKA_ContextAttachments},
-    {0, 1, &MATROSKA_ContextChapters},
-    {0, 0, &MATROSKA_ContextTags},
-    {0, 0, NULL} // end of the table
+    {0, 0, &MATROSKA_ContextSeekHead     ,0},
+    {1, 0, &MATROSKA_ContextSegmentInfo  ,0},
+    {0, 0, &MATROSKA_ContextCluster      ,0},
+    {0, 0, &MATROSKA_ContextTracks       ,0},
+    {0, 1, &MATROSKA_ContextCues         ,0},
+    {0, 1, &MATROSKA_ContextAttachments  ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextChapters     ,PROFILE_TEST},
+    {0, 0, &MATROSKA_ContextTags         ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSegment = {0x18538067, EBML_MASTER_CLASS, 0, 0, "Segment\0wrmf", EBML_SemanticSegment, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticMatroska[] = {
-    {1, 0, &EBML_ContextHead},
-    {1, 0, &MATROSKA_ContextSegment},
-    {0, 0, NULL} // end of the table
+    {1, 0, &EBML_ContextHead        ,0},
+    {1, 0, &MATROSKA_ContextSegment ,0},
+    {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextStream = {FOURCC('M','K','X','_'), EBML_MASTER_CLASS, 0, 0, "Matroska Stream", EBML_SemanticMatroska, EBML_SemanticGlobals, NULL};
 
@@ -1234,6 +1251,17 @@ static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)
     return 0;
 }
 
+static bool_t ValidateSizeSegUID(const ebml_binary *p)
+{
+    uint8_t test[16];
+    if (p->Base.DataSize != 16)
+        return 0;
+    if (!p->Base.bValueIsSet)
+        return 1;
+    memset(test,0,sizeof(test));
+    return memcmp(ARRAYBEGIN(p->Data,uint8_t),test,16)!=0; // make sure the value is not 0
+}
+
 META_START(Matroska_Class,MATROSKA_BLOCK_CLASS)
 META_CLASS(SIZE,sizeof(matroska_block))
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadBlockData)
@@ -1268,4 +1296,8 @@ META_START_CONTINUE(MATROSKA_SEEKPOINT_CLASS)
 META_CLASS(SIZE,sizeof(matroska_seekpoint))
 META_PARAM(TYPE,MATROSKA_SEEKPOINT_ELEMENT,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_SEEKPOINT_ELEMENT,matroska_seekpoint,Link)
-META_END(EBML_MASTER_CLASS)
+META_END_CONTINUE(EBML_MASTER_CLASS)
+
+META_START_CONTINUE(MATROSKA_SEGMENTUID_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeSegUID)
+META_END(EBML_BINARY_CLASS)

@@ -37,6 +37,12 @@
 
 #define CONTEXT_LIBMATROSKA_VERSION  0x401
 
+// if a profile is set in ebml_semantic.DisabledProfile that means the element is not available for that profile
+#define PROFILE_MATROSKA_V1          1
+#define PROFILE_MATROSKA_V2          2
+#define PROFILE_TEST                 4
+
+
 EBML_DLL err_t MATROSKA_Init(nodecontext *p);
 EBML_DLL err_t MATROSKA_Done(nodecontext *p);
 
@@ -90,6 +96,8 @@ extern const ebml_context MATROSKA_ContextCues;
 extern const ebml_context MATROSKA_ContextAttachments;
 extern const ebml_context MATROSKA_ContextChapters;
 extern const ebml_context MATROSKA_ContextTags;
+
+extern const ebml_context MATROSKA_ContextSimpleTag;
 
 extern const ebml_context MATROSKA_ContextChapterAtom;
 
