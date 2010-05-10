@@ -192,12 +192,12 @@ static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceR
 }
 #endif
 
-static bool_t ValidateSizeInt(ebml_element *p)
+static bool_t ValidateSizeInt(const ebml_element *p)
 {
     return (p->DataSize <= 8);
 }
 
-static bool_t ValidateSizeFloat(ebml_element *p)
+static bool_t ValidateSizeFloat(const ebml_element *p)
 {
     return (p->DataSize == 8 || p->DataSize == 4);
 }

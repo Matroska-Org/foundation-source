@@ -127,7 +127,7 @@ struct ebml_element
 typedef struct ebml_element_vmt
 {
     nodetree_vmt Base;
-    bool_t (*ValidateSize)(void*);
+    bool_t (*ValidateSize)(const void*);
     err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope);
 #if defined(CONFIG_EBML_WRITING)
     err_t (*RenderData)(void*, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered);

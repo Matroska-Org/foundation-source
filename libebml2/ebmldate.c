@@ -44,7 +44,7 @@ err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date)
     return ERR_NONE;
 }
 
-static bool_t ValidateSize(ebml_element *p)
+static bool_t ValidateSize(const ebml_element *p)
 {
     return (p->DataSize == 8 || p->DataSize == 0);
 }

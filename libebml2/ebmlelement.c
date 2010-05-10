@@ -27,7 +27,7 @@
  */
 #include "ebml/ebml.h"
 
-static bool_t ValidateSize(ebml_element *p)
+static bool_t ValidateSize(const ebml_element *p)
 {
     return 1;
 }
