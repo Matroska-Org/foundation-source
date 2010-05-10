@@ -30,12 +30,14 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo generate the cues if they are missing
  * \todo change the Segment UID (when key parts are altered)
  * \todo optionally add a CRC32 on level1 elements
- * \todo generate the cues if they are missing
  * \todo start a new cluster boundary with each video keyframe
  * \todo add error types (numbers) to show to that each type can be disabled on demand
- * \todo forbid the use of SimpleBlock in v1
+ * \todo forbid the use of SimpleBlock in v1 (strict profiling)
+ * \todo force keeping some forbidden elements in a profile (chapters in 'test')
+ * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo allow adding/replacing Tags
  * \todo allow adding/replacing Chapters
@@ -554,6 +556,19 @@ int main(int argc, const char *argv[])
     }
     EndProgress(RSegment,1);
 
+    if (!RSegmentInfo)
+    {
+        TextWrite(StdErr,T("The source Segment has no Segment Info section\r\n"));
+        Result = -6;
+        goto exit;
+    }
+    if (!RTrackInfo && ARRAYCOUNT(RClusters,ebml_element*))
+    {
+        TextWrite(StdErr,T("The source Segment has no Track Info section\r\n"));
+        Result = -7;
+        goto exit;
+    }
+
     // Write the EBMLHead
     EbmlHead = EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
@@ -607,10 +622,17 @@ int main(int argc, const char *argv[])
     NextPos += EBML_ElementFullSize(RSegmentInfo,0);
     MATROSKA_LinkMetaSeekElement(WSeekPoint,RSegmentInfo);
     // track info
-    WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-    RTrackInfo->ElementPosition = NextPos;
-    NextPos += EBML_ElementFullSize(RTrackInfo,0);
-    MATROSKA_LinkMetaSeekElement(WSeekPoint,RTrackInfo);
+    if (RTrackInfo)
+    {
+        WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+        RTrackInfo->ElementPosition = NextPos;
+        NextPos += EBML_ElementFullSize(RTrackInfo,0);
+        MATROSKA_LinkMetaSeekElement(WSeekPoint,RTrackInfo);
+    }
+    else
+    {
+        TextWrite(StdErr,T("Warning: the source Segment has no Track Info section (can be a chapter file)\r\n"));
+    }
     // chapters
     if (RChapters)
     {
@@ -628,10 +650,13 @@ int main(int argc, const char *argv[])
         MATROSKA_LinkMetaSeekElement(WSeekPoint,RTags);
     }
     // cues
-    WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-    RCues->ElementPosition = NextPos;
-    NextPos += EBML_ElementFullSize(RCues,0);
-    MATROSKA_LinkMetaSeekElement(WSeekPoint,RCues);
+    if (RCues)
+    {
+        WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+        RCues->ElementPosition = NextPos;
+        NextPos += EBML_ElementFullSize(RCues,0);
+        MATROSKA_LinkMetaSeekElement(WSeekPoint,RCues);
+    }
     // attachements
     if (RAttachments)
     {
@@ -670,10 +695,13 @@ int main(int argc, const char *argv[])
     NextPos += EBML_ElementFullSize(RSegmentInfo,0);
 
     //  Write the Track Info
-    ReduceSize(RTrackInfo);
-    EBML_ElementUpdateSize(RTrackInfo,0,0);
-    RTrackInfo->ElementPosition = NextPos;
-    NextPos += EBML_ElementFullSize(RTrackInfo,0);
+    if (RTrackInfo)
+    {
+        ReduceSize(RTrackInfo);
+        EBML_ElementUpdateSize(RTrackInfo,0,0);
+        RTrackInfo->ElementPosition = NextPos;
+        NextPos += EBML_ElementFullSize(RTrackInfo,0);
+    }
 
     //  Write the Chapters
     if (RChapters)
@@ -693,11 +721,14 @@ int main(int argc, const char *argv[])
         NextPos += EBML_ElementFullSize(RTags,0);
     }
 
-    //  Write the Cues
-    OptimizeCues(RCues,&RClusters,RTrackInfo,RSegmentInfo,NextPos, WSegment, RSegment);
-    EBML_ElementUpdateSize(RCues,0,0);
-    RCues->ElementPosition = NextPos;
-    NextPos += EBML_ElementFullSize(RCues,0);
+    if (RTrackInfo && RCues)
+    {
+        //  Write the Cues
+        OptimizeCues(RCues,&RClusters,RTrackInfo,RSegmentInfo,NextPos, WSegment, RSegment);
+        EBML_ElementUpdateSize(RCues,0,0);
+        RCues->ElementPosition = NextPos;
+        NextPos += EBML_ElementFullSize(RCues,0);
+    }
 
     // write the MetaSeek and the elements following
     MetaSeekUpdate(WMetaSeek);
@@ -717,13 +748,16 @@ int main(int argc, const char *argv[])
         goto exit;
     }
     SegmentSize += EBML_ElementFullSize(RSegmentInfo,0);
-    if (EBML_ElementRender(RTrackInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
+    if (RTrackInfo)
     {
-        TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
-        Result = -12;
-        goto exit;
+        if (EBML_ElementRender(RTrackInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
+            Result = -12;
+            goto exit;
+        }
+        SegmentSize += EBML_ElementFullSize(RTrackInfo,0);
     }
-    SegmentSize += EBML_ElementFullSize(RTrackInfo,0);
     if (RChapters)
     {
         if (EBML_ElementRender(RChapters,Output,0,0,1,NULL,0)!=ERR_NONE)
@@ -744,13 +778,16 @@ int main(int argc, const char *argv[])
         }
         SegmentSize += EBML_ElementFullSize(RTags,0);
     }
-    if (EBML_ElementRender(RCues,Output,0,0,1,NULL,0)!=ERR_NONE)
+    if (RCues)
     {
-        TextWrite(StdErr,T("Failed to write the Cues\r\n"));
-        Result = -15;
-        goto exit;
+        if (EBML_ElementRender(RCues,Output,0,0,1,NULL,0)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Cues\r\n"));
+            Result = -15;
+            goto exit;
+        }
+        SegmentSize += EBML_ElementFullSize(RCues,0);
     }
-    SegmentSize += EBML_ElementFullSize(RCues,0);
 
     //  Write the Clusters
     for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
