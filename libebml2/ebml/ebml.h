@@ -89,6 +89,7 @@ struct ebml_semantic
     bool_t Mandatory;
     bool_t Unique;
     const ebml_context *eClass;
+    int DisabledProfile; // PROFILE_MATROSKA_V1 and others
 };
 
 struct ebml_context

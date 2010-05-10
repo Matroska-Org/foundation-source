@@ -27,11 +27,6 @@
  */
 #include "ebml/ebml.h"
 
-static err_t Create(ebml_element *p)
-{
-    return ERR_NONE;
-}
-
 static bool_t IsDefaultValue(const ebml_element *Element)
 {
     return 0;
@@ -62,7 +57,6 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 #endif
 
 META_START(EBMLVoid_Class,EBML_VOID_CLASS)
-META_CLASS(CREATE,Create)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
