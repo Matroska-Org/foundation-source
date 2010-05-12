@@ -39,9 +39,9 @@
  * \todo force keeping some forbidden elements in a profile (chapters in 'test')
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
- * \todo allow adding/replacing Tags
- * \todo allow adding/replacing Chapters
- * \todo allow adding/replacing Attachments
+ * \todo allow creating/replacing Tags
+ * \todo allow creating/replacing Chapters
+ * \todo allow creating/replacing Attachments
  */
 
 #ifdef TARGET_WIN
@@ -262,14 +262,14 @@ static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Trac
     for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
         MATROSKA_LinkCueSegmentInfo(Cue,RSegmentInfo);
 
-    // sort the Cues
-    MATROSKA_CuesSort(Cues);
-
     // link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
     Cluster = NULL;
     for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
         Cluster = LinkCueCluster(Cue,Clusters,Cluster,RSegment);
     EndProgress(RSegment,2);
+
+    // sort the Cues
+    MATROSKA_CuesSort(Cues);
 
     SettleClustersWithCues(Clusters,StartPos,Cues,WSegment);
 }
@@ -423,6 +423,81 @@ static void MetaSeekUpdate(ebml_element *SeekHead)
     EBML_ElementUpdateSize(SeekHead,0,0);
 }
 
+static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_element *RTrackInfo, ebml_element *RSegmentInfo, ebml_element *RSegment)
+{
+	ebml_element *Track, *Elt;
+	ebml_element **Cluster;
+	matroska_cuepoint *CuePoint;
+	int64_t TrackNum;
+
+	// find the video (first) track
+	for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
+	{
+		Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
+		if (Elt && ((ebml_integer*)Elt)->Value == TRACK_TYPE_VIDEO)
+		{
+			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+			if (Elt)
+			{
+				TrackNum = ((ebml_integer*)Elt)->Value;
+				break;
+			}
+		}
+	}
+
+	if (!Track)
+	{
+		// no video track found, look for an audio track
+		for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
+		{
+			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
+			if (Elt && ((ebml_integer*)Elt)->Value == TRACK_TYPE_AUDIO)
+			{
+				Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+				if (Elt)
+				{
+					TrackNum = ((ebml_integer*)Elt)->Value;
+					break;
+				}
+			}
+		}
+	}
+
+	if (!Track)
+	{
+		TextPrintf(StdErr,T("Could not find an audio or video track to generate the Cue entries"));
+		return;
+	}
+
+	// find all the keyframes
+	for (Cluster = ARRAYBEGIN(*RClusters,ebml_element*);Cluster != ARRAYEND(*RClusters,ebml_element*); ++Cluster)
+	{
+		MATROSKA_LinkClusterSegmentInfo((matroska_cluster*)*Cluster,RSegmentInfo);
+		for (Elt = EBML_MasterChildren(*Cluster); Elt; Elt = EBML_MasterNext(Elt))
+		{
+			if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+			{
+				if (MATROSKA_BlockTrackNum((matroska_block*)Elt) == TrackNum && MATROSKA_BlockKeyframe((matroska_block*)Elt))
+				{
+					CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,&MATROSKA_ContextCuePoint,1);
+					if (!CuePoint)
+					{
+						TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?"));
+						return;
+					}
+					MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
+					MATROSKA_LinkCuePointBlock(CuePoint,(matroska_block*)Elt);
+					MATROSKA_LinkBlockTrack((matroska_block*)Elt,RTrackInfo);
+					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,RSegmentInfo);
+					MATROSKA_CuePointUpdate(CuePoint,RSegment);
+				}
+			}
+		}
+	}
+
+	EBML_ElementUpdateSize(Cues,0,0);
+}
+
 int main(int argc, const char *argv[])
 {
     int Result = 0;
@@ -508,13 +583,11 @@ int main(int argc, const char *argv[])
     RSegmentContext.Context = &MATROSKA_ContextSegment;
     RSegmentContext.EndPosition = EBML_ElementPositionEnd(RSegment);
     RSegmentContext.UpContext = &RContext;
+	UpperElement = 0;
 //TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
     RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
-    while (RLevel1)
-    {
-        EbmlHead = EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+    while (RLevel1)    {
         ShowProgress(RLevel1,RSegment,1);
-        assert(EbmlHead==NULL);
         if (RLevel1->Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
@@ -551,7 +624,11 @@ int main(int argc, const char *argv[])
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
         }
         else
+		{
+			EbmlHead = EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+			assert(EbmlHead==NULL);
             NodeDelete((node*)RLevel1);
+		}
         RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     }
     EndProgress(RSegment,1);
@@ -650,6 +727,12 @@ int main(int argc, const char *argv[])
         MATROSKA_LinkMetaSeekElement(WSeekPoint,RTags);
     }
     // cues
+	if (!RCues)
+	{
+		// generate the cues
+		RCues = EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
+		GenerateCueEntries(RCues,&RClusters,RTrackInfo,RSegmentInfo,RSegment);
+	}
     if (RCues)
     {
         WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);

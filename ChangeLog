@@ -1,3 +1,11 @@
+2010-05-13
+version 0.1.5:
+    - generate Cues when they are missing
+
+2010-05-10
+version 0.1.4:
+    - Allow files with no Track/Clusters (a file with only "logical" chapters is possible)
+
 2010-05-05
 version 0.1.3:
     - By default build with support for large files (>4GB)
