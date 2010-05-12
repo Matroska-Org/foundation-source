@@ -697,11 +697,11 @@ err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentI
     return ERR_NONE;
 }
 
-err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *Cue, matroska_block *Block)
+err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *CuePoint, matroska_block *Block)
 {
-    assert(Cue->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
+    assert(CuePoint->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-    Node_SET(Cue,MATROSKA_CUE_BLOCK,&Block);
+    Node_SET(CuePoint,MATROSKA_CUE_BLOCK,&Block);
     return ERR_NONE;
 }
 
@@ -732,6 +732,12 @@ int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     return Block->TrackNumber;
+}
+
+bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
+{
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+	return Block->IsKeyframe;
 }
 
 int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
@@ -789,23 +795,31 @@ timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue)
 
 err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
 {
-    ebml_element *TimeCode, *Elt, *PosInCluster;
+    ebml_element *TimeCode, *Elt, *PosInCluster, *TrackNum;
     assert(Cue->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
     assert(Cue->Block);
     assert(Cue->SegInfo);
     assert(Segment); // we need the segment location
+	EBML_MasterErase((ebml_element*)Cue);
+	EBML_MasterMandatory((ebml_element*)Cue,1);
     TimeCode = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTime,1,1);
     if (!TimeCode)
         return ERR_OUT_OF_MEMORY;
     ((ebml_integer*)TimeCode)->Value = Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo));
+	TimeCode->bValueIsSet = 1;
 
     Elt = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTrackPositions,1,1);
     if (!Elt)
         return ERR_OUT_OF_MEMORY;
+	TrackNum = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextCueTrack,1,1);
+    if (!TrackNum)
+        return ERR_OUT_OF_MEMORY;
+	((ebml_integer*)TrackNum)->Value = MATROSKA_BlockTrackNum(Cue->Block);
+	TrackNum->bValueIsSet = 1;
+	
     PosInCluster = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextCueClusterPosition,1,1);
     if (!PosInCluster)
         return ERR_OUT_OF_MEMORY;
-
     Elt = EBML_ElementParent(Cue->Block);
     while (Elt && Elt->Context->Id != MATROSKA_ContextCluster.Id)
         Elt = EBML_ElementParent(Elt);
@@ -813,6 +827,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
         return ERR_INVALID_DATA;
     
     ((ebml_integer*)PosInCluster)->Value = Elt->ElementPosition - EBML_ElementPositionData(Segment);
+	PosInCluster->bValueIsSet = 1;
 
     return ERR_NONE;
 }
