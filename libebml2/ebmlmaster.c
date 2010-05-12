@@ -130,6 +130,12 @@ void EBML_MasterClear(ebml_element *Element)
     }
 }
 
+void EBML_MasterErase(ebml_element *Element)
+{
+	while (Element->Base.Children)
+    	NodeTree_DetachAndRelease(Element->Base.Children);
+}
+
 static bool_t IsDefaultValue(const ebml_element *Element)
 {
     // TODO: a master element has the default value if all the sub elements are unique and have the default value
@@ -177,15 +183,20 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRe
 	return Element->DataSize;
 }
 
-static void PostCreate(ebml_element *Element)
+void EBML_MasterMandatory(ebml_element *Element, bool_t SetDefault)
 {
     const ebml_semantic *i;
-    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
     for (i=Element->Context->Semantic;i->eClass;++i)
     {
         if (i->Mandatory && i->Unique)
-            EBML_MasterFindFirstElt(Element,i->eClass,1,1); // TODO: should it force the default value ?
+            EBML_MasterFindFirstElt(Element,i->eClass,1,SetDefault);
     }
+}
+
+static void PostCreate(ebml_element *Element)
+{
+    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
+	EBML_MasterMandatory(Element,1); // TODO: should it force the default value ?
 }
 
 static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
