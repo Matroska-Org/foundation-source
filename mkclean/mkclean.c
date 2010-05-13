@@ -533,7 +533,7 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 
 int main(int argc, const char *argv[])
 {
-    int Result = 0;
+    int i,Result = 0;
     parsercontext p;
     textwriter _StdErr;
     stream *Input = NULL,*Output = NULL;
@@ -550,7 +550,7 @@ int main(int argc, const char *argv[])
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0;
-	bool_t CuesCreated = 0;
+	bool_t KeepCues = 0, CuesCreated = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -566,15 +566,22 @@ int main(int argc, const char *argv[])
     memset(StdErr,0,sizeof(_StdErr));
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
 
-    if (argc != 3)
+    if (argc < 3)
     {
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
-        TextWrite(StdErr,T("Usage: mkclean [matroska_src] [matroska_dst]\r\n"));
+        TextWrite(StdErr,T("Usage: mkclean [--keep-cues] <matroska_src> <matroska_dst>\r\n"));
         Result = -1;
         goto exit;
     }
 
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[1]);
+	for (i=1;i<argc-2;++i)
+	{
+	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+		if (tcsisame_ascii(Path,T("--keep-cues")))
+			KeepCues = 1;
+	}
+
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-2]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
@@ -583,7 +590,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[2]);
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
     Output = StreamOpen(&p,Path,SFLAG_WRONLY|SFLAG_CREATE);
     if (!Output)
     {
@@ -642,7 +649,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
                 RTags = RLevel1;
         }
-        else if (RLevel1->Context->Id == MATROSKA_ContextCues.Id)
+        else if (RLevel1->Context->Id == MATROSKA_ContextCues.Id && KeepCues)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
                 RCues = RLevel1;
@@ -764,8 +771,6 @@ int main(int argc, const char *argv[])
 	LinkClusters(&RClusters,RSegmentInfo,RTrackInfo);
 
     // cues
-//NodeTree_Clear(RCues);
-//RCues=NULL;
 	if (!RCues)
 	{
 		// generate the cues

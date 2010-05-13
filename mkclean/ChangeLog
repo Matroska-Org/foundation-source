@@ -1,6 +1,7 @@
 2010-05-13
 version 0.1.5:
-    - generate Cues when they are missing
+    - create Cues from scratch
+    - add a "--keep-cues" option to keep the original Cues instead of creating from scratch
 
 2010-05-10
 version 0.1.4:
