@@ -64,6 +64,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_END(EBML_ELEMENT_CLASS)
 
+#if defined(CONFIG_EBML_WRITING)
 void EBML_VoidSetSize(ebml_element *Void, filepos_t DataSize)
 {
     assert(Node_IsPartOf(Void,EBML_VOID_CLASS));
@@ -112,3 +113,4 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
 
 	return EBML_ElementFullSize(Void,1);
 }
+#endif

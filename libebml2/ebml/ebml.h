@@ -258,8 +258,8 @@ EBML_DLL const uint8_t *EBML_BinaryGetData(ebml_binary *Element);
 #if defined(CONFIG_EBML_WRITING)
 EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
 EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
-EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
 #endif
+EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
 
 INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 

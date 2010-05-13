@@ -173,6 +173,20 @@ bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
 	return 0;
 }
 
+size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id)
+{
+    size_t i,FinalHeadSize = GetIdLength(Id);
+    if (BufSize < FinalHeadSize)
+        return 0;
+#if defined(IS_BIG_ENDIAN)
+    memcpy(Buffer,&Id,FinalHeadSize);
+#else
+    for (i=0;i<FinalHeadSize;++i)
+        Buffer[FinalHeadSize-i-1] = (uint8_t)(Id >> (i<<3));
+#endif
+    return FinalHeadSize;
+}
+
 #if defined(CONFIG_EBML_WRITING)
 err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered, bool_t UpdateSize)
 {
@@ -209,20 +223,6 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
     *Rendered += WrittenSize;
 
     return Result;
-}
-
-size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id)
-{
-    size_t i,FinalHeadSize = GetIdLength(Id);
-    if (BufSize < FinalHeadSize)
-        return 0;
-#if defined(IS_BIG_ENDIAN)
-    memcpy(Buffer,&Id,FinalHeadSize);
-#else
-    for (i=0;i<FinalHeadSize;++i)
-        Buffer[FinalHeadSize-i-1] = (uint8_t)(Id >> (i<<3));
-#endif
-    return FinalHeadSize;
 }
 
 err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered)
