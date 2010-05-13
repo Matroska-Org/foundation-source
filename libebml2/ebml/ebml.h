@@ -244,6 +244,8 @@ EBML_DLL void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* C
 #define EBML_MasterNext(p)         ((ebml_element*)NodeTree_Next(p))
 #define EBML_ElementParent(p)      ((ebml_element*)NodeTree_Parent(p))
 
+#define EBML_IntegerValue(p)       ((ebml_integer*)p)->Value
+
 EBML_DLL err_t EBML_StringSetValue(ebml_string *Element,const char *Value);
 #if defined(CONFIG_EBML_UNICODE)
 EBML_DLL err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value);
@@ -260,6 +262,7 @@ EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
 EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
 #endif
 EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
+EBML_DLL size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id);
 
 INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 

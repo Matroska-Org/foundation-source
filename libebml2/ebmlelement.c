@@ -187,6 +187,20 @@ size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id)
     return FinalHeadSize;
 }
 
+size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id)
+{
+    size_t i,FinalHeadSize = GetIdLength(Id);
+	if (OutLen < FinalHeadSize*4+1)
+		return 0;
+	Out[0] = 0;
+    for (i=0;i<4;++i)
+	{
+		if (Out[0] || (Id >> 8*(3-i)) & 0xFF)
+			stcatprintf_s(Out,OutLen,T("[%02X]"),(Id >> 8*(3-i)) & 0xFF);
+	}
+	return FinalHeadSize*4;
+}
+
 #if defined(CONFIG_EBML_WRITING)
 err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered, bool_t UpdateSize)
 {
