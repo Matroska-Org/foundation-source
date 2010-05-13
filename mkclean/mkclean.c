@@ -223,50 +223,58 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *Tracks, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment)
+static void LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks)
 {
     matroska_cluster **Cluster;
     ebml_element *Block, *GBlock;
+
+	// link each Block/SimpleBlock with its Track and SegmentInfo
+	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
+	{
+		MATROSKA_LinkClusterSegmentInfo(*Cluster,RSegmentInfo);
+		for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
+		{
+			if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+			{
+				for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+				{
+					if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+					{
+						MATROSKA_LinkBlockTrack((matroska_block*)GBlock,Tracks);
+						MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
+						break;
+					}
+				}
+			}
+			else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+			{
+				MATROSKA_LinkBlockTrack((matroska_block*)Block,Tracks);
+				MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
+			}
+		}
+		ReduceSize((ebml_element*)*Cluster);
+	}
+}
+
+static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment, bool_t ReLink)
+{
+    matroska_cluster **Cluster;
     matroska_cuepoint *Cue;
 
     ReduceSize(Cues);
 
-    // link each Block/SimpleBlock with its Track and SegmentInfo
-    for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
-    {
-        ReduceSize((ebml_element*)*Cluster);
-        MATROSKA_LinkClusterSegmentInfo(*Cluster,RSegmentInfo);
-        for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
-        {
-            if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-            {
-                for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
-                {
-                    if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
-                    {
-                        MATROSKA_LinkBlockTrack((matroska_block*)GBlock,Tracks);
-                        MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
-                        break;
-                    }
-                }
-            }
-            else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-            {
-                MATROSKA_LinkBlockTrack((matroska_block*)Block,Tracks);
-                MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
-            }
-        }
-    }
+	if (ReLink)
+	{
+		// link each Cue entry to the segment
+		for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
+			MATROSKA_LinkCueSegmentInfo(Cue,RSegmentInfo);
 
-    // link each Cue entry to the segment
-    for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
-        MATROSKA_LinkCueSegmentInfo(Cue,RSegmentInfo);
-
-    // link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
-    Cluster = NULL;
-    for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
-        Cluster = LinkCueCluster(Cue,Clusters,Cluster,RSegment);
-    EndProgress(RSegment,2);
+		// link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
+		Cluster = NULL;
+		for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
+			Cluster = LinkCueCluster(Cue,Clusters,Cluster,RSegment);
+		EndProgress(RSegment,2);
+	}
 
     // sort the Cues
     MATROSKA_CuesSort(Cues);
@@ -426,9 +434,11 @@ static void MetaSeekUpdate(ebml_element *SeekHead)
 static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_element *RTrackInfo, ebml_element *RSegmentInfo, ebml_element *RSegment)
 {
 	ebml_element *Track, *Elt;
+	matroska_block *Block;
 	ebml_element **Cluster;
 	matroska_cuepoint *CuePoint;
 	int64_t TrackNum;
+	timecode_t PrevTimecode = INVALID_TIMECODE_T, BlockTimecode;
 
 	// find the video (first) track
 	for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
@@ -475,22 +485,45 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 		MATROSKA_LinkClusterSegmentInfo((matroska_cluster*)*Cluster,RSegmentInfo);
 		for (Elt = EBML_MasterChildren(*Cluster); Elt; Elt = EBML_MasterNext(Elt))
 		{
+			Block = NULL;
 			if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 			{
-				if (MATROSKA_BlockTrackNum((matroska_block*)Elt) == TrackNum && MATROSKA_BlockKeyframe((matroska_block*)Elt))
+				if (MATROSKA_BlockKeyframe((matroska_block*)Elt))
+					Block = (matroska_block*)Elt;
+			}
+			else if (Elt->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+			{
+				ebml_element *EltB, *BlockRef = NULL;
+				for (EltB = EBML_MasterChildren(Elt); EltB; EltB = EBML_MasterNext(EltB))
 				{
-					CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,&MATROSKA_ContextCuePoint,1);
-					if (!CuePoint)
-					{
-						TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?"));
-						return;
-					}
-					MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
-					MATROSKA_LinkCuePointBlock(CuePoint,(matroska_block*)Elt);
-					MATROSKA_LinkBlockTrack((matroska_block*)Elt,RTrackInfo);
-					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,RSegmentInfo);
-					MATROSKA_CuePointUpdate(CuePoint,RSegment);
+					if (EltB->Context->Id == MATROSKA_ContextClusterBlock.Id)
+						Block = (matroska_block*)EltB;
+					else if (EltB->Context->Id == MATROSKA_ContextClusterReferenceBlock.Id)
+						BlockRef = EltB;
 				}
+				if (BlockRef && Block)
+					Block = NULL; // not a keyframe
+			}
+
+			if (Block && MATROSKA_BlockTrackNum(Block) == TrackNum)
+			{
+				BlockTimecode = MATROSKA_BlockTimecode(Block);
+				if ((BlockTimecode - PrevTimecode) < 800000000 && PrevTimecode != INVALID_TIMECODE_T)
+					break; // no more than 1 Cue per Cluster and per 800 ms
+
+				CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,&MATROSKA_ContextCuePoint,1);
+				if (!CuePoint)
+				{
+					TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?"));
+					return;
+				}
+				MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
+				MATROSKA_LinkCuePointBlock(CuePoint,Block);
+				MATROSKA_CuePointUpdate(CuePoint,RSegment);
+
+				PrevTimecode = BlockTimecode;
+
+				break; // one Cues per Cluster is enough
 			}
 		}
 	}
@@ -517,6 +550,7 @@ int main(int argc, const char *argv[])
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0;
+	bool_t CuesCreated = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -726,12 +760,18 @@ int main(int argc, const char *argv[])
         NextPos += EBML_ElementFullSize(RTags,0);
         MATROSKA_LinkMetaSeekElement(WSeekPoint,RTags);
     }
+
+	LinkClusters(&RClusters,RSegmentInfo,RTrackInfo);
+
     // cues
+//NodeTree_Clear(RCues);
+//RCues=NULL;
 	if (!RCues)
 	{
 		// generate the cues
 		RCues = EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
 		GenerateCueEntries(RCues,&RClusters,RTrackInfo,RSegmentInfo,RSegment);
+		CuesCreated = 1;
 	}
     if (RCues)
     {
@@ -749,11 +789,12 @@ int main(int argc, const char *argv[])
         MATROSKA_LinkMetaSeekElement(WSeekPoint,RAttachments);
     }
 
+	// first estimation of the MetaSeek size
     MetaSeekUpdate(WMetaSeek);
-
+	MetaSeekBefore = EBML_ElementFullSize(WMetaSeek,0);
     NextPos = WMetaSeek->ElementPosition + EBML_ElementFullSize(WMetaSeek,0);
 
-    //  Write the Segment Info
+    //  Compute the Segment Info size
     ReduceSize(RSegmentInfo);
     // change the library names & app name
     LibName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
@@ -777,7 +818,7 @@ int main(int argc, const char *argv[])
     RSegmentInfo->ElementPosition = NextPos;
     NextPos += EBML_ElementFullSize(RSegmentInfo,0);
 
-    //  Write the Track Info
+    //  Compute the Track Info size
     if (RTrackInfo)
     {
         ReduceSize(RTrackInfo);
@@ -786,7 +827,7 @@ int main(int argc, const char *argv[])
         NextPos += EBML_ElementFullSize(RTrackInfo,0);
     }
 
-    //  Write the Chapters
+    //  Compute the Chapters size
     if (RChapters)
     {
         ReduceSize(RChapters);
@@ -795,7 +836,7 @@ int main(int argc, const char *argv[])
         NextPos += EBML_ElementFullSize(RChapters,0);
     }
 
-    //  Write the Tags
+    //  Compute the Tags size
     if (RTags)
     {
         ReduceSize(RTags);
@@ -804,20 +845,23 @@ int main(int argc, const char *argv[])
         NextPos += EBML_ElementFullSize(RTags,0);
     }
 
+	MetaSeekUpdate(WMetaSeek);
+	NextPos += EBML_ElementFullSize(WMetaSeek,0) - MetaSeekBefore;
+
+	//  Compute the Cues size
     if (RTrackInfo && RCues)
     {
-        //  Write the Cues
-        OptimizeCues(RCues,&RClusters,RTrackInfo,RSegmentInfo,NextPos, WSegment, RSegment);
+        OptimizeCues(RCues,&RClusters,RSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated);
         EBML_ElementUpdateSize(RCues,0,0);
         RCues->ElementPosition = NextPos;
         NextPos += EBML_ElementFullSize(RCues,0);
     }
 
-    // write the MetaSeek and the elements following
+    // update and write the MetaSeek and the elements following
     MetaSeekUpdate(WMetaSeek);
-    MetaSeekBefore = EBML_ElementFullSize(WMetaSeek,0);
+    EBML_ElementFullSize(WMetaSeek,0);
     Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
-    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,NULL,0)!=ERR_NONE)
+    if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekBefore,0)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
         Result = -22;
@@ -916,7 +960,6 @@ int main(int argc, const char *argv[])
 
     // update the Meta Seek
     MetaSeekUpdate(WMetaSeek);
-
     Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
     if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekAfter,0)!=ERR_NONE)
     {

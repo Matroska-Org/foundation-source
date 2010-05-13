@@ -3,7 +3,7 @@
 PROJECT matroska2
 {
   PROJECT_NAME  "libmatroska2"
-  PROJECT_VERSION  0.9.2
+  PROJECT_VERSION  0.9.3
   PROJECT_VENDOR   "Matroska Foundation"
 }
 
