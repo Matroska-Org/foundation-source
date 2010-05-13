@@ -113,6 +113,17 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 	return -ErrCode;
 }
 
+static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
+{
+	tchar_t Buffer[MAXLINE];
+	va_list Args;
+	va_start(Args,ErrString);
+	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
+	va_end(Args);
+	TextPrintf(StdErr,T("WRN%03X: %s!\r\n"),ErrCode,Buffer);
+	return -ErrCode;
+}
+
 static void CheckUnknownElements(ebml_element *Elt)
 {
 	tchar_t IdStr[32], String[MAXPATH];
@@ -199,25 +210,20 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 
 int main(int argc, const char *argv[])
 {
-    int i,Result = 0;
+    int Result = 0;
     parsercontext p;
     textwriter _StdErr;
     stream *Input = NULL;
     tchar_t Path[MAXPATHFULL];
-    tchar_t String[MAXLINE],Original[MAXLINE],*s;
+    tchar_t String[MAXLINE];
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
 	ebml_element *EbmlDocVer, *EbmlReadDocVer;
     ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL;
-    ebml_element *WSegment = NULL, *WMetaSeek = NULL;
-    matroska_seekpoint *WSeekPoint = NULL;
     ebml_string *LibName, *AppName;
     array RClusters;
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
     int UpperElement;
-    filepos_t MetaSeekBefore, MetaSeekAfter;
-    filepos_t NextPos, SegmentSize = 0;
-	bool_t KeepCues = 0, CuesCreated = 0;
 	uint8_t Test[5] = {0x77, 0x65, 0x62, 0x6D, 0};
 	int MatroskaProfile = 0;
 
@@ -485,10 +491,53 @@ int main(int argc, const char *argv[])
 		RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
 	}
 
+	if (!RSegmentInfo)
+	{
+		Result = OutputError(0x40,T("The segment is missing a SegmentInfo"));
+		goto exit;
+	}
+
+	if (!RSeekHead)
+		OutputWarning(0x800,T("The segment has no SeekHead section"));
+
+	if (ARRAYCOUNT(RClusters,ebml_element*))
+	{
+		if (!RCues)
+			OutputWarning(0x800,T("The segment has Clusters but no Cues section"));
+		if (!RTrackInfo)
+		{
+			Result = OutputError(0x41,T("The segment has Clusters but no TrackInfo section"));
+			goto exit;
+		}
+	}
+
 	if (Result==0)
 		TextWrite(StdErr,T("The file appears to be valid.\r\n"));
 
 exit:
+	if (Result!=0 && RSegmentInfo)
+	{
+		tchar_t App[MAXPATH];
+		App[0] = 0;
+		LibName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextMuxingApp,0,0);
+		AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextWritingApp,0,0);
+		if (AppName)
+		{
+			Node_FromUTF8(AppName,String,TSIZEOF(String),AppName->Buffer);
+			tcscat_s(App,TSIZEOF(App),String);
+		}
+		if (LibName)
+		{
+			Node_FromUTF8(AppName,String,TSIZEOF(String),LibName->Buffer);
+			if (App[0])
+				tcscat_s(App,TSIZEOF(App),T(" + "));
+			tcscat_s(App,TSIZEOF(App),String);
+		}
+		if (App[0]==0)
+			tcscat_s(App,TSIZEOF(App),T("<unknown>"));
+		TextPrintf(StdErr,T("Created with '%s'\r\n"),App);
+	}
+
     for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
         NodeDelete((node*)*Cluster);
     ArrayClear(&RClusters);
