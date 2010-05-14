@@ -31,6 +31,7 @@
 
 /*!
  * \todo validate that the Cues entries link to a proper block that is a keyframe
+ * \todo warn when a top level element is not present in the main SeekHead
  * \todo optionally test that the Cluster's first video track is a keyframe
  * \todo optionally test that the Codecs match a certain combination
  * \todo optionally show the use of deprecated elements

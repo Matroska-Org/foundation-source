@@ -399,7 +399,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 1, &MATROSKA_ContextTrackDefaultDuration    ,0},
     {1, 1, &MATROSKA_ContextTrackTimecodeScale      ,PROFILE_TEST},
     {1, 1, &MATROSKA_ContextTrackMaxBlockAdditionID ,PROFILE_TEST},
-    {0, 1, &MATROSKA_ContextTrackName               ,PROFILE_TEST},
+    {0, 1, &MATROSKA_ContextTrackName               ,0},
     {0, 1, &MATROSKA_ContextTrackLanguage           ,0},
     {1, 1, &MATROSKA_ContextTrackCodecID            ,0},
     {0, 1, &MATROSKA_ContextTrackCodecPrivate       ,0},

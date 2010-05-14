@@ -43,15 +43,15 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         ebml_element *SubElement,*NewElement;
         ebml_parser_context SubContext;
 
-        if (Element->Size == INVALID_FILEPOS_T)
+        if (Element->DataSize == INVALID_FILEPOS_T)
             fprintf(stdout,"(master)\r\n");
         else
-            fprintf(stdout,"(master) [%d bytes]\r\n",(int)Element->Size);
+            fprintf(stdout,"(master) [%d bytes]\r\n",(int)Element->DataSize);
         SubContext.UpContext = Context;
         SubContext.Context = Element->Context;
         SubContext.EndPosition = EBML_ElementPositionEnd(Element);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
-        while (SubElement != NULL && UpperElement<=0 && (SubElement->ElementPosition < (Element->Size + Element->SizePosition + Element->SizeLength) || *Level==-1))
+        while (SubElement != NULL && UpperElement<=0 && (SubElement->ElementPosition < (Element->DataSize + Element->SizePosition + Element->SizeLength) || *Level==-1))
         {
             // a sub element == not higher level and contained inside the current element
             (*Level)++;
@@ -123,18 +123,18 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA)==ERR_NONE)
         {
             uint8_t *Data = ARRAYBEGIN(((ebml_binary*)Element)->Data,uint8_t);
-            if (Element->Size != 0)
+            if (Element->DataSize != 0)
             {
-                if (Element->Size == 1)
-                    fprintf(stdout,"%02X (%d)\r\n",Data[0],Element->Size);
-                else if (Element->Size == 2)
-                    fprintf(stdout,"%02X %02X (%d)\r\n",Data[0],Data[1],Element->Size);
-                else if (Element->Size == 3)
-                    fprintf(stdout,"%02X %02X %02X (%d)\r\n",Data[0],Data[1],Data[2],Element->Size);
-                else if (Element->Size == 4)
-                    fprintf(stdout,"%02X %02X %02X %02X (%d)\r\n",Data[0],Data[1],Data[2],Data[3],Element->Size);
+                if (Element->DataSize == 1)
+                    fprintf(stdout,"%02X (%d)\r\n",Data[0],Element->DataSize);
+                else if (Element->DataSize == 2)
+                    fprintf(stdout,"%02X %02X (%d)\r\n",Data[0],Data[1],Element->DataSize);
+                else if (Element->DataSize == 3)
+                    fprintf(stdout,"%02X %02X %02X (%d)\r\n",Data[0],Data[1],Data[2],Element->DataSize);
+                else if (Element->DataSize == 4)
+                    fprintf(stdout,"%02X %02X %02X %02X (%d)\r\n",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
                 else
-                    fprintf(stdout,"%02X %02X %02X %02X.. (%d)\r\n",Data[0],Data[1],Data[2],Data[3],Element->Size);
+                    fprintf(stdout,"%02X %02X %02X %02X.. (%d)\r\n",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
             }
         }
         else
