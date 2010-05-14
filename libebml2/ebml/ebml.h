@@ -263,6 +263,7 @@ EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replac
 #endif
 EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
 EBML_DLL size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id);
+EBML_DLL fourcc_t EBML_BufferToID(const uint8_t *Buffer);
 
 INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 

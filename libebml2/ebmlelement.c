@@ -132,17 +132,6 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 	return Result;
 }
 
-size_t GetIdLength(fourcc_t Id)
-{
-    if ((Id & 0xFFFFFF00)==0)
-        return 1;
-    if ((Id & 0xFFFF0000)==0)
-        return 2;
-    if ((Id & 0xFF000000)==0)
-        return 3;
-    return 4;
-}
-
 filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
 {
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
@@ -173,6 +162,17 @@ bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
 	return 0;
 }
 
+size_t GetIdLength(fourcc_t Id)
+{
+    if ((Id & 0xFFFFFF00)==0)
+        return 1;
+    if ((Id & 0xFFFF0000)==0)
+        return 2;
+    if ((Id & 0xFF000000)==0)
+        return 3;
+    return 4;
+}
+
 size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id)
 {
     size_t i,FinalHeadSize = GetIdLength(Id);
@@ -199,6 +199,19 @@ size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id)
 			stcatprintf_s(Out,OutLen,T("[%02X]"),(Id >> 8*(3-i)) & 0xFF);
 	}
 	return FinalHeadSize*4;
+}
+
+fourcc_t EBML_BufferToID(const uint8_t *Buffer)
+{
+	if (Buffer[0] & 0x80)
+		return (fourcc_t)Buffer[0];
+	if (Buffer[0] & 0x40)
+		return (fourcc_t)((Buffer[0] << 8) + Buffer[1]);
+	if (Buffer[0] & 0x20)
+		return (fourcc_t)((Buffer[0] << 16) + (Buffer[1] << 8) + Buffer[2]);
+	if (Buffer[0] & 0x10)
+		return (fourcc_t)((Buffer[0] << 24) + (Buffer[1] << 16) + (Buffer[2] << 8) + Buffer[3]);
+	return 0;
 }
 
 #if defined(CONFIG_EBML_WRITING)
