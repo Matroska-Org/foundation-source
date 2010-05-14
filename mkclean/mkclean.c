@@ -30,11 +30,9 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo generate the cues if they are missing
  * \todo change the Segment UID (when key parts are altered)
  * \todo optionally add a CRC32 on level1 elements
  * \todo start a new cluster boundary with each video keyframe
- * \todo add error types (numbers) to show to that each type can be disabled on demand
  * \todo forbid the use of SimpleBlock in v1 (strict profiling)
  * \todo force keeping some forbidden elements in a profile (chapters in 'test')
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)

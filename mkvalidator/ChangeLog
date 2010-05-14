@@ -1,3 +1,7 @@
+2010-05-14
+version 0.1.1:
+    - check the validity of (primary and secondary) SeekHead entries
+
 2010-05-13
 version 0.1.0:
     - basic EBML/mandatory/profile checking

@@ -38,6 +38,8 @@
  */
 
 static textwriter *StdErr = NULL;
+static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
+static array RClusters;
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -208,6 +210,90 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 	return Result;
 }
 
+static int CheckSeekHead(ebml_element *SeekHead)
+{
+	int Result = 0;
+	ebml_element *RLevel1 = EBML_MasterFindFirstElt(SeekHead, &MATROSKA_ContextSeek, 0, 0);
+	while (RLevel1)
+	{
+		filepos_t Pos = MATROSKA_MetaSeekAbsolutePos((matroska_seekpoint*)RLevel1);
+		fourcc_t SeekId = MATROSKA_MetaSeekID((matroska_seekpoint*)RLevel1);
+		tchar_t IdString[32];
+
+		EBML_IdToString(IdString,TSIZEOF(IdString),SeekId);
+		if (Pos == INVALID_FILEPOS_T)
+			Result |= OutputError(0x60,T("The SeekPoint at %lld has an unknown position (ID %s)"),(long)RLevel1->ElementPosition,IdString);
+		else if (SeekId==0)
+			Result |= OutputError(0x61,T("The SeekPoint at %lld has no ID defined (position %lld)"),(long)RLevel1->ElementPosition,(long)Pos);
+		else if (SeekId == MATROSKA_ContextSegmentInfo.Id)
+		{
+			if (!RSegmentInfo)
+				Result |= OutputError(0x62,T("The SeekPoint at %lld references an unknown SegmentInfo at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (RSegmentInfo->ElementPosition != Pos)
+				Result |= OutputError(0x63,T("The SeekPoint at %lld references a SegmentInfo at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RSegmentInfo->ElementPosition);
+		}
+		else if (SeekId == MATROSKA_ContextTracks.Id)
+		{
+			if (!RTrackInfo)
+				Result |= OutputError(0x64,T("The SeekPoint at %lld references an unknown TrackInfo at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (RTrackInfo->ElementPosition != Pos)
+				Result |= OutputError(0x65,T("The SeekPoint at %lld references a TrackInfo at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RTrackInfo->ElementPosition);
+		}
+		else if (SeekId == MATROSKA_ContextCues.Id)
+		{
+			if (!RCues)
+				Result |= OutputError(0x66,T("The SeekPoint at %lld references an unknown Cues at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (RCues->ElementPosition != Pos)
+				Result |= OutputError(0x67,T("The SeekPoint at %lld references a Cues at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RCues->ElementPosition);
+		}
+		else if (SeekId == MATROSKA_ContextTags.Id)
+		{
+			if (!RTags)
+				Result |= OutputError(0x68,T("The SeekPoint at %lld references an unknown Tags at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (RTags->ElementPosition != Pos)
+				Result |= OutputError(0x69,T("The SeekPoint at %lld references a Tags at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RTags->ElementPosition);
+		}
+		else if (SeekId == MATROSKA_ContextChapters.Id)
+		{
+			if (!RChapters)
+				Result |= OutputError(0x6A,T("The SeekPoint at %lld references an unknown Chapters at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (RChapters->ElementPosition != Pos)
+				Result |= OutputError(0x6B,T("The SeekPoint at %lld references a Chapters at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RChapters->ElementPosition);
+		}
+		else if (SeekId == MATROSKA_ContextAttachments.Id)
+		{
+			if (!RAttachments)
+				Result |= OutputError(0x6C,T("The SeekPoint at %lld references an unknown Attachments at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (RAttachments->ElementPosition != Pos)
+				Result |= OutputError(0x6D,T("The SeekPoint at %lld references a Attachments at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RAttachments->ElementPosition);
+		}
+		else if (SeekId == MATROSKA_ContextSeekHead.Id)
+		{
+			if (SeekHead->ElementPosition == Pos)
+				Result |= OutputError(0x6E,T("The SeekPoint at %lld references references its own SeekHead"),(long)RLevel1->ElementPosition);
+			else if (SeekHead == RSeekHead && !RSeekHead2)
+				Result |= OutputError(0x6F,T("The SeekPoint at %lld references an unknown secondary SeekHead at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (SeekHead == RSeekHead2 && Pos!=RSeekHead->ElementPosition)
+				Result |= OutputError(0x70,T("The SeekPoint at %lld references an unknown extra SeekHead at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+		}
+		else if (SeekId == MATROSKA_ContextCluster.Id)
+		{
+			ebml_element **Cluster;
+			for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
+			{
+				if ((*Cluster)->ElementPosition == Pos)
+					break;
+			}
+			if (Cluster == ARRAYEND(RClusters,ebml_element*) && Cluster != ARRAYBEGIN(RClusters,ebml_element*))
+				Result |= OutputError(0x71,T("The SeekPoint at %lld references a Cluster not found at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+		}
+		else
+			Result |= OutputWarning(0x860,T("The SeekPoint at %lld references an element that is not a known level 1 ID %s at %lld)"),(long)RLevel1->ElementPosition,IdString,(long)Pos);
+		RLevel1 = EBML_MasterFindNextElt(SeekHead, RLevel1, 0, 0);
+	}
+	return Result;
+}
+
 int main(int argc, const char *argv[])
 {
     int Result = 0;
@@ -218,9 +304,7 @@ int main(int argc, const char *argv[])
     tchar_t String[MAXLINE];
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
 	ebml_element *EbmlDocVer, *EbmlReadDocVer;
-    ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL;
     ebml_string *LibName, *AppName;
-    array RClusters;
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
     int UpperElement;
@@ -332,6 +416,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
+				NodeTree_SetParent(RLevel1, RSegment, NULL);
 				CheckUnknownElements(RLevel1);
 				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 				Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -346,7 +431,13 @@ int main(int argc, const char *argv[])
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
-                RSeekHead = RLevel1;
+				if (!RSeekHead)
+					RSeekHead = RLevel1;
+				else if (!RSeekHead2)
+					RSeekHead2 = RLevel1;
+				else
+					Result |= OutputError(0x101,T("Extra SeekHead found at %lld (size %lld)"),(long)RLevel1->ElementPosition,(long)RLevel1->DataSize);
+				NodeTree_SetParent(RLevel1, RSegment, NULL);
 				CheckUnknownElements(RLevel1);
 				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 				Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -366,6 +457,7 @@ int main(int argc, const char *argv[])
 				else
 				{
 					RSegmentInfo = RLevel1;
+					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -386,6 +478,7 @@ int main(int argc, const char *argv[])
 				else
 				{
 					RTrackInfo = RLevel1;
+					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -406,6 +499,7 @@ int main(int argc, const char *argv[])
 				else
 				{
 					RCues = RLevel1;
+					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -426,6 +520,7 @@ int main(int argc, const char *argv[])
 				else
 				{
 					RChapters = RLevel1;
+					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -446,6 +541,7 @@ int main(int argc, const char *argv[])
 				else
 				{
 					RTags = RLevel1;
+					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -466,6 +562,7 @@ int main(int argc, const char *argv[])
 				else
 				{
 					RAttachments = RLevel1;
+					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
@@ -499,11 +596,15 @@ int main(int argc, const char *argv[])
 
 	if (!RSeekHead)
 		OutputWarning(0x800,T("The segment has no SeekHead section"));
+	else
+		Result |= CheckSeekHead(RSeekHead);
+	if (RSeekHead2)
+		Result |= CheckSeekHead(RSeekHead2);
 
 	if (ARRAYCOUNT(RClusters,ebml_element*))
 	{
 		if (!RCues)
-			OutputWarning(0x800,T("The segment has Clusters but no Cues section"));
+			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
 		if (!RTrackInfo)
 		{
 			Result = OutputError(0x41,T("The segment has Clusters but no TrackInfo section"));
