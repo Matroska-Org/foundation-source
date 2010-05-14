@@ -5,6 +5,8 @@ CON mkvalidator
   PROJECT_VENDOR   "Matroska Foundation"
   USE matroska2
   SOURCE mkvalidator.c
+  COMPILE src.br
+  COMPILE bootstrap.sh
 }
 
 

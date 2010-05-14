@@ -5,6 +5,8 @@ CON mkclean
   PROJECT_VENDOR   "Matroska Foundation"
   USE matroska2
   SOURCE mkclean.c
+  COMPILE src.br
+  COMPILE bootstrap.sh
 }
 
 
