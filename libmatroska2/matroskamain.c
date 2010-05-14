@@ -641,19 +641,54 @@ err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *L
     return ERR_NONE;
 }
 
+fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek)
+{
+	ebml_element *SeekID;
+    assert(MetaSeek->Base.Context->Id == MATROSKA_ContextSeek.Id);
+	SeekID = EBML_MasterFindFirstElt((ebml_element*)MetaSeek, &MATROSKA_ContextSeekId, 0, 0);
+	if (!SeekID)
+		return 0;
+	return EBML_BufferToID(EBML_BinaryGetData((ebml_binary*)SeekID));
+}
+
+filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek)
+{
+	ebml_element *SeekPos;
+    assert(MetaSeek->Base.Context->Id == MATROSKA_ContextSeek.Id);
+	SeekPos = EBML_MasterFindFirstElt((ebml_element*)MetaSeek, &MATROSKA_ContextSeekPosition, 0, 0);
+	if (!SeekPos)
+		return INVALID_FILEPOS_T;
+	return EBML_IntegerValue(SeekPos);
+}
+
+filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSeek)
+{
+	filepos_t RelPos = MATROSKA_MetaSeekPosInSegment(MetaSeek);
+	ebml_element *RSegment;
+	if (RelPos==INVALID_FILEPOS_T)
+		return INVALID_FILEPOS_T;
+
+    RSegment = EBML_ElementParent(MetaSeek);
+    while (RSegment && RSegment->Context->Id != MATROSKA_ContextSegment.Id)
+        RSegment = EBML_ElementParent(RSegment);
+    if (!RSegment)
+        return INVALID_FILEPOS_T;
+
+	return RelPos + EBML_ElementPositionData(RSegment);
+}
+
 err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
 {
-    ebml_element *WSeekID, *WSeekPosSegmentInfo, *WSegment, *Link = NULL;
+    ebml_element *WSeekID, *WSeekPosSegmentInfo, *RSegment, *Link = NULL;
     size_t IdSize;
     err_t Err;
     uint8_t IdBuffer[4];
 
     assert(MetaSeek->Base.Context->Id == MATROSKA_ContextSeek.Id);
-    WSegment = EBML_ElementParent(MetaSeek);
-    while (WSegment && WSegment->Context->Id != MATROSKA_ContextSegment.Id)
-        WSegment = EBML_ElementParent(WSegment);
-
-    if (!WSegment)
+    RSegment = EBML_ElementParent(MetaSeek);
+    while (RSegment && RSegment->Context->Id != MATROSKA_ContextSegment.Id)
+        RSegment = EBML_ElementParent(RSegment);
+    if (!RSegment)
         return ERR_INVALID_DATA;
 
     Err = Node_GET(MetaSeek,MATROSKA_SEEKPOINT_ELEMENT,&Link);
@@ -667,7 +702,7 @@ err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
     EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
 
     WSeekPosSegmentInfo = EBML_MasterFindFirstElt((ebml_element*)MetaSeek,&MATROSKA_ContextSeekPosition,1,0);
-    ((ebml_integer*)WSeekPosSegmentInfo)->Value = Link->ElementPosition - EBML_ElementPositionData(WSegment);
+    ((ebml_integer*)WSeekPosSegmentInfo)->Value = Link->ElementPosition - EBML_ElementPositionData(RSegment);
     WSeekPosSegmentInfo->bValueIsSet = 1;
 
     return Err;

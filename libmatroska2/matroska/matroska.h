@@ -78,6 +78,9 @@ EBML_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
 EBML_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block);
 EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
 EBML_DLL void MATROSKA_CuesSort(ebml_element *Cues);
+EBML_DLL fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek);
+EBML_DLL filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek);
+EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSeek);
 
 #define MATROSKA_VERSION  2
 
