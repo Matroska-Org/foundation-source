@@ -578,7 +578,7 @@ err_t MATROSKA_Done(nodecontext *p)
 #define LACING_EBML  3
 #define LACING_AUTO  4
 
-typedef struct matroska_block
+struct matroska_block
 {
     ebml_binary Base;
     uint16_t TrackNumber;
@@ -594,22 +594,22 @@ typedef struct matroska_block
     ebml_element *Track;
     ebml_element *SegInfo;
 
-} matroska_block;
+};
 
-typedef struct matroska_cuepoint
+struct matroska_cuepoint
 {
     ebml_element Base;
     ebml_element *SegInfo;
     matroska_block *Block;
 
-} matroska_cuepoint;
+};
 
-typedef struct matroska_cluster
+struct matroska_cluster
 {
     ebml_element Base;
     ebml_element *SegInfo;
 
-} matroska_cluster;
+};
 
 struct matroska_seekpoint
 {
