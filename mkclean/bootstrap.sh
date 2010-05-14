@@ -1,4 +1,7 @@
 #!/bin/sh
+%%BEGIN
+SCRIPT
+%%END
 
 make -s -f coremake.mak coremake
 
