@@ -30,7 +30,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo validate the SeekHead position vs the element found
  * \todo validate that the Cues entries link to a proper block that is a keyframe
  * \todo optionally test that the Cluster's first video track is a keyframe
  * \todo optionally test that the Codecs match a certain combination
