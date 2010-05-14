@@ -110,7 +110,7 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 	va_start(Args,ErrString);
 	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	va_end(Args);
-	TextPrintf(StdErr,T("ERR%03X: %s!\r\n"),ErrCode,Buffer);
+	TextPrintf(StdErr,T("ERR%03X: %s\r\n"),ErrCode,Buffer);
 	return -ErrCode;
 }
 
@@ -121,7 +121,7 @@ static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 	va_start(Args,ErrString);
 	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	va_end(Args);
-	TextPrintf(StdErr,T("WRN%03X: %s!\r\n"),ErrCode,Buffer);
+	TextPrintf(StdErr,T("WRN%03X: %s\r\n"),ErrCode,Buffer);
 	return -ErrCode;
 }
 
@@ -327,7 +327,7 @@ int main(int argc, const char *argv[])
     if (argc < 2)
     {
         TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
-        Result = OutputError(1,T("Usage: mkclean <matroska_src>"));
+        Result = OutputError(1,T("Usage: mkvalidator <matroska_src>"));
         goto exit;
     }
 
