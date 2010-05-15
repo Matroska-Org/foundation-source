@@ -30,10 +30,8 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo validate that the Cues entries link to a proper block that is a keyframe
  * \todo warn when a top level element is not present in the main SeekHead
  * \todo optionally test that the Cluster's first video track is a keyframe
- * \todo optionally test that the Codecs match a certain combination
  * \todo optionally show the use of deprecated elements
  */
 
@@ -152,21 +150,21 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 	ebml_string *CodecID;
 	tchar_t CodecName[MAXPATH];
 	int Result = 0;
-	if (ProfileNum==PROFILE_TEST)
+	Track = EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
+	while (Track)
 	{
-		Track = EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
-		while (Track)
+		TrackNum = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+		if (TrackNum)
 		{
-			TrackNum = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
-			if (TrackNum)
+			TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
+			CodecID = (ebml_string*)EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackCodecID, 1, 1);
+			if (!CodecID)
+				Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(long)EBML_IntegerValue(TrackNum));
+			if (!TrackType)
+				Result |= OutputError(0x301,T("Track #%d has no type defined"),(long)EBML_IntegerValue(TrackNum));
+			else
 			{
-				TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
-				CodecID = (ebml_string*)EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackCodecID, 1, 1);
-				if (!CodecID)
-					Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(long)EBML_IntegerValue(TrackNum));
-				if (!TrackType)
-					Result |= OutputError(0x301,T("Track #%d has no type defined"),(long)EBML_IntegerValue(TrackNum));
-				else
+				if (ProfileNum==PROFILE_TEST)
 				{
 					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),Profile[ProfileNum]);
@@ -186,8 +184,8 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 						}
 					}
 				}
-				Track = EBML_MasterFindNextElt(Tracks, Track, 0, 0);
 			}
+			Track = EBML_MasterFindNextElt(Tracks, Track, 0, 0);
 		}
 	}
 	return Result;
@@ -337,6 +335,51 @@ static int CheckSeekHead(ebml_element *SeekHead)
 		else
 			Result |= OutputWarning(0x860,T("The SeekPoint at %lld references an element that is not a known level 1 ID %s at %lld)"),(long)RLevel1->ElementPosition,IdString,(long)Pos);
 		RLevel1 = EBML_MasterFindNextElt(SeekHead, RLevel1, 0, 0);
+	}
+	return Result;
+}
+
+static void LinkClusterBlocks()
+{
+	matroska_cluster **Cluster;
+	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
+		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, RTrackInfo);
+}
+
+static int CheckCueEntries(ebml_element *Cues)
+{
+	int Result = 0;
+	timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
+	int16_t TrackNumEntry;
+	matroska_cluster **Cluster;
+	matroska_block *Block;
+
+	if (!RSegmentInfo)
+		Result |= OutputError(0x310,T("A Cues (index) is defined but no SegmentInfo was found"));
+	else if (ARRAYCOUNT(RClusters,matroska_cluster*))
+	{
+		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindFirstElt(Cues, &MATROSKA_ContextCuePoint, 0, 0);
+		while (CuePoint)
+		{
+			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
+			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
+			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
+
+			if (TimecodeEntry < PrevTimecode && PrevTimecode != INVALID_TIMECODE_T)
+				Result |= OutputError(0x311,T("The Cues entry for timecode %lld ms is listed after entry %lld ms"),(long)Scale64(TimecodeEntry,1,1000000),(long)Scale64(PrevTimecode,1,1000000));
+
+			// find a matching Block
+			for (Cluster = ARRAYBEGIN(RClusters,matroska_cluster*);Cluster != ARRAYEND(RClusters,matroska_cluster*); ++Cluster)
+			{
+				Block = MATROSKA_GetBlockForTimecode(*Cluster, TimecodeEntry, TrackNumEntry);
+				if (Block)
+					break;
+			}
+			if (Cluster == ARRAYEND(RClusters,matroska_cluster*))
+				Result |= OutputError(0x312,T("CueEntry Track #%d and timecode %lld ms not found"),TrackNumEntry,(long)Scale64(TimecodeEntry,1,1000000));
+			PrevTimecode = TimecodeEntry;
+			CuePoint = (matroska_cuepoint*)EBML_MasterFindNextElt(Cues, (ebml_element*)CuePoint, 0, 0);
+		}
 	}
 	return Result;
 }
@@ -650,8 +693,11 @@ int main(int argc, const char *argv[])
 
 	if (ARRAYCOUNT(RClusters,ebml_element*))
 	{
+		LinkClusterBlocks();
 		if (!RCues)
 			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
+		else
+			CheckCueEntries(RCues);
 		if (!RTrackInfo)
 		{
 			Result = OutputError(0x41,T("The segment has Clusters but no TrackInfo section"));
