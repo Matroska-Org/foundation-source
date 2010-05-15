@@ -1,7 +1,8 @@
 mkvalidator is a command line tool to verify Matroska files for spec conformance.
 
-It currently checks for missing mandatory element, EBML "junk" data (use of unknown IDs), and
-profile violation (like a v1 file using v2 features).
+It currently checks for missing mandatory element, EBML "junk" data (use of 
+unknown IDs), bad track or cues (index) entries, and profile violation (like
+a v1 file using v2 features).
 
 ** LICENSE **
 The program is licensed with the BSD license. So you can modify it in any way
