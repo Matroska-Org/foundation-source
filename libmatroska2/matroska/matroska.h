@@ -108,6 +108,7 @@ extern const ebml_context MATROSKA_ContextTags;
 extern const ebml_context MATROSKA_ContextTrackEntry;
 extern const ebml_context MATROSKA_ContextTrackType;
 extern const ebml_context MATROSKA_ContextTrackNumber;
+extern const ebml_context MATROSKA_ContextTrackCodecID;
 
 extern const ebml_context MATROSKA_ContextCuePoint;
 

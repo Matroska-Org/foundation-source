@@ -40,6 +40,7 @@
 static textwriter *StdErr = NULL;
 static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
 static array RClusters;
+static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("und"), T("test") };
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -145,12 +146,58 @@ static void CheckUnknownElements(ebml_element *Elt)
 	}
 }
 
+static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
+{
+	ebml_element *Track, *TrackType, *TrackNum;
+	ebml_string *CodecID;
+	tchar_t CodecName[MAXPATH];
+	int Result = 0;
+	if (ProfileNum==PROFILE_TEST)
+	{
+		Track = EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
+		while (Track)
+		{
+			TrackNum = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+			if (TrackNum)
+			{
+				TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
+				CodecID = (ebml_string*)EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackCodecID, 1, 1);
+				if (!CodecID)
+					Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(long)EBML_IntegerValue(TrackNum));
+				if (!TrackType)
+					Result |= OutputError(0x301,T("Track #%d has no type defined"),(long)EBML_IntegerValue(TrackNum));
+				else
+				{
+					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
+						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),Profile[ProfileNum]);
+					if (CodecID)
+					{
+						Node_FromStr(Tracks,CodecName,TSIZEOF(CodecName),CodecID->Buffer);
+						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
+						{
+							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
+								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,Profile[ProfileNum]);
+						}
+						else if (EBML_IntegerValue(TrackType) == TRACK_TYPE_VIDEO)
+						{
+							const uint8_t Test[6] = {0x56, 0x5F, 0x56, 0x50, 0x38, 0x00};
+							if (memcmp(CodecID->Buffer,Test,6)!=0)
+								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,Profile[ProfileNum]);
+						}
+					}
+				}
+				Track = EBML_MasterFindNextElt(Tracks, Track, 0, 0);
+			}
+		}
+	}
+	return Result;
+}
+
 static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 {
 	int Result = 0;
 	tchar_t String[MAXPATH],Invalid[MAXPATH];
 	ebml_element *SubElt;
-	const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("und"), T("test") };
 
 	Node_FromStr(Elt,String,TSIZEOF(String),Elt->Context->ElementName);
 	if (Node_IsPartOf(Elt,EBML_MASTER_CLASS))
@@ -167,7 +214,7 @@ static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 						if ((i->DisabledProfile & ProfileMask)!=0)
 						{
 							Node_FromStr(Elt,Invalid,TSIZEOF(Invalid),i->eClass->ElementName);
-							Result |= OutputError(0x201,T("Invalid %s for profile %s at %lld in %s"),Invalid,Profile[ProfileMask],(long)SubElt->ElementPosition,String);
+							Result |= OutputError(0x201,T("Invalid %s for profile '%s' at %lld in %s"),Invalid,Profile[ProfileMask],(long)SubElt->ElementPosition,String);
 						}
 						break;
 					}
@@ -395,7 +442,7 @@ int main(int argc, const char *argv[])
 		else
 			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),EBML_IntegerValue(EbmlDocVer),EBML_IntegerValue(EbmlReadDocVer));
 	}
-	else if (EBML_IntegerValue(EbmlReadDocVer)==1)
+	else if (EBML_IntegerValue(EbmlReadDocVer)==1 || EBML_IntegerValue(EbmlReadDocVer)==2)
 		MatroskaProfile = PROFILE_TEST;
 
 	if (MatroskaProfile==0)
@@ -611,6 +658,9 @@ int main(int argc, const char *argv[])
 			goto exit;
 		}
 	}
+
+	if (RTrackInfo)
+		CheckCodecs(RTrackInfo, MatroskaProfile);
 
 	if (Result==0)
 		TextWrite(StdErr,T("The file appears to be valid.\r\n"));
