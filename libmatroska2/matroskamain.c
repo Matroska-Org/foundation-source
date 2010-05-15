@@ -867,6 +867,70 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     return ERR_NONE;
 }
 
+matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track)
+{
+    ebml_element *Block, *GBlock;
+    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+    {
+        if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+        {
+            for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+            {
+                if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                {
+                    if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == Track &&
+                        MATROSKA_BlockTimecode((matroska_block*)GBlock) == Timecode)
+                    {
+                        return (matroska_block*)GBlock;
+                    }
+                }
+            }
+        }
+        else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+        {
+            if (MATROSKA_BlockTrackNum((matroska_block*)Block) == Track &&
+                MATROSKA_BlockTimecode((matroska_block*)Block) == Timecode)
+            {
+                return (matroska_block*)Block;
+            }
+        }
+    }
+    return NULL;
+}
+
+void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmentInfo, ebml_element *Tracks)
+{
+    ebml_element *Block, *GBlock;
+
+	assert(Node_IsPartOf(Cluster,MATROSKA_CLUSTER_CLASS));
+	assert(RSegmentInfo->Context->Id == MATROSKA_ContextSegmentInfo.Id);
+	assert(Tracks->Context->Id == MATROSKA_ContextTracks.Id);
+
+	// link each Block/SimpleBlock with its Track and SegmentInfo
+	MATROSKA_LinkClusterSegmentInfo(Cluster,RSegmentInfo);
+	for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+	{
+		if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+		{
+			for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+			{
+				if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+				{
+					MATROSKA_LinkBlockTrack((matroska_block*)GBlock,Tracks);
+					MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
+					break;
+				}
+			}
+		}
+		else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+		{
+			MATROSKA_LinkBlockTrack((matroska_block*)Block,Tracks);
+			MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
+		}
+	}
+}
+
+
 static size_t GetBlockHeadSize(const matroska_block *Element)
 {
     assert(Element->TrackNumber < 0x4000);

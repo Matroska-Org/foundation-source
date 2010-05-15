@@ -151,37 +151,6 @@ static void EndProgress(const ebml_element *RSegment, int phase)
     TextWrite(StdErr,T("\n"));
 }
 
-static matroska_block *GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track)
-{
-    ebml_element *Block, *GBlock;
-    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
-    {
-        if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-        {
-            for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
-            {
-                if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
-                {
-                    if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == Track &&
-                        MATROSKA_BlockTimecode((matroska_block*)GBlock) == Timecode)
-                    {
-                        return (matroska_block*)GBlock;
-                    }
-                }
-            }
-        }
-        else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-        {
-            if (MATROSKA_BlockTrackNum((matroska_block*)Block) == Track &&
-                MATROSKA_BlockTimecode((matroska_block*)Block) == Timecode)
-            {
-                return (matroska_block*)Block;
-            }
-        }
-    }
-    return NULL;
-}
-
 static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, const ebml_element *RSegment)
 {
     matroska_cluster **Cluster;
@@ -196,7 +165,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     {
         for (Cluster=StartCluster;StartBoost && Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster,--StartBoost)
         {
-            Block = GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
+            Block = MATROSKA_GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
             if (Block)
             {
                 MATROSKA_LinkCuePointBlock(Cue,Block);
@@ -208,7 +177,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
 
     for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
     {
-        Block = GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
+        Block = MATROSKA_GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
         if (Block)
         {
             MATROSKA_LinkCuePointBlock(Cue,Block);
@@ -224,32 +193,11 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
 static void LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks)
 {
     matroska_cluster **Cluster;
-    ebml_element *Block, *GBlock;
 
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 	{
-		MATROSKA_LinkClusterSegmentInfo(*Cluster,RSegmentInfo);
-		for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
-		{
-			if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-			{
-				for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
-				{
-					if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
-					{
-						MATROSKA_LinkBlockTrack((matroska_block*)GBlock,Tracks);
-						MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
-						break;
-					}
-				}
-			}
-			else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-			{
-				MATROSKA_LinkBlockTrack((matroska_block*)Block,Tracks);
-				MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
-			}
-		}
+		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks);
 		ReduceSize((ebml_element*)*Cluster);
 	}
 }
@@ -568,6 +516,7 @@ int main(int argc, const char *argv[])
     {
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
         TextWrite(StdErr,T("Usage: mkclean [--keep-cues] <matroska_src> <matroska_dst>\r\n"));
+		TextWrite(StdErr,T("  --keep-cues: keep the original Cues content and move it to the front\r\n"));
         Result = -1;
         goto exit;
     }
