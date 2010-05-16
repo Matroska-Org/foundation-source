@@ -107,7 +107,9 @@ void DebugMessage(const tchar_t* Msg,...)
 #endif
 
 static int DocVersion = 1;
+static int Profile = 0;
 static textwriter *StdErr = NULL;
+static uint8_t Test[5] = {0x77, 0x65, 0x62, 0x6D, 0};
 
 static void ReduceSize(ebml_element *Element)
 {
@@ -249,9 +251,9 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
-            else if (((ebml_integer*)SubElement)->Value > EBML_MAX_VERSION)
+            else if (EBML_IntegerValue(SubElement) > EBML_MAX_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)((ebml_integer*)SubElement)->Value);
+                TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -262,9 +264,9 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
-            else if (((ebml_integer*)SubElement)->Value > EBML_MAX_ID)
+            else if (EBML_IntegerValue(SubElement) > EBML_MAX_ID)
             {
-                TextPrintf(StdErr,T("EBML Max ID Length %ld not supported"),(long)((ebml_integer*)SubElement)->Value);
+                TextPrintf(StdErr,T("EBML Max ID Length %ld not supported"),(long)EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -275,9 +277,9 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
-            else if (((ebml_integer*)SubElement)->Value > EBML_MAX_SIZE)
+            else if (EBML_IntegerValue(SubElement) > EBML_MAX_SIZE)
             {
-                TextPrintf(StdErr,T("EBML Max Coded Size %ld not supported"),(long)((ebml_integer*)SubElement)->Value);
+                TextPrintf(StdErr,T("EBML Max Coded Size %ld not supported"),(long)EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -291,9 +293,13 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             else
             {
                 EBML_StringGet((ebml_string*)SubElement,String,TSIZEOF(String));
-                if (tcscmp(String,T("matroska"))!=0)
+                if (tcscmp(String,T("matroska"))==0)
+                    Profile = PROFILE_MATROSKA_V1;
+                else if (memcmp(((ebml_string*)SubElement)->Buffer,Test,5)!=0)
+                    Profile = PROFILE_TEST;
+                else
                 {
-                    TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)((ebml_integer*)SubElement)->Value);
+                    TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)EBML_IntegerValue(SubElement));
                     break;
                 }
             }
@@ -305,13 +311,13 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
-            else if (((ebml_integer*)SubElement)->Value > MATROSKA_VERSION)
+            else if (EBML_IntegerValue(SubElement) > MATROSKA_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)((ebml_integer*)SubElement)->Value);
+                TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)EBML_IntegerValue(SubElement));
                 break;
             }
             else
-                DocVersion = (int)((ebml_integer*)SubElement)->Value;
+                DocVersion = (int)EBML_IntegerValue(SubElement);
         }
         else if (SubElement->Context->Id == MATROSKA_ContextSegment.Id)
             return SubElement;
@@ -320,6 +326,8 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         NodeDelete((node*)SubElement);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
     }
+    if (Profile==PROFILE_MATROSKA_V1 && DocVersion==2)
+        Profile = PROFILE_MATROSKA_V2;
 
     return NULL;
 }
@@ -391,12 +399,12 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 	for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
 	{
 		Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
-		if (Elt && ((ebml_integer*)Elt)->Value == TRACK_TYPE_VIDEO)
+		if (Elt && EBML_IntegerValue(Elt) == TRACK_TYPE_VIDEO)
 		{
 			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
 			if (Elt)
 			{
-				TrackNum = ((ebml_integer*)Elt)->Value;
+				TrackNum = EBML_IntegerValue(Elt);
 				break;
 			}
 		}
@@ -408,12 +416,12 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 		for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
 		{
 			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
-			if (Elt && ((ebml_integer*)Elt)->Value == TRACK_TYPE_AUDIO)
+			if (Elt && EBML_IntegerValue(Elt) == TRACK_TYPE_AUDIO)
 			{
 				Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
 				if (Elt)
 				{
-					TrackNum = ((ebml_integer*)Elt)->Value;
+					TrackNum = EBML_IntegerValue(Elt);
 					break;
 				}
 			}
@@ -645,8 +653,16 @@ int main(int argc, const char *argv[])
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
-    if (EBML_StringSetValue((ebml_string*)RLevel1,"matroska") != ERR_NONE)
-        goto exit;
+    if (Profile == PROFILE_TEST)
+    {
+        if (EBML_StringSetValue((ebml_string*)RLevel1,(const char *)Test) != ERR_NONE)
+            goto exit;
+    }
+    else
+    {
+        if (EBML_StringSetValue((ebml_string*)RLevel1,"matroska") != ERR_NONE)
+            goto exit;
+    }
 
     // Doctype version
     RLevel1 = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeVersion);
@@ -654,6 +670,7 @@ int main(int argc, const char *argv[])
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     ((ebml_integer*)RLevel1)->Value = DocVersion;
+    RLevel1->bValueIsSet = 1;
 
     // Doctype readable version
     RLevel1 = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeReadVersion);
@@ -661,6 +678,7 @@ int main(int argc, const char *argv[])
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     ((ebml_integer*)RLevel1)->Value = DocVersion;
+    RLevel1->bValueIsSet = 1;
 
     if (EBML_ElementRender(EbmlHead,Output,1,0,1,NULL,1)!=ERR_NONE)
         goto exit;
