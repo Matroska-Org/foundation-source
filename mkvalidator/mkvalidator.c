@@ -27,7 +27,9 @@
  */
 #include "mkvalidator_stdafx.h"
 #include "mkvalidator_project.h"
+#ifndef CONFIG_EBML_UNICODE
 #define CONFIG_EBML_UNICODE
+#endif
 #include "matroska/matroska.h"
 
 /*!
@@ -797,7 +799,7 @@ exit:
 		}
 		if (App[0]==0)
 			tcscat_s(App,TSIZEOF(App),T("<unknown>"));
-		TextPrintf(StdErr,T("\r\tcreated with '%s'\r\n"),App);
+		TextPrintf(StdErr,T("\r\tfile created with %s\r\n"),App);
 	}
 
     for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)

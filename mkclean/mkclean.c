@@ -27,7 +27,9 @@
  */
 #include "mkclean_stdafx.h"
 #include "mkclean_project.h"
+#ifndef CONFIG_EBML_UNICODE
 #define CONFIG_EBML_UNICODE
+#endif
 #include "matroska/matroska.h"
 
 /*!
