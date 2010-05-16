@@ -81,6 +81,12 @@ err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append)
     return Result;
 }
 
+err_t EBML_MasterRemove(ebml_element *Element, ebml_element *Append)
+{
+    err_t Result = NodeTree_SetParent(Append,NULL,NULL);
+    return Result;
+}
+
 size_t EBML_MasterCount(const ebml_element *Element)
 {
     size_t Result = 0;
@@ -150,6 +156,20 @@ static bool_t CheckMandatory(const ebml_element *Element, bool_t bWithDefault)
         if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass) && (bWithDefault || !i->eClass->HasDefault))
             return 0;
     }
+    return 1;
+}
+
+bool_t EBML_MasterCheckMandatory(const ebml_element *Element, bool_t bWithDefault)
+{
+	ebml_element *Child;
+	if (!CheckMandatory(Element, bWithDefault))
+		return 0;
+
+	for (Child = EBML_MasterChildren(Element); Child; Child = EBML_MasterNext(Child))
+	{
+		if (Node_IsPartOf(Child,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory(Child, bWithDefault))
+			return 0;
+	}
     return 1;
 }
 
