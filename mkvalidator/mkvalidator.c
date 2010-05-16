@@ -111,7 +111,7 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 	va_start(Args,ErrString);
 	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	va_end(Args);
-	TextPrintf(StdErr,T("ERR%03X: %s\r\n"),ErrCode,Buffer);
+	TextPrintf(StdErr,T("\rERR%03X: %s\r\n"),ErrCode,Buffer);
 	return -ErrCode;
 }
 
@@ -122,7 +122,7 @@ static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 	va_start(Args,ErrString);
 	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	va_end(Args);
-	TextPrintf(StdErr,T("WRN%03X: %s\r\n"),ErrCode,Buffer);
+	TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
 	return -ErrCode;
 }
 
