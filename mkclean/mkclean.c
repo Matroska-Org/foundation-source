@@ -117,10 +117,36 @@ static void ReduceSize(ebml_element *Element)
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
         ebml_element *i;
+		const ebml_semantic *s;
 		EBML_MasterMandatory(Element,1);
+
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
             ReduceSize(i);
-    }
+
+		for (i=EBML_MasterChildren(Element);i;i=i?EBML_MasterNext(i):NULL)
+		{
+			if (Node_IsPartOf(i,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory(i,0))
+			{
+				for (s=Element->Context->Semantic; s->eClass; ++s)
+				{
+					if (s->eClass->Id == i->Context->Id)
+					{
+						// if it's not unique we can remove it
+						if (!s->Unique)
+						{
+							tchar_t IdString[MAXPATH];
+							Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
+							TextPrintf(StdErr,T("The %s element at %lld is missing mandatory elements, skipping\r\n"),IdString,(long)i->ElementPosition);
+							EBML_MasterRemove(Element,i);
+							NodeDelete((node*)i);
+							i=EBML_MasterChildren(Element);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_element *Cues, ebml_element *Segment)
@@ -737,22 +763,6 @@ int main(int argc, const char *argv[])
     // tags
     if (RTags)
     {
-		RLevel1 = EBML_MasterFindFirstElt(RTags, &MATROSKA_ContextTag, 0, 0);
-		while (RLevel1)
-		{
-			EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextSimpleTag, 0, 0);
-			if (!EbmlHead)
-			{
-				TextPrintf(StdErr,T("The Tag element at %lld has no SimpleTag defined, skipping\r\n"),(long)RLevel1->ElementPosition);
-				EBML_MasterRemove(RTags,RLevel1);
-				NodeDelete((node*)RLevel1);
-				RLevel1 = EBML_MasterFindFirstElt(RTags, &MATROSKA_ContextTag, 0, 0);
-				continue;
-			}
-			RLevel1 = EBML_MasterFindNextElt(RTags, RLevel1, 0, 0);
-		}
-		RLevel1 = NULL;
-
 		ReduceSize(RTags);
 		if (!EBML_MasterCheckMandatory(RTags,0))
 		{

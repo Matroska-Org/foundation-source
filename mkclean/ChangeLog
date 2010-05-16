@@ -1,6 +1,7 @@
 2010-05-16
 version 0.1.6:
     - enforce mandatory elements are always (virtually) there
+    - remove Master elements that are missing mandatory elements and are not unique in the context
 
 2010-05-13
 version 0.1.5:
