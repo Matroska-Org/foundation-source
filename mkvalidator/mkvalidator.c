@@ -403,6 +403,7 @@ static int CheckCueEntries(ebml_element *Cues)
 	int16_t TrackNumEntry;
 	matroska_cluster **Cluster;
 	matroska_block *Block;
+    int ClustNum = 0;
 
 	if (!RSegmentInfo)
 		Result |= OutputError(0x310,T("A Cues (index) is defined but no SegmentInfo was found"));
@@ -411,6 +412,8 @@ static int CheckCueEntries(ebml_element *Cues)
 		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindFirstElt(Cues, &MATROSKA_ContextCuePoint, 0, 0);
 		while (CuePoint)
 		{
+            if (ClustNum++ % 24 == 0)
+                TextWrite(StdErr,T("."));
 			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
 			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
 			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
@@ -492,6 +495,8 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+    TextWrite(StdErr,T("."));
+
 	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA)!=ERR_NONE)
     {
         Result = OutputError(4,T("Could not read the EBML head"));
@@ -541,6 +546,8 @@ int main(int argc, const char *argv[])
 	if (MatroskaProfile==0)
 		Result |= OutputError(11,T("Matroska profile not supported"));
 
+    TextWrite(StdErr,T("."));
+
 	// find the segment
 	RSegment = EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
     RSegmentContext.Context = &MATROSKA_ContextSegment;
@@ -553,6 +560,8 @@ int main(int argc, const char *argv[])
 	{
         if (RLevel1->Context->Id == MATROSKA_ContextCluster.Id)
         {
+            //TextWrite(StdErr,T("."));
+
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
@@ -725,6 +734,8 @@ int main(int argc, const char *argv[])
 			EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
             NodeDelete((node*)RLevel1);
 		}
+        //TextWrite(StdErr,T("."));
+
 		RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
 	}
 
@@ -743,7 +754,9 @@ int main(int argc, const char *argv[])
 
 	if (ARRAYCOUNT(RClusters,ebml_element*))
 	{
+        TextWrite(StdErr,T("."));
 		LinkClusterBlocks();
+
         Result |= CheckLacing();
 		if (!RCues)
 			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
@@ -756,11 +769,12 @@ int main(int argc, const char *argv[])
 		}
 	}
 
+    TextWrite(StdErr,T("."));
 	if (RTrackInfo)
 		CheckCodecs(RTrackInfo, MatroskaProfile);
 
 	if (Result==0)
-        TextPrintf(StdErr,T("%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
+        TextPrintf(StdErr,T("\r%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
 
 exit:
 	if (Result!=0 && RSegmentInfo)
