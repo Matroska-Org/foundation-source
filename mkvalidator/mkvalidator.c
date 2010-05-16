@@ -42,7 +42,6 @@
 static textwriter *StdErr = NULL;
 static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
 static array RClusters;
-static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("und"), T("test") };
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -106,6 +105,19 @@ void DebugMessage(const tchar_t* Msg,...)
 #endif
 }
 #endif
+
+static const tchar_t *GetProfileName(size_t ProfileNum)
+{
+static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("testv1"), T("testv2") };
+	switch (ProfileNum)
+	{
+	case PROFILE_MATROSKA_V1: return Profile[1];
+	case PROFILE_MATROSKA_V2: return Profile[2];
+	case PROFILE_TEST_V1:     return Profile[3];
+	case PROFILE_TEST_V2:     return Profile[4];
+	default:                  return Profile[0];
+	}
+}
 
 static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 {
@@ -171,20 +183,20 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 				if (ProfileNum==PROFILE_TEST_V1 || ProfileNum==PROFILE_TEST_V2)
 				{
 					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
-						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),Profile[ProfileNum]);
+						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),GetProfileName(ProfileNum));
 					if (CodecID)
 					{
 						EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
 						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
 						{
 							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
-								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,Profile[ProfileNum]);
+								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
 						else if (EBML_IntegerValue(TrackType) == TRACK_TYPE_VIDEO)
 						{
 							const uint8_t Test[6] = {0x56, 0x5F, 0x56, 0x50, 0x38, 0x00};
 							if (memcmp(CodecID->Buffer,Test,6)!=0)
-								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,Profile[ProfileNum]);
+								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
 					}
 				}
@@ -216,7 +228,7 @@ static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 						if ((i->DisabledProfile & ProfileMask)!=0)
 						{
 							Node_FromStr(Elt,Invalid,TSIZEOF(Invalid),i->eClass->ElementName);
-							Result |= OutputError(0x201,T("Invalid %s for profile '%s' at %lld in %s"),Invalid,Profile[ProfileMask],(long)SubElt->ElementPosition,String);
+							Result |= OutputError(0x201,T("Invalid %s for profile '%s' at %lld in %s"),Invalid,GetProfileName(ProfileMask),(long)SubElt->ElementPosition,String);
 						}
 						break;
 					}
