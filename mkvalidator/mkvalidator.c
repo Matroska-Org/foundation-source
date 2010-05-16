@@ -32,7 +32,7 @@
 
 /*!
  * \todo warn when a top level element is not present in the main SeekHead
- * \todo optionally test that the Cluster's first video track is a keyframe
+ * \todo optionally warn when a Cluster's first video track is not a keyframe
  * \todo optionally show the use of deprecated elements
  */
 
@@ -345,6 +345,55 @@ static void LinkClusterBlocks()
 	matroska_cluster **Cluster;
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
 		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, RTrackInfo);
+}
+
+static bool_t TrackIsLaced(int16_t TrackNum)
+{
+    ebml_element *TrackData, *Track = EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
+    while (Track)
+    {
+        TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+        if (EBML_IntegerValue(TrackData) == TrackNum)
+        {
+            TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackLacing, 1, 1);
+            return EBML_IntegerValue(TrackData) != 0;
+        }
+        Track = EBML_MasterFindNextElt(RTrackInfo, Track, 0, 0);
+    }
+    return 1;
+}
+
+static int CheckLacing()
+{
+	int Result = 0;
+	matroska_cluster **Cluster;
+    ebml_element *Block, *GBlock;
+
+	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
+    {
+	    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+	    {
+		    if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+		    {
+			    for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+			    {
+				    if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+				    {
+                        //MATROSKA_ContextTrackLacing
+                        if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(MATROSKA_BlockTrackNum((matroska_block*)GBlock)))
+                            Result |= 0;
+					    break;
+				    }
+			    }
+		    }
+		    else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+		    {
+                if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(MATROSKA_BlockTrackNum((matroska_block*)Block)))
+                    Result |= 0;
+		    }
+	    }
+    }
+	return Result;
 }
 
 static int CheckCueEntries(ebml_element *Cues)
@@ -695,6 +744,7 @@ int main(int argc, const char *argv[])
 	if (ARRAYCOUNT(RClusters,ebml_element*))
 	{
 		LinkClusterBlocks();
+        Result |= CheckLacing();
 		if (!RCues)
 			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
 		else

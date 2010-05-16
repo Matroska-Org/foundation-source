@@ -74,6 +74,7 @@ EBML_DLL timecode_t MATROSKA_BlockTimecode(const matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
 EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 EBML_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
+EBML_DLL bool_t MATROSKA_BlockLaced(const matroska_block *Block);
 EBML_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
 EBML_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block);
 EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
@@ -112,6 +113,7 @@ extern const ebml_context MATROSKA_ContextTrackEntry;
 extern const ebml_context MATROSKA_ContextTrackType;
 extern const ebml_context MATROSKA_ContextTrackNumber;
 extern const ebml_context MATROSKA_ContextTrackCodecID;
+extern const ebml_context MATROSKA_ContextTrackLacing;
 
 extern const ebml_context MATROSKA_ContextCuePoint;
 

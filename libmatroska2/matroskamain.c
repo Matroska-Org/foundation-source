@@ -774,6 +774,12 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 	return Block->IsKeyframe;
 }
 
+bool_t MATROSKA_BlockLaced(const matroska_block *Block)
+{
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    return Block->Lacing != LACING_NONE;
+}
+
 int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
 {
     ebml_element *Position, *CueTrack;
