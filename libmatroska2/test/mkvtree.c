@@ -79,7 +79,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         //tchar_t UnicodeString[MAXDATA];
         //EBML_StringRead((ebml_string*)Element,Input,UnicodeString,TSIZEOF(UnicodeString));
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA)==ERR_NONE)
-            fprintf(stdout,"%s\r\n",((ebml_string*)Element)->Buffer);
+            fprintf(stdout,"'%s'\r\n",((ebml_string*)Element)->Buffer);
         else
             fprintf(stdout,"<error reading>\r\n");
     }
@@ -141,6 +141,11 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         else
             fprintf(stdout,"<error reading>\r\n");
     }
+    else if (Node_IsPartOf(Element,EBML_VOID_CLASS))
+    {
+        fprintf(stdout,"[%d bytes]\r\n",(int)Element->DataSize);
+        EBML_ElementSkipData(Element, Input, Context, NULL, 0);
+	}
     // TODO: handle crc32
     else
     {

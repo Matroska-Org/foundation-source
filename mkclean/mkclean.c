@@ -37,7 +37,9 @@
  * \todo forbid the use of SimpleBlock in v1 (strict profiling)
  * \todo start a new cluster boundary with each video keyframe
  * \todo change the Segment UID (when key parts are altered)
+ * \todo handle segments with an infinite size
  * \todo optionally add a CRC32 on level1 elements
+ * \todo add support for compressed headers
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo force keeping some forbidden elements in a profile (chapters in 'test')
  * \todo allow creating/replacing Tags
@@ -325,7 +327,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 if (tcscmp(String,T("matroska"))==0)
                     Profile = PROFILE_MATROSKA_V1;
                 else if (memcmp(((ebml_string*)SubElement)->Buffer,Test,5)==0)
-                    Profile = PROFILE_TEST;
+                    Profile = PROFILE_TEST_V1;
                 else
                 {
                     TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)EBML_IntegerValue(SubElement));
@@ -597,6 +599,8 @@ int main(int argc, const char *argv[])
     RSegment = CheckMatroskaHead(EbmlHead,&RContext,Input);
     if (Profile==PROFILE_MATROSKA_V1 && DocVersion==2)
         Profile = PROFILE_MATROSKA_V2;
+    else if (Profile==PROFILE_TEST_V1 && DocVersion==2)
+        Profile = PROFILE_TEST_V2;
     if (!RSegment)
     {
         Result = -5;
@@ -682,7 +686,7 @@ int main(int argc, const char *argv[])
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
-    if (Profile == PROFILE_TEST)
+    if (Profile == PROFILE_TEST_V1 || Profile == PROFILE_TEST_V2)
     {
         if (EBML_StringSetValue((ebml_string*)RLevel1,(const char *)Test) != ERR_NONE)
             goto exit;

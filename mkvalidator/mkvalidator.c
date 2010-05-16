@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo handle segments with an infinite size
  * \todo warn when a top level element is not present in the main SeekHead
  * \todo optionally warn when a Cluster's first video track is not a keyframe
  * \todo optionally show the use of deprecated elements
@@ -167,7 +168,7 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 				Result |= OutputError(0x301,T("Track #%d has no type defined"),(long)EBML_IntegerValue(TrackNum));
 			else
 			{
-				if (ProfileNum==PROFILE_TEST)
+				if (ProfileNum==PROFILE_TEST_V1 || ProfileNum==PROFILE_TEST_V2)
 				{
 					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),Profile[ProfileNum]);
@@ -542,8 +543,10 @@ int main(int argc, const char *argv[])
 		else
 			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),EBML_IntegerValue(EbmlDocVer),EBML_IntegerValue(EbmlReadDocVer));
 	}
-	else if (EBML_IntegerValue(EbmlReadDocVer)==1 || EBML_IntegerValue(EbmlReadDocVer)==2)
-		MatroskaProfile = PROFILE_TEST;
+	else if (EBML_IntegerValue(EbmlReadDocVer)==1)
+		MatroskaProfile = PROFILE_TEST_V1;
+	else if (EBML_IntegerValue(EbmlReadDocVer)==2)
+		MatroskaProfile = PROFILE_TEST_V2;
 
 	if (MatroskaProfile==0)
 		Result |= OutputError(11,T("Matroska profile not supported"));
