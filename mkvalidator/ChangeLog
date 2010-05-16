@@ -1,3 +1,7 @@
+2010-05-16
+version 0.1.3:
+    - verify that no lacing is used when lacing is disabled in the Track
+
 2010-05-15
 version 0.1.2:
     - check the Cue entries for erroneous entries

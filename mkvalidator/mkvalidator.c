@@ -371,7 +371,7 @@ static int CheckLacing()
 
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
     {
-	    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+	    for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
 	    {
 		    if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
 		    {
@@ -760,7 +760,7 @@ int main(int argc, const char *argv[])
 		CheckCodecs(RTrackInfo, MatroskaProfile);
 
 	if (Result==0)
-		TextWrite(StdErr,T("The file appears to be valid.\r\n"));
+        TextPrintf(StdErr,T("%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
 
 exit:
 	if (Result!=0 && RSegmentInfo)
