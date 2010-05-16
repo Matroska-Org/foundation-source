@@ -117,7 +117,9 @@ extern const ebml_context MATROSKA_ContextTrackLacing;
 
 extern const ebml_context MATROSKA_ContextCuePoint;
 
+extern const ebml_context MATROSKA_ContextTag;
 extern const ebml_context MATROSKA_ContextSimpleTag;
+extern const ebml_context MATROSKA_ContextTagTargets;
 
 extern const ebml_context MATROSKA_ContextChapterAtom;
 

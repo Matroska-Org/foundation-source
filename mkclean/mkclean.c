@@ -117,6 +117,7 @@ static void ReduceSize(ebml_element *Element)
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
         ebml_element *i;
+		EBML_MasterMandatory(Element,1);
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
             ReduceSize(i);
     }
@@ -151,7 +152,7 @@ static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegm
 
 static void EndProgress(const ebml_element *RSegment, int phase)
 {
-    TextWrite(StdErr,T("\n"));
+    TextPrintf(StdErr,T("Progress %d/3: 100%%\r\n"),phase);
 }
 
 static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, const ebml_element *RSegment)
@@ -295,7 +296,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 EBML_StringGet((ebml_string*)SubElement,String,TSIZEOF(String));
                 if (tcscmp(String,T("matroska"))==0)
                     Profile = PROFILE_MATROSKA_V1;
-                else if (memcmp(((ebml_string*)SubElement)->Buffer,Test,5)!=0)
+                else if (memcmp(((ebml_string*)SubElement)->Buffer,Test,5)==0)
                     Profile = PROFILE_TEST;
                 else
                 {
@@ -326,8 +327,6 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         NodeDelete((node*)SubElement);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
     }
-    if (Profile==PROFILE_MATROSKA_V1 && DocVersion==2)
-        Profile = PROFILE_MATROSKA_V2;
 
     return NULL;
 }
@@ -568,6 +567,8 @@ int main(int argc, const char *argv[])
     }
 
     RSegment = CheckMatroskaHead(EbmlHead,&RContext,Input);
+    if (Profile==PROFILE_MATROSKA_V1 && DocVersion==2)
+        Profile = PROFILE_MATROSKA_V2;
     if (!RSegment)
     {
         Result = -5;
@@ -718,23 +719,69 @@ int main(int argc, const char *argv[])
     // chapters
     if (RChapters)
     {
-        WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-        RChapters->ElementPosition = NextPos;
-        NextPos += EBML_ElementFullSize(RChapters,0);
-        MATROSKA_LinkMetaSeekElement(WSeekPoint,RChapters);
+		ReduceSize(RChapters);
+		if (!EBML_MasterCheckMandatory(RChapters,0))
+		{
+			TextWrite(StdErr,T("The Chapters section is missing mandatory elements, skipping\r\n"));
+			NodeDelete((node*)RChapters);
+			RChapters = NULL;
+		}
+		else
+		{
+			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+			RChapters->ElementPosition = NextPos;
+			NextPos += EBML_ElementFullSize(RChapters,0);
+			MATROSKA_LinkMetaSeekElement(WSeekPoint,RChapters);
+		}
     }
     // tags
     if (RTags)
     {
-        WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-        RTags->ElementPosition = NextPos;
-        NextPos += EBML_ElementFullSize(RTags,0);
-        MATROSKA_LinkMetaSeekElement(WSeekPoint,RTags);
+		RLevel1 = EBML_MasterFindFirstElt(RTags, &MATROSKA_ContextTag, 0, 0);
+		while (RLevel1)
+		{
+			EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextSimpleTag, 0, 0);
+			if (!EbmlHead)
+			{
+				TextPrintf(StdErr,T("The Tag element at %lld has no SimpleTag defined, skipping\r\n"),(long)RLevel1->ElementPosition);
+				EBML_MasterRemove(RTags,RLevel1);
+				NodeDelete((node*)RLevel1);
+				RLevel1 = EBML_MasterFindFirstElt(RTags, &MATROSKA_ContextTag, 0, 0);
+				continue;
+			}
+			RLevel1 = EBML_MasterFindNextElt(RTags, RLevel1, 0, 0);
+		}
+		RLevel1 = NULL;
+
+		ReduceSize(RTags);
+		if (!EBML_MasterCheckMandatory(RTags,0))
+		{
+			TextWrite(StdErr,T("The Tags section is missing mandatory elements, skipping\r\n"));
+			NodeDelete((node*)RTags);
+			RTags = NULL;
+		}
+		else
+		{
+			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+			RTags->ElementPosition = NextPos;
+			NextPos += EBML_ElementFullSize(RTags,0);
+			MATROSKA_LinkMetaSeekElement(WSeekPoint,RTags);
+		}
     }
 
 	LinkClusters(&RClusters,RSegmentInfo,RTrackInfo);
 
     // cues
+	if (RCues)
+	{
+		ReduceSize(RCues);
+		if (!EBML_MasterCheckMandatory(RCues,0))
+		{
+			TextWrite(StdErr,T("The original Cues are missing mandatory elements, creating from scratch\r\n"));
+			NodeDelete((node*)RCues);
+			RCues = NULL;
+		}
+	}
 	if (!RCues)
 	{
 		// generate the cues
@@ -752,10 +799,20 @@ int main(int argc, const char *argv[])
     // attachements
     if (RAttachments)
     {
-        WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-        RAttachments->ElementPosition = EBML_ElementPositionEnd(RSegment) - EBML_ElementFullSize(RAttachments,0); // virutally position the attachment at the end of the segment
-        NextPos += EBML_ElementFullSize(RAttachments,0);
-        MATROSKA_LinkMetaSeekElement(WSeekPoint,RAttachments);
+		ReduceSize(RAttachments);
+		if (!EBML_MasterCheckMandatory(RAttachments,0))
+		{
+			TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
+			NodeDelete((node*)RAttachments);
+			RAttachments = NULL;
+		}
+		else
+		{
+			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+			RAttachments->ElementPosition = EBML_ElementPositionEnd(RSegment) - EBML_ElementFullSize(RAttachments,0); // virutally position the attachment at the end of the segment
+			NextPos += EBML_ElementFullSize(RAttachments,0);
+			MATROSKA_LinkMetaSeekElement(WSeekPoint,RAttachments);
+		}
     }
 
 	// first estimation of the MetaSeek size
@@ -808,10 +865,9 @@ int main(int argc, const char *argv[])
     //  Compute the Tags size
     if (RTags)
     {
-        ReduceSize(RTags);
-        EBML_ElementUpdateSize(RTags,0,0);
-        RTags->ElementPosition = NextPos;
-        NextPos += EBML_ElementFullSize(RTags,0);
+		EBML_ElementUpdateSize(RTags,0,0);
+		RTags->ElementPosition = NextPos;
+		NextPos += EBML_ElementFullSize(RTags,0);
     }
 
 	MetaSeekUpdate(WMetaSeek);
