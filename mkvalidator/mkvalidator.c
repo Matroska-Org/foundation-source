@@ -27,6 +27,7 @@
  */
 #include "mkvalidator_stdafx.h"
 #include "mkvalidator_project.h"
+#define CONFIG_EBML_UNICODE
 #include "matroska/matroska.h"
 
 /*!
@@ -170,7 +171,7 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),Profile[ProfileNum]);
 					if (CodecID)
 					{
-						Node_FromStr(Tracks,CodecName,TSIZEOF(CodecName),CodecID->Buffer);
+						EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
 						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
 						{
 							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
@@ -463,7 +464,7 @@ int main(int argc, const char *argv[])
 		OutputError(7,T("The EBML max size length is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
 
 	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocType,1,1);
-    Node_FromStr(Input,String,TSIZEOF(String),((ebml_string*)RLevel1)->Buffer);
+    EBML_StringGet((ebml_string*)RLevel1,String,TSIZEOF(String));
     if (tcscmp(String,T("matroska"))!=0 && memcmp(((ebml_string*)RLevel1)->Buffer,Test,5)!=0)
 	{
 		Result = OutputError(8,T("The EBML doctype is not supported: %s"),String);
@@ -720,12 +721,12 @@ exit:
 		AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextWritingApp,0,0);
 		if (AppName)
 		{
-			Node_FromUTF8(AppName,String,TSIZEOF(String),AppName->Buffer);
+			EBML_StringGet(AppName,String,TSIZEOF(String));
 			tcscat_s(App,TSIZEOF(App),String);
 		}
 		if (LibName)
 		{
-			Node_FromUTF8(AppName,String,TSIZEOF(String),LibName->Buffer);
+			EBML_StringGet(LibName,String,TSIZEOF(String));
 			if (App[0])
 				tcscat_s(App,TSIZEOF(App),T(" + "));
 			tcscat_s(App,TSIZEOF(App),String);

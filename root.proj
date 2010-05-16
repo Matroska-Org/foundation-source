@@ -1,16 +1,18 @@
 CONFIG_FILE config.h
 PLATFORM_FILES corec/tools/coremake
 
-WORKSPACE matroska
-{
-  USE matroska2
-  USE mkvtests
-}
-
 WORKSPACE ebml
 {
   USE ebml2
   USE ebmltests
+}
+
+WORKSPACE matroska
+{
+  USE matroska2
+  USE mkvtests
+  USE mkclean
+  USE mkvalidator
 }
 
 #include "*/*.proj"

@@ -49,6 +49,16 @@ err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
     return ERR_NONE;
 }
 
+void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
+{
+#if defined(CONFIG_EBML_UNICODE)
+    if (Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
+        Node_FromUTF8(Element,Out,OutLen,Element->Buffer);
+    else
+#endif
+        Node_FromStr(Element,Out,OutLen,Element->Buffer);
+}
+
 static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
     err_t Result;

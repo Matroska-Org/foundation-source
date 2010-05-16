@@ -250,6 +250,7 @@ EBML_DLL err_t EBML_StringSetValue(ebml_string *Element,const char *Value);
 #if defined(CONFIG_EBML_UNICODE)
 EBML_DLL err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value);
 #endif
+EBML_DLL void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen);
 
 EBML_DLL datetime_t EBML_DateTime(const ebml_date *Element);
 EBML_DLL err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date);

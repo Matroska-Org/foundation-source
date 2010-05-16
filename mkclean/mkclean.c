@@ -27,6 +27,7 @@
  */
 #include "mkclean_stdafx.h"
 #include "mkclean_project.h"
+#define CONFIG_EBML_UNICODE
 #include "matroska/matroska.h"
 
 /*!
@@ -289,7 +290,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else
             {
-                Node_FromStr(Input,String,TSIZEOF(String),((ebml_string*)SubElement)->Buffer);
+                EBML_StringGet((ebml_string*)SubElement,String,TSIZEOF(String));
                 if (tcscmp(String,T("matroska"))!=0)
                 {
                     TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)((ebml_integer*)SubElement)->Value);
@@ -751,11 +752,11 @@ int main(int argc, const char *argv[])
     // change the library names & app name
     LibName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
     stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
-    Node_FromUTF8(RSegmentInfo,Original,TSIZEOF(Original),LibName->Buffer);
+    EBML_StringGet(LibName,Original,TSIZEOF(Original));
     EBML_UniStringSetValue(LibName,String);
 
     AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
-    Node_FromUTF8(RSegmentInfo,String,TSIZEOF(String),AppName->Buffer);
+    EBML_StringGet(AppName,String,TSIZEOF(String));
     if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
     {
         tcscat_s(Original,TSIZEOF(Original),T(" + "));
