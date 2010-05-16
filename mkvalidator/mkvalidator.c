@@ -777,7 +777,7 @@ int main(int argc, const char *argv[])
         TextPrintf(StdErr,T("\r%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
 
 exit:
-	if (Result!=0 && RSegmentInfo)
+	if (RSegmentInfo)
 	{
 		tchar_t App[MAXPATH];
 		App[0] = 0;
@@ -792,12 +792,12 @@ exit:
 		{
 			EBML_StringGet(LibName,String,TSIZEOF(String));
 			if (App[0])
-				tcscat_s(App,TSIZEOF(App),T(" + "));
+				tcscat_s(App,TSIZEOF(App),T(" / "));
 			tcscat_s(App,TSIZEOF(App),String);
 		}
 		if (App[0]==0)
 			tcscat_s(App,TSIZEOF(App),T("<unknown>"));
-		TextPrintf(StdErr,T("Created with '%s'\r\n"),App);
+		TextPrintf(StdErr,T("\r\tcreated with '%s'\r\n"),App);
 	}
 
     for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
