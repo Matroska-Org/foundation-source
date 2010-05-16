@@ -33,13 +33,13 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
- * \todo forbid the use of SimpleBlock in v1 (strict profiling)
  * \todo start a new cluster boundary with each video keyframe
+ * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
  * \todo change the Segment UID (when key parts are altered)
  * \todo handle segments with an infinite size
  * \todo optionally add a CRC32 on level1 elements
  * \todo add support for compressed headers
+ * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo force keeping some forbidden elements in a profile (chapters in 'test')
  * \todo allow creating/replacing Tags
