@@ -39,8 +39,7 @@ err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date)
 {
     if (Date == INVALID_DATETIME_T)
         return ERR_INVALID_PARAM;
-    Element->Value = Scale64(Date,1000000000,1); // seconds to nanoseconds
-    Element->Base.bValueIsSet = 1;
+    EBML_IntegerSetValue(Element, Scale64(Date,1000000000,1)); // seconds to nanoseconds
     return ERR_NONE;
 }
 

@@ -336,10 +336,7 @@ static void PostCreateInt(ebml_element *Element)
     INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->PostCreate(Element);
     Element->DefaultSize = 1;
     if (Element->bDefaultIsSet)
-    {
-        Element->bValueIsSet = 1;
-        ((ebml_integer*)Element)->Value = Element->Context->DefaultValue;
-    }
+        EBML_IntegerSetValue((ebml_integer*)Element, Element->Context->DefaultValue);
 }
 
 static void PostCreateSignedInt(ebml_element *Element)
@@ -347,10 +344,7 @@ static void PostCreateSignedInt(ebml_element *Element)
     INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->PostCreate(Element);
     Element->DefaultSize = 1;
     if (Element->bDefaultIsSet)
-    {
-        Element->bValueIsSet = 1;
-        ((ebml_integer*)Element)->Value = Element->Context->DefaultValue;
-    }
+        EBML_IntegerSetValue((ebml_integer*)Element, Element->Context->DefaultValue);
 }
 
 static void PostCreateFloat(ebml_element *Element)
@@ -403,3 +397,10 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataFloat)
 #endif
 META_END(EBML_ELEMENT_CLASS)
+
+err_t EBML_IntegerSetValue(ebml_integer *Element, int64_t Value)
+{
+    Element->Value = Value;
+    Element->Base.bValueIsSet = 1;
+    return ERR_NONE;
+}

@@ -669,16 +669,14 @@ int main(int argc, const char *argv[])
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
-    ((ebml_integer*)RLevel1)->Value = DocVersion;
-    RLevel1->bValueIsSet = 1;
+    EBML_IntegerSetValue((ebml_integer*)RLevel1, DocVersion);
 
     // Doctype readable version
     RLevel1 = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeReadVersion);
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
-    ((ebml_integer*)RLevel1)->Value = DocVersion;
-    RLevel1->bValueIsSet = 1;
+    EBML_IntegerSetValue((ebml_integer*)RLevel1, DocVersion);
 
     if (EBML_ElementRender(EbmlHead,Output,1,0,1,NULL,1)!=ERR_NONE)
         goto exit;

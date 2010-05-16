@@ -702,8 +702,7 @@ err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
     EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
 
     WSeekPosSegmentInfo = EBML_MasterFindFirstElt((ebml_element*)MetaSeek,&MATROSKA_ContextSeekPosition,1,0);
-    ((ebml_integer*)WSeekPosSegmentInfo)->Value = Link->ElementPosition - EBML_ElementPositionData(RSegment);
-    WSeekPosSegmentInfo->bValueIsSet = 1;
+    EBML_IntegerSetValue((ebml_integer*)WSeekPosSegmentInfo, Link->ElementPosition - EBML_ElementPositionData(RSegment));
 
     return Err;
 }
@@ -840,8 +839,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     TimeCode = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTime,1,1);
     if (!TimeCode)
         return ERR_OUT_OF_MEMORY;
-    ((ebml_integer*)TimeCode)->Value = Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo));
-	TimeCode->bValueIsSet = 1;
+    EBML_IntegerSetValue((ebml_integer*)TimeCode, Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo)));
 
     Elt = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTrackPositions,1,1);
     if (!Elt)
@@ -849,8 +847,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
 	TrackNum = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextCueTrack,1,1);
     if (!TrackNum)
         return ERR_OUT_OF_MEMORY;
-	((ebml_integer*)TrackNum)->Value = MATROSKA_BlockTrackNum(Cue->Block);
-	TrackNum->bValueIsSet = 1;
+	EBML_IntegerSetValue((ebml_integer*)TrackNum, MATROSKA_BlockTrackNum(Cue->Block));
 	
     PosInCluster = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextCueClusterPosition,1,1);
     if (!PosInCluster)
@@ -861,8 +858,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     if (!Elt)
         return ERR_INVALID_DATA;
     
-    ((ebml_integer*)PosInCluster)->Value = Elt->ElementPosition - EBML_ElementPositionData(Segment);
-	PosInCluster->bValueIsSet = 1;
+    EBML_IntegerSetValue((ebml_integer*)PosInCluster, Elt->ElementPosition - EBML_ElementPositionData(Segment));
 
     return ERR_NONE;
 }
