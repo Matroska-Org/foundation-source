@@ -1,5 +1,6 @@
-2010-05-16
+2010-05-17
 version 0.1.6:
+    - add an option to remux files with better Cluster boundaries
     - enforce mandatory elements are always (virtually) there
     - remove Master elements that are missing mandatory elements and are not unique in the context
 

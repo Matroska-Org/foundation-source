@@ -130,4 +130,5 @@ extern const ebml_context MATROSKA_ContextClusterTimecode;
 extern const ebml_context MATROSKA_ContextClusterBlockGroup;
 extern const ebml_context MATROSKA_ContextClusterBlock;
 extern const ebml_context MATROSKA_ContextClusterReferenceBlock;
+extern const ebml_context MATROSKA_ContextClusterBlockDuration;
 extern const ebml_context MATROSKA_ContextClusterSimpleBlock;
