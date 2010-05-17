@@ -33,9 +33,9 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo start a new cluster boundary with each video keyframe
  * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
  * \todo change the Segment UID (when key parts are altered)
+ * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo handle segments with an infinite size
  * \todo optionally add a CRC32 on level1 elements
  * \todo add support for compressed headers
@@ -224,16 +224,36 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static void LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks)
+static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int Profile)
 {
     matroska_cluster **Cluster;
+	ebml_element *Block;
+	int Result = 0;
 
+	// find out if the Clusters use forbidden features for that Profile
+	if (Profile == PROFILE_MATROSKA_V1 || Profile == PROFILE_TEST_V1)
+	{
+		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
+		{
+			for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
+			{
+				if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+				{
+					Result = 1; // needs a remux
+					goto probed;
+				}
+			}
+		}
+	}
+
+probed:
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 	{
 		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks);
 		ReduceSize((ebml_element*)*Cluster);
 	}
+	return Result;
 }
 
 static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment, bool_t ReLink)
@@ -415,14 +435,10 @@ static void MetaSeekUpdate(ebml_element *SeekHead)
     EBML_ElementUpdateSize(SeekHead,0,0);
 }
 
-static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_element *RTrackInfo, ebml_element *RSegmentInfo, ebml_element *RSegment)
+static ebml_element *GetMainTrack(ebml_element *RTrackInfo)
 {
 	ebml_element *Track, *Elt;
-	matroska_block *Block;
-	ebml_element **Cluster;
-	matroska_cuepoint *CuePoint;
 	int64_t TrackNum;
-	timecode_t PrevTimecode = INVALID_TIMECODE_T, BlockTimecode;
 
 	// find the video (first) track
 	for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
@@ -458,13 +474,34 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 	}
 
 	if (!Track)
+		TextPrintf(StdErr,T("Could not find an audio or video track to use as main track"));
+
+	return Track;
+}
+
+static bool_t GenerateCueEntries(ebml_element *Cues, array *Clusters, ebml_element *RTrackInfo, ebml_element *RSegmentInfo, ebml_element *RSegment)
+{
+	ebml_element *Track, *Elt;
+	matroska_block *Block;
+	ebml_element **Cluster;
+	matroska_cuepoint *CuePoint;
+	int64_t TrackNum;
+	timecode_t PrevTimecode = INVALID_TIMECODE_T, BlockTimecode;
+
+	Track = GetMainTrack(RTrackInfo);
+	if (!Track)
 	{
-		TextPrintf(StdErr,T("Could not find an audio or video track to generate the Cue entries"));
-		return;
+		TextPrintf(StdErr,T("Could not generate the Cue entries"));
+		return 0;
 	}
 
+	Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+	assert(Elt!=NULL);
+	if (Elt)
+		TrackNum = EBML_IntegerValue(Elt);
+
 	// find all the keyframes
-	for (Cluster = ARRAYBEGIN(*RClusters,ebml_element*);Cluster != ARRAYEND(*RClusters,ebml_element*); ++Cluster)
+	for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
 	{
 		MATROSKA_LinkClusterSegmentInfo((matroska_cluster*)*Cluster,RSegmentInfo);
 		for (Elt = EBML_MasterChildren(*Cluster); Elt; Elt = EBML_MasterNext(Elt))
@@ -499,7 +536,7 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 				if (!CuePoint)
 				{
 					TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?"));
-					return;
+					return 0;
 				}
 				MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
 				MATROSKA_LinkCuePointBlock(CuePoint,Block);
@@ -512,7 +549,23 @@ static void GenerateCueEntries(ebml_element *Cues, array *RClusters, ebml_elemen
 		}
 	}
 
+	if (!EBML_MasterChildren(Cues))
+	{
+		TextPrintf(StdErr,T("Failed to create the Cue entries, no Block found"));
+		return 0;
+	}
+
 	EBML_ElementUpdateSize(Cues,0,0);
+	return 1;
+}
+
+static int TimcodeCmp(const void* Param, const timecode_t *a, const timecode_t *b)
+{
+	if (*a == *b)
+		return 0;
+	if (*a > *b)
+		return 1;
+	return -1;
 }
 
 int main(int argc, const char *argv[])
@@ -528,13 +581,13 @@ int main(int argc, const char *argv[])
     ebml_element *WSegment = NULL, *WMetaSeek = NULL;
     matroska_seekpoint *WSeekPoint = NULL;
     ebml_string *LibName, *AppName;
-    array RClusters;
+    array RClusters, WClusters, *Clusters;
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0;
-	bool_t KeepCues = 0, CuesCreated = 0;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -545,6 +598,8 @@ int main(int argc, const char *argv[])
     MATROSKA_Init((nodecontext*)&p);
 
     ArrayInit(&RClusters);
+    ArrayInit(&WClusters);
+	Clusters = &RClusters;
 
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));
@@ -553,8 +608,10 @@ int main(int argc, const char *argv[])
     if (argc < 3)
     {
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
-        TextWrite(StdErr,T("Usage: mkclean [--keep-cues] <matroska_src> <matroska_dst>\r\n"));
-		TextWrite(StdErr,T("  --keep-cues: keep the original Cues content and move it to the front\r\n"));
+        TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> <matroska_dst>\r\n"));
+		TextWrite(StdErr,T("Options:\r\n"));
+		TextWrite(StdErr,T("  --keep-cues keep the original Cues content and move it to the front\r\n"));
+		TextWrite(StdErr,T("  --remux     redo the Clusters layout\r\n"));
         Result = -1;
         goto exit;
     }
@@ -564,6 +621,8 @@ int main(int argc, const char *argv[])
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
 		if (tcsisame_ascii(Path,T("--keep-cues")))
 			KeepCues = 1;
+		if (tcsisame_ascii(Path,T("--remux")))
+			Remux = 1;
 	}
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-2]);
@@ -650,6 +709,7 @@ int main(int argc, const char *argv[])
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextCluster.Id)
         {
+			// only partially read the Cluster data (not the data inside the blocks)
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
         }
@@ -785,7 +845,142 @@ int main(int argc, const char *argv[])
 		}
     }
 
-	LinkClusters(&RClusters,RSegmentInfo,RTrackInfo);
+	Remux |= LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,Profile);
+
+	if (Remux)
+	{
+		// create WClusters
+		matroska_cluster **ClusterR, *ClusterW;
+	    ebml_element *Block, *GBlock;
+		ebml_element *Track,*Elt;
+		timecode_t Prev = INVALID_TIMECODE_T, *Tst;
+		int16_t MainTrack;
+		bool_t Deleted;
+		array KeyFrames;
+
+		// determine what is the main track num (video track)
+		Track = GetMainTrack(RTrackInfo);
+		if (!Track)
+		{
+			TextWrite(StdErr,T("Impossible to remux without a proper track to use\r\n"));
+			goto exit;
+		}
+		Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+		assert(Elt!=NULL);
+		if (Elt)
+			MainTrack = (int16_t)EBML_IntegerValue(Elt);
+
+		ArrayInit(&KeyFrames);
+		for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*);ClusterR!=ARRAYEND(RClusters,matroska_cluster*);++ClusterR)
+		{
+			// get all the keyframe timecodes for our track
+			for (Block = EBML_MasterChildren(*ClusterR);Block;Block=EBML_MasterNext(Block))
+			{
+				if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+				{
+					GBlock = EBML_MasterFindFirstElt(Block, &MATROSKA_ContextClusterBlock, 0, 0);
+					if (GBlock && MATROSKA_BlockTrackNum((matroska_block*)GBlock) == MainTrack && EBML_MasterFindFirstElt(Block,&MATROSKA_ContextClusterReferenceBlock,0,0)==NULL)
+					{
+						Prev = MATROSKA_BlockTimecode((matroska_block*)GBlock);
+						ArrayAppend(&KeyFrames,&Prev,sizeof(Prev),256);
+					}
+				}
+				else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+				{
+					if (MATROSKA_BlockKeyframe((matroska_block*)Block) && MATROSKA_BlockTrackNum((matroska_block*)Block) == MainTrack)
+					{
+						Prev = MATROSKA_BlockTimecode((matroska_block*)Block);
+						ArrayAppend(&KeyFrames,&Prev,sizeof(Prev),256);
+					}
+				}
+			}
+		}
+		if (!ARRAYCOUNT(KeyFrames,timecode_t))
+		{
+			TextPrintf(StdErr,T("Impossible to remux, no keyframe found for track %d\r\n"),(int)MainTrack);
+			goto exit;
+		}
+
+		// sort the timecodes, just in case the file wasn't properly muxed
+		ArraySort(&KeyFrames, timecode_t, (arraycmp)TimcodeCmp, NULL, 1);
+
+		// discrimate the timecodes we want to use as cluster boundaries
+		//   create a new Cluster no shorter than 1s (unless the next one is too distant like 2s)
+		Prev = INVALID_TIMECODE_T;
+		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t); Tst!=ARRAYEND(KeyFrames, timecode_t);)
+		{
+			Deleted = 0;
+			if (Prev!=INVALID_TIMECODE_T && *Tst < Prev + 1000000000)
+			{
+				// too close
+				if (Tst+1 != ARRAYEND(KeyFrames, timecode_t) && *(Tst+1) < Prev + 2000000000)
+				{
+					ArrayRemove(&KeyFrames, timecode_t, Tst, (arraycmp)TimcodeCmp, NULL);
+					Deleted = 1;
+				}
+			}
+			if (!Deleted)
+				Prev = *Tst++;
+		}
+
+		// create each Cluster
+		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t), ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*), Block = EBML_MasterChildren(*ClusterR);
+			Tst!=ARRAYEND(KeyFrames, timecode_t); ++Tst)
+		{
+			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
+			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
+			MATROSKA_LinkClusterSegmentInfo(ClusterW, RSegmentInfo);
+			MATROSKA_ClusterSetTimecode(ClusterW,*Tst);
+
+			//  move the Blocks from RCluster to WCluster
+			while (ClusterR!=ARRAYEND(RClusters,matroska_cluster*))
+			{
+				// TODO:  put the matching audio at the front
+				while (Block)
+				{
+					if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+					{
+						GBlock = EBML_MasterFindFirstElt(Block, &MATROSKA_ContextClusterBlock, 0, 0);
+						if (GBlock)
+						{
+							if ((Tst+1)!=ARRAYEND(KeyFrames, timecode_t) && MATROSKA_BlockTimecode((matroska_block*)GBlock) >= *(Tst+1))
+								break; // this block is for the next Cluster
+							GBlock = EBML_MasterNext(Block);
+							EBML_MasterAppend((ebml_element*)ClusterW,Block);
+							Block = GBlock;
+						}
+					}
+					else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+					{
+						if ((Tst+1)!=ARRAYEND(KeyFrames, timecode_t) && MATROSKA_BlockTimecode((matroska_block*)Block) >= *(Tst+1))
+							break; // this block is for the next Cluster
+						GBlock = EBML_MasterNext(Block);
+						Prev = MATROSKA_BlockTimecode((matroska_block*)Block);
+						EBML_MasterAppend((ebml_element*)ClusterW,Block);
+						Block = GBlock;
+					}
+					else
+						Block=EBML_MasterNext(Block);
+				}
+				if (Block!=NULL)
+					break; // skip to the next Cluster
+				while (Block==NULL)
+				{
+					++ClusterR;
+					if (ClusterR==ARRAYEND(RClusters,matroska_cluster*))
+						break;
+					Block = EBML_MasterChildren(*ClusterR);
+				}
+			}
+		}
+
+		ArrayClear(&KeyFrames);
+
+		Clusters = &WClusters;
+		TextWrite(StdErr,T("Remuxing: the original Cues are not valid, creating from scratch\r\n"));
+		NodeDelete((node*)RCues);
+		RCues = NULL;
+	}
 
     // cues
 	if (RCues)
@@ -802,8 +997,12 @@ int main(int argc, const char *argv[])
 	{
 		// generate the cues
 		RCues = EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
-		GenerateCueEntries(RCues,&RClusters,RTrackInfo,RSegmentInfo,RSegment);
-		CuesCreated = 1;
+		CuesCreated = GenerateCueEntries(RCues,Clusters,RTrackInfo,RSegmentInfo,RSegment);
+		if (!CuesCreated)
+		{
+			NodeDelete((node*)RCues);
+			RCues = NULL;
+		}
 	}
     if (RCues)
     {
@@ -892,7 +1091,7 @@ int main(int argc, const char *argv[])
 	//  Compute the Cues size
     if (RTrackInfo && RCues)
     {
-        OptimizeCues(RCues,&RClusters,RSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated);
+        OptimizeCues(RCues,Clusters,RSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated);
         EBML_ElementUpdateSize(RCues,0,0);
         RCues->ElementPosition = NextPos;
         NextPos += EBML_ElementFullSize(RCues,0);
@@ -958,7 +1157,7 @@ int main(int argc, const char *argv[])
     }
 
     //  Write the Clusters
-    for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
+    for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
     {
         ShowProgress(*Cluster,RSegment,3);
         WriteCluster(*Cluster,Output,Input);
@@ -1023,6 +1222,9 @@ exit:
     for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
         NodeDelete((node*)*Cluster);
     ArrayClear(&RClusters);
+    for (Cluster = ARRAYBEGIN(WClusters,ebml_element*);Cluster != ARRAYEND(WClusters,ebml_element*); ++Cluster)
+        NodeDelete((node*)*Cluster);
+    ArrayClear(&WClusters);
     if (RAttachments)
         NodeDelete((node*)RAttachments);
     if (RTags)
