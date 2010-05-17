@@ -121,7 +121,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     }
     else if (Node_IsPartOf(Element,EBML_BINARY_CLASS))
     {
-        if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA)==ERR_NONE)
+        if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
         {
             uint8_t *Data = ARRAYBEGIN(((ebml_binary*)Element)->Data,uint8_t);
             if (Element->DataSize != 0)

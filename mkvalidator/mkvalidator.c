@@ -34,6 +34,7 @@
 
 /*!
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
+ * \todo check that the Segment size matches the size of the data inside
  * \todo handle segments with an infinite size
  * \todo warn when a top level element is not present in the main SeekHead
  * \todo optionally warn when a Cluster's first video track is not a keyframe
@@ -801,14 +802,14 @@ exit:
 		App[0] = 0;
 		LibName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextMuxingApp,0,0);
 		AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextWritingApp,0,0);
-		if (AppName)
-		{
-			EBML_StringGet(AppName,String,TSIZEOF(String));
-			tcscat_s(App,TSIZEOF(App),String);
-		}
 		if (LibName)
 		{
 			EBML_StringGet(LibName,String,TSIZEOF(String));
+			tcscat_s(App,TSIZEOF(App),String);
+		}
+		if (AppName)
+		{
+			EBML_StringGet(AppName,String,TSIZEOF(String));
 			if (App[0])
 				tcscat_s(App,TSIZEOF(App),T(" / "));
 			tcscat_s(App,TSIZEOF(App),String);

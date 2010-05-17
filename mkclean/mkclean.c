@@ -34,6 +34,8 @@
 
 /*!
  * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
+ * \todo remuxing: put the matching audio at the front
+ * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo change the Segment UID (when key parts are altered)
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo handle segments with an infinite size
@@ -975,7 +977,7 @@ int main(int argc, const char *argv[])
 
 		// create each Cluster
 		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t), ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*), Block = EBML_MasterChildren(*ClusterR);
-			Tst!=ARRAYEND(KeyFrames, timecode_t); ++Tst)
+			Tst!=ARRAYEND(KeyFrames, timecode_t) && ClusterR!=ARRAYEND(RClusters,matroska_cluster*); ++Tst)
 		{
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
@@ -1014,8 +1016,8 @@ int main(int argc, const char *argv[])
 								break; // this block is for the next Cluster
 						}
 						GBlock = EBML_MasterNext(Block);
-						Prev = MATROSKA_BlockTimecode((matroska_block*)Block);
-						EBML_MasterAppend((ebml_element*)ClusterW,Block);
+						if (EBML_MasterAppend((ebml_element*)ClusterW,Block)!=ERR_NONE)
+							break; // this block is for the next Cluster
 						Block = GBlock;
 					}
 					else
@@ -1113,7 +1115,10 @@ int main(int argc, const char *argv[])
     s = Original;
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
-    stprintf_s(String,TSIZEOF(String),T("mkclean %s from %s"),PROJECT_VERSION,s);
+	if (!Remux && s[0])
+		stprintf_s(String,TSIZEOF(String),T("mkclean %s from %s"),PROJECT_VERSION,s);
+	else
+		stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
     EBML_UniStringSetValue(AppName,String);
     EBML_ElementUpdateSize(RSegmentInfo,0,0);
     RSegmentInfo->ElementPosition = NextPos;
