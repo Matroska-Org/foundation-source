@@ -75,7 +75,9 @@ ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *
 
 err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append)
 {
-    err_t Result = NodeTree_SetParent(Append,Element,NULL);
+    err_t Result;
+	assert(Node_IsPartOf(Element,EBML_MASTER_CLASS));
+    Result = NodeTree_SetParent(Append,Element,NULL);
     if (Result==ERR_NONE)
         Element->bValueIsSet = 1;
     return Result;

@@ -29,6 +29,7 @@
 #include "matroska2_project.h"
 
 #define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
+#define MATROSKA_BLOCKGROUP_CLASS FOURCC('M','K','B','G')
 #define MATROSKA_CUEPOINT_CLASS   FOURCC('M','K','C','P')
 #define MATROSKA_CLUSTER_CLASS    FOURCC('M','K','C','U')
 #define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
@@ -245,7 +246,7 @@ const ebml_context MATROSKA_ContextClusterTimecode = {0xE7, EBML_INTEGER_CLASS, 
 const ebml_context MATROSKA_ContextClusterSilentTracks = {0x5854, EBML_MASTER_CLASS, 0, 0, "ClusterSilentTracks", EBML_SemanticClusterSilentTracks, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterPosition = {0xA7, EBML_INTEGER_CLASS, 0, 0, "ClusterPosition", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterPrevSize = {0xAB, EBML_INTEGER_CLASS, 0, 0, "ClusterPrevSize", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterBlockGroup = {0xA0, EBML_MASTER_CLASS, 0, 0, "ClusterBlockGroup", EBML_SemanticClusterBlockGroup, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextClusterBlockGroup = {0xA0, MATROSKA_BLOCKGROUP_CLASS, 0, 0, "ClusterBlockGroup", EBML_SemanticClusterBlockGroup, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterSimpleBlock = {0xA3, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterSimpleBlock", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticCluster[] = {
@@ -485,10 +486,10 @@ const ebml_context MATROSKA_ContextTagTargetEditionUID = {0x63C9, EBML_INTEGER_C
 const ebml_context MATROSKA_ContextTagTargetChapterUID = {0x63C4, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetChapterUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagTargetAttachmentUID = {0x63C6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetAttachmentUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTagTargets[] = {
-    {0, 1, &MATROSKA_ContextTagTargetTypeValue     ,0},
-    {0, 1, &MATROSKA_ContextTagTargetType          ,0},
-    {0, 0, &MATROSKA_ContextTagTargetTrackUID      ,0},
-    {0, 0, &MATROSKA_ContextTagTargetEditionUID    ,0},
+    {0, 1, &MATROSKA_ContextTagTargetTypeValue     ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {0, 1, &MATROSKA_ContextTagTargetType          ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {0, 0, &MATROSKA_ContextTagTargetTrackUID      ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {0, 0, &MATROSKA_ContextTagTargetEditionUID    ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 0, &MATROSKA_ContextTagTargetChapterUID    ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 0, &MATROSKA_ContextTagTargetAttachmentUID ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 0, NULL ,0} // end of the table
@@ -501,24 +502,24 @@ const ebml_context MATROSKA_ContextTagDefault = {0x4484, EBML_BOOLEAN_CLASS, 1, 
 const ebml_context MATROSKA_ContextTagString = {0x4487, EBML_UNISTRING_CLASS, 0, 0, "TagString", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagBinary = {0x4485, EBML_BINARY_CLASS, 0, 0, "TagBinary", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticSimpleTag[] = {
-    {1, 1, &MATROSKA_ContextTagName     ,0},
-    {1, 1, &MATROSKA_ContextTagLanguage ,0},
-    {1, 1, &MATROSKA_ContextTagDefault  ,0},
-    {0, 1, &MATROSKA_ContextTagString   ,0},
-    {0, 1, &MATROSKA_ContextTagBinary   ,0},
-    {0, 0, &MATROSKA_ContextSimpleTag   ,0}, // recursive
+    {1, 1, &MATROSKA_ContextTagName     ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {1, 1, &MATROSKA_ContextTagLanguage ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {1, 1, &MATROSKA_ContextTagDefault  ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {0, 1, &MATROSKA_ContextTagString   ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {0, 1, &MATROSKA_ContextTagBinary   ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {0, 0, &MATROSKA_ContextSimpleTag   ,PROFILE_TEST_V1|PROFILE_TEST_V2}, // recursive
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSimpleTag = {0x67C8, EBML_MASTER_CLASS, 0, 0, "SimpleTag", EBML_SemanticSimpleTag, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTag[] = {
-    {1, 1, &MATROSKA_ContextTagTargets ,0},
-    {1, 0, &MATROSKA_ContextSimpleTag  ,0},
+    {1, 1, &MATROSKA_ContextTagTargets ,PROFILE_TEST_V1|PROFILE_TEST_V2},
+    {1, 0, &MATROSKA_ContextSimpleTag  ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTag = {0x7373, EBML_MASTER_CLASS, 0, 0, "Tag", EBML_SemanticTag, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTags[] = {
-    {1, 0, &MATROSKA_ContextTag ,0},
+    {1, 0, &MATROSKA_ContextTag ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTags = {0x1254C367, EBML_MASTER_CLASS, 0, 0, "Tags", EBML_SemanticTags, EBML_SemanticGlobals, NULL};
@@ -532,7 +533,7 @@ const ebml_semantic EBML_SemanticSegment[] = {
     {0, 1, &MATROSKA_ContextCues         ,0},
     {0, 1, &MATROSKA_ContextAttachments  ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 1, &MATROSKA_ContextChapters     ,PROFILE_TEST_V1|PROFILE_TEST_V2},
-    {0, 0, &MATROSKA_ContextTags         ,0},
+    {0, 0, &MATROSKA_ContextTags         ,PROFILE_TEST_V1|PROFILE_TEST_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSegment = {0x18538067, EBML_MASTER_CLASS, 0, 0, "Segment\0wrmf", EBML_SemanticSegment, EBML_SemanticGlobals, NULL};
@@ -739,6 +740,15 @@ err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *CuePoint, matroska_block *Bl
     return ERR_NONE;
 }
 
+void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
+{
+	ebml_element *TimecodeElt;
+    assert(Cluster->Base.Context->Id == MATROSKA_ContextCluster.Id);
+	assert(Cluster->SegInfo);
+    TimecodeElt = EBML_MasterFindFirstElt((ebml_element*)Cluster,&MATROSKA_ContextClusterTimecode,1,1);
+	EBML_IntegerSetValue((ebml_integer*)TimecodeElt, Scale64(Timecode,1,MATROSKA_SegmentInfoTimecodeScale(Cluster->SegInfo)));
+}
+
 timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster)
 {
     ebml_element *Timecode;
@@ -748,6 +758,19 @@ timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster)
         return INVALID_TIMECODE_T;
     assert(Timecode->bValueIsSet);
     return ((ebml_integer*)Timecode)->Value * MATROSKA_SegmentInfoTimecodeScale(Cluster->SegInfo);
+}
+
+err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode)
+{
+    ebml_element *Cluster;
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    Cluster = EBML_ElementParent(Block);
+    while (Cluster && Cluster->Context->Id != MATROSKA_ContextCluster.Id)
+        Cluster = EBML_ElementParent(Cluster);
+    if (!Cluster)
+        return ERR_INVALID_DATA;
+	Block->LocalTimecode = (int16_t)Scale64(Timecode - MATROSKA_ClusterTimecode((matroska_cluster*)Cluster),1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track)));
+	return ERR_NONE;
 }
 
 timecode_t MATROSKA_BlockTimecode(const matroska_block *Block)
@@ -987,6 +1010,33 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 
 failed:
     return Err;
+}
+
+static err_t SetBlockParent(matroska_block *Block, void* Parent, void* Before)
+{
+	// update the timecode
+	timecode_t AbsTimeCode;
+	err_t Result;
+	if (Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
+		AbsTimeCode = MATROSKA_BlockTimecode(Block);
+	Result = INHERITED(Block,nodetree_vmt,MATROSKA_BLOCK_CLASS)->SetParent(Block, Parent, Before);
+	if (Result==ERR_NONE && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
+		MATROSKA_BlockSetTimecode(Block,AbsTimeCode);
+	return Result;
+}
+
+static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Before)
+{
+	// update the timecode
+	err_t Result;
+	matroska_block *Block = (matroska_block*)EBML_MasterFindFirstElt(Element, &MATROSKA_ContextClusterBlock, 0, 0);
+	timecode_t AbsTimeCode;
+	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
+		AbsTimeCode = MATROSKA_BlockTimecode(Block);
+	Result = INHERITED(Element,nodetree_vmt,MATROSKA_BLOCKGROUP_CLASS)->SetParent(Element, Parent, Before);
+	if (Result==ERR_NONE && Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
+		MATROSKA_BlockSetTimecode(Block,AbsTimeCode);
+	return Result;
 }
 
 static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
@@ -1380,6 +1430,7 @@ static bool_t ValidateSizeSegUID(const ebml_binary *p)
 
 META_START(Matroska_Class,MATROSKA_BLOCK_CLASS)
 META_CLASS(SIZE,sizeof(matroska_block))
+META_VMT(TYPE_FUNC,nodetree_vmt,SetParent,SetBlockParent)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadBlockData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateBlockSize)
 #if defined(CONFIG_EBML_WRITING)
@@ -1392,6 +1443,10 @@ META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_TRACK,matroska_block,Track)
 META_PARAM(TYPE,MATROSKA_BLOCK_SEGMENTINFO,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_SEGMENTINFO,matroska_block,SegInfo)
 META_END_CONTINUE(EBML_BINARY_CLASS)
+
+META_START_CONTINUE(MATROSKA_BLOCKGROUP_CLASS)
+META_VMT(TYPE_FUNC,nodetree_vmt,SetParent,SetBlockGroupParent)
+META_END_CONTINUE(EBML_MASTER_CLASS)
 
 META_START_CONTINUE(MATROSKA_CUEPOINT_CLASS)
 META_CLASS(SIZE,sizeof(matroska_cuepoint))
