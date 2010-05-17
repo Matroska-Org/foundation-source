@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo handle segments with an infinite size
  * \todo warn when a top level element is not present in the main SeekHead
  * \todo optionally warn when a Cluster's first video track is not a keyframe

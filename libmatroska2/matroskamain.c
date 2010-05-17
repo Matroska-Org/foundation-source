@@ -760,16 +760,14 @@ timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster)
     return ((ebml_integer*)Timecode)->Value * MATROSKA_SegmentInfoTimecodeScale(Cluster->SegInfo);
 }
 
-err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode)
+err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t Relative)
 {
-    ebml_element *Cluster;
+	int64_t InternalTimecode;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-    Cluster = EBML_ElementParent(Block);
-    while (Cluster && Cluster->Context->Id != MATROSKA_ContextCluster.Id)
-        Cluster = EBML_ElementParent(Cluster);
-    if (!Cluster)
-        return ERR_INVALID_DATA;
-	Block->LocalTimecode = (int16_t)Scale64(Timecode - MATROSKA_ClusterTimecode((matroska_cluster*)Cluster),1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track)));
+	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track)));
+	if (InternalTimecode > 32767 || InternalTimecode < -32768)
+		return ERR_INVALID_DATA;
+	Block->LocalTimecode = (int16_t)InternalTimecode;
 	return ERR_NONE;
 }
 
@@ -840,7 +838,7 @@ double MATROSKA_TrackTimecodeScale(const ebml_element *Track)
     assert(Track->Context->Id == MATROSKA_ContextTrackEntry.Id);
     TimecodeScale = EBML_MasterFindFirstElt((ebml_element*)Track,&MATROSKA_ContextTrackTimecodeScale,0,0);
     if (!TimecodeScale)
-        return 1.0;
+        return MATROSKA_ContextTrackTimecodeScale.DefaultValue;
     assert(TimecodeScale->bValueIsSet);
     return ((ebml_float*)TimecodeScale)->Value;
 }
@@ -1016,12 +1014,15 @@ static err_t SetBlockParent(matroska_block *Block, void* Parent, void* Before)
 {
 	// update the timecode
 	timecode_t AbsTimeCode;
-	err_t Result;
-	if (Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
+	err_t Result = ERR_NONE;
+	if (Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent)
+	{
+		assert(Node_IsPartOf(Parent,MATROSKA_CLUSTER_CLASS));
 		AbsTimeCode = MATROSKA_BlockTimecode(Block);
-	Result = INHERITED(Block,nodetree_vmt,MATROSKA_BLOCK_CLASS)->SetParent(Block, Parent, Before);
-	if (Result==ERR_NONE && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
-		MATROSKA_BlockSetTimecode(Block,AbsTimeCode);
+		Result = MATROSKA_BlockSetTimecode(Block,AbsTimeCode,MATROSKA_ClusterTimecode((matroska_cluster*)Parent));
+	}
+	if (Result==ERR_NONE)
+		Result = INHERITED(Block,nodetree_vmt,MATROSKA_BLOCK_CLASS)->SetParent(Block, Parent, Before);
 	return Result;
 }
 
@@ -1031,11 +1032,14 @@ static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Befo
 	err_t Result;
 	matroska_block *Block = (matroska_block*)EBML_MasterFindFirstElt(Element, &MATROSKA_ContextClusterBlock, 0, 0);
 	timecode_t AbsTimeCode;
-	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
+	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent)
+	{
+		assert(Node_IsPartOf(Parent,MATROSKA_CLUSTER_CLASS));
 		AbsTimeCode = MATROSKA_BlockTimecode(Block);
+		Result = MATROSKA_BlockSetTimecode(Block,AbsTimeCode,MATROSKA_ClusterTimecode((matroska_cluster*)Parent));
+	}
+	if (Result==ERR_NONE)
 	Result = INHERITED(Element,nodetree_vmt,MATROSKA_BLOCKGROUP_CLASS)->SetParent(Element, Parent, Before);
-	if (Result==ERR_NONE && Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track)
-		MATROSKA_BlockSetTimecode(Block,AbsTimeCode);
 	return Result;
 }
 

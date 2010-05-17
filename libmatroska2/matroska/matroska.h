@@ -71,7 +71,7 @@ EBML_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Seg
 EBML_DLL double MATROSKA_TrackTimecodeScale(const ebml_element *Track);
 EBML_DLL timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_element *SegmentInfo);
 EBML_DLL void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode);
-EBML_DLL err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode);
+EBML_DLL err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t Relative);
 EBML_DLL timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster);
 EBML_DLL timecode_t MATROSKA_BlockTimecode(const matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
