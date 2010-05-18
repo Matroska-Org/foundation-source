@@ -1029,7 +1029,7 @@ static err_t SetBlockParent(matroska_block *Block, void* Parent, void* Before)
 static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Before)
 {
 	// update the timecode
-	err_t Result;
+	err_t Result = ERR_NONE;
 	matroska_block *Block = (matroska_block*)EBML_MasterFindFirstElt(Element, &MATROSKA_ContextClusterBlock, 0, 0);
 	timecode_t AbsTimeCode;
 	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent)
@@ -1039,7 +1039,7 @@ static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Befo
 		Result = MATROSKA_BlockSetTimecode(Block,AbsTimeCode,MATROSKA_ClusterTimecode((matroska_cluster*)Parent));
 	}
 	if (Result==ERR_NONE)
-	Result = INHERITED(Element,nodetree_vmt,MATROSKA_BLOCKGROUP_CLASS)->SetParent(Element, Parent, Before);
+		Result = INHERITED(Element,nodetree_vmt,MATROSKA_BLOCKGROUP_CLASS)->SetParent(Element, Parent, Before);
 	return Result;
 }
 
