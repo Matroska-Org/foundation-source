@@ -36,6 +36,7 @@
  * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
  * \todo remuxing: put the matching audio at the front
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
+ * \todo remuxing: pack audio frames using lacing (no longer than the matching video frame ?)
  * \todo change the Segment UID (when key parts are altered)
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo handle segments with an infinite size
@@ -982,7 +983,7 @@ int main(int argc, const char *argv[])
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterSegmentInfo(ClusterW, RSegmentInfo);
-			MATROSKA_ClusterSetTimecode(ClusterW,*Tst);
+			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster
 
 			//  move the Blocks from RCluster to WCluster
 			while (ClusterR!=ARRAYEND(RClusters,matroska_cluster*))
@@ -1039,7 +1040,7 @@ int main(int argc, const char *argv[])
 		ArrayClear(&TrackDuration);
 
 		Clusters = &WClusters;
-		TextWrite(StdErr,T("Remuxing: the original Cues are not valid, creating from scratch\r\n"));
+		TextWrite(StdErr,T("Remuxing: the original Cues are not valid anymore, creating from scratch\r\n"));
 		NodeDelete((node*)RCues);
 		RCues = NULL;
 	}
@@ -1115,11 +1116,20 @@ int main(int argc, const char *argv[])
     s = Original;
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
-	if (!Remux && s[0])
-		stprintf_s(String,TSIZEOF(String),T("mkclean %s from %s"),PROJECT_VERSION,s);
-	else
-		stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
+	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
+	if (Remux)
+		tcscat_s(String,TSIZEOF(String),T(" r"));
+	if (s[0])
+		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
     EBML_UniStringSetValue(AppName,String);
+
+	if (Remux || !EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
+	{
+		RLevel1 = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 1, 1);
+		EBML_DateSetDateTime(RLevel1, GetTimeDate());
+		RLevel1 = NULL;
+	}
+
     EBML_ElementUpdateSize(RSegmentInfo,0,0);
     RSegmentInfo->ElementPosition = NextPos;
     NextPos += EBML_ElementFullSize(RSegmentInfo,0);
