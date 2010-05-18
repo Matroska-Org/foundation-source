@@ -1,3 +1,7 @@
+2010-05-18
+version 0.1.5:
+    - new package due to a bug in libmatroska2 0.9.6
+
 2010-05-17
 version 0.1.4:
     - better profile handling
