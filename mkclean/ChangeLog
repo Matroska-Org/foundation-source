@@ -1,3 +1,8 @@
+2010-05-18
+version 0.2.1:
+    - add an option to change the DocType name/version (no validity check)
+    - put the (re)muxing date in the file (or if there was no date)
+
 2010-05-17
 version 0.2.0:
     - add an option to remux files with better Cluster boundaries

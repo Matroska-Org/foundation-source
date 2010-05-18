@@ -34,6 +34,7 @@
 
 /*!
  * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
+ * \todo when changing the doctype make sure the source is compatible
  * \todo remuxing: put the matching audio at the front
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo remuxing: pack audio frames using lacing (no longer than the matching video frame ?)
@@ -113,8 +114,21 @@ void DebugMessage(const tchar_t* Msg,...)
 }
 #endif
 
+static const tchar_t *GetProfileName(size_t ProfileNum)
+{
+static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("testv1"), T("testv2") };
+	switch (ProfileNum)
+	{
+	case PROFILE_MATROSKA_V1: return Profile[1];
+	case PROFILE_MATROSKA_V2: return Profile[2];
+	case PROFILE_TEST_V1:     return Profile[3];
+	case PROFILE_TEST_V2:     return Profile[4];
+	default:                  return Profile[0];
+	}
+}
+
 static int DocVersion = 1;
-static int Profile = 0;
+static int SrcProfile = 0, DstProfile = 0;
 static textwriter *StdErr = NULL;
 static uint8_t Test[5] = {0x77, 0x65, 0x62, 0x6D, 0};
 
@@ -227,14 +241,14 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int Profile)
+static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int DstProfile)
 {
     matroska_cluster **Cluster;
 	ebml_element *Block;
 	int Result = 0;
 
-	// find out if the Clusters use forbidden features for that Profile
-	if (Profile == PROFILE_MATROSKA_V1 || Profile == PROFILE_TEST_V1)
+	// find out if the Clusters use forbidden features for that DstProfile
+	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_TEST_V1)
 	{
 		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 		{
@@ -348,9 +362,9 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             {
                 EBML_StringGet((ebml_string*)SubElement,String,TSIZEOF(String));
                 if (tcscmp(String,T("matroska"))==0)
-                    Profile = PROFILE_MATROSKA_V1;
+                    SrcProfile = PROFILE_MATROSKA_V1;
                 else if (memcmp(((ebml_string*)SubElement)->Buffer,Test,5)==0)
-                    Profile = PROFILE_TEST_V1;
+                    SrcProfile = PROFILE_TEST_V1;
                 else
                 {
                     TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)EBML_IntegerValue(SubElement));
@@ -621,8 +635,13 @@ int main(int argc, const char *argv[])
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
         TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> <matroska_dst>\r\n"));
 		TextWrite(StdErr,T("Options:\r\n"));
-		TextWrite(StdErr,T("  --keep-cues keep the original Cues content and move it to the front\r\n"));
-		TextWrite(StdErr,T("  --remux     redo the Clusters layout\r\n"));
+		TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
+		TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));
+		TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
+		TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
+		TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
+		TextWrite(StdErr,T("    3: 'test' v1\r\n"));
+		TextWrite(StdErr,T("    4: 'test' v2\r\n"));
         Result = -1;
         goto exit;
     }
@@ -632,8 +651,26 @@ int main(int argc, const char *argv[])
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
 		if (tcsisame_ascii(Path,T("--keep-cues")))
 			KeepCues = 1;
-		if (tcsisame_ascii(Path,T("--remux")))
+		else if (tcsisame_ascii(Path,T("--remux")))
 			Remux = 1;
+		else if (tcsisame_ascii(Path,T("--doctype")) && i+1<argc-2)
+		{
+		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+			if (tcsisame_ascii(Path,T("1")))
+				DstProfile = PROFILE_MATROSKA_V1;
+			else if (tcsisame_ascii(Path,T("2")))
+				DstProfile = PROFILE_MATROSKA_V2;
+			else if (tcsisame_ascii(Path,T("3")))
+				DstProfile = PROFILE_TEST_V1;
+			else if (tcsisame_ascii(Path,T("4")))
+				DstProfile = PROFILE_TEST_V2;
+			else
+			{
+		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
+				Result = -8;
+				goto exit;
+			}
+		}
 	}
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-2]);
@@ -667,10 +704,25 @@ int main(int argc, const char *argv[])
     }
 
     RSegment = CheckMatroskaHead(EbmlHead,&RContext,Input);
-    if (Profile==PROFILE_MATROSKA_V1 && DocVersion==2)
-        Profile = PROFILE_MATROSKA_V2;
-    else if (Profile==PROFILE_TEST_V1 && DocVersion==2)
-        Profile = PROFILE_TEST_V2;
+    if (SrcProfile==PROFILE_MATROSKA_V1 && DocVersion==2)
+        SrcProfile = PROFILE_MATROSKA_V2;
+    else if (SrcProfile==PROFILE_TEST_V1 && DocVersion==2)
+        SrcProfile = PROFILE_TEST_V2;
+
+	if (!DstProfile)
+		DstProfile = SrcProfile;
+	else
+	{
+		if (DstProfile==PROFILE_TEST_V1 && SrcProfile!=PROFILE_TEST_V1 && SrcProfile!=PROFILE_MATROSKA_V1)
+		{
+			TextPrintf(StdErr,T("The Doctype '%s' output is not compatible with the source '%s'!\r\n"),GetProfileName(DstProfile),GetProfileName(SrcProfile));
+			Result = -9;
+			goto exit;
+		}
+	}
+	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_TEST_V2)
+		DocVersion=2;
+
     if (!RSegment)
     {
         Result = -5;
@@ -757,7 +809,7 @@ int main(int argc, const char *argv[])
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
-    if (Profile == PROFILE_TEST_V1 || Profile == PROFILE_TEST_V2)
+    if (DstProfile == PROFILE_TEST_V1 || DstProfile == PROFILE_TEST_V2)
     {
         if (EBML_StringSetValue((ebml_string*)RLevel1,(const char *)Test) != ERR_NONE)
             goto exit;
@@ -856,7 +908,7 @@ int main(int argc, const char *argv[])
 		}
     }
 
-	Remux |= LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,Profile);
+	Remux |= LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile);
 
 	if (Remux)
 	{
@@ -1125,8 +1177,8 @@ int main(int argc, const char *argv[])
 
 	if (Remux || !EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
 	{
-		RLevel1 = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 1, 1);
-		EBML_DateSetDateTime(RLevel1, GetTimeDate());
+		RLevel1 = EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 1, 1);
+		EBML_DateSetDateTime((ebml_date*)RLevel1, GetTimeDate());
 		RLevel1 = NULL;
 	}
 
