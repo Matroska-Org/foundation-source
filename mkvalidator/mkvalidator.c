@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo warn when a secondary SeekHead is found (useless)
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
  * \todo handle segments with an infinite size
@@ -110,13 +111,13 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("testv1"), T("testv2") };
+static const tchar_t *Profile[5] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("webm v1"), T("webm v2") };
 	switch (ProfileNum)
 	{
 	case PROFILE_MATROSKA_V1: return Profile[1];
 	case PROFILE_MATROSKA_V2: return Profile[2];
-	case PROFILE_TEST_V1:     return Profile[3];
-	case PROFILE_TEST_V2:     return Profile[4];
+	case PROFILE_WEBM_V1:     return Profile[3];
+	case PROFILE_WEBM_V2:     return Profile[4];
 	default:                  return Profile[0];
 	}
 }
@@ -182,7 +183,7 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 				Result |= OutputError(0x301,T("Track #%d has no type defined"),(long)EBML_IntegerValue(TrackNum));
 			else
 			{
-				if (ProfileNum==PROFILE_TEST_V1 || ProfileNum==PROFILE_TEST_V2)
+				if (ProfileNum==PROFILE_WEBM_V1 || ProfileNum==PROFILE_WEBM_V2)
 				{
 					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),(long)EBML_IntegerValue(TrackType),GetProfileName(ProfileNum));
@@ -196,8 +197,7 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 						}
 						else if (EBML_IntegerValue(TrackType) == TRACK_TYPE_VIDEO)
 						{
-							const uint8_t Test[6] = {0x56, 0x5F, 0x56, 0x50, 0x38, 0x00};
-							if (memcmp(CodecID->Buffer,Test,6)!=0)
+							if (!tcsisame_ascii(CodecName,T("V_VP8")))
 								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(long)EBML_IntegerValue(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
 					}
@@ -468,7 +468,6 @@ int main(int argc, const char *argv[])
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
     int UpperElement;
-	uint8_t Test[5] = {0x77, 0x65, 0x62, 0x6D, 0};
 	int MatroskaProfile = 0;
 
     // Core-C init phase
@@ -536,7 +535,7 @@ int main(int argc, const char *argv[])
 
 	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocType,1,1);
     EBML_StringGet((ebml_string*)RLevel1,String,TSIZEOF(String));
-    if (tcscmp(String,T("matroska"))!=0 && memcmp(((ebml_string*)RLevel1)->Buffer,Test,5)!=0)
+    if (tcscmp(String,T("matroska"))!=0 && tcscmp(String,T("webm"))!=0)
 	{
 		Result = OutputError(8,T("The EBML doctype is not supported: %s"),String);
 		goto exit;
@@ -558,9 +557,9 @@ int main(int argc, const char *argv[])
 			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),EBML_IntegerValue(EbmlDocVer),EBML_IntegerValue(EbmlReadDocVer));
 	}
 	else if (EBML_IntegerValue(EbmlReadDocVer)==1)
-		MatroskaProfile = PROFILE_TEST_V1;
+		MatroskaProfile = PROFILE_WEBM_V1;
 	else if (EBML_IntegerValue(EbmlReadDocVer)==2)
-		MatroskaProfile = PROFILE_TEST_V2;
+		MatroskaProfile = PROFILE_WEBM_V2;
 
 	if (MatroskaProfile==0)
 		Result |= OutputError(11,T("Matroska profile not supported"));

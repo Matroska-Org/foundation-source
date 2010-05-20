@@ -35,6 +35,7 @@
 /*!
  * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
  * \todo when changing the doctype make sure the source is compatible
+ * \todo write the PrevSize at the beggining of Clusters
  * \todo remuxing: put the matching audio at the front
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo remuxing: pack audio frames using lacing (no longer than the matching video frame ?)
@@ -45,7 +46,7 @@
  * \todo add support for compressed headers
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
- * \todo force keeping some forbidden elements in a profile (chapters in 'test')
+ * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm')
  * \todo allow creating/replacing Tags
  * \todo allow creating/replacing Chapters
  * \todo allow creating/replacing Attachments
@@ -116,13 +117,13 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("testv1"), T("testv2") };
+static const tchar_t *Profile[5] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("webm v1"), T("webm v2") };
 	switch (ProfileNum)
 	{
 	case PROFILE_MATROSKA_V1: return Profile[1];
 	case PROFILE_MATROSKA_V2: return Profile[2];
-	case PROFILE_TEST_V1:     return Profile[3];
-	case PROFILE_TEST_V2:     return Profile[4];
+	case PROFILE_WEBM_V1:     return Profile[3];
+	case PROFILE_WEBM_V2:     return Profile[4];
 	default:                  return Profile[0];
 	}
 }
@@ -130,7 +131,6 @@ static const tchar_t *Profile[5] = {T("unknown"), T("v1"), T("v2"), T("testv1"),
 static int DocVersion = 1;
 static int SrcProfile = 0, DstProfile = 0;
 static textwriter *StdErr = NULL;
-static uint8_t Test[5] = {0x77, 0x65, 0x62, 0x6D, 0};
 
 static void ReduceSize(ebml_element *Element)
 {
@@ -248,7 +248,7 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
 	int Result = 0;
 
 	// find out if the Clusters use forbidden features for that DstProfile
-	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_TEST_V1)
+	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_WEBM_V1)
 	{
 		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 		{
@@ -363,8 +363,8 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 EBML_StringGet((ebml_string*)SubElement,String,TSIZEOF(String));
                 if (tcscmp(String,T("matroska"))==0)
                     SrcProfile = PROFILE_MATROSKA_V1;
-                else if (memcmp(((ebml_string*)SubElement)->Buffer,Test,5)==0)
-                    SrcProfile = PROFILE_TEST_V1;
+                else if (tcscmp(String,T("webm"))==0)
+                    SrcProfile = PROFILE_WEBM_V1;
                 else
                 {
                     TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)EBML_IntegerValue(SubElement));
@@ -640,8 +640,8 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
 		TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
 		TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
-		TextWrite(StdErr,T("    3: 'test' v1\r\n"));
-		TextWrite(StdErr,T("    4: 'test' v2\r\n"));
+		TextWrite(StdErr,T("    3: 'webm' v1\r\n"));
+		TextWrite(StdErr,T("    4: 'webm' v2\r\n"));
         Result = -1;
         goto exit;
     }
@@ -661,9 +661,9 @@ int main(int argc, const char *argv[])
 			else if (tcsisame_ascii(Path,T("2")))
 				DstProfile = PROFILE_MATROSKA_V2;
 			else if (tcsisame_ascii(Path,T("3")))
-				DstProfile = PROFILE_TEST_V1;
+				DstProfile = PROFILE_WEBM_V1;
 			else if (tcsisame_ascii(Path,T("4")))
-				DstProfile = PROFILE_TEST_V2;
+				DstProfile = PROFILE_WEBM_V2;
 			else
 			{
 		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
@@ -706,21 +706,21 @@ int main(int argc, const char *argv[])
     RSegment = CheckMatroskaHead(EbmlHead,&RContext,Input);
     if (SrcProfile==PROFILE_MATROSKA_V1 && DocVersion==2)
         SrcProfile = PROFILE_MATROSKA_V2;
-    else if (SrcProfile==PROFILE_TEST_V1 && DocVersion==2)
-        SrcProfile = PROFILE_TEST_V2;
+    else if (SrcProfile==PROFILE_WEBM_V1 && DocVersion==2)
+        SrcProfile = PROFILE_WEBM_V2;
 
 	if (!DstProfile)
 		DstProfile = SrcProfile;
 	else
 	{
-		if (DstProfile==PROFILE_TEST_V1 && SrcProfile!=PROFILE_TEST_V1 && SrcProfile!=PROFILE_MATROSKA_V1)
+		if (DstProfile==PROFILE_WEBM_V1 && SrcProfile!=PROFILE_WEBM_V1 && SrcProfile!=PROFILE_MATROSKA_V1)
 		{
 			TextPrintf(StdErr,T("The Doctype '%s' output is not compatible with the source '%s'!\r\n"),GetProfileName(DstProfile),GetProfileName(SrcProfile));
 			Result = -9;
 			goto exit;
 		}
 	}
-	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_TEST_V2)
+	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_WEBM_V2)
 		DocVersion=2;
 
     if (!RSegment)
@@ -809,9 +809,9 @@ int main(int argc, const char *argv[])
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
-    if (DstProfile == PROFILE_TEST_V1 || DstProfile == PROFILE_TEST_V2)
+    if (DstProfile == PROFILE_WEBM_V1 || DstProfile == PROFILE_WEBM_V2)
     {
-        if (EBML_StringSetValue((ebml_string*)RLevel1,(const char *)Test) != ERR_NONE)
+        if (EBML_StringSetValue((ebml_string*)RLevel1,"webm") != ERR_NONE)
             goto exit;
     }
     else

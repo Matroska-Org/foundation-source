@@ -1,7 +1,7 @@
 CON mkvalidator
 {
   PROJECT_NAME "mkvalidator"
-  PROJECT_VERSION  0.1.5
+  PROJECT_VERSION  0.1.6
   PROJECT_VENDOR   "Matroska Foundation"
   USE matroska2
   SOURCE mkvalidator.c

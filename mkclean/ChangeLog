@@ -1,3 +1,7 @@
+2010-05-20
+version 0.2.2:
+    - unobfuscate the 'webm' and 'V_VP8' strings
+
 2010-05-18
 version 0.2.1:
     - add an option to change the DocType name/version (no validity check)
