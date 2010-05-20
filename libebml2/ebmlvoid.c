@@ -37,6 +37,12 @@ static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t b
     return Element->DataSize;
 }
 
+static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+{
+	EBML_ElementSkipData(Element,Input,ParserContext,NULL,AllowDummyElt);
+	return ERR_NONE;
+}
+
 #if defined(CONFIG_EBML_WRITING)
 static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
@@ -59,6 +65,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 META_START(EBMLVoid_Class,EBML_VOID_CLASS)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif

@@ -34,7 +34,7 @@
 
 /*!
  * \todo forbid the use of SimpleBlock in v1 (strict profiling, force a remux)
- * \todo when changing the doctype make sure the source is compatible
+ * \todo when changing the doctype make sure the source is compatible (vorbis/vp8 for webm)
  * \todo write the PrevSize at the beggining of Clusters
  * \todo remuxing: put the matching audio at the front
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
