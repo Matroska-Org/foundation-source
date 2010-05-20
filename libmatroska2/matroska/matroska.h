@@ -40,8 +40,8 @@
 // if a profile is set in ebml_semantic.DisabledProfile that means the element is not available for that profile
 #define PROFILE_MATROSKA_V1          1
 #define PROFILE_MATROSKA_V2          2
-#define PROFILE_TEST_V1              4
-#define PROFILE_TEST_V2              8
+#define PROFILE_WEBM_V1              4
+#define PROFILE_WEBM_V2              8
 
 
 EBML_DLL err_t MATROSKA_Init(nodecontext *p);
