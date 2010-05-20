@@ -1,6 +1,7 @@
 2010-05-20
 version 0.1.6:
     - unobfuscate the 'webm' and 'V_VP8' strings
+    - fix a crash when reading Sorenson Squeeze files (Ebml Void in the header)
 
 2010-05-18
 version 0.1.5:
