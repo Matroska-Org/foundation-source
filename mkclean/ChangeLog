@@ -2,6 +2,7 @@
 version 0.2.3:
     - add a --live option to create ouptut files that look like a live stream (not seekable)
     - do not write ClusterPosition and PrevSize (until we support it)
+    - do not silently force a doctype change, but tell the user the CLI to use
 
 2010-05-20
 version 0.2.2:

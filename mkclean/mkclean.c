@@ -49,6 +49,7 @@
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm')
+ * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
  * \todo allow creating/replacing Tags
  * \todo allow creating/replacing Chapters
  * \todo allow creating/replacing Attachments
@@ -1127,6 +1128,7 @@ int main(int argc, const char *argv[])
 					Block = EBML_MasterChildren(*ClusterR);
 				}
 			}
+			EBML_ElementUpdateSize(ClusterW, 0, 0);
 		}
 
 		ArrayClear(&KeyFrames);
