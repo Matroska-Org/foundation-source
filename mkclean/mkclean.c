@@ -130,6 +130,18 @@ static const tchar_t *Profile[5] = {T("unknown"), T("matroska v1"), T("matroska 
 	}
 }
 
+static int GetProfileId(int Profile)
+{
+	switch (Profile)
+	{
+	case PROFILE_MATROSKA_V1: return 1;
+	case PROFILE_MATROSKA_V2: return 2;
+	case PROFILE_WEBM_V1:     return 3;
+	case PROFILE_WEBM_V2:     return 4;
+	default:                  return 0;
+	}
+}
+
 static int DocVersion = 1;
 static int SrcProfile = 0, DstProfile = 0;
 static textwriter *StdErr = NULL;
@@ -243,14 +255,13 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int *DstProfile)
+static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int DstProfile)
 {
     matroska_cluster **Cluster;
 	ebml_element *Block;
-	int Result = 0;
 
 	// find out if the Clusters use forbidden features for that DstProfile
-	if (*DstProfile == PROFILE_MATROSKA_V1 || *DstProfile == PROFILE_WEBM_V1)
+	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_WEBM_V1)
 	{
 		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 		{
@@ -258,27 +269,25 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
 			{
 				if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 				{
-					int SrcProfile = *DstProfile;
-					if (*DstProfile==PROFILE_MATROSKA_V1)
-						*DstProfile=PROFILE_MATROSKA_V2;
-					if (*DstProfile==PROFILE_WEBM_V1)
-						*DstProfile=PROFILE_WEBM_V2;
-					Result = 1; // needs a remux
-					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' forcing profile '%s'\r\n"),GetProfileName(SrcProfile),GetProfileName(*DstProfile));
-					goto probed;
+					int SrcProfile = DstProfile;
+					if (DstProfile==PROFILE_MATROSKA_V1)
+						DstProfile=PROFILE_MATROSKA_V2;
+					if (DstProfile==PROFILE_WEBM_V1)
+						DstProfile=PROFILE_WEBM_V2;
+					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(SrcProfile),GetProfileId(DstProfile));
+					return -32;
 				}
 			}
 		}
 	}
 
-probed:
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 	{
 		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks);
 		ReduceSize((ebml_element*)*Cluster);
 	}
-	return Result;
+	return 0;
 }
 
 static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment, bool_t ReLink)
@@ -937,7 +946,9 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	Remux |= LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,&DstProfile);
+	Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile);
+	if (Result!=0)
+		goto exit;
 
 	if (Remux)
 	{
