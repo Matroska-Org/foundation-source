@@ -34,6 +34,7 @@
 
 /*!
  * \todo warn when a secondary SeekHead is found (useless)
+ * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that timecodes of clusters are increasing
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside

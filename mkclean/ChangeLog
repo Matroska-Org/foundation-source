@@ -1,3 +1,7 @@
+2010-05-21
+version 0.2.3:
+    - add a --live option to create ouptut files that look like a live stream (not seekable)
+
 2010-05-20
 version 0.2.2:
     - unobfuscate the 'webm' and 'V_VP8' strings
