@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo verify the validity of ClusterPosition and PrevSize
  * \todo warn when a secondary SeekHead is found (useless)
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that timecodes of clusters are increasing

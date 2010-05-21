@@ -33,6 +33,8 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo support for updating/writing the ClusterPosition
+ * \todo support for updating/writing the PrevSize
  * \todo when changing the doctype make sure the source is compatible (vorbis/vp8 for webm)
  * \todo write the PrevSize at the beggining of Clusters
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
@@ -783,7 +785,19 @@ int main(int argc, const char *argv[])
         {
 			// only partially read the Cluster data (not the data inside the blocks)
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
+			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
+				// remove MATROSKA_ContextClusterPosition and MATROSKA_ContextClusterPrevSize until supported
+				EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextClusterPosition, 0, 0);
+				if (EbmlHead)
+					NodeDelete((node*)EbmlHead);
+				EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextClusterPrevSize, 0, 0);
+				if (EbmlHead)
+				{
+					EBML_MasterRemove(RLevel1, EbmlHead);
+				}
+				EbmlHead = NULL;
+			}
         }
         else
 		{

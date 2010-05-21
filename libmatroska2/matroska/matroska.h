@@ -133,3 +133,5 @@ extern const ebml_context MATROSKA_ContextClusterBlock;
 extern const ebml_context MATROSKA_ContextClusterReferenceBlock;
 extern const ebml_context MATROSKA_ContextClusterBlockDuration;
 extern const ebml_context MATROSKA_ContextClusterSimpleBlock;
+extern const ebml_context MATROSKA_ContextClusterPosition;
+extern const ebml_context MATROSKA_ContextClusterPrevSize;

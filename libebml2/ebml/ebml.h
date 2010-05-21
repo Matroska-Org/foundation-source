@@ -231,7 +231,7 @@ EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, boo
 // type specific routines
 EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault);
 EBML_DLL err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append);
-EBML_DLL err_t EBML_MasterRemove(ebml_element *Element, ebml_element *Append);
+EBML_DLL err_t EBML_MasterRemove(ebml_element *Element, ebml_element *Remove);
 EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault);
 EBML_DLL ebml_element *EBML_MasterAddElt(ebml_element *Element, const ebml_context *Context, bool_t SetDefault);
 EBML_DLL size_t EBML_MasterCount(const ebml_element *Element);
