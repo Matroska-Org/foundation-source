@@ -196,7 +196,7 @@ EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Contex
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
 EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite); // TODO: turn into a macro ?
 EBML_DLL int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
-EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer); // TODO: turn into a macro ?
+EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite); // TODO: turn into a macro ?
 EBML_DLL int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
 EBML_DLL filepos_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
 EBML_DLL filepos_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);

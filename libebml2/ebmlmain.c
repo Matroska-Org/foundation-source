@@ -454,7 +454,7 @@ int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength)
 }
 
 
-int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer)
+int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite)
 {
 	int _SizeMask = 0xFF;
     size_t i;
@@ -462,6 +462,8 @@ int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer
 if (CodedSize==3)
 printf("%08X ",(int)Length);
 #endif
+    if (!bSizeIsFinite)
+        Length=MAX_FILEPOS;
 	OutBuffer[0] = (uint8_t)(1 << (8 - CodedSize));
 	for (i=1; i<CodedSize; ++i)
     {
@@ -489,7 +491,7 @@ int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * Ou
 	else if (Length > -134217728L && Length < 134217728L) // 2^27
 		Length += 134217727L;
 
-	return EBML_CodedValueLength(Length, CodedSize, OutBuffer);
+	return EBML_CodedValueLength(Length, CodedSize, OutBuffer, 1);
 }
 
 

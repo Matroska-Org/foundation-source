@@ -270,7 +270,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
 					goto processCrc;
 			}
 
-			if (MaxSizeToRead <= 0) {
+			if (EBML_ElementIsFiniteSize(Element) && MaxSizeToRead <= 0) {
 				goto processCrc;// this level is finished
 			}
 			

@@ -263,7 +263,7 @@ err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeep
 	FinalHeadSize = EBML_FillBufferID(FinalHead,sizeof(FinalHead),Element->Context->Id);
 
 	CodedSize = EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
-	EBML_CodedValueLength(Element->DataSize, CodedSize, &FinalHead[FinalHeadSize]);
+	EBML_CodedValueLength(Element->DataSize, CodedSize, &FinalHead[FinalHeadSize], EBML_ElementIsFiniteSize(Element));
 	FinalHeadSize += CodedSize;
 	
 	Err = Stream_Write(Output, FinalHead, FinalHeadSize, &i);
