@@ -764,7 +764,16 @@ int main(int argc, const char *argv[])
         if (RLevel1->Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            {
                 RSegmentInfo = RLevel1;
+                if (Live)
+                {
+				    // remove MATROSKA_ContextDuration from Live streams
+				    EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextDuration, 0, 0);
+				    if (EbmlHead)
+					    NodeDelete((node*)EbmlHead);
+                }
+            }
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextTracks.Id)
         {
@@ -1341,6 +1350,7 @@ int main(int argc, const char *argv[])
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
     {
         ShowProgress(*Cluster,RSegment,3);
+        EBML_ElementSetInfiniteSize(*Cluster,Live);
         WriteCluster(*Cluster,Output,Input, Live);
         SegmentSize += EBML_ElementFullSize(*Cluster,0);
     }

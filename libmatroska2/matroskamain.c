@@ -1276,7 +1276,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         LaceHead[0] = (ARRAYCOUNT(Element->SizeList,int32_t)-1) & 0xFF;
         if (Element->Lacing == LACING_EBML)
         {
-            LaceSize += EBML_CodedValueLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],0,1),LaceHead+LaceSize);
+            LaceSize += EBML_CodedValueLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],0,1),LaceHead+LaceSize, 1);
             for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
                 DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1];

@@ -105,6 +105,7 @@ extern const ebml_context MATROSKA_ContextSegmentInfo;
 extern const ebml_context MATROSKA_ContextWritingApp;
 extern const ebml_context MATROSKA_ContextMuxingApp;
 extern const ebml_context MATROSKA_ContextSegmentDate;
+extern const ebml_context MATROSKA_ContextDuration;
 
 extern const ebml_context MATROSKA_ContextCluster;
 extern const ebml_context MATROSKA_ContextTracks;

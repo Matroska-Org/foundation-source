@@ -1,3 +1,8 @@
+2010-05-22
+version 0.2.4:
+    - in --live mode the Cluster also have an infinite/unknown size
+    - remove the Cluster duration from the --live mode
+
 2010-05-21
 version 0.2.3:
     - add a --live option to create ouptut files that look like a live stream (not seekable)
