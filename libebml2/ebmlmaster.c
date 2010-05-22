@@ -228,7 +228,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
     Element->bValueIsSet = 0;
 
 	// read blocks and discard the ones we don't care about
-	if (Element->DataSize > 0) {
+	if (Element->DataSize > 0 || !EBML_ElementIsFiniteSize(Element)) {
 	    ebml_element *SubElement;
         ebml_parser_context Context;
         int UpperEltFound = 0;
@@ -242,7 +242,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
         Context.Context = Element->Context;
         Context.EndPosition = EBML_ElementPositionEnd(Element);
         SubElement = EBML_FindNextElement(Input,&Context,&UpperEltFound,AllowDummyElt);
-		while (SubElement && UpperEltFound<=0 && EBML_ElementPositionEnd(SubElement) <= EBML_ElementPositionEnd(Element))
+		while (SubElement && UpperEltFound<=0 && (!EBML_ElementIsFiniteSize(Element) || EBML_ElementPositionEnd(SubElement) <= EBML_ElementPositionEnd(Element)))
         {
 			if (!AllowDummyElt && EBML_ElementIsDummy(SubElement)) {
                 // TODO: this should never happen
@@ -259,7 +259,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
 
 			if (UpperEltFound > 0) {
 				UpperEltFound--;
-				if (UpperEltFound > 0 || MaxSizeToRead <= 0)
+				if (UpperEltFound > 0 || (EBML_ElementIsFiniteSize(Element) && MaxSizeToRead <= 0))
 					goto processCrc;
 				continue;
 			} 

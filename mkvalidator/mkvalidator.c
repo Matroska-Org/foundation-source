@@ -486,6 +486,7 @@ int main(int argc, const char *argv[])
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
+    assert(StdErr->Stream!=NULL);
 
     if (argc < 2)
     {

@@ -210,14 +210,18 @@ EBML_DLL bool_t EBML_ElementIsDummy(const ebml_element *Element);
 static INLINE filepos_t EBML_ElementPositionData(const ebml_element *Element)
 {
     if (!EBML_ElementIsFiniteSize(Element))
-        return INVALID_FILEPOS_T;
+    {
+        if (!Element->SizeLength)
+            return INVALID_FILEPOS_T;
+        return Element->SizePosition + Element->SizeLength;
+    }
     else
         return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1);
 }
 static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 {
     if (!EBML_ElementIsFiniteSize(Element))
-        return INVALID_FILEPOS_T;
+        return INVALID_FILEPOS_T; // the end position is unknown
     else
         return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1) + Element->DataSize;
 }
