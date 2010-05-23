@@ -775,6 +775,7 @@ timecode_t MATROSKA_BlockTimecode(const matroska_block *Block)
 {
     ebml_element *Cluster;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    assert(Block->LocalTimecodeUsed);
     Cluster = EBML_ElementParent(Block);
     while (Cluster && Cluster->Context->Id != MATROSKA_ContextCluster.Id)
         Cluster = EBML_ElementParent(Cluster);
@@ -786,18 +787,21 @@ timecode_t MATROSKA_BlockTimecode(const matroska_block *Block)
 int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    assert(Block->LocalTimecodeUsed);
     return Block->TrackNumber;
 }
 
 bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    assert(Block->LocalTimecodeUsed);
 	return Block->IsKeyframe;
 }
 
 bool_t MATROSKA_BlockLaced(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    assert(Block->LocalTimecodeUsed);
     return Block->Lacing != LACING_NONE;
 }
 
