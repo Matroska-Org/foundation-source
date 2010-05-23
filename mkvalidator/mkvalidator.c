@@ -44,6 +44,7 @@ static textwriter *StdErr = NULL;
 static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
 static array RClusters;
 static size_t TrackMax=0;
+static bool_t Warnings = 1;
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -134,13 +135,18 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 
 static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 {
-	tchar_t Buffer[MAXLINE];
-	va_list Args;
-	va_start(Args,ErrString);
-	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
-	va_end(Args);
-	TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
-	return -ErrCode;
+    if (!Warnings)
+        return 0;
+    else
+    {
+	    tchar_t Buffer[MAXLINE];
+	    va_list Args;
+	    va_start(Args,ErrString);
+	    vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
+	    va_end(Args);
+	    TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
+	    return -ErrCode;
+    }
 }
 
 static void CheckUnknownElements(ebml_element *Elt)
@@ -568,7 +574,7 @@ int main(int argc, const char *argv[])
     ebml_string *LibName, *AppName;
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
-    int UpperElement;
+    int i,UpperElement;
 	int MatroskaProfile = 0;
     bool_t HasVideo = 0;
 
@@ -590,9 +596,18 @@ int main(int argc, const char *argv[])
     if (argc < 2)
     {
         TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
-        Result = OutputError(1,T("Usage: mkvalidator <matroska_src>"));
+        Result = OutputError(1,T("Usage: mkvalidator [options] <matroska_src>"));
+		TextWrite(StdErr,T("Options:\r\n"));
+		TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
         goto exit;
     }
+
+	for (i=1;i<argc-1;++i)
+	{
+	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+		if (tcsisame_ascii(Path,T("--no-warn")))
+			Warnings = 0;
+	}
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
