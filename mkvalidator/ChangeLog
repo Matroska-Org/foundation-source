@@ -1,4 +1,8 @@
 2010-05-23
+version 0.1.8:
+    - add a --live parameter to only check errors and warnings relevant to live streams
+
+2010-05-23
 version 0.1.7:
     - very that the Cluster PrevSize and Position are valid
     - check when unique elements are found twice

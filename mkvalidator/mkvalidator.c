@@ -44,6 +44,7 @@ static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL,
 static array RClusters;
 static size_t TrackMax=0;
 static bool_t Warnings = 1;
+static bool_t Live = 0;
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -626,6 +627,7 @@ int main(int argc, const char *argv[])
         Result = OutputError(1,T("Usage: mkvalidator [options] <matroska_src>"));
 		TextWrite(StdErr,T("Options:\r\n"));
 		TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
+        TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
         goto exit;
     }
 
@@ -634,6 +636,8 @@ int main(int argc, const char *argv[])
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
 		if (tcsisame_ascii(Path,T("--no-warn")))
 			Warnings = 0;
+		else if (tcsisame_ascii(Path,T("--live")))
+			Live = 1;
 	}
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
@@ -741,7 +745,13 @@ int main(int argc, const char *argv[])
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextSeekHead.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (Live)
+            {
+                Result |= OutputError(0x170,T("The live stream has a SeekHead at %lld"),(long)RLevel1->ElementPosition);
+			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                NodeDelete((node*)RLevel1);
+            }
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (!RSeekHead)
 					RSeekHead = RLevel1;
@@ -776,7 +786,14 @@ int main(int argc, const char *argv[])
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
-				}
+
+                    if (Live)
+                    {
+                        EbmlHead = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextDuration,0,0);
+                        if (EbmlHead)
+                            Result |= OutputWarning(0x112,T("The live Segment has a duration set at %lld"),(long)EbmlHead->ElementPosition);
+                    }
+                }
 			}
 			else
 			{
@@ -823,7 +840,13 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Context->Id == MATROSKA_ContextCues.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (Live)
+            {
+                Result |= OutputError(0x171,T("The live stream has Cues at %lld"),(long)RLevel1->ElementPosition);
+			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                NodeDelete((node*)RLevel1);
+            }
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RCues != NULL)
 					Result |= OutputError(0x130,T("Extra Cues found at %lld (size %lld)"),(long)RLevel1->ElementPosition,(long)RLevel1->DataSize);
@@ -844,7 +867,13 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Context->Id == MATROSKA_ContextChapters.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (Live)
+            {
+                Result |= OutputError(0x172,T("The live stream has Chapters at %lld"),(long)RLevel1->ElementPosition);
+			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                NodeDelete((node*)RLevel1);
+            }
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RChapters != NULL)
 					Result |= OutputError(0x140,T("Extra Chapters found at %lld (size %lld)"),(long)RLevel1->ElementPosition,(long)RLevel1->DataSize);
@@ -886,7 +915,13 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Context->Id == MATROSKA_ContextAttachments.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (Live)
+            {
+                Result |= OutputError(0x173,T("The live stream has a Attachments at %lld"),(long)RLevel1->ElementPosition);
+			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                NodeDelete((node*)RLevel1);
+            }
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RAttachments != NULL)
 					Result |= OutputError(0x160,T("Extra Attachments found at %lld (size %lld)"),(long)RLevel1->ElementPosition,(long)RLevel1->DataSize);
@@ -928,7 +963,10 @@ int main(int argc, const char *argv[])
 	}
 
 	if (!RSeekHead)
-		OutputWarning(0x800,T("The segment has no SeekHead section"));
+    {
+        if (!Live)
+		    OutputWarning(0x801,T("The segment has no SeekHead section"));
+    }
 	else
 		Result |= CheckSeekHead(RSeekHead);
 	if (RSeekHead2)
@@ -944,7 +982,10 @@ int main(int argc, const char *argv[])
         Result |= CheckLacingKeyframe();
         Result |= CheckPosSize(RSegment);
 		if (!RCues)
-			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
+        {
+            if (!Live)
+			    OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
+        }
 		else
 			CheckCueEntries(RCues);
 		if (!RTrackInfo)

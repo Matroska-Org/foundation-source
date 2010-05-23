@@ -19,6 +19,7 @@ You can either run ./bootstrap.sh on Linux or
 - run coremake from the root of the source :
   * "coremake.exe vs9_win32" to generate the project files for Visual Studio 2008
   * "coremake gcc_linux" to generate the project files for GNU make building with gcc
+  * "coremake gcc_linux6x64" for GNU make building with gcc on Linux 64 bits
   * "coremake xcode_uni" to generate the project files for XCode for a universal OS X binary
   * look in the coremake folder for all the platforms supported
 
