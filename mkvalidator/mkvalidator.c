@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo make sure unique elements are not found twice
  * \todo warn when a secondary SeekHead is found (useless)
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that timecodes of clusters are increasing
@@ -264,6 +263,11 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 				Node_FromStr(Elt,Missing,TSIZEOF(Missing),i->eClass->ElementName);
 				Result |= OutputError(0x200,T("Missing element %s in %s at %lld"),Missing,String,(long)Elt->ElementPosition);
 			}
+            if ((i->DisabledProfile & ProfileMask)==0 && i->Unique && (SubElt=EBML_MasterFindChild(Elt,i->eClass)) && EBML_MasterFindNextElt(Elt,SubElt,0,0))
+            {
+				Node_FromStr(Elt,Missing,TSIZEOF(Missing),i->eClass->ElementName);
+				Result |= OutputError(0x202,T("Unique element %s in %s at %lld found more than once"),Missing,String,(long)Elt->ElementPosition);
+            }
 		}
 
 		for (SubElt = EBML_MasterChildren(Elt); SubElt; SubElt = EBML_MasterNext(SubElt))
