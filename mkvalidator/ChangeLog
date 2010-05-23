@@ -6,6 +6,7 @@ version 0.1.7:
     - make sure audio frames are all keyframes (no known codec so far are not)
     - warn when a Cluster's first video track is not a keyframe
     - fix issues with live streams
+    - warn when a top level element is not present in the main SeekHead
     - disable warnings with --no-warn
 
 2010-05-20

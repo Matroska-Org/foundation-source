@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo warn when a top level element is not present in the main SeekHead
  * \todo verify that timecodes of clusters are increasing
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
@@ -287,6 +286,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 {
 	int Result = 0;
 	ebml_element *RLevel1 = EBML_MasterFindFirstElt(SeekHead, &MATROSKA_ContextSeek, 0, 0);
+    bool_t BSegmentInfo = 0, BTrackInfo = 0, BCues = 0, BTags = 0, BChapters = 0, BAttachments = 0, BSecondSeek = 0;
 	while (RLevel1)
 	{
 		filepos_t Pos = MATROSKA_MetaSeekAbsolutePos((matroska_seekpoint*)RLevel1);
@@ -304,6 +304,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				Result |= OutputError(0x62,T("The SeekPoint at %lld references an unknown SegmentInfo at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 			else if (RSegmentInfo->ElementPosition != Pos)
 				Result |= OutputError(0x63,T("The SeekPoint at %lld references a SegmentInfo at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RSegmentInfo->ElementPosition);
+            BSegmentInfo = 1;
 		}
 		else if (SeekId == MATROSKA_ContextTracks.Id)
 		{
@@ -311,6 +312,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				Result |= OutputError(0x64,T("The SeekPoint at %lld references an unknown TrackInfo at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 			else if (RTrackInfo->ElementPosition != Pos)
 				Result |= OutputError(0x65,T("The SeekPoint at %lld references a TrackInfo at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RTrackInfo->ElementPosition);
+            BTrackInfo = 1;
 		}
 		else if (SeekId == MATROSKA_ContextCues.Id)
 		{
@@ -318,6 +320,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				Result |= OutputError(0x66,T("The SeekPoint at %lld references an unknown Cues at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 			else if (RCues->ElementPosition != Pos)
 				Result |= OutputError(0x67,T("The SeekPoint at %lld references a Cues at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RCues->ElementPosition);
+            BCues = 1;
 		}
 		else if (SeekId == MATROSKA_ContextTags.Id)
 		{
@@ -325,6 +328,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				Result |= OutputError(0x68,T("The SeekPoint at %lld references an unknown Tags at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 			else if (RTags->ElementPosition != Pos)
 				Result |= OutputError(0x69,T("The SeekPoint at %lld references a Tags at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RTags->ElementPosition);
+            BTags = 1;
 		}
 		else if (SeekId == MATROSKA_ContextChapters.Id)
 		{
@@ -332,6 +336,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				Result |= OutputError(0x6A,T("The SeekPoint at %lld references an unknown Chapters at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 			else if (RChapters->ElementPosition != Pos)
 				Result |= OutputError(0x6B,T("The SeekPoint at %lld references a Chapters at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RChapters->ElementPosition);
+            BChapters = 1;
 		}
 		else if (SeekId == MATROSKA_ContextAttachments.Id)
 		{
@@ -339,15 +344,20 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				Result |= OutputError(0x6C,T("The SeekPoint at %lld references an unknown Attachments at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 			else if (RAttachments->ElementPosition != Pos)
 				Result |= OutputError(0x6D,T("The SeekPoint at %lld references a Attachments at wrong position %lld (real %lld)"),(long)RLevel1->ElementPosition,(long)Pos,(long)RAttachments->ElementPosition);
+            BAttachments = 1;
 		}
 		else if (SeekId == MATROSKA_ContextSeekHead.Id)
 		{
 			if (SeekHead->ElementPosition == Pos)
 				Result |= OutputError(0x6E,T("The SeekPoint at %lld references references its own SeekHead"),(long)RLevel1->ElementPosition);
-			else if (SeekHead == RSeekHead && !RSeekHead2)
-				Result |= OutputError(0x6F,T("The SeekPoint at %lld references an unknown secondary SeekHead at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			else if (SeekHead == RSeekHead)
+            {
+                if (!RSeekHead2)
+				    Result |= OutputError(0x6F,T("The SeekPoint at %lld references an unknown secondary SeekHead at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+                BSecondSeek = 1;
+            }
 			else if (SeekHead == RSeekHead2 && Pos!=RSeekHead->ElementPosition)
-				Result |= OutputError(0x70,T("The SeekPoint at %lld references an unknown extra SeekHead at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
+			    Result |= OutputError(0x70,T("The SeekPoint at %lld references an unknown extra SeekHead at %lld"),(long)RLevel1->ElementPosition,(long)Pos);
 		}
 		else if (SeekId == MATROSKA_ContextCluster.Id)
 		{
@@ -364,6 +374,23 @@ static int CheckSeekHead(ebml_element *SeekHead)
 			Result |= OutputWarning(0x860,T("The SeekPoint at %lld references an element that is not a known level 1 ID %s at %lld)"),(long)RLevel1->ElementPosition,IdString,(long)Pos);
 		RLevel1 = EBML_MasterFindNextElt(SeekHead, RLevel1, 0, 0);
 	}
+    if (SeekHead == RSeekHead)
+    {
+        if (!BSegmentInfo && RSegmentInfo)
+            Result |= OutputWarning(0x861,T("The SegmentInfo is not referenced in the main SeekHead"));
+        if (!BTrackInfo && RTrackInfo)
+            Result |= OutputWarning(0x861,T("The TrackInfo is not referenced in the main SeekHead"));
+        if (!BCues && RCues)
+            Result |= OutputWarning(0x861,T("The Cues is not referenced in the main SeekHead"));
+        if (!BTags && RTags)
+            Result |= OutputWarning(0x861,T("The Tags is not referenced in the main SeekHead"));
+        if (!BChapters && RChapters)
+            Result |= OutputWarning(0x861,T("The Chapters is not referenced in the main SeekHead"));
+        if (!BAttachments && RAttachments)
+            Result |= OutputWarning(0x861,T("The Attachments is not referenced in the main SeekHead"));
+        if (!BSecondSeek && RSeekHead2)
+            Result |= OutputWarning(0x861,T("The secondary SeekHead is not referenced in the main SeekHead"));
+    }
 	return Result;
 }
 
