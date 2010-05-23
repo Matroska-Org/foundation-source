@@ -33,9 +33,8 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo support for updating/writing the ClusterPosition
  * \todo support for updating/writing the PrevSize
- * \todo when changing the doctype make sure the source is compatible (vorbis/vp8 for webm)
+ * \todo support for updating/writing the ClusterPosition
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo remuxing: put the matching audio at the front
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
@@ -610,6 +609,47 @@ typedef struct block_duration
 } block_duration;
 #define MATROSKA_BLOCK_DURATION  0x321
 
+static int CleanTracks(ebml_element *Tracks, int Profile)
+{
+    ebml_element *Track, *Elt;
+    int TrackType, TrackNum;
+    tchar_t CodecID[MAXPATH];
+    
+    if (Tracks && (Profile==PROFILE_WEBM_V1 || Profile==PROFILE_WEBM_V2))
+    {
+        // verify that we have only VP8 and Vorbis tracks
+	    for (Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0); Track;)
+	    {
+            TrackNum = -1;
+		    Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
+		    if (Elt)
+		    {
+                TrackType = (int)EBML_IntegerValue(Elt);
+			    Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecID,0,0);
+			    if (Elt)
+                {
+                    EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
+                    if (TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))
+                    {
+                        Track=EBML_MasterFindNextElt(Tracks,Track,0,0);
+                        continue;
+                    }
+                    Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+                    if (Elt)
+                        TrackNum = (int)EBML_IntegerValue(Elt);
+                    TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(Profile),TrackNum);
+                    NodeDelete((node*)Track);
+                    Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0);
+                }
+		    }
+	    }
+    }
+    
+    if (EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0)==NULL)
+        return -19;
+    return 0;
+}
+
 int main(int argc, const char *argv[])
 {
     int i,Result = 0;
@@ -835,6 +875,13 @@ int main(int argc, const char *argv[])
     {
         TextWrite(StdErr,T("The source Segment has no Track Info section\r\n"));
         Result = -7;
+        goto exit;
+    }
+
+    Result = CleanTracks(RTrackInfo, DstProfile);
+    if (Result!=0)
+    {
+        TextWrite(StdErr,T("No Tracks left to use!\r\n"));
         goto exit;
     }
 
