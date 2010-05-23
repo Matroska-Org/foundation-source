@@ -34,7 +34,6 @@
 
 /*!
  * \todo warn when a top level element is not present in the main SeekHead
- * \todo optionally warn when a Cluster's first video track is not a keyframe
  * \todo verify that timecodes of clusters are increasing
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
@@ -44,6 +43,7 @@
 static textwriter *StdErr = NULL;
 static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
 static array RClusters;
+static size_t TrackMax=0;
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -400,6 +400,56 @@ static bool_t TrackIsVideo(int16_t TrackNum)
     return 0;
 }
 
+static int CheckVideoStart()
+{
+	int Result = 0;
+	ebml_element **Cluster;
+    ebml_element *Block, *GBlock;
+    int16_t BlockNum;
+    array TrackKeyframe;
+
+	for (Cluster=ARRAYBEGIN(RClusters,ebml_element*);Cluster!=ARRAYEND(RClusters,ebml_element*);++Cluster)
+    {
+        ArrayInit(&TrackKeyframe);
+        ArrayResize(&TrackKeyframe,sizeof(bool_t)*(TrackMax+1),256);
+        ArrayZero(&TrackKeyframe);
+	    for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
+	    {
+		    if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+		    {
+			    for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
+			    {
+				    if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+				    {
+                        BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
+                        if (MATROSKA_BlockKeyframe((matroska_block*)GBlock))
+                            ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+                        else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
+                        {
+                            Result |= OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %lld is not a keyframe"),BlockNum,(long)(*Cluster)->ElementPosition);
+                            ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+                        }
+					    break;
+				    }
+			    }
+		    }
+		    else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+		    {
+                BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
+                if (MATROSKA_BlockKeyframe((matroska_block*)Block))
+                    ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+                else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
+                {
+                    Result |= OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %lld is not a keyframe"),BlockNum,(long)(*Cluster)->ElementPosition);
+                    ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+                }
+		    }
+	    }
+        ArrayClear(&TrackKeyframe);
+    }
+	return Result;
+}
+
 static int CheckPosSize(const ebml_element *RSegment)
 {
 	int Result = 0;
@@ -520,6 +570,7 @@ int main(int argc, const char *argv[])
     ebml_parser_context RSegmentContext;
     int UpperElement;
 	int MatroskaProfile = 0;
+    bool_t HasVideo = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -704,6 +755,22 @@ int main(int argc, const char *argv[])
 					CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+
+                    EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    while (EbmlHead)
+                    {
+                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
+                        if (EbmlDocVer && EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
+                        {
+                            HasVideo = 1;
+                        }
+                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
+                        if (EbmlDocVer)
+                            TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
+                        EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                    }
+                    EbmlDocVer = NULL;
+                    EbmlHead = NULL;
 				}
 			}
 			else
@@ -830,8 +897,10 @@ int main(int argc, const char *argv[])
         TextWrite(StdErr,T("."));
 		LinkClusterBlocks();
 
-        Result |= CheckPosSize(RSegment);
+        if (HasVideo)
+            Result |= CheckVideoStart();
         Result |= CheckLacingKeyframe();
+        Result |= CheckPosSize(RSegment);
 		if (!RCues)
 			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
 		else

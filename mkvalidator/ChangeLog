@@ -4,6 +4,7 @@ version 0.1.7:
     - check when unique elements are found twice
     - warn when a secondary SeekHead is found (useless)
     - make sure audio frames are all keyframes (no known codec so far are not)
+    - warn when a Cluster's first video track is not a keyframe
     - fix issues with live streams
 
 2010-05-20

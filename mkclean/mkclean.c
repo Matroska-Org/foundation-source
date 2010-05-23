@@ -36,7 +36,6 @@
  * \todo support for updating/writing the ClusterPosition
  * \todo support for updating/writing the PrevSize
  * \todo when changing the doctype make sure the source is compatible (vorbis/vp8 for webm)
- * \todo write the PrevSize at the beggining of Clusters
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo remuxing: put the matching audio at the front
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
