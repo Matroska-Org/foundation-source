@@ -1,3 +1,8 @@
+2010-05-23
+version 0.1.7:
+    - very that the Cluster PrevSize and Position are valid
+    - fix issues with live streams
+
 2010-05-20
 version 0.1.6:
     - unobfuscate the 'webm' and 'V_VP8' strings

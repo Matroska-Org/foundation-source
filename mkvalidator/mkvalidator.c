@@ -33,7 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo verify the validity of ClusterPosition and PrevSize
+ * \todo make sure unique elements are not found twice
  * \todo warn when a secondary SeekHead is found (useless)
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that timecodes of clusters are increasing
@@ -381,6 +381,33 @@ static bool_t TrackIsLaced(int16_t TrackNum)
         Track = EBML_MasterFindNextElt(RTrackInfo, Track, 0, 0);
     }
     return 1;
+}
+
+static int CheckPosSize(const ebml_element *RSegment)
+{
+	int Result = 0;
+	ebml_element **Cluster,*PrevCluster=NULL;
+    ebml_element *Elt;
+
+	for (Cluster=ARRAYBEGIN(RClusters,ebml_element*);Cluster!=ARRAYEND(RClusters,ebml_element*);++Cluster)
+    {
+        Elt = EBML_MasterFindFirstElt(*Cluster,&MATROSKA_ContextClusterPrevSize,0,0);
+        if (Elt)
+        {
+            if (PrevCluster==NULL)
+                Result |= OutputError(0xA0,T("The PrevSize %lld was set on the first Cluster at %lld"),(long)EBML_IntegerValue(Elt),(long)Elt->ElementPosition);
+            else if (EBML_IntegerValue(Elt) != (*Cluster)->ElementPosition - PrevCluster->ElementPosition)
+                Result |= OutputError(0xA1,T("The Cluster PrevSize %lld at %lld should be %lld"),(long)EBML_IntegerValue(Elt),(long)Elt->ElementPosition,(long)((*Cluster)->ElementPosition - PrevCluster->ElementPosition));
+        }
+        Elt = EBML_MasterFindFirstElt(*Cluster,&MATROSKA_ContextClusterPosition,0,0);
+        if (Elt)
+        {
+            if (EBML_IntegerValue(Elt) != (*Cluster)->ElementPosition - EBML_ElementPositionData(RSegment))
+                Result |= OutputError(0xA2,T("The Cluster position %lld at %lld should be %lld"),(long)EBML_IntegerValue(Elt),(long)Elt->ElementPosition,(long)((*Cluster)->ElementPosition - EBML_ElementPositionData(RSegment)));
+        }
+        PrevCluster = *Cluster;
+    }
+	return Result;
 }
 
 static int CheckLacing()
@@ -779,6 +806,7 @@ int main(int argc, const char *argv[])
         TextWrite(StdErr,T("."));
 		LinkClusterBlocks();
 
+        Result |= CheckPosSize(RSegment);
         Result |= CheckLacing();
 		if (!RCues)
 			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));

@@ -812,9 +812,7 @@ int main(int argc, const char *argv[])
 					NodeDelete((node*)EbmlHead);
 				EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextClusterPrevSize, 0, 0);
 				if (EbmlHead)
-				{
-					EBML_MasterRemove(RLevel1, EbmlHead);
-				}
+					NodeDelete((node*)EbmlHead);
 				EbmlHead = NULL;
 			}
         }
