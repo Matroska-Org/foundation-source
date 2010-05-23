@@ -516,6 +516,7 @@ static int CheckLacingKeyframe()
 	int Result = 0;
 	matroska_cluster **Cluster;
     ebml_element *Block, *GBlock;
+    int16_t BlockNum;
 
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
     {
@@ -528,20 +529,22 @@ static int CheckLacingKeyframe()
 				    if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
 				    {
                         //MATROSKA_ContextTrackLacing
-                        if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(MATROSKA_BlockTrackNum((matroska_block*)GBlock)))
-                            Result |= OutputError(0xB0,T("Block at %lld track #%d is laced but the track is not"),(long)GBlock->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)GBlock));
-                        if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && !TrackIsVideo(MATROSKA_BlockTrackNum((matroska_block*)GBlock)))
-                            Result |= OutputError(0xB1,T("Block at %lld track #%d is not a keyframe"),(long)GBlock->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)GBlock));
+                        BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
+                        if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(BlockNum))
+                            Result |= OutputError(0xB0,T("Block at %lld track #%d is laced but the track is not"),(long)GBlock->ElementPosition,(int)BlockNum);
+                        if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && !TrackIsVideo(BlockNum))
+                            Result |= OutputError(0xB1,T("Block at %lld track #%d is not a keyframe"),(long)GBlock->ElementPosition,(int)BlockNum);
 					    break;
 				    }
 			    }
 		    }
 		    else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		    {
-                if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(MATROSKA_BlockTrackNum((matroska_block*)Block)))
-                    Result |= OutputError(0xB0,T("SimpleBlock at %lld track #%d is laced but the track is not"),(long)Block->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)Block));
-                if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && !TrackIsVideo(MATROSKA_BlockTrackNum((matroska_block*)Block)))
-                    Result |= OutputError(0xB1,T("SimpleBlock at %lld track #%d is not a keyframe"),(long)Block->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)Block));
+                BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
+                if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(BlockNum))
+                    Result |= OutputError(0xB0,T("SimpleBlock at %lld track #%d is laced but the track is not"),(long)Block->ElementPosition,(int)BlockNum);
+                if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && !TrackIsVideo(BlockNum))
+                    Result |= OutputError(0xB1,T("SimpleBlock at %lld track #%d is not a keyframe"),(long)Block->ElementPosition,(int)BlockNum);
 		    }
 	    }
     }
