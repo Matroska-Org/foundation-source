@@ -87,7 +87,7 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 	if (EBML_ElementIsFiniteSize(p)) {
 		assert(TestReadElt == NULL);
 		assert(p->ElementPosition < p->SizePosition);
-		Stream_Seek(Input, p->SizePosition + EBML_CodedSizeLength(p->DataSize, p->SizeLength, 1) + p->DataSize, SEEK_SET);
+		Stream_Seek(Input, EBML_ElementPositionEnd(p), SEEK_SET);
 	} else {
 		// read elements until an upper element is found
 		bool_t bEndFound = 0;

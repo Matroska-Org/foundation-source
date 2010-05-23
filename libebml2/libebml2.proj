@@ -3,7 +3,7 @@
 GROUP ebml2_group
 {
   PROJECT_NAME  "libebml2"
-  PROJECT_VERSION  0.9.6
+  PROJECT_VERSION  0.9.7
   PROJECT_VENDOR   "Matroska Foundation"
   
   INCLUDE .

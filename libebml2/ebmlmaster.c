@@ -223,15 +223,16 @@ static void PostCreate(ebml_element *Element)
 
 static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
-	// remove all existing elements, including the mandatory ones...
+    int UpperEltFound = 0;
+    ebml_element *SubElement;
+
+    // remove all existing elements, including the mandatory ones...
     NodeTree_Clear((nodetree*)Element);
     Element->bValueIsSet = 0;
 
 	// read blocks and discard the ones we don't care about
 	if (Element->DataSize > 0 || !EBML_ElementIsFiniteSize(Element)) {
-	    ebml_element *SubElement;
         ebml_parser_context Context;
-        int UpperEltFound = 0;
         filepos_t MaxSizeToRead;
 
         if (Stream_Seek(Input,EBML_ElementPositionData(Element),SEEK_SET)==INVALID_FILEPOS_T)
@@ -290,6 +291,11 @@ processCrc:
 	}
 #endif
     Element->bValueIsSet = 1;
+    if (UpperEltFound>0) // move back to the upper element beginning so that the next loop can find it
+    {
+        assert(SubElement!=NULL);
+        Stream_Seek(Input,SubElement->ElementPosition,SEEK_SET);
+    }
     return ERR_NONE;
 }
 
