@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo warn when a secondary SeekHead is found (useless)
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that timecodes of clusters are increasing
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
@@ -636,7 +635,10 @@ int main(int argc, const char *argv[])
 				if (!RSeekHead)
 					RSeekHead = RLevel1;
 				else if (!RSeekHead2)
+                {
+					Result |= OutputWarning(0x103,T("Unnecessary secondary SeekHead was found at %lld"),(long)RLevel1->ElementPosition);
 					RSeekHead2 = RLevel1;
+                }
 				else
 					Result |= OutputError(0x101,T("Extra SeekHead found at %lld (size %lld)"),(long)RLevel1->ElementPosition,(long)RLevel1->DataSize);
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
