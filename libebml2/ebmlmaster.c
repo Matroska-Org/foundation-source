@@ -249,14 +249,23 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
                 // TODO: this should never happen
                 EBML_ElementSkipData(SubElement,Input,&Context,NULL,AllowDummyElt);
 				NodeDelete((node*)SubElement); // forget this unknown element
-			} else {
-                EBML_ElementReadData(SubElement,Input,&Context,AllowDummyElt, Scope);
-                EBML_MasterAppend(Element,SubElement);
-
-				// just in case
-                EBML_ElementSkipData(SubElement,Input,&Context,NULL,AllowDummyElt);
 			}
-			MaxSizeToRead = EBML_ElementPositionEnd(Element) - EBML_ElementPositionEnd(SubElement); // even if it's the default value
+            else
+            {
+                if (EBML_ElementReadData(SubElement,Input,&Context,AllowDummyElt, Scope)==ERR_NONE)
+                {
+                    EBML_MasterAppend(Element,SubElement);
+				    // just in case
+                    EBML_ElementSkipData(SubElement,Input,&Context,NULL,AllowDummyElt);
+                }
+                else
+                {
+                    NodeDelete((node*)SubElement);
+                    SubElement = NULL;
+                }
+			}
+            if (SubElement)
+			    MaxSizeToRead = EBML_ElementPositionEnd(Element) - EBML_ElementPositionEnd(SubElement); // even if it's the default value
 
 			if (UpperEltFound > 0) {
 				UpperEltFound--;
