@@ -33,13 +33,11 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo make sure audio frames are all keyframes (no known codec so far are not)
+ * \todo warn when a top level element is not present in the main SeekHead
+ * \todo optionally warn when a Cluster's first video track is not a keyframe
  * \todo verify that timecodes of clusters are increasing
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
- * \todo handle segments with an infinite size
- * \todo warn when a top level element is not present in the main SeekHead
- * \todo optionally warn when a Cluster's first video track is not a keyframe
  * \todo optionally show the use of deprecated elements
  */
 
@@ -386,6 +384,22 @@ static bool_t TrackIsLaced(int16_t TrackNum)
     return 1;
 }
 
+static bool_t TrackIsVideo(int16_t TrackNum)
+{
+    ebml_element *TrackData, *Track = EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
+    while (Track)
+    {
+        TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+        if (EBML_IntegerValue(TrackData) == TrackNum)
+        {
+            TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
+            return EBML_IntegerValue(TrackData) == TRACK_TYPE_VIDEO;
+        }
+        Track = EBML_MasterFindNextElt(RTrackInfo, Track, 0, 0);
+    }
+    return 0;
+}
+
 static int CheckPosSize(const ebml_element *RSegment)
 {
 	int Result = 0;
@@ -413,7 +427,7 @@ static int CheckPosSize(const ebml_element *RSegment)
 	return Result;
 }
 
-static int CheckLacing()
+static int CheckLacingKeyframe()
 {
 	int Result = 0;
 	matroska_cluster **Cluster;
@@ -431,7 +445,9 @@ static int CheckLacing()
 				    {
                         //MATROSKA_ContextTrackLacing
                         if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(MATROSKA_BlockTrackNum((matroska_block*)GBlock)))
-                            Result |= 0;
+                            Result |= OutputError(0xB0,T("Block at %lld track #%d is laced but the track is not"),(long)GBlock->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)GBlock));
+                        if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && !TrackIsVideo(MATROSKA_BlockTrackNum((matroska_block*)GBlock)))
+                            Result |= OutputError(0xB1,T("Block at %lld track #%d is not a keyframe"),(long)GBlock->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)GBlock));
 					    break;
 				    }
 			    }
@@ -439,7 +455,9 @@ static int CheckLacing()
 		    else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		    {
                 if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(MATROSKA_BlockTrackNum((matroska_block*)Block)))
-                    Result |= 0;
+                    Result |= OutputError(0xB0,T("SimpleBlock at %lld track #%d is laced but the track is not"),(long)Block->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)Block));
+                if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && !TrackIsVideo(MATROSKA_BlockTrackNum((matroska_block*)Block)))
+                    Result |= OutputError(0xB1,T("SimpleBlock at %lld track #%d is not a keyframe"),(long)Block->ElementPosition,(int)MATROSKA_BlockTrackNum((matroska_block*)Block));
 		    }
 	    }
     }
@@ -813,7 +831,7 @@ int main(int argc, const char *argv[])
 		LinkClusterBlocks();
 
         Result |= CheckPosSize(RSegment);
-        Result |= CheckLacing();
+        Result |= CheckLacingKeyframe();
 		if (!RCues)
 			OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
 		else
