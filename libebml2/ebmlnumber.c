@@ -194,12 +194,12 @@ static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceR
 
 static bool_t ValidateSizeInt(const ebml_element *p)
 {
-    return (p->DataSize <= 8);
+    return !EBML_ElementIsFiniteSize(p) && (p->DataSize <= 8);
 }
 
 static bool_t ValidateSizeFloat(const ebml_element *p)
 {
-    return (p->DataSize == 8 || p->DataSize == 4);
+    return !EBML_ElementIsFiniteSize(p) && (p->DataSize == 8 || p->DataSize == 4);
 }
 
 static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)

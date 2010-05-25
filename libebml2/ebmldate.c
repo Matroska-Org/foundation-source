@@ -45,7 +45,7 @@ err_t EBML_DateSetDateTime(ebml_date *Element, datetime_t Date)
 
 static bool_t ValidateSize(const ebml_element *p)
 {
-    return (p->DataSize == 8 || p->DataSize == 0);
+    return !EBML_ElementIsFiniteSize(p) && (p->DataSize == 8 || p->DataSize == 0);
 }
 
 static err_t ReadData(ebml_date *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)

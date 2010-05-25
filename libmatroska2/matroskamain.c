@@ -1428,7 +1428,7 @@ static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)
 static bool_t ValidateSizeSegUID(const ebml_binary *p)
 {
     uint8_t test[16];
-    if (p->Base.DataSize != 16)
+	if (p->Base.DataSize != 16 || !EBML_ElementIsFiniteSize((const ebml_element *)p))
         return 0;
     if (!p->Base.bValueIsSet)
         return 1;

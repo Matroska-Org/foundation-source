@@ -87,10 +87,16 @@ static filepos_t UpdateSize(ebml_binary *Element, bool_t bWithDefault, bool_t bF
 	return Element->Base.DataSize;
 }
 
+static bool_t ValidateSize(const ebml_element *p)
+{
+    return !EBML_ElementIsFiniteSize(p);
+}
+
 META_START(EBMLBinary_Class,EBML_BINARY_CLASS)
 META_CLASS(SIZE,sizeof(ebml_binary))
 META_CLASS(DELETE,Delete)
 META_DATA(TYPE_ARRAY,0,ebml_binary,Data)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
