@@ -46,6 +46,8 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
 
         if (Element->DataSize == INVALID_FILEPOS_T)
             fprintf(stdout,"(master)\r\n");
+        else if (!EBML_ElementIsFiniteSize(Element))
+            fprintf(stdout,"(master) [unknown size]\r\n",(int)Element->DataSize);
         else
             fprintf(stdout,"(master) [%d bytes]\r\n",(int)Element->DataSize);
         SubContext.UpContext = Context;
