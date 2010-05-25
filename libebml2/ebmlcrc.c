@@ -29,7 +29,7 @@
 
 static bool_t ValidateSize(const ebml_element *p)
 {
-    return !EBML_ElementIsFiniteSize(p) && (p->DataSize == 4);
+    return EBML_ElementIsFiniteSize(p) && (p->DataSize == 4);
 }
 
 META_START(EBMLCRC_Class,EBML_CRC_CLASS)

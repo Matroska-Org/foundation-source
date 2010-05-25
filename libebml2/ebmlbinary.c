@@ -89,7 +89,7 @@ static filepos_t UpdateSize(ebml_binary *Element, bool_t bWithDefault, bool_t bF
 
 static bool_t ValidateSize(const ebml_element *p)
 {
-    return !EBML_ElementIsFiniteSize(p);
+    return EBML_ElementIsFiniteSize(p);
 }
 
 META_START(EBMLBinary_Class,EBML_BINARY_CLASS)
