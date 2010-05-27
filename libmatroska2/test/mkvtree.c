@@ -54,7 +54,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         SubContext.Context = Element->Context;
         SubContext.EndPosition = EBML_ElementPositionEnd(Element);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
-        while (SubElement != NULL && UpperElement<=0 && (SubElement->ElementPosition < (Element->DataSize + Element->SizePosition + Element->SizeLength) || *Level==-1))
+		while (SubElement != NULL && UpperElement<=0 && (!EBML_ElementIsFiniteSize(Element) || SubElement->ElementPosition <= EBML_ElementPositionEnd(Element)))
         {
             // a sub element == not higher level and contained inside the current element
             (*Level)++;
@@ -65,13 +65,11 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             else
                 SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
             (*Level)--;
-            if (!SubElement)
-            {
-                if (UpperElement < 0)
-                    *Level += UpperElement;
-                else if (UpperElement != 0 && *Level>0)
-                    *Level -= UpperElement-1;
-            }
+
+			if (UpperElement < 0)
+				*Level += UpperElement;
+			else if (UpperElement != 0 && *Level>0)
+				*Level -= UpperElement-1;
         }
         return SubElement;
         //EBML_ElementSkipData(Element, Input, Element->Context, NULL, 0);
@@ -118,7 +116,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     }
     else if (EBML_ElementIsDummy(Element))
     {
-        fprintf(stdout,"[%X]\r\n",Element->Context->Id);
+        fprintf(stdout,"[%X] [%d bytes]\r\n",Element->Context->Id,(int)Element->DataSize);
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
     }
     else if (Node_IsPartOf(Element,EBML_BINARY_CLASS))
@@ -142,6 +140,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         }
         else
             fprintf(stdout,"<error reading>\r\n");
+		EBML_ElementSkipData(Element, Input, Context, NULL, 0);
     }
     else if (Node_IsPartOf(Element,EBML_VOID_CLASS))
     {
@@ -173,7 +172,8 @@ static void OutputTree(stream *Input)
     ebml_element *Element = EBML_ElementCreate(Input,&MATROSKA_ContextStream,0,NULL);
     if (Element)
     {
-        int Level = -1;
+		int Level = -1;
+        EBML_ElementSetInfiniteSize(Element,1);
         OutputElement(Element, NULL, Input, &Level);
         NodeDelete((node*)Element);
     }
