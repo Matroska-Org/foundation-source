@@ -1,6 +1,8 @@
-2010-05-23
+2010-05-27
 version 0.2.5:
     - make sure only V_VP8 and A_VORBIS tracks are kept for webm
+    - fix some default values in chapters
+    - fix reading of elements with unknown/infinite sizes
 
 2010-05-22
 version 0.2.4:
