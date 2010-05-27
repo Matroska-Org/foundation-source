@@ -460,7 +460,7 @@ static int CheckVideoStart()
                             ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                         else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
                         {
-                            Result |= OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %lld is not a keyframe"),BlockNum,(long)(*Cluster)->ElementPosition);
+                            OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %lld is not a keyframe"),BlockNum,(long)(*Cluster)->ElementPosition);
                             ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                         }
 					    break;
@@ -474,7 +474,7 @@ static int CheckVideoStart()
                     ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                 else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
                 {
-                    Result |= OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %lld is not a keyframe"),BlockNum,(long)(*Cluster)->ElementPosition);
+                    OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %lld is not a keyframe"),BlockNum,(long)(*Cluster)->ElementPosition);
                     ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                 }
 		    }
@@ -760,7 +760,7 @@ int main(int argc, const char *argv[])
 					RSeekHead = RLevel1;
 				else if (!RSeekHead2)
                 {
-					Result |= OutputWarning(0x103,T("Unnecessary secondary SeekHead was found at %lld"),(long)RLevel1->ElementPosition);
+					OutputWarning(0x103,T("Unnecessary secondary SeekHead was found at %lld"),(long)RLevel1->ElementPosition);
 					RSeekHead2 = RLevel1;
                 }
 				else
@@ -794,7 +794,7 @@ int main(int argc, const char *argv[])
                     {
                         EbmlHead = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextDuration,0,0);
                         if (EbmlHead)
-                            Result |= OutputWarning(0x112,T("The live Segment has a duration set at %lld"),(long)EbmlHead->ElementPosition);
+                            Result |= OutputError(0x112,T("The live Segment has a duration set at %lld"),(long)EbmlHead->ElementPosition);
                     }
                 }
 			}
