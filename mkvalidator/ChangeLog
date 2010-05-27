@@ -1,6 +1,9 @@
-2010-05-23
+2010-05-27
 version 0.1.8:
     - add a --live parameter to only check errors and warnings relevant to live streams
+    - fix some default values in chapters
+    - fix the end of reading of a master when the size is unknown/infinite
+    - adjust the severe/benign warnings and errors
 
 2010-05-23
 version 0.1.7:

@@ -41,6 +41,7 @@
  * \todo remuxing: pack audio frames using lacing (no longer than the matching video frame ?)
  * \todo change the Segment UID (when key parts are altered)
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
+ * \todo compute the default duration (when it's not set or not optimal)
  * \todo handle segments with an infinite size
  * \todo optionally add a CRC32 on level1 elements
  * \todo add support for compressed headers
