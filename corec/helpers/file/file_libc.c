@@ -46,12 +46,12 @@
 #include <sys/vfs.h>
 #endif
 
-#if defined(S_IREAD) && defined(S_IWRITE)
+#if defined(O_ACCMODE)
+#define _RW_ACCESS_FILE  (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)
+#define _RW_ACCESS_DIR  (S_IRWXU|S_IRWXG|S_IRWXO)
+#elif defined(S_IREAD) && defined(S_IWRITE)
 #define _RW_ACCESS_FILE  (S_IREAD|S_IWRITE)
 #define _RW_ACCESS_DIR  (S_IREAD|S_IWRITE|S_IEXEC)
-#elif defined(O_ACCMODE)
-#define _RW_ACCESS_FILE  (S_IRUSR|S_IWUSR)
-#define _RW_ACCESS_DIR  S_IRWXU
 #endif
 
 typedef struct filestream
