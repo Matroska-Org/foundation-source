@@ -1,0 +1,13 @@
+GROUP str
+{
+  USE corec
+  SOURCE str.c
+  SOURCE(TARGET_WIN) str_win32.c
+  SOURCE(TARGET_LINUX || TARGET_ANDROID) str_linux.c
+  SOURCE(TARGET_PALMOS) str_palmos.c
+  SOURCE(TARGET_SYMBIAN) str_symbian.cpp
+  SOURCE(TARGET_OSX) str_osx.c
+  SOURCE(TARGET_PS2SDK) str_utf8.c
+  HEADER str.h
+}
+

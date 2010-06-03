@@ -1,0 +1,14 @@
+GROUP charconvert
+{
+  USE corec
+  USE str
+  SOURCE(TARGET_WIN) charconvert_win32.c
+  SOURCE(TARGET_LINUX && (!TARGET_QTOPIA || QTOPIA_WITH_ICONV)) charconvert_linux.c
+  SOURCE(TARGET_QTOPIA && !QTOPIA_WITH_ICONV) charconvert_qtopia.cpp
+  SOURCE(TARGET_PALMOS) charconvert_palmos.c
+  SOURCE(TARGET_SYMBIAN) charconvert_symbian.cpp
+  FRAMEWORK(TARGET_OSX) CoreFoundation
+  SOURCE(TARGET_OSX) charconvert_osx.c
+  SOURCE(TARGET_PS2SDK || TARGET_ANDROID) charconvert_utf8.c
+  HEADER charconvert.h
+}

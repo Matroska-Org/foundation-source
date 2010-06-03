@@ -1,0 +1,31 @@
+GROUP parser
+{
+  USE file
+  USE charconvert
+  
+  DEFINE COREC_PARSER
+
+  SOURCE parser2.c { class LangStr_Class }
+  HEADER parser.h
+
+  SOURCE strtab.c
+  HEADER strtab.h
+
+  SOURCE strtypes.c
+  HEADER strtypes.h
+
+  SOURCE dataheap.c
+  HEADER dataheap.h
+
+  SOURCE buffer.c
+  HEADER buffer.h
+
+  SOURCE hotkey.c
+  HEADER hotkey.h
+
+  SOURCE nodelookup.c
+  HEADER nodelookup.h
+
+  SOURCE urlpart.c {class UrlPart_Class}
+  HEADER urlpart.h
+}

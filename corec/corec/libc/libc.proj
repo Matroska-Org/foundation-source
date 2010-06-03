@@ -1,0 +1,50 @@
+GROUP libc
+{
+  IF TARGET_PALMOS
+    USE palmone_sdk
+    USE sony_sdk
+    USEINCLUDE corec
+    USEINCLUDE peal
+    SYSINCLUDE palmos
+    SOURCE palmos/assert.c
+    SOURCE(ARM) palmos/math.c
+    SOURCE(ARM) palmos/qsort.c
+    SOURCE(ARM) palmos/rand.c
+    SOURCE(ARM) palmos/sincos.c
+    SOURCE(ARM) palmos/vsprintf.c
+    SOURCE(ARM) palmos/setjmp.S
+    SOURCE palmos/pace.c
+    SOURCE palmos/pace2.c
+    SOURCE palmos/strings.c
+    SOURCE(IX86) palmos/native_x86.c
+    SOURCE(ARM) palmos/native_arm.S
+  ENDIF
+  IF TARGET_SYMBIAN
+    SYSINCLUDE symbian
+  ENDIF
+  IF TARGET_WINCE
+    USEINCLUDE corec
+    SOURCE wince/assert.c
+    SYSINCLUDE wince
+  ENDIF
+  IF TARGET_PS2SDK
+    USE ps2event
+    SYSINCLUDE ps2sdk
+  ENDIF
+  IF TARGET_IPHONE_SDK
+    SYSINCLUDE iphone
+  ENDIF
+}
+
+GROUP con_to_exe
+{
+  SOURCE(TARGET_WINCE) wince/console_wince.c
+
+  IF TARGET_PALMOS
+    USEINCLUDE peal
+    USE peal
+    USE libc
+    SOURCE palmos/console_palmos.c
+    SOURCE_M68K palmos/console_palmos_m68k.c
+  ENDIF
+}
