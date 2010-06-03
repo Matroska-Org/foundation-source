@@ -801,7 +801,7 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
     Ext[l + 2] = '\0';
     s = GetStream(p, Dir, SFLAG_SILENT);
     if (!s)
-        return ERR_INVALID_DATA;
+        return ERR_FILE_NOT_FOUND;
     Result = Stream_OpenDir(s, Dir, SFLAG_SILENT);
     if (Result == ERR_NONE) {
         do {
@@ -811,6 +811,8 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
         } while (Result == ERR_NONE);
     }
     NodeDelete((node *) s);
+	if (Result != ERR_NONE) 
+		Result = ERR_FILE_NOT_FOUND;
     return Result;
 }
 

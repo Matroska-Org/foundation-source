@@ -31,12 +31,6 @@
 
 #ifndef NDEBUG
 
-#ifdef LIBC_EXPORTS
-#define ASSERT_DLL DLLEXPORT
-#else
-#define ASSERT_DLL
-#endif
-
 #ifndef STRICT
 #define STRICT
 #endif

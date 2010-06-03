@@ -1,7 +1,7 @@
 GROUP file
 {
   USE node
-  USE date\r  EXPINCLUDE ..
+  USE date
 
   HEADER file.h
   HEADER streams.h

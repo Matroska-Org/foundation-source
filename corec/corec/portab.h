@@ -701,7 +701,12 @@ extern void free_palmos(void*);
 #elif !defined(TARGET_WINCE) && !defined(TARGET_PALMOS)
 #include <assert.h>
 #else
-extern void _Assert(const char* Exp, const char* File, int Line);
+#ifdef LIBC_EXPORTS
+#define ASSERT_DLL DLLEXPORT
+#else
+#define ASSERT_DLL
+#endif
+ASSERT_DLL void _Assert(const char* Exp, const char* File, int Line);
 #define assert(x)   ((x) ? (void)0 : _Assert(#x, __FILE__, __LINE__))
 #endif
 #else // NDEBUG
