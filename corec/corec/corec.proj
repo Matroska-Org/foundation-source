@@ -8,7 +8,6 @@ GROUP corec
   EXPDEFINE HAVE_COREC_H
   HEADER corec.h
   HEADER err.h
-  HEADER fixed.h
   HEADER helper.h
   HEADER memalloc.h
   HEADER portab.h
