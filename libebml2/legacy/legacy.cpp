@@ -1,5 +1,5 @@
 /*
- * $Id: legacy.cpp 1319 2008-09-19 16:08:57Z robux4 $
+ * $Id$
  * Copyright (c) 2010, Steve Lhomme
  * All rights reserved.
  *
@@ -288,7 +288,7 @@ size_t CodedSizeLength(filepos_t Length, size_t SizeLength, bool bSizeIsFinite)
 
 size_t CodedValueLength(filepos_t Length, size_t CodedSize, binary * OutBuffer)
 {
-    return EBML_CodedValueLength(Length, CodedSize, OutBuffer);
+    return EBML_CodedValueLength(Length, CodedSize, OutBuffer, 1);
 }
 
 size_t CodedSizeLengthSigned(filepos_t Length, size_t SizeLength)
@@ -534,25 +534,25 @@ bool EbmlElement::IsSmallerThan(const EbmlElement *Cmp) const
  ****************/
 EbmlSemanticContext::EbmlSemanticContext(const ebml_context & _Context)
 :Context(_Context)
-,DataSize(0)
+,Size(0)
 {
     const ebml_semantic *s = Context.Semantic;
     while (s && s->eClass!=NULL)
     {
-        ++DataSize;
+        ++Size;
         ++s;
     }
 }
 
 const EbmlSemantic & EbmlSemanticContext::GetSemantic(size_t i) const
 {
-    assert(i < DataSize);
+    assert(i < Size);
     return Context.Semantic[i];
 }
 
 bool EbmlSemanticContext::operator!=(const EbmlSemanticContext & Elt) const
 {
-	return (DataSize != Elt.DataSize) || (Context.Id != Elt.Context.Id) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
+	return (Size != Elt.Size) || (Context.Id != Elt.Context.Id) || (Context.Semantic != Elt.Context.Semantic); // TODO: handle more
 }
 
 const ebml_context * EbmlSemanticContext::GetContext() const

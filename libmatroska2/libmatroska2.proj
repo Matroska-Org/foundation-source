@@ -10,6 +10,7 @@ PROJECT matroska2
 GROUP matroska2_group
 {
   USE(HAVE_EBML2) ebml2
+  EXPDEFINE HAVE_MATROSKA2
 
   INCLUDE .
   EXPINCLUDE .

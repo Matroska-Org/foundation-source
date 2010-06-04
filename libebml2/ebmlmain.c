@@ -26,7 +26,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml/ebml.h"
+#if defined(EBML_LEGACY_API)
+#include "ebml2_legacy_project.h"
+#else
 #include "ebml2_project.h"
+#endif
 
 extern const nodemeta BufStream_Class[];
 extern const nodemeta MemStream_Class[];
