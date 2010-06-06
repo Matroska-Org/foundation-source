@@ -59,10 +59,20 @@ typedef struct matroska_cuepoint matroska_cuepoint;
 typedef struct matroska_cluster matroska_cluster;
 typedef struct matroska_seekpoint matroska_seekpoint;
 
+typedef struct matroska_frame
+{
+    uint8_t *Data;
+    uint32_t Size;
+    timecode_t Timecode;
+    timecode_t Duration;
+
+} matroska_frame;
+
 EBML_DLL err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link);
 EBML_DLL err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek);
 EBML_DLL err_t MATROSKA_LinkClusterSegmentInfo(matroska_cluster *Cluster, ebml_element *SegmentInfo);
-EBML_DLL err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks);
+EBML_DLL err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks);
+EBML_DLL err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track);
 EBML_DLL err_t MATROSKA_LinkBlockSegmentInfo(matroska_block *Block, ebml_element *SegmentInfo);
 //EBML_DLL err_t MATROSKA_LinkCueTrack(const ebml_element *Cue, ebml_element *Tracks);
 EBML_DLL err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentInfo);
@@ -85,6 +95,20 @@ EBML_DLL void MATROSKA_CuesSort(ebml_element *Cues);
 EBML_DLL fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSeek);
+
+EBML_DLL ebml_element *MATROSKA_BlockTrack(const matroska_block *Block);
+EBML_DLL ebml_element *MATROSKA_BlockSegmentInfo(const matroska_block *Block);
+
+EBML_DLL void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set);
+EBML_DLL err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input);
+EBML_DLL size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block);
+EBML_DLL timecode_t MATROSKA_BlockGetFrameDuration(const matroska_block *Block, size_t FrameNum);
+EBML_DLL timecode_t MATROSKA_BlockGetFrameStart(const matroska_block *Block, size_t FrameNum);
+EBML_DLL timecode_t MATROSKA_BlockGetFrameEnd(const matroska_block *Block, size_t FrameNum);
+
+EBML_DLL err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame);
+EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t Relative);
+
 
 EBML_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
 EBML_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmentInfo, ebml_element *Tracks);

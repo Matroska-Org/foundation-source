@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "matroska/matroska.h"
+#include "matroska_internal.h"
 #include "matroska2_project.h"
 
 #define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
@@ -563,9 +564,6 @@ err_t MATROSKA_Done(nodecontext *p)
 }
 
 
-#define MATROSKA_BLOCK_TRACK         0x100
-#define MATROSKA_BLOCK_SEGMENTINFO   0x101
-
 #define MATROSKA_CUE_SEGMENTINFO     0x100
 #define MATROSKA_CUE_BLOCK           0x101
 
@@ -578,24 +576,6 @@ err_t MATROSKA_Done(nodecontext *p)
 #define LACING_FIXED 2
 #define LACING_EBML  3
 #define LACING_AUTO  4
-
-struct matroska_block
-{
-    ebml_binary Base;
-    uint16_t TrackNumber;
-    int16_t LocalTimecode;
-    bool_t LocalTimecodeUsed;
-    bool_t IsKeyframe;
-    bool_t IsDiscardable;
-    bool_t Invisible;
-    char Lacing;
-    filepos_t FirstFrameLocation;
-    array SizeList; // int32_t
-    array Data; // uint8_t
-    ebml_element *Track;
-    ebml_element *SegInfo;
-
-};
 
 struct matroska_cuepoint
 {
@@ -618,7 +598,7 @@ struct matroska_seekpoint
     ebml_element *Link;
 };
 
-err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks)
+err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks)
 {
     ebml_element *Track, *TrackNum;
     assert(Tracks->Context->Id == MATROSKA_ContextTracks.Id);
@@ -633,6 +613,30 @@ err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Tracks)
         }
     }
     return ERR_INVALID_DATA;
+}
+
+err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track)
+{
+    ebml_element *TrackNum;
+    assert(Track->Context->Id == MATROSKA_ContextTrackEntry.Id);
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+    if (TrackNum && TrackNum->bValueIsSet)
+    {
+        Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
+        Node_SET(Block,MATROSKA_BLOCK_TRACK,&Track);
+        return ERR_NONE;
+    }
+    return ERR_INVALID_DATA;
+}
+
+
+ebml_element *MATROSKA_BlockTrack(const matroska_block *Block)
+{
+    ebml_element *Track;
+    if (Node_GET((node*)Block,MATROSKA_BLOCK_TRACK,&Track)!=ERR_NONE)
+        return NULL;
+    return Track;
 }
 
 err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link)
@@ -724,6 +728,14 @@ err_t MATROSKA_LinkBlockSegmentInfo(matroska_block *Block, ebml_element *Segment
     return ERR_NONE;
 }
 
+ebml_element *MATROSKA_BlockSegmentInfo(const matroska_block *Block)
+{
+    ebml_element *SegmentInfo;
+    if (Node_GET((node*)Block,MATROSKA_BLOCK_SEGMENTINFO,&SegmentInfo)!=ERR_NONE)
+        return NULL;
+    return SegmentInfo;
+}
+
 err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentInfo)
 {
     assert(Cue->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
@@ -764,10 +776,12 @@ err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, time
 {
 	int64_t InternalTimecode;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    assert(Timecode!=INVALID_TIMECODE_T);
 	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track)));
 	if (InternalTimecode > 32767 || InternalTimecode < -32768)
 		return ERR_INVALID_DATA;
 	Block->LocalTimecode = (int16_t)InternalTimecode;
+    Block->LocalTimecodeUsed = 1;
 	return ERR_NONE;
 }
 
@@ -796,6 +810,12 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     assert(Block->LocalTimecodeUsed);
 	return Block->IsKeyframe;
+}
+
+void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set)
+{
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+	Block->IsKeyframe = Set;
 }
 
 bool_t MATROSKA_BlockLaced(const matroska_block *Block)
@@ -943,7 +963,7 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmen
 			{
 				if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
 				{
-					MATROSKA_LinkBlockTrack((matroska_block*)GBlock,Tracks);
+					MATROSKA_LinkBlockWithTracks((matroska_block*)GBlock,Tracks);
 					MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
 					break;
 				}
@@ -951,7 +971,7 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmen
 		}
 		else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		{
-			MATROSKA_LinkBlockTrack((matroska_block*)Block,Tracks);
+			MATROSKA_LinkBlockWithTracks((matroska_block*)Block,Tracks);
 			MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
 		}
 	}
@@ -978,6 +998,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     size_t Read;
     size_t NumFrame;
     err_t Err = ERR_NONE;
+    assert(!Element->Base.Base.bValueIsSet);
     Element->Base.Base.bValueIsSet = 1;
     switch (Element->Lacing)
     {
@@ -1000,6 +1021,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         Read = 0;
         for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
             Read += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+        assert(Read + Element->FirstFrameLocation == Element->Base.Base.DataSize);
         ArrayResize(&Element->Data,Read,0);
         Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),Read,&Read);
         if (Err != ERR_NONE)
@@ -1055,6 +1077,7 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 	uint8_t *_tmpBuf;
 	uint8_t BlockHeadSize = 4; // default when the TrackNumber is < 16
 
+    assert(!Element->Base.Base.bValueIsSet);
     Element->Base.Base.bValueIsSet = 0;
 
     if (Scope == SCOPE_NO_DATA)
@@ -1187,6 +1210,50 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 
 failed:
     return Result;
+}
+
+err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame)
+{
+    size_t i;
+
+    assert(Block->Base.Base.bValueIsSet);
+    if (!ARRAYCOUNT(Block->Data,uint8_t))
+        return ERR_READ;
+    if (FrameNum >= ARRAYCOUNT(Block->SizeList,uint32_t))
+        return ERR_INVALID_PARAM;
+
+    Frame->Data = ARRAYBEGIN(Block->Data,uint8_t);
+    Frame->Timecode = MATROSKA_BlockTimecode(Block);
+    for (i=0;i<FrameNum;++i)
+    {
+        Frame->Data += ARRAYBEGIN(Block->SizeList,uint32_t)[i];
+        if (Frame->Timecode != INVALID_TIMECODE_T)
+        {
+            if (i < ARRAYCOUNT(Block->Durations,timecode_t) && ARRAYBEGIN(Block->Durations,timecode_t)[i] != INVALID_TIMECODE_T)
+                Frame->Timecode += ARRAYBEGIN(Block->Durations,timecode_t)[i];
+            else
+                Frame->Timecode = INVALID_TIMECODE_T;
+        }
+    }
+
+    Frame->Size = ARRAYBEGIN(Block->SizeList,uint32_t)[i];
+    if (FrameNum < ARRAYCOUNT(Block->Durations,timecode_t))
+        Frame->Duration = ARRAYBEGIN(Block->Durations,timecode_t)[i];
+    else
+        Frame->Duration = INVALID_TIMECODE_T;
+    return ERR_NONE;
+}
+
+err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t Relative)
+{
+    if (!Block->Base.Base.bValueIsSet && Frame->Timecode!=INVALID_TIMECODE_T)
+        MATROSKA_BlockSetTimecode(Block,Frame->Timecode,Relative);
+    ArrayAppend(&Block->Data,Frame->Data,Frame->Size,0);
+    ArrayAppend(&Block->Durations,&Frame->Duration,sizeof(Frame->Duration),0);
+    ArrayAppend(&Block->SizeList,&Frame->Size,sizeof(Frame->Size),0);
+    Block->Base.Base.bValueIsSet = 1;
+    Block->Lacing = LACING_EBML; // \todo should be LACING_AUTO
+    return ERR_NONE;
 }
 
 static char GetBestLacingType(const matroska_block *Element)
@@ -1446,6 +1513,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderBlockData)
 #endif
 META_DATA(TYPE_ARRAY,0,matroska_block,SizeList)
 META_DATA(TYPE_ARRAY,0,matroska_block,Data)
+META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
 META_PARAM(TYPE,MATROSKA_BLOCK_TRACK,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_TRACK,matroska_block,Track)
 META_PARAM(TYPE,MATROSKA_BLOCK_SEGMENTINFO,TYPE_NODE)
