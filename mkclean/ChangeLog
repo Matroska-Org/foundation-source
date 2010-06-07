@@ -1,3 +1,7 @@
+2010-06-07
+version 0.2.6:
+    - do a "relacing" when remuxing to put audio frames close to the corresponding video keyframes (not all audio codecs are supported)
+
 2010-05-27
 version 0.2.5:
     - make sure only V_VP8 and A_VORBIS tracks are kept for webm

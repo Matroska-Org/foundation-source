@@ -994,6 +994,7 @@ int main(int argc, const char *argv[])
 		matroska_cluster **ClusterR, *ClusterW;
 	    ebml_element *Block, *NextBlock, *GBlock;
 		ebml_element *Track,*Elt,*Elt2;
+        matroska_block *Block1,*Block2;
 		timecode_t Prev = INVALID_TIMECODE_T, *Tst, *Duration, BlockTime, ClusterTimecode;
 		int16_t MainTrack, BlockTrack;
         size_t Frame;
@@ -1049,7 +1050,7 @@ int main(int argc, const char *argv[])
 							Prev = MATROSKA_BlockTimecode((matroska_block*)GBlock);
 							ArrayAppend(&KeyFrames,&Prev,sizeof(Prev),256);
 						}
-                        MATROSKA_BlockProcessDuration((matroska_block*)Block, Input);
+                        MATROSKA_BlockProcessDuration((matroska_block*)GBlock, Input);
 						Elt = EBML_MasterFindFirstElt(Block,&MATROSKA_ContextClusterBlockDuration,0,0);
 						if (Elt)
 						{
@@ -1111,7 +1112,6 @@ int main(int argc, const char *argv[])
 				Prev = *Tst++;
 		}
 
-#if 0
 		TextWrite(StdErr,T("Splitting Blocks...\r\n"));
 		Prev = INVALID_TIMECODE_T;
 		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t); Tst!=ARRAYEND(KeyFrames, timecode_t); ++Tst)
@@ -1137,36 +1137,56 @@ int main(int argc, const char *argv[])
 							    Duration = (timecode_t*)Node_GetData((node*)GBlock,MATROSKA_BLOCK_DURATION,TYPE_INT64);
 							    if (Duration)
 							    {
-                                    if (BlockTime + *Duration > *Tst)
+                                    if (BlockTime + *Duration > *Tst && BlockTime <= *Tst)
                                     {
                                         // This block needs to be split
                                         MATROSKA_BlockReadData((matroska_block*)GBlock,Input);
-                                        Elt = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-                                        MATROSKA_LinkBlockTrack((matroska_block*)Elt,MATROSKA_BlockTrack((matroska_block*)GBlock));
-                                        MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
-                                        MATROSKA_BlockSetKeyframe((matroska_block*)Elt,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
+                                        Elt = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
+                                        Block1 = (matroska_block*)EBML_MasterAddElt(Elt,&MATROSKA_ContextClusterSimpleBlock,1);
+                                        MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack((matroska_block*)GBlock));
+                                        MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
+                                        MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
 
-                                        Elt2 = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-                                        MATROSKA_LinkBlockTrack((matroska_block*)Elt2,MATROSKA_BlockTrack((matroska_block*)GBlock));
-                                        MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
-                                        MATROSKA_BlockSetKeyframe((matroska_block*)Elt2,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
+                                        Elt2 = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
+                                        Block2 = (matroska_block*)EBML_MasterAddElt(Elt,&MATROSKA_ContextClusterSimpleBlock,1);
+                                        MATROSKA_LinkBlockTrack(Block2,MATROSKA_BlockTrack((matroska_block*)GBlock));
+                                        MATROSKA_LinkBlockSegmentInfo(Block2,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
+                                        MATROSKA_BlockSetKeyframe(Block2,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
 
                                         // replace GBlock with Elt + Elt2
-                                        NodeTree_SetParent(Elt,Block,GBlock);
-                                        NodeTree_SetParent(Elt2,Block,GBlock); not good, we need 2 BlockGroups
+                                        NodeTree_SetParent(Elt,*ClusterR,Block);
+                                        NodeTree_SetParent(Elt2,*ClusterR,Block);
 
                                         for (Frame=0; Frame < MATROSKA_BlockGetFrameCount((matroska_block*)GBlock); ++Frame)
                                         {
                                             MATROSKA_BlockGetFrame((matroska_block*)GBlock, Frame, &FrameData);
                                             if (MATROSKA_BlockGetFrameEnd((matroska_block*)GBlock,Frame) <= *Tst)
-                                                MATROSKA_BlockAppendFrame((matroska_block*)Elt, &FrameData, ClusterTimecode);
+                                                MATROSKA_BlockAppendFrame(Block1, &FrameData, ClusterTimecode);
                                             else
-                                                MATROSKA_BlockAppendFrame((matroska_block*)Elt2, &FrameData, ClusterTimecode);
+                                                MATROSKA_BlockAppendFrame(Block2, &FrameData, ClusterTimecode);
                                         }
                                         
-                                        // the old GBlock is not used anymore
-                                        NodeDelete((node*)GBlock);
-                                        NextBlock = EBML_MasterNext(Elt2);
+                                        if (MATROSKA_BlockGetFrameCount(Block1)==0 || MATROSKA_BlockGetFrameCount(Block2)==0)
+                                        {
+                                            NodeDelete((node*)Elt);
+                                            NodeDelete((node*)Elt2);
+                                        }
+                                        else
+                                        {
+                                            // the old GBlock is not used anymore
+                                            BlockTime = 0;
+                                            for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block1);++Frame)
+                                                BlockTime += MATROSKA_BlockGetFrameDuration(Block1,Frame);
+                                            Node_SetData(Block1,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
+
+                                            BlockTime = 0;
+                                            for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block2);++Frame)
+                                                BlockTime += MATROSKA_BlockGetFrameDuration(Block2,Frame);
+                                            Node_SetData(Block2,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
+
+                                            NodeDelete((node*)Block);
+                                            NextBlock = EBML_MasterNext(Elt2);
+                                        }
                                     }
 							    }
 						    }
@@ -1180,36 +1200,54 @@ int main(int argc, const char *argv[])
 						    Duration = (timecode_t*)Node_GetData((node*)Block,MATROSKA_BLOCK_DURATION,TYPE_INT64);
 						    if (Duration)
 						    {
-                                if (BlockTime + *Duration > *Tst)
+                                if (BlockTime + *Duration > *Tst && BlockTime <= *Tst)
                                 {
                                     // This block needs to be split
                                     MATROSKA_BlockReadData((matroska_block*)Block,Input);
-                                    Elt = EBML_ElementCreate(Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-                                    MATROSKA_LinkBlockTrack((matroska_block*)Elt,MATROSKA_BlockTrack((matroska_block*)Block));
-                                    MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,MATROSKA_BlockSegmentInfo((matroska_block*)Block));
-                                    MATROSKA_BlockSetKeyframe((matroska_block*)Elt,MATROSKA_BlockKeyframe((matroska_block*)Block));
+                                    Block1 = (matroska_block*)EBML_ElementCreate(Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
+                                    MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack((matroska_block*)Block));
+                                    MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo((matroska_block*)Block));
+                                    MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe((matroska_block*)Block));
 
-                                    Elt2 = EBML_ElementCreate(Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-                                    MATROSKA_LinkBlockTrack((matroska_block*)Elt2,MATROSKA_BlockTrack((matroska_block*)Block));
-                                    MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,MATROSKA_BlockSegmentInfo((matroska_block*)Block));
-                                    MATROSKA_BlockSetKeyframe((matroska_block*)Elt2,MATROSKA_BlockKeyframe((matroska_block*)Block));
+                                    Block2 = (matroska_block*)EBML_ElementCreate(Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
+                                    MATROSKA_LinkBlockTrack(Block2,MATROSKA_BlockTrack((matroska_block*)Block));
+                                    MATROSKA_LinkBlockSegmentInfo(Block2,MATROSKA_BlockSegmentInfo((matroska_block*)Block));
+                                    MATROSKA_BlockSetKeyframe(Block2,MATROSKA_BlockKeyframe((matroska_block*)Block));
 
-                                    // replace Block with Elt + Elt2
-                                    NodeTree_SetParent(Elt,*ClusterR,Block);
-                                    NodeTree_SetParent(Elt2,*ClusterR,Block);
+                                    // replace Block with Block1 + Block2
+                                    NodeTree_SetParent(Block1,*ClusterR,Block);
+                                    NodeTree_SetParent(Block2,*ClusterR,Block);
 
                                     for (Frame=0; Frame < MATROSKA_BlockGetFrameCount((matroska_block*)Block); ++Frame)
                                     {
                                         MATROSKA_BlockGetFrame((matroska_block*)Block, Frame, &FrameData);
                                         if (MATROSKA_BlockGetFrameEnd((matroska_block*)Block,Frame) <= *Tst)
-                                            MATROSKA_BlockAppendFrame((matroska_block*)Elt, &FrameData, ClusterTimecode);
+                                            MATROSKA_BlockAppendFrame(Block1, &FrameData, ClusterTimecode);
                                         else
-                                            MATROSKA_BlockAppendFrame((matroska_block*)Elt2, &FrameData, ClusterTimecode);
+                                            MATROSKA_BlockAppendFrame(Block2, &FrameData, ClusterTimecode);
                                     }
                                     
-                                    // the old Block is not used anymore
-                                    NodeDelete((node*)Block);
-                                    NextBlock = EBML_MasterNext(Elt2);
+                                    if (MATROSKA_BlockGetFrameCount(Block1)==0 || MATROSKA_BlockGetFrameCount(Block2)==0)
+                                    {
+                                        NodeDelete((node*)Block1);
+                                        NodeDelete((node*)Block2);
+                                    }
+                                    else
+                                    {
+                                        // the old Block is not used anymore
+                                        BlockTime = 0;
+                                        for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block1);++Frame)
+                                            BlockTime += MATROSKA_BlockGetFrameDuration(Block1,Frame);
+                                        Node_SetData(Block1,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
+
+                                        BlockTime = 0;
+                                        for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block2);++Frame)
+                                            BlockTime += MATROSKA_BlockGetFrameDuration(Block2,Frame);
+                                        Node_SetData(Block2,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
+
+                                        NodeDelete((node*)Block);
+                                        NextBlock = EBML_MasterNext(Block2);
+                                    }
                                 }
 						    }
                         }
@@ -1219,6 +1257,10 @@ int main(int argc, const char *argv[])
             }
             Prev = *Tst;
         }
+
+#ifdef TODO // the sorting should not put P frames further in the cluster
+        for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*); ClusterR!=ARRAYEND(RClusters,matroska_cluster*); ++ClusterR)
+            MATROSKA_ClusterSort(*ClusterR);
         EndProgress(RSegment,2);
 #endif
 
@@ -1230,7 +1272,7 @@ int main(int argc, const char *argv[])
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterSegmentInfo(ClusterW, RSegmentInfo);
-			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster
+			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster ?
 
 			//  move the Blocks from RCluster to WCluster
 			while (ClusterR!=ARRAYEND(RClusters,matroska_cluster*))
