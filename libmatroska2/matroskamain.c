@@ -263,101 +263,101 @@ const ebml_semantic EBML_SemanticCluster[] = {
 const ebml_context MATROSKA_ContextCluster = {0x1F43B675, MATROSKA_CLUSTER_CLASS, 0, 0, "Cluster", EBML_SemanticCluster, EBML_SemanticGlobals, NULL};
 
 // Tracks
-const ebml_context MATROSKA_SemanticTrackAudioSamplingFreq = {0xB5, EBML_FLOAT_CLASS, 1, (intptr_t)8000.0, "TrackAudioSamplingFreq", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackAudioOutputSamplingFreq = {0x78B5, EBML_FLOAT_CLASS, 0, 0, "TrackAudioOutputSamplingFreq", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackAudioChannels = {0x9F, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackAudioChannels", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackAudioBitDepth = {0x6264, EBML_INTEGER_CLASS, 0, 0, "TrackAudioBitDepth", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackAudioSamplingFreq = {0xB5, EBML_FLOAT_CLASS, 1, (intptr_t)8000.0, "TrackAudioSamplingFreq", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackAudioOutputSamplingFreq = {0x78B5, EBML_FLOAT_CLASS, 0, 0, "TrackAudioOutputSamplingFreq", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackAudioChannels = {0x9F, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackAudioChannels", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackAudioBitDepth = {0x6264, EBML_INTEGER_CLASS, 0, 0, "TrackAudioBitDepth", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackAudio[] = {
-    {1, 1, &MATROSKA_SemanticTrackAudioSamplingFreq       ,0},
-    {0, 1, &MATROSKA_SemanticTrackAudioOutputSamplingFreq ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_SemanticTrackAudioChannels           ,0},
-    {0, 1, &MATROSKA_SemanticTrackAudioBitDepth           ,0},
+    {1, 1, &MATROSKA_ContextTrackAudioSamplingFreq       ,0},
+    {0, 1, &MATROSKA_ContextTrackAudioOutputSamplingFreq ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextTrackAudioChannels           ,0},
+    {0, 1, &MATROSKA_ContextTrackAudioBitDepth           ,0},
     {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_SemanticTrackVideoInterlaced = {0x9A, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "TrackVideoInterlaced", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoStereo = {0x53B8, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoStereo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoPixelWidth = {0xB0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelWidth", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoPixelHeight = {0xBA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelHeight", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoPixelCropBottom = {0x54AA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropBottom", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoPixelCropTop = {0x54BB, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropTop", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoPixelCropLeft = {0x54CC, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropLeft", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoPixelCropRight = {0x54DD, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropRight", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoDisplayWidth = {0x54B0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoDisplayWidth", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoDisplayHeight = {0x54BA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoDisplayHeight", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoDisplayUnit = {0x54B2, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoDisplayUnit", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoAspectRatio = {0x54B3, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoAspectRatio", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoColourSpace = {0x2EB524, EBML_BINARY_CLASS, 0, 0, "TrackVideoColourSpace", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackVideoFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "TrackVideoFrameRate", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoInterlaced = {0x9A, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "TrackVideoInterlaced", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoStereo = {0x53B8, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoStereo", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoPixelWidth = {0xB0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelWidth", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoPixelHeight = {0xBA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelHeight", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoPixelCropBottom = {0x54AA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropBottom", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoPixelCropTop = {0x54BB, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropTop", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoPixelCropLeft = {0x54CC, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropLeft", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoPixelCropRight = {0x54DD, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropRight", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoDisplayWidth = {0x54B0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoDisplayWidth", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoDisplayHeight = {0x54BA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoDisplayHeight", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoDisplayUnit = {0x54B2, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoDisplayUnit", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoAspectRatio = {0x54B3, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoAspectRatio", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoColourSpace = {0x2EB524, EBML_BINARY_CLASS, 0, 0, "TrackVideoColourSpace", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "TrackVideoFrameRate", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackVideo[] = {
-    {1, 1, &MATROSKA_SemanticTrackVideoInterlaced      ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
-    {1, 1, &MATROSKA_SemanticTrackVideoPixelWidth      ,0},
-    {1, 1, &MATROSKA_SemanticTrackVideoPixelHeight     ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropBottom ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropTop    ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropLeft   ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoPixelCropRight  ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoDisplayWidth    ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoDisplayHeight   ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoDisplayUnit     ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoAspectRatio     ,0},
-    {0, 1, &MATROSKA_SemanticTrackVideoColourSpace     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackVideoFrameRate       ,0},
+    {1, 1, &MATROSKA_ContextTrackVideoInterlaced      ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {1, 1, &MATROSKA_ContextTrackVideoPixelWidth      ,0},
+    {1, 1, &MATROSKA_ContextTrackVideoPixelHeight     ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoPixelCropBottom ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoPixelCropTop    ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoPixelCropLeft   ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoPixelCropRight  ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoDisplayWidth    ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoDisplayHeight   ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoDisplayUnit     ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoAspectRatio     ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoColourSpace     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackVideoFrameRate       ,0},
     {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_SemanticTrackEncodingCompressionAlgo = {0x4254, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingCompressionAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingCompressionSetting = {0x4255, EBML_BINARY_CLASS, 0, 0, "TrackEncodingCompressionSetting", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingCompressionAlgo = {0x4254, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingCompressionAlgo", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingCompressionSetting = {0x4255, EBML_BINARY_CLASS, 0, 0, "TrackEncodingCompressionSetting", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncodingCompression[] = {
-    {1, 1, &MATROSKA_SemanticTrackEncodingCompressionAlgo    ,0},
-    {0, 1, &MATROSKA_SemanticTrackEncodingCompressionSetting ,0},
+    {1, 1, &MATROSKA_ContextTrackEncodingCompressionAlgo    ,0},
+    {0, 1, &MATROSKA_ContextTrackEncodingCompressionSetting ,0},
     {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_SemanticTrackEncodingEncryptionAlgo = {0x47E1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingEncryptionKeyID = {0x47E2, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionKeyID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignature = {0x47E3, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionSignature", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignatureKeyID = {0x47E4, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionSignatureKeyID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignatureAlgo = {0x47E5, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingEncryptionSignatureHashAlgo = {0x47E6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureHashAlgo", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryptionAlgo = {0x47E1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionAlgo", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryptionKeyID = {0x47E2, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionKeyID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignature = {0x47E3, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionSignature", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignatureKeyID = {0x47E4, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionSignatureKeyID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignatureAlgo = {0x47E5, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureAlgo", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignatureHashAlgo = {0x47E6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureHashAlgo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncodingEncryption[] = {
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionAlgo              ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionKeyID             ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignature         ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureKeyID    ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureAlgo     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryptionSignatureHashAlgo ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionAlgo              ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionKeyID             ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignature         ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignatureKeyID    ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignatureAlgo     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignatureHashAlgo ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_SemanticTrackEncodingOrder = {0x5031, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingOrder", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingScope = {0x5032, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackEncodingScope", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingType = {0x5033, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingType", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingCompression = {0x5034, EBML_MASTER_CLASS, 0, 0, "TrackEncodingCompression", EBML_SemanticTrackEncodingCompression, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackEncodingEncryption = {0x5035, EBML_MASTER_CLASS, 0, 0, "TrackEncodingEncryption", EBML_SemanticTrackEncodingEncryption, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingOrder = {0x5031, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingOrder", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingScope = {0x5032, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackEncodingScope", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingType = {0x5033, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingType", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingCompression = {0x5034, EBML_MASTER_CLASS, 0, 0, "TrackEncodingCompression", EBML_SemanticTrackEncodingCompression, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncodingEncryption = {0x5035, EBML_MASTER_CLASS, 0, 0, "TrackEncodingEncryption", EBML_SemanticTrackEncodingEncryption, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncoding[] = {
-    {1, 1, &MATROSKA_SemanticTrackEncodingOrder       ,0},
-    {1, 1, &MATROSKA_SemanticTrackEncodingScope       ,0},
-    {1, 1, &MATROSKA_SemanticTrackEncodingType        ,0},
-    {0, 1, &MATROSKA_SemanticTrackEncodingCompression ,0},
-    {0, 1, &MATROSKA_SemanticTrackEncodingEncryption  ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextTrackEncodingOrder       ,0},
+    {1, 1, &MATROSKA_ContextTrackEncodingScope       ,0},
+    {1, 1, &MATROSKA_ContextTrackEncodingType        ,0},
+    {0, 1, &MATROSKA_ContextTrackEncodingCompression ,0},
+    {0, 1, &MATROSKA_ContextTrackEncodingEncryption  ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_SemanticTrackEncoding = {0x6240, EBML_MASTER_CLASS, 0, 0, "TrackEncoding", EBML_SemanticTrackEncoding, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEncoding = {0x6240, EBML_MASTER_CLASS, 0, 0, "TrackEncoding", EBML_SemanticTrackEncoding, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackEncodings[] = {
-    {1, 0, &MATROSKA_SemanticTrackEncoding ,0},
+    {1, 0, &MATROSKA_ContextTrackEncoding ,0},
     {0, 0, NULL ,0} // end of the table
 };
 
-const ebml_context MATROSKA_SemanticTrackTranslateEditionUID = {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackTranslateCodec = {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_SemanticTrackTranslateID = {0x66A5, EBML_BINARY_CLASS, 0, 0, "TrackTranslateID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackTranslateEditionUID = {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackTranslateCodec = {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackTranslateID = {0x66A5, EBML_BINARY_CLASS, 0, 0, "TrackTranslateID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackTranslate[] = {
-    {0, 0, &MATROSKA_SemanticTrackTranslateEditionUID ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_SemanticTrackTranslateCodec      ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_SemanticTrackTranslateID         ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, &MATROSKA_ContextTrackTranslateEditionUID ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextTrackTranslateCodec      ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextTrackTranslateID         ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 

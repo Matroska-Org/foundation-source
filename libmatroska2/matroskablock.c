@@ -73,7 +73,6 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
     err_t Err;
     bool_t ReadData;
     uint8_t *Cursor;
-    const uint8_t *Private;
     size_t Frame;
     int Version, Layer, SampleRate, Samples, fscod, fscod2;
 
@@ -105,7 +104,7 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                         ReadData = 1;
                     }
 
-                    if (tcsisame_ascii(CodecID,T("A_MPEG/L3")))
+                    if (tcsisame_ascii(CodecID,T("A_MPEG/L3")) || tcsisame_ascii(CodecID,T("A_MPEG/L2")) || tcsisame_ascii(CodecID,T("A_MPEG/L1")))
                     {
                         Block->IsKeyframe = 1; // safety
                         ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
@@ -198,6 +197,23 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                             Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
                         }
                     }
+                    else if (tcsisame_ascii(CodecID,T("A_AAC")) || tcsncmp(CodecID,T("A_AAC/"),6)==0)
+                    {
+                        Block->IsKeyframe = 1; // safety
+                        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackAudio,0,0);
+                        if (Elt)
+                        {
+                            Elt = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackAudioSamplingFreq,0,0);
+                            if (Elt)
+                            {
+                                ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
+                                Samples = 1024;
+                                SampleRate = (int)((ebml_float*)Elt)->Value;
+                                for (Frame=0;Frame<ARRAYCOUNT(Block->SizeList,int32_t);++Frame)
+                                    ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = Scale64(1000000000,Samples,SampleRate);
+                            }
+                        }
+                    }
 #if defined(CONFIG_CODEC_HELPER)
                     else if (tcsisame_ascii(CodecID,T("A_VORBIS")))
                     {
@@ -213,14 +229,12 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                             int n,i,j;
                             codec_setup_info *ci;
 
-                            Private = EBML_BinaryGetData((ebml_binary*)Elt);
-
 		                    vorbis_info_init(&vi);
 		                    vorbis_comment_init(&vc);
                             memset(&OggPacket,0,sizeof(ogg_packet));
 
-		                    OggBuffer.data = Private;
-		                    OggBuffer.size = Elt->DataSize;
+		                    OggBuffer.data = EBML_BinaryGetData((ebml_binary*)Elt);
+		                    OggBuffer.size = (long)Elt->DataSize;
 		                    OggBuffer.refcount = 1;
 
                             memset(&OggRef,0,sizeof(OggRef));
