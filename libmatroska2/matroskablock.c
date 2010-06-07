@@ -46,6 +46,16 @@ static int A_MPEG_samples[4][4] =
   { 384,  0,  384,  384}  // layer I
 };
 
+static const int A_AC3_freq[3][4] =
+{
+    {48000, 44100, 32000, 0}, // EEEE<=8
+    {24000, 22050, 16000, 0}, // EEEE=9
+    {12000, 11025,  8000, 0}, // EEEE=10
+};
+
+static const int A_EAC3_freq[6] = { 48000, 44100, 32000, 24000, 22050, 16000 };
+static const int A_EAC3_samples[4] = { 256, 512, 768, 1536 };
+
 
 err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
 {
@@ -55,6 +65,7 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
     bool_t ReadData;
     uint8_t *Cursor;
     size_t Frame;
+    int Version, Layer, SampleRate, Samples, fscod, fscod2;
 
     Err = Node_GET(Block,MATROSKA_BLOCK_TRACK,&Track);
     if (Err==ERR_NONE)
@@ -86,8 +97,6 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
 
                     if (tcsisame_ascii(CodecID,T("A_MPEG/L3")))
                     {
-                        int Version, Layer, SampleRate, Samples;
-
                         Block->IsKeyframe = 1; // safety
                         ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
                         Cursor = ARRAYBEGIN(Block->Data,uint8_t);
@@ -108,6 +117,53 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                                 //goto exit;
                             }
 
+                            Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
+                        }
+                    }
+                    else if (tcsisame_ascii(CodecID,T("A_AC3")))
+                    {
+                        Block->IsKeyframe = 1; // safety
+                        ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
+                        Cursor = ARRAYBEGIN(Block->Data,uint8_t);
+                        for (Frame=0;Frame<ARRAYCOUNT(Block->SizeList,int32_t);++Frame)
+                        {
+                            fscod =  Cursor[5] >> 3;
+                            SampleRate = Cursor[4] >> 6;
+                            if (fscod > 10)
+                            {
+                                Err = ERR_INVALID_DATA;
+                                ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = INVALID_TIMECODE_T;
+                                //goto exit;
+                            }
+                            else
+                            {
+                                SampleRate = A_AC3_freq[fscod-8][SampleRate];
+                                ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = Scale64(1000000000,1536,SampleRate);
+                            }
+                            Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
+                        }
+                    }
+                    else if (tcsisame_ascii(CodecID,T("A_EAC3")))
+                    {
+                        Block->IsKeyframe = 1; // safety
+                        ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
+                        Cursor = ARRAYBEGIN(Block->Data,uint8_t);
+                        for (Frame=0;Frame<ARRAYCOUNT(Block->SizeList,int32_t);++Frame)
+                        {
+                            fscod =  Cursor[4] >> 6;
+                            fscod2 = (Cursor[4] >> 4) & 0x03;
+                            if ((0x03 == fscod) && (0x03 == fscod2))
+                            {
+                                Err = ERR_INVALID_DATA;
+                                ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = INVALID_TIMECODE_T;
+                                //goto exit;
+                            }
+                            else
+                            {
+                                SampleRate = A_EAC3_freq[0x03 == fscod ? 3 + fscod2 : fscod];
+                                Samples = (0x03 == fscod) ? 1536 : A_EAC3_samples[fscod2];
+                                ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = Scale64(1000000000,Samples,SampleRate);
+                            }
                             Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
                         }
                     }

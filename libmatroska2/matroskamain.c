@@ -752,6 +752,43 @@ err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *CuePoint, matroska_block *Bl
     return ERR_NONE;
 }
 
+static int MATROSKA_BlockCmp(const matroska_block *BlockA, const matroska_block *BlockB)
+{
+    timecode_t TimeA = MATROSKA_BlockTimecode(BlockA);
+    timecode_t TimeB = MATROSKA_BlockTimecode(BlockB);
+    if (TimeA != TimeB)
+        return (int)((TimeA - TimeB)/100000);
+    return MATROSKA_BlockTrackNum(BlockB) - MATROSKA_BlockTrackNum(BlockA); // usually the first track is video, so put audio/subs first
+}
+
+static int ClusterEltCmp(const matroska_cluster* Cluster, const ebml_element** a,const ebml_element** b)
+{
+    const matroska_block *BlockA = NULL,*BlockB = NULL;
+    if ((*a)->Context->Id == MATROSKA_ContextClusterTimecode.Id)
+        return -1;
+    if ((*b)->Context->Id == MATROSKA_ContextClusterTimecode.Id)
+        return 1;
+
+    if ((*a)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+        BlockA = (const matroska_block *)*a;
+    else if ((*a)->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+        BlockA = (const matroska_block *)EBML_MasterFindFirstElt((ebml_element*)*a,&MATROSKA_ContextClusterBlock,0,0);
+    if ((*b)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+        BlockB = (const matroska_block *)*b;
+    else if ((*a)->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+        BlockB = (const matroska_block *)EBML_MasterFindFirstElt((ebml_element*)*b,&MATROSKA_ContextClusterBlock,0,0);
+    if (BlockA != NULL && BlockB != NULL)
+        return MATROSKA_BlockCmp(BlockA,BlockB);
+
+    assert(0); // unsupported comparison
+    return 0;
+}
+
+void MATROSKA_ClusterSort(matroska_cluster *Cluster)
+{
+    EBML_MasterSort((ebml_element*)Cluster,(arraycmp)ClusterEltCmp,Cluster);
+}
+
 void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 {
 	ebml_element *TimecodeElt;
@@ -998,38 +1035,41 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     size_t Read;
     size_t NumFrame;
     err_t Err = ERR_NONE;
-    assert(!Element->Base.Base.bValueIsSet);
-    Element->Base.Base.bValueIsSet = 1;
-    switch (Element->Lacing)
+    if (!Element->Base.Base.bValueIsSet)
     {
-    case LACING_NONE:
-        Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + GetBlockHeadSize(Element),SEEK_SET);
-        ArrayResize(&Element->Data,(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element),0);
-        Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element),&Read);
-        if (Err != ERR_NONE)
-            goto failed;
-        if (Read != Element->Base.Base.DataSize - GetBlockHeadSize(Element))
+        switch (Element->Lacing)
         {
-            Err = ERR_READ;
+        case LACING_NONE:
+            Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + GetBlockHeadSize(Element),SEEK_SET);
+            ArrayResize(&Element->Data,(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element),0);
+            Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element),&Read);
+            if (Err != ERR_NONE)
+                goto failed;
+            if (Read != Element->Base.Base.DataSize - GetBlockHeadSize(Element))
+            {
+                Err = ERR_READ;
+                goto failed;
+            }
+            break;
+        case LACING_EBML:
+        case LACING_XIPH:
+        case LACING_FIXED:
+            Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + Element->FirstFrameLocation,SEEK_SET);
+            Read = 0;
+            for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
+                Read += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+            assert(Read + Element->FirstFrameLocation == Element->Base.Base.DataSize);
+            ArrayResize(&Element->Data,Read,0);
+            Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),Read,&Read);
+            if (Err != ERR_NONE)
+                goto failed;
+            break;
+        default:
+            assert(0); // we should support the other lacing modes
+            Err = ERR_NOT_SUPPORTED;
             goto failed;
         }
-        break;
-    case LACING_EBML:
-    case LACING_XIPH:
-    case LACING_FIXED:
-        Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + Element->FirstFrameLocation,SEEK_SET);
-        Read = 0;
-        for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
-            Read += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-        assert(Read + Element->FirstFrameLocation == Element->Base.Base.DataSize);
-        ArrayResize(&Element->Data,Read,0);
-        Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),Read,&Read);
-        if (Err != ERR_NONE)
-            goto failed;
-        break;
-    default:
-        assert(0); // we should support the other lacing modes
-        Err = ERR_NOT_SUPPORTED;
+        Element->Base.Base.bValueIsSet = 1;
     }
 
 failed:
@@ -1041,10 +1081,11 @@ static err_t SetBlockParent(matroska_block *Block, void* Parent, void* Before)
 	// update the timecode
 	timecode_t AbsTimeCode;
 	err_t Result = ERR_NONE;
-	if (Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent)
+	if (Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent && NodeTree_Parent(Block))
 	{
 		assert(Node_IsPartOf(Parent,MATROSKA_CLUSTER_CLASS));
 		AbsTimeCode = MATROSKA_BlockTimecode(Block);
+        assert(AbsTimeCode != INVALID_TIMECODE_T);
 		Result = MATROSKA_BlockSetTimecode(Block,AbsTimeCode,MATROSKA_ClusterTimecode((matroska_cluster*)Parent));
 	}
 	if (Result==ERR_NONE)
@@ -1058,10 +1099,11 @@ static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Befo
 	err_t Result = ERR_NONE;
 	matroska_block *Block = (matroska_block*)EBML_MasterFindFirstElt(Element, &MATROSKA_ContextClusterBlock, 0, 0);
 	timecode_t AbsTimeCode;
-	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent)
+	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent && NodeTree_Parent(Block) && NodeTree_Parent(NodeTree_Parent(Block)))
 	{
 		assert(Node_IsPartOf(Parent,MATROSKA_CLUSTER_CLASS));
 		AbsTimeCode = MATROSKA_BlockTimecode(Block);
+        assert(AbsTimeCode != INVALID_TIMECODE_T);
 		Result = MATROSKA_BlockSetTimecode(Block,AbsTimeCode,MATROSKA_ClusterTimecode((matroska_cluster*)Parent));
 	}
 	if (Result==ERR_NONE)
@@ -1252,33 +1294,48 @@ err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Fra
     ArrayAppend(&Block->Durations,&Frame->Duration,sizeof(Frame->Duration),0);
     ArrayAppend(&Block->SizeList,&Frame->Size,sizeof(Frame->Size),0);
     Block->Base.Base.bValueIsSet = 1;
-    Block->Lacing = LACING_EBML; // \todo should be LACING_AUTO
+    Block->Lacing = LACING_AUTO;
     return ERR_NONE;
 }
 
 static char GetBestLacingType(const matroska_block *Element)
 {
 	int XiphLacingSize, EbmlLacingSize;
-	bool_t SameSize = 1;
+    size_t i;
+    int32_t DataSize;
 
 	if (ARRAYCOUNT(Element->SizeList,int32_t) <= 1)
 		return LACING_NONE;
 
-#ifdef TODO
-	XiphLacingSize = 1; // Number of laces is stored in 1 byte.
-	EbmlLacingSize = 1;
-	for (i = 0; i < (int)myBuffers.size() - 1; i++) {
-		if (myBuffers[i]->DataSize() != myBuffers[i + 1]->DataSize())
-			SameSize = false;
-		XiphLacingSize += myBuffers[i]->DataSize() / 255 + 1;
-	}
-	EbmlLacingSize += CodedSizeLength(myBuffers[0]->DataSize(), 0, IsFiniteSize());
-	for (i = 1; i < (int)myBuffers.size() - 1; i++)
-		EbmlLacingSize += CodedSizeLengthSigned(int64(myBuffers[i]->DataSize()) - int64(myBuffers[i - 1]->DataSize()), 0);
-#endif
-	if (SameSize)
-		return LACING_FIXED;
-	else if (XiphLacingSize < EbmlLacingSize)
+    DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[0];
+    for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t);++i)
+    {
+        if (ARRAYBEGIN(Element->SizeList,int32_t)[i]!=DataSize)
+            break;
+    }
+    if (i==ARRAYCOUNT(Element->SizeList,int32_t))
+        return LACING_FIXED;
+
+    XiphLacingSize = 0;
+    for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
+    {
+        DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i];
+        while (DataSize >= 0xFF)
+        {
+            XiphLacingSize++;
+            DataSize -= 0xFF;
+        }
+        XiphLacingSize++;
+    }
+
+    EbmlLacingSize = EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],0,1);
+    for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
+    {
+        DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1];
+        EbmlLacingSize += EBML_CodedSizeLengthSigned(DataSize,0);
+    }
+
+    if (XiphLacingSize < EbmlLacingSize)
 		return LACING_XIPH;
 	else
 		return LACING_EBML;
@@ -1391,7 +1448,9 @@ failed:
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-    assert(Element->Lacing != LACING_AUTO); // TODO: not supported yet
+    if (Element->Lacing == LACING_AUTO)
+        Element->Lacing = GetBestLacingType(Element);
+
     if (Element->Lacing == LACING_NONE)
     {
         assert(ARRAYCOUNT(Element->SizeList,int32_t) == 1);

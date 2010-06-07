@@ -96,6 +96,8 @@ EBML_DLL fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSeek);
 
+EBML_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!
+
 EBML_DLL ebml_element *MATROSKA_BlockTrack(const matroska_block *Block);
 EBML_DLL ebml_element *MATROSKA_BlockSegmentInfo(const matroska_block *Block);
 
