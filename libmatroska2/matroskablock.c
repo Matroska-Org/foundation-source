@@ -264,6 +264,8 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                                 }
                                 Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
                             }
+                            vorbis_comment_clear(&vc);
+                            vorbis_info_clear(&vi);
                         }
                     }
 #endif
