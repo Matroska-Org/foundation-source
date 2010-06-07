@@ -145,6 +145,9 @@ extern const ebml_context MATROSKA_ContextTrackType;
 extern const ebml_context MATROSKA_ContextTrackNumber;
 extern const ebml_context MATROSKA_ContextTrackCodecID;
 extern const ebml_context MATROSKA_ContextTrackLacing;
+extern const ebml_context MATROSKA_ContextTrackCodecPrivate;
+extern const ebml_context MATROSKA_ContextTrackAudio;
+extern const ebml_context MATROSKA_SemanticTrackAudioSamplingFreq;
 
 extern const ebml_context MATROSKA_ContextCuePoint;
 

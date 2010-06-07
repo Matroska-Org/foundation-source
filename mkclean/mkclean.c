@@ -1142,13 +1142,13 @@ int main(int argc, const char *argv[])
                                         // This block needs to be split
                                         MATROSKA_BlockReadData((matroska_block*)GBlock,Input);
                                         Elt = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
-                                        Block1 = (matroska_block*)EBML_MasterAddElt(Elt,&MATROSKA_ContextClusterSimpleBlock,1);
+                                        Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
                                         MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack((matroska_block*)GBlock));
                                         MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
                                         MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
 
                                         Elt2 = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
-                                        Block2 = (matroska_block*)EBML_MasterAddElt(Elt,&MATROSKA_ContextClusterSimpleBlock,1);
+                                        Block2 = (matroska_block*)EBML_MasterFindFirstElt(Elt2, &MATROSKA_ContextClusterBlock, 0, 0);
                                         MATROSKA_LinkBlockTrack(Block2,MATROSKA_BlockTrack((matroska_block*)GBlock));
                                         MATROSKA_LinkBlockSegmentInfo(Block2,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
                                         MATROSKA_BlockSetKeyframe(Block2,MATROSKA_BlockKeyframe((matroska_block*)GBlock));

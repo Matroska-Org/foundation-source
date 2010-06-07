@@ -27,6 +27,11 @@
  */
 #include "matroska/matroska.h"
 #include "matroska_internal.h"
+#if defined(CONFIG_CODEC_HELPER)
+#include "ivorbiscodec.h"
+#include "codec_internal.h"
+#include "misc.h"
+#endif
 
 static int A_MPEG_freq[4][4] =
 {
@@ -64,6 +69,7 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
     err_t Err;
     bool_t ReadData;
     uint8_t *Cursor;
+    const uint8_t *Private;
     size_t Frame;
     int Version, Layer, SampleRate, Samples, fscod, fscod2;
 
@@ -167,6 +173,100 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                             Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
                         }
                     }
+#if defined(CONFIG_CODEC_HELPER)
+                    else if (tcsisame_ascii(CodecID,T("A_VORBIS")))
+                    {
+                        Block->IsKeyframe = 1; // safety
+                        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecPrivate,0,0);
+                        if (Elt)
+                        {
+                            vorbis_info vi;
+                            vorbis_comment vc;
+                            ogg_packet OggPacket;
+                        	ogg_reference OggRef;
+                        	ogg_buffer OggBuffer;
+                            int n,i,j;
+                            codec_setup_info *ci;
+
+                            Private = EBML_BinaryGetData((ebml_binary*)Elt);
+
+		                    vorbis_info_init(&vi);
+		                    vorbis_comment_init(&vc);
+                            memset(&OggPacket,0,sizeof(ogg_packet));
+
+		                    OggBuffer.data = Private;
+		                    OggBuffer.size = Elt->DataSize;
+		                    OggBuffer.refcount = 1;
+
+                            memset(&OggRef,0,sizeof(OggRef));
+		                    OggRef.buffer = &OggBuffer;
+		                    OggRef.next = NULL;
+
+		                    OggPacket.packet = &OggRef;
+		                    OggPacket.packetno = -1; 
+
+		                    n = OggBuffer.data[0];
+		                    i = 1+n;
+		                    j = 1;
+
+		                    while (OggPacket.packetno < 3 && n>=j)
+		                    {
+			                    OggRef.begin = i;
+			                    OggRef.length = 0;
+			                    do
+			                    {
+				                    OggRef.length += OggBuffer.data[j];
+			                    }
+			                    while (OggBuffer.data[j++] == 255 && n>=j);
+			                    i += OggRef.length;
+
+			                    if (i > OggBuffer.size)
+				                    return ERR_INVALID_DATA;
+
+	                            ++OggPacket.packetno;
+	                            OggPacket.b_o_s = OggPacket.packetno == 0;
+	                            OggPacket.bytes = OggPacket.packet->length;
+			                    if (!(vorbis_synthesis_headerin(&vi,&vc,&OggPacket) >= 0) && OggPacket.packetno==0)
+				                    return ERR_INVALID_DATA;
+		                    }
+
+		                    if (OggPacket.packetno < 3)
+		                    {
+			                    OggRef.begin = i;
+			                    OggRef.length = OggBuffer.size - i; 
+
+	                            ++OggPacket.packetno;
+	                            OggPacket.b_o_s = OggPacket.packetno == 0;
+	                            OggPacket.bytes = OggPacket.packet->length;
+
+                                if (!(vorbis_synthesis_headerin(&vi,&vc,&OggPacket) >= 0) && OggPacket.packetno==0)
+				                    return ERR_INVALID_DATA;
+                            }
+
+                            SampleRate = vi.rate;
+                            ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
+                            Cursor = ARRAYBEGIN(Block->Data,uint8_t);
+                            ci = vi.codec_setup;
+                            for (Frame=0;Frame<ARRAYCOUNT(Block->SizeList,int32_t);++Frame)
+                            {
+                                fscod = _ilog(ci->modes-1);
+                                fscod = (Cursor[0] & 0x7F) >> (7-fscod);
+                                if (fscod > ci->modes)
+                                {
+                                    Err = ERR_INVALID_DATA;
+                                    ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = INVALID_TIMECODE_T;
+                                    //goto exit;
+                                }
+                                else
+                                {
+                                    Samples = ci->blocksizes[ci->mode_param[fscod]->blockflag];
+                                    ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = Scale64(1000000000,Samples,SampleRate);
+                                }
+                                Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
+                            }
+                        }
+                    }
+#endif
 
                     if (ReadData)
                     {
