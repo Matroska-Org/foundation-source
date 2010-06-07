@@ -61,6 +61,10 @@ static const int A_AC3_freq[3][4] =
 static const int A_EAC3_freq[6] = { 48000, 44100, 32000, 24000, 22050, 16000 };
 static const int A_EAC3_samples[4] = { 256, 512, 768, 1536 };
 
+static const int A_DTS_freq[16] = {
+   0, 8000, 16000, 32000, 0, 0, 11025, 22050, 44100, 0, 0, 12000, 24000, 48000, 0, 0
+};
+
 
 err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
 {
@@ -170,6 +174,27 @@ err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
                                 Samples = (0x03 == fscod) ? 1536 : A_EAC3_samples[fscod2];
                                 ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = Scale64(1000000000,Samples,SampleRate);
                             }
+                            Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
+                        }
+                    }
+                    else if (tcsisame_ascii(CodecID,T("A_DTS")))
+                    {
+                        Block->IsKeyframe = 1; // safety
+                        ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
+                        Cursor = ARRAYBEGIN(Block->Data,uint8_t);
+                        for (Frame=0;Frame<ARRAYCOUNT(Block->SizeList,int32_t);++Frame)
+                        {
+                            Samples = (((Cursor[4] & 1) << 7) + (Cursor[5] >> 2) + 1) * 32;
+                            // TODO: handle the frame termination
+                            SampleRate = A_DTS_freq[(Cursor[8] >> 2) & 0x0F];
+                            if (Samples==0 || SampleRate==0)
+                            {
+                                Err = ERR_INVALID_DATA;
+                                ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = INVALID_TIMECODE_T;
+                                //goto exit;
+                            }
+                            else
+                                ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = Scale64(1000000000,Samples,SampleRate);
                             Cursor += ARRAYBEGIN(Block->SizeList,int32_t)[Frame];
                         }
                     }
