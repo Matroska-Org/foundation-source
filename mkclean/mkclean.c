@@ -1027,7 +1027,7 @@ int main(int argc, const char *argv[])
 	    ebml_element *Block, *GBlock;
 		ebml_element *Track,*Elt;
         matroska_block *Block1;
-		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEnd, BlockEnd;
+		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEnd, BlockEnd, MainBlockEnd;
 		size_t MainTrack, BlockTrack;
         size_t Frame, *pTrackOrder;
 		bool_t Deleted;
@@ -1202,25 +1202,30 @@ int main(int argc, const char *argv[])
 			{
 				// next Block end in the master track
 				if (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack]+1 == ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
-					BlockEnd = INVALID_TIMECODE_T;
+					MainBlockEnd = INVALID_TIMECODE_T;
 				else
 				{
 					pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] + 1;
-					BlockEnd = pBlockInfo->DecodeTime;
+					MainBlockEnd = pBlockInfo->DecodeTime;
 				}
 
 				for (pTrackOrder=ARRAYBEGIN(TrackOrder,size_t);pTrackOrder!=ARRAYEND(TrackOrder,size_t);++pTrackOrder)
 				{
-					// output all the blocks (todo frames) until BlockEnd (included) for this track
+					// output all the blocks (todo frames) until MainBlockEnd (included) for this track
 					while (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder] < ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
 					{
-						pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder];
-						if (BlockEnd <= pBlockInfo->DecodeTime)
+						// End of the current Block
+						if (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]+1 == ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
+							BlockEnd = INVALID_TIMECODE_T;
+						else
 						{
-							if (*pTrackOrder==MainTrack && (BlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEnd))
-								ReachedNextCluster = 1;
-							break; // next track
+							pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder] + 1;
+							BlockEnd = pBlockInfo->DecodeTime;
 						}
+
+						pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder];
+						if (pBlockInfo->DecodeTime > MainBlockEnd && *pTrackOrder!=MainTrack)
+							break; // next track
 
 						if (pBlockInfo->FrameStart!=0)
 						{
@@ -1283,7 +1288,7 @@ int main(int argc, const char *argv[])
 							}
 						}
 
-						if (BlockEnd==MasterEnd && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
+						if (BlockEnd>=MasterEnd && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
 						{
 							// relacing
 							if (MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE)
@@ -1307,7 +1312,7 @@ int main(int argc, const char *argv[])
 	                                
 									if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 									{
-										pBlockInfo->FrameStart = 0;
+										pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
 										NodeDelete((node*)Block1);
 									}
 									else
@@ -1339,7 +1344,7 @@ int main(int argc, const char *argv[])
 	                                
 									if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 									{
-										pBlockInfo->FrameStart = 0;
+										pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
 										NodeDelete((node*)Elt);
 									}
 									else
@@ -1364,6 +1369,13 @@ int main(int argc, const char *argv[])
 								 EBML_MasterAppend((ebml_element*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
 							}
 							ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]++;
+						}
+
+						if (*pTrackOrder==MainTrack)
+						{
+							if (MainBlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEnd)
+								ReachedNextCluster = 1;
+							break;
 						}
 					} 
 				}
