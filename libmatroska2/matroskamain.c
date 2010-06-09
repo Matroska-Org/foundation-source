@@ -846,6 +846,12 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     assert(Block->LocalTimecodeUsed);
+	if (Block->Base.Base.Context->Id == MATROSKA_ContextClusterBlock.Id)
+	{
+		ebml_element *BlockGroup = EBML_ElementParent(Block);
+		if (BlockGroup && Node_IsPartOf(BlockGroup,MATROSKA_BLOCKGROUP_CLASS))
+			return (EBML_MasterFindFirstElt(BlockGroup,&MATROSKA_ContextClusterReferenceBlock,0,0)==NULL);
+	}
 	return Block->IsKeyframe;
 }
 

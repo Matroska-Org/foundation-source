@@ -66,7 +66,7 @@ static const int A_DTS_freq[16] = {
 };
 
 
-err_t MATROSKA_BlockProcessDuration(matroska_block *Block, stream *Input)
+err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
 {
     ebml_element *Track=NULL, *Elt;
     tchar_t CodecID[MAXPATH];
