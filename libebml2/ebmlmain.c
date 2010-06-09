@@ -26,10 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml/ebml.h"
-#if defined(EBML_LEGACY_API)
-#include "ebml2_legacy_project.h"
-#else
-#include "ebml2_project.h"
+#if defined(EBML_LIBRARY)
+# if defined(EBML_LEGACY_API)
+#  include "ebml2_legacy_project.h"
+# else
+#  include "ebml2_project.h"
+# endif
 #endif
 
 extern const nodemeta BufStream_Class[];
@@ -55,7 +57,11 @@ extern const nodemeta EBMLVoid_Class[];
 err_t EBML_Init(nodecontext *p)
 {
     // TODO: only when used as standalone (no coremake & core-c in the rest of the project)
+#if defined(EBML_LIBRARY)
     tchar_t LibName[MAXPATH];
+    tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" v") PROJECT_VERSION);
+    Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,LibName);
+#endif
 
     NodeRegisterClassEx((nodemodule*)p,BufStream_Class);
 	NodeRegisterClassEx((nodemodule*)p,MemStream_Class);
@@ -76,9 +82,6 @@ err_t EBML_Init(nodecontext *p)
 	NodeRegisterClassEx((nodemodule*)p,EBMLDate_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLCRC_Class);
 	NodeRegisterClassEx((nodemodule*)p,EBMLVoid_Class);
-
-    tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" v") PROJECT_VERSION);
-    Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,LibName);
 
     return ERR_NONE;
 }

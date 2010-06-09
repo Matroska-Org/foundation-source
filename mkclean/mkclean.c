@@ -35,6 +35,7 @@
 /*!
  * \todo support for updating/writing the PrevSize
  * \todo support for updating/writing the ClusterPosition
+ * \todo support the japanese translation
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)

@@ -34,6 +34,7 @@ GROUP ebml2_group
 
 DLL ebml2
 {
+  DEFINE EBML_LIBRARY
   USE ebml2_group
   EXPINCLUDE .
 }
