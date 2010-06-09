@@ -35,15 +35,13 @@
 /*!
  * \todo support for updating/writing the PrevSize
  * \todo support for updating/writing the ClusterPosition
- * \todo make sure audio frames are all keyframes (no known codec so far are not)
- * \todo remuxing: put the matching audio at the front
- * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
- * \todo remuxing: pack audio frames using lacing (no longer than the matching video frame ?)
- * \todo change the Segment UID (when key parts are altered)
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
+ * \todo make sure audio frames are all keyframes (no known codec so far are not)
+ * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
+ * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?)
+ * \todo change the Segment UID (when key parts are altered)
  * \todo compute the segment duration (when it's not set)
- * \todo compute the default duration (when it's not set or not optimal)
- * \todo handle segments with an infinite size
+ * \todo compute the track default duration (when it's not set or not optimal)
  * \todo optionally add a CRC32 on level1 elements
  * \todo add support for compressed headers
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
