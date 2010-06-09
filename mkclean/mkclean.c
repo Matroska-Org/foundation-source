@@ -150,12 +150,20 @@ static void ReduceSize(ebml_element *Element)
     Element->SizeLength = 0; // reset
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
-        ebml_element *i;
+        ebml_element *i, *j;
 		const ebml_semantic *s;
 		EBML_MasterMandatory(Element,1);
 
-        for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+        for (i=EBML_MasterChildren(Element);i;i=j)
+		{
+			j = EBML_MasterNext(i);
+			if (Node_IsPartOf(i, EBML_VOID_CLASS))
+			{
+				NodeDelete((node*)i);
+				continue;
+			}
             ReduceSize(i);
+		}
 
 		for (i=EBML_MasterChildren(Element);i;i=i?EBML_MasterNext(i):NULL)
 		{
@@ -465,23 +473,25 @@ static void MetaSeekUpdate(ebml_element *SeekHead)
     EBML_ElementUpdateSize(SeekHead,0,0);
 }
 
-static ebml_element *GetMainTrack(ebml_element *RTrackInfo)
+static ebml_element *GetMainTrack(ebml_element *RTrackInfo, array *TrackOrder)
 {
 	ebml_element *Track, *Elt;
-	int64_t TrackNum;
+	int64_t TrackNum = -1;
+	size_t *order;
+	
+	if (TrackOrder)
+		order = ARRAYBEGIN(*TrackOrder,size_t);
+	else
+		order = NULL;
 
 	// find the video (first) track
 	for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
 	{
 		Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
-		if (Elt && EBML_IntegerValue(Elt) == TRACK_TYPE_VIDEO)
+		if (EBML_IntegerValue(Elt) == TRACK_TYPE_VIDEO)
 		{
-			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-			if (Elt)
-			{
-				TrackNum = EBML_IntegerValue(Elt);
-				break;
-			}
+			TrackNum = EBML_IntegerValue(EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0));
+			break;
 		}
 	}
 
@@ -491,16 +501,24 @@ static ebml_element *GetMainTrack(ebml_element *RTrackInfo)
 		for (Track = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Track; Track=EBML_MasterFindNextElt(RTrackInfo,Track,0,0))
 		{
 			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
-			if (Elt && EBML_IntegerValue(Elt) == TRACK_TYPE_AUDIO)
+			if (EBML_IntegerValue(Elt) == TRACK_TYPE_AUDIO)
 			{
-				Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-				if (Elt)
-				{
-					TrackNum = EBML_IntegerValue(Elt);
-					break;
-				}
+				TrackNum = EBML_IntegerValue(EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0));
+				break;
 			}
 		}
+	}
+
+	if (order)
+	{
+		for (Elt = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Elt; Elt=EBML_MasterFindNextElt(RTrackInfo,Elt,0,0))
+		{
+			if (Elt!=Track)
+				*order++ = (size_t)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0));
+		}
+
+		if (Track)
+			*order++ = (size_t)EBML_IntegerValue(EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0));
 	}
 
 	if (!Track)
@@ -518,7 +536,7 @@ static bool_t GenerateCueEntries(ebml_element *Cues, array *Clusters, ebml_eleme
 	int64_t TrackNum;
 	timecode_t PrevTimecode = INVALID_TIMECODE_T, BlockTimecode;
 
-	Track = GetMainTrack(RTrackInfo);
+	Track = GetMainTrack(RTrackInfo, NULL);
 	if (!Track)
 	{
 		TextPrintf(StdErr,T("Could not generate the Cue entries"));
@@ -598,54 +616,67 @@ static int TimcodeCmp(const void* Param, const timecode_t *a, const timecode_t *
 	return -1;
 }
 
-typedef struct block_duration
-{
-	matroska_block *Block;
-	timecode_t Timecode;
-
-} block_duration;
-#define MATROSKA_BLOCK_DURATION  0x321
-
 static int CleanTracks(ebml_element *Tracks, int Profile)
 {
-    ebml_element *Track, *Elt;
+    ebml_element *Track, *CurTrack, *Elt;
     int TrackType, TrackNum;
     tchar_t CodecID[MAXPATH];
     
-    if (Tracks && Profile==PROFILE_WEBM_V2)
+    for (Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0); Track;)
     {
-        // verify that we have only VP8 and Vorbis tracks
-	    for (Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0); Track;)
-	    {
-            TrackNum = -1;
-		    Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
-		    if (Elt)
-		    {
-                TrackType = (int)EBML_IntegerValue(Elt);
-			    Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecID,0,0);
-			    if (Elt)
-                {
-                    EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
-                    if (TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))
-                    {
-                        Track=EBML_MasterFindNextElt(Tracks,Track,0,0);
-                        continue;
-                    }
-                    Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-                    if (Elt)
-                        TrackNum = (int)EBML_IntegerValue(Elt);
-                    TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(Profile),TrackNum);
-                    NodeDelete((node*)Track);
-                    Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0);
-                }
-		    }
-	    }
-    }
+		CurTrack = Track;
+		Track = EBML_MasterNext(Track);
+		Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackNumber,0,0);
+		if (!Elt)
+		{
+			TextPrintf(StdErr,T("The track at %lld has no number set!\r\n"), (long)CurTrack->ElementPosition);
+			NodeDelete((node*)CurTrack);
+			continue;
+		}
+		TrackNum = (int)EBML_IntegerValue(Elt);
+
+		Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackCodecID,0,0);
+		if (!Elt)
+		{
+			TextPrintf(StdErr,T("The track %d at %lld has no CodecID set!\r\n"), TrackNum, (long)CurTrack->ElementPosition);
+			NodeDelete((node*)CurTrack);
+			continue;
+		}
+
+		Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackType,0,0);
+		if (!Elt)
+		{
+			TextPrintf(StdErr,T("The track %d at %lld has no type set!\r\n"), TrackNum, (long)CurTrack->ElementPosition);
+			NodeDelete((node*)CurTrack);
+			continue;
+		}
+		
+		if (Profile==PROFILE_WEBM_V2)
+		{
+	        // verify that we have only VP8 and Vorbis tracks
+			TrackType = (int)EBML_IntegerValue(Elt);
+			Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackCodecID,0,0);
+			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
+			if (!(TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS"))))
+			{
+				TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(Profile),TrackNum);
+				NodeDelete((node*)CurTrack);
+			}
+		}
+	}
     
     if (EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0)==NULL)
         return -19;
     return 0;
 }
+
+typedef struct block_info
+{
+	matroska_block *Block;
+	timecode_t DecodeTime;
+	size_t FrameStart;
+
+} block_info;
 
 int main(int argc, const char *argv[])
 {
@@ -667,6 +698,7 @@ int main(int argc, const char *argv[])
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0;
+	size_t StringDiff = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -992,50 +1024,46 @@ int main(int argc, const char *argv[])
 	{
 		// create WClusters
 		matroska_cluster **ClusterR, *ClusterW;
-	    ebml_element *Block, *NextBlock, *GBlock;
-		ebml_element *Track,*Elt,*Elt2;
-        matroska_block *Block1,*Block2;
-		timecode_t Prev = INVALID_TIMECODE_T, *Tst, *Duration, BlockTime, ClusterTimecode;
-		int16_t MainTrack, BlockTrack;
-        size_t Frame;
+	    ebml_element *Block, *GBlock;
+		ebml_element *Track,*Elt;
+        matroska_block *Block1;
+		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEnd, BlockEnd;
+		size_t MainTrack, BlockTrack;
+        size_t Frame, *pTrackOrder;
 		bool_t Deleted;
-		array KeyFrames, TrackDuration;
-		block_duration *BlockDur;
+		array KeyFrameTimecodes, TrackBlocks, TrackBlockCurrIdx, TrackOrder, *pTrackBlock;
         matroska_frame FrameData;
+		block_info BlockInfo,*pBlockInfo;
 
 		TextWrite(StdErr,T("Remuxing...\r\n"));
-		for (MainTrack=0, Track=EBML_MasterChildren(RTrackInfo); Track; Track = EBML_MasterNext(Track))
+		// count the number of useful tracks and the max track number
+		Frame = 0;
+		for (MainTrack=0, Track=EBML_MasterChildren(RTrackInfo); Track; Track=EBML_MasterNext(Track))
 		{
 			if (Track->Context->Id && MATROSKA_ContextTrackEntry.Id)
 			{
 				Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-				if (!Elt)
-					TextPrintf(StdErr,T("The track at %lld has no number set!\r\n"), (long)Track->ElementPosition);
-				else if ((int16_t)EBML_IntegerValue(Elt) > MainTrack)
+				++Frame;
+				if ((size_t)EBML_IntegerValue(Elt) > MainTrack)
 					MainTrack = (int16_t)EBML_IntegerValue(Elt);
 			}
 		}
-		ArrayInit(&TrackDuration);
-		ArrayResize(&TrackDuration, sizeof(block_duration)*(MainTrack+1), 0);
-		ArrayZero(&TrackDuration);
 
-		// determine what is the main track num (video track)
-		Track = GetMainTrack(RTrackInfo);
-		if (!Track)
-		{
-			TextWrite(StdErr,T("Impossible to remux without a proper track to use\r\n"));
-			goto exit;
-		}
-		Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-		assert(Elt!=NULL);
-		if (Elt)
-			MainTrack = (int16_t)EBML_IntegerValue(Elt);
+		ArrayInit(&TrackBlocks);
+		ArrayResize(&TrackBlocks, sizeof(array)*(MainTrack+1), 0);
+		ArrayZero(&TrackBlocks);
 
-		ArrayInit(&KeyFrames);
+		ArrayInit(&TrackBlockCurrIdx);
+		ArrayResize(&TrackBlockCurrIdx, sizeof(size_t)*(MainTrack+1), 0);
+		ArrayZero(&TrackBlockCurrIdx);
+
+		ArrayInit(&TrackOrder);
+
+		// fill TrackBlocks with all the Blocks per track
+		BlockInfo.DecodeTime = INVALID_TIMECODE_T;
+		BlockInfo.FrameStart = 0;
 		for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*);ClusterR!=ARRAYEND(RClusters,matroska_cluster*);++ClusterR)
 		{
-			// get all the keyframe timecodes for our track
-			// mark the duration of each Block when known
 			for (Block = EBML_MasterChildren(*ClusterR);Block;Block=EBML_MasterNext(Block))
 			{
 				if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
@@ -1044,67 +1072,110 @@ int main(int argc, const char *argv[])
 					if (GBlock)
 					{
 						BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
-						BlockDur = ARRAYBEGIN(TrackDuration,block_duration) + BlockTrack;
-						if (BlockTrack == MainTrack && EBML_MasterFindFirstElt(Block,&MATROSKA_ContextClusterReferenceBlock,0,0)==NULL)
-						{
-							Prev = MATROSKA_BlockTimecode((matroska_block*)GBlock);
-							ArrayAppend(&KeyFrames,&Prev,sizeof(Prev),256);
-						}
-                        MATROSKA_BlockProcessDuration((matroska_block*)GBlock, Input);
-						Elt = EBML_MasterFindFirstElt(Block,&MATROSKA_ContextClusterBlockDuration,0,0);
-						if (Elt)
-						{
-							Prev = EBML_IntegerValue(Elt) * MATROSKA_SegmentInfoTimecodeScale(RSegmentInfo);
-							Node_SetData(GBlock,MATROSKA_BLOCK_DURATION,TYPE_INT64,&Prev);
-						}
-						if (BlockDur->Block && !Node_GetData((node*)BlockDur->Block,MATROSKA_BLOCK_DURATION,TYPE_INT64))
-						{
-							Prev = MATROSKA_BlockTimecode((matroska_block*)GBlock) - MATROSKA_BlockTimecode(BlockDur->Block); // duration
-							Node_SetData(BlockDur->Block,MATROSKA_BLOCK_DURATION,TYPE_INT64,&Prev);
-						}
-						BlockDur->Block = (matroska_block*)GBlock;
+						BlockInfo.Block = (matroska_block*)GBlock;
+						ArrayAppend(ARRAYBEGIN(TrackBlocks,array)+BlockTrack,&BlockInfo,sizeof(BlockInfo),1024);
 					}
 				}
 				else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 				{
-					BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)Block);
-					BlockDur = ARRAYBEGIN(TrackDuration,block_duration) + BlockTrack;
-					if (BlockTrack == MainTrack && MATROSKA_BlockKeyframe((matroska_block*)Block))
-					{
-						Prev = MATROSKA_BlockTimecode((matroska_block*)Block);
-						ArrayAppend(&KeyFrames,&Prev,sizeof(Prev),256);
-					}
-                    MATROSKA_BlockProcessDuration((matroska_block*)Block, Input);
-					if (BlockDur->Block && !Node_GetData((node*)BlockDur->Block,MATROSKA_BLOCK_DURATION,TYPE_INT64))
-					{
-						Prev = MATROSKA_BlockTimecode((matroska_block*)Block) - MATROSKA_BlockTimecode(BlockDur->Block); // duration
-						Node_SetData(BlockDur->Block,MATROSKA_BLOCK_DURATION,TYPE_INT64,&Prev);
-					}
-					BlockDur->Block = (matroska_block*)Block;
+					BlockTrack = MATROSKA_BlockTrackNum((matroska_block *)Block);
+					BlockInfo.Block = (matroska_block*)Block;
+					ArrayAppend(ARRAYBEGIN(TrackBlocks,array)+BlockTrack,&BlockInfo,sizeof(BlockInfo),1024);
 				}
 			}
 		}
-		if (!ARRAYCOUNT(KeyFrames,timecode_t))
+
+		// determine what is the main track num (video track)
+		for (;;)
+		{
+			bool_t Exit = 1;
+			ArrayResize(&TrackOrder, sizeof(size_t)*Frame, 0);
+			ArrayZero(&TrackOrder);
+			Track = GetMainTrack(RTrackInfo,&TrackOrder);
+			if (!Track)
+			{
+				TextWrite(StdErr,T("Impossible to remux without a proper track to use\r\n"));
+				goto exit;
+			}
+			Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+			assert(Elt!=NULL);
+			MainTrack = (int16_t)EBML_IntegerValue(Elt);
+
+			for (pTrackOrder=ARRAYBEGIN(TrackOrder,size_t);pTrackOrder!=ARRAYEND(TrackOrder,size_t);++pTrackOrder)
+			{
+				if (!ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
+				{
+					TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
+					for (Elt = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Elt; Elt=EBML_MasterFindNextElt(RTrackInfo,Elt,0,0))
+					{
+						if (EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0))==*pTrackOrder)
+						{
+							NodeDelete((node*)Elt);
+							--Frame;
+							break;
+						}
+					}
+					Exit = 0;
+				}
+			}
+			if (Exit)
+				break;
+		}
+
+		// process the decoding time for all blocks
+		for (pTrackBlock=ARRAYBEGIN(TrackBlocks,array);pTrackBlock!=ARRAYEND(TrackBlocks,array);++pTrackBlock)
+		{
+			BlockEnd = INVALID_TIMECODE_T;
+			for (pBlockInfo=ARRAYBEGIN(*pTrackBlock,block_info);pBlockInfo!=ARRAYEND(*pTrackBlock,block_info);++pBlockInfo)
+			{
+				BlockTime = MATROSKA_BlockTimecode(pBlockInfo->Block);
+				pBlockInfo->DecodeTime = BlockTime;
+				if ((pBlockInfo+1)!=ARRAYEND(*pTrackBlock,block_info) && BlockEnd!=INVALID_TIMECODE_T)
+				{
+					BlockDuration = MATROSKA_BlockTimecode((pBlockInfo+1)->Block);
+					if (BlockTime > BlockDuration)
+					{
+						assert(BlockDuration > BlockEnd);
+						pBlockInfo->DecodeTime = BlockEnd + ((BlockTime - BlockDuration) >> 2);
+					}
+				}
+				BlockEnd = pBlockInfo->DecodeTime;
+			}
+		}
+
+		// get all the keyframe timecodes for our main track
+		ArrayInit(&KeyFrameTimecodes);
+		pTrackBlock=ARRAYBEGIN(TrackBlocks,array) + MainTrack;
+		for (pBlockInfo=ARRAYBEGIN(*pTrackBlock,block_info);pBlockInfo!=ARRAYEND(*pTrackBlock,block_info);++pBlockInfo)
+		{
+			if (MATROSKA_BlockKeyframe(pBlockInfo->Block))
+			{
+				assert(pBlockInfo->DecodeTime == MATROSKA_BlockTimecode(pBlockInfo->Block));
+				ArrayAppend(&KeyFrameTimecodes,&pBlockInfo->DecodeTime,sizeof(pBlockInfo->DecodeTime),256);
+			}
+		}
+		if (!ARRAYCOUNT(KeyFrameTimecodes,timecode_t))
 		{
 			TextPrintf(StdErr,T("Impossible to remux, no keyframe found for track %d\r\n"),(int)MainTrack);
 			goto exit;
 		}
 
+		// \todo sort Blocks of all tracks (according to the ref frame when available)
 		// sort the timecodes, just in case the file wasn't properly muxed
-		ArraySort(&KeyFrames, timecode_t, (arraycmp)TimcodeCmp, NULL, 1);
+		//ArraySort(&KeyFrameTimecodes, timecode_t, (arraycmp)TimcodeCmp, NULL, 1);
 
 		// discrimate the timecodes we want to use as cluster boundaries
 		//   create a new Cluster no shorter than 1s (unless the next one is too distant like 2s)
 		Prev = INVALID_TIMECODE_T;
-		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t); Tst!=ARRAYEND(KeyFrames, timecode_t);)
+		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t);)
 		{
 			Deleted = 0;
 			if (Prev!=INVALID_TIMECODE_T && *Tst < Prev + 1000000000)
 			{
 				// too close
-				if (Tst+1 != ARRAYEND(KeyFrames, timecode_t) && *(Tst+1) < Prev + 2000000000)
+				if (Tst+1 != ARRAYEND(KeyFrameTimecodes, timecode_t) && *(Tst+1) < Prev + 2000000000)
 				{
-					ArrayRemove(&KeyFrames, timecode_t, Tst, (arraycmp)TimcodeCmp, NULL);
+					ArrayRemove(&KeyFrameTimecodes, timecode_t, Tst, (arraycmp)TimcodeCmp, NULL);
 					Deleted = 1;
 				}
 			}
@@ -1112,221 +1183,198 @@ int main(int argc, const char *argv[])
 				Prev = *Tst++;
 		}
 
-		TextWrite(StdErr,T("Splitting Blocks...\r\n"));
-		Prev = INVALID_TIMECODE_T;
-		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t); Tst!=ARRAYEND(KeyFrames, timecode_t); ++Tst)
-		{
-			//  move the Blocks from RCluster to WCluster
-            TextPrintf(StdErr,T("Progress %d/3: %3d%%\r"),2,Scale32(100,Tst - ARRAYBEGIN(KeyFrames, timecode_t),ARRAYCOUNT(KeyFrames, timecode_t))+1);
-    		for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*); ClusterR!=ARRAYEND(RClusters,matroska_cluster*); ++ClusterR)
-			{
-				// \todo  put the matching audio at the front
-                ClusterTimecode = MATROSKA_ClusterTimecode(*ClusterR);
-                Block = EBML_MasterChildren(*ClusterR);
-				while (Block)
-				{
-                    NextBlock = EBML_MasterNext(Block);
-					if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-					{
-						GBlock = EBML_MasterFindFirstElt(Block, &MATROSKA_ContextClusterBlock, 0, 0);
-						if (GBlock && MATROSKA_BlockLaced((matroska_block*)GBlock))
-						{
-                            BlockTime = MATROSKA_BlockTimecode((matroska_block*)GBlock);
-                            if (Prev!=INVALID_TIMECODE_T && BlockTime > Prev)
-                            {
-							    Duration = (timecode_t*)Node_GetData((node*)GBlock,MATROSKA_BLOCK_DURATION,TYPE_INT64);
-							    if (Duration)
-							    {
-                                    if (BlockTime + *Duration > *Tst && BlockTime <= *Tst)
-                                    {
-                                        // This block needs to be split
-                                        MATROSKA_BlockReadData((matroska_block*)GBlock,Input);
-                                        Elt = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
-                                        Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
-                                        MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack((matroska_block*)GBlock));
-                                        MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
-                                        MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
-
-                                        Elt2 = EBML_ElementCreate(GBlock, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
-                                        Block2 = (matroska_block*)EBML_MasterFindFirstElt(Elt2, &MATROSKA_ContextClusterBlock, 0, 0);
-                                        MATROSKA_LinkBlockTrack(Block2,MATROSKA_BlockTrack((matroska_block*)GBlock));
-                                        MATROSKA_LinkBlockSegmentInfo(Block2,MATROSKA_BlockSegmentInfo((matroska_block*)GBlock));
-                                        MATROSKA_BlockSetKeyframe(Block2,MATROSKA_BlockKeyframe((matroska_block*)GBlock));
-
-                                        // replace GBlock with Elt + Elt2
-                                        NodeTree_SetParent(Elt,*ClusterR,Block);
-                                        NodeTree_SetParent(Elt2,*ClusterR,Block);
-
-                                        for (Frame=0; Frame < MATROSKA_BlockGetFrameCount((matroska_block*)GBlock); ++Frame)
-                                        {
-                                            MATROSKA_BlockGetFrame((matroska_block*)GBlock, Frame, &FrameData);
-                                            if (MATROSKA_BlockGetFrameEnd((matroska_block*)GBlock,Frame) <= *Tst)
-                                                MATROSKA_BlockAppendFrame(Block1, &FrameData, ClusterTimecode);
-                                            else
-                                                MATROSKA_BlockAppendFrame(Block2, &FrameData, ClusterTimecode);
-                                        }
-                                        
-                                        if (MATROSKA_BlockGetFrameCount(Block1)==0 || MATROSKA_BlockGetFrameCount(Block2)==0)
-                                        {
-                                            NodeDelete((node*)Elt);
-                                            NodeDelete((node*)Elt2);
-                                        }
-                                        else
-                                        {
-                                            // the old GBlock is not used anymore
-                                            BlockTime = 0;
-                                            for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block1);++Frame)
-                                                BlockTime += MATROSKA_BlockGetFrameDuration(Block1,Frame);
-                                            Node_SetData(Block1,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
-
-                                            BlockTime = 0;
-                                            for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block2);++Frame)
-                                                BlockTime += MATROSKA_BlockGetFrameDuration(Block2,Frame);
-                                            Node_SetData(Block2,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
-
-                                            NodeDelete((node*)Block);
-                                            NextBlock = EBML_MasterNext(Elt2);
-                                        }
-                                    }
-							    }
-						    }
-                        }
-					}
-					else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id && MATROSKA_BlockLaced((matroska_block*)Block))
-					{
-                        BlockTime = MATROSKA_BlockTimecode((matroska_block*)Block);
-                        if (Prev!=INVALID_TIMECODE_T && BlockTime > Prev)
-                        {
-						    Duration = (timecode_t*)Node_GetData((node*)Block,MATROSKA_BLOCK_DURATION,TYPE_INT64);
-						    if (Duration)
-						    {
-                                if (BlockTime + *Duration > *Tst && BlockTime <= *Tst)
-                                {
-                                    // This block needs to be split
-                                    MATROSKA_BlockReadData((matroska_block*)Block,Input);
-                                    Block1 = (matroska_block*)EBML_ElementCreate(Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-                                    MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack((matroska_block*)Block));
-                                    MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo((matroska_block*)Block));
-                                    MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe((matroska_block*)Block));
-
-                                    Block2 = (matroska_block*)EBML_ElementCreate(Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-                                    MATROSKA_LinkBlockTrack(Block2,MATROSKA_BlockTrack((matroska_block*)Block));
-                                    MATROSKA_LinkBlockSegmentInfo(Block2,MATROSKA_BlockSegmentInfo((matroska_block*)Block));
-                                    MATROSKA_BlockSetKeyframe(Block2,MATROSKA_BlockKeyframe((matroska_block*)Block));
-
-                                    // replace Block with Block1 + Block2
-                                    NodeTree_SetParent(Block1,*ClusterR,Block);
-                                    NodeTree_SetParent(Block2,*ClusterR,Block);
-
-                                    for (Frame=0; Frame < MATROSKA_BlockGetFrameCount((matroska_block*)Block); ++Frame)
-                                    {
-                                        MATROSKA_BlockGetFrame((matroska_block*)Block, Frame, &FrameData);
-                                        if (MATROSKA_BlockGetFrameEnd((matroska_block*)Block,Frame) <= *Tst)
-                                            MATROSKA_BlockAppendFrame(Block1, &FrameData, ClusterTimecode);
-                                        else
-                                            MATROSKA_BlockAppendFrame(Block2, &FrameData, ClusterTimecode);
-                                    }
-                                    
-                                    if (MATROSKA_BlockGetFrameCount(Block1)==0 || MATROSKA_BlockGetFrameCount(Block2)==0)
-                                    {
-                                        NodeDelete((node*)Block1);
-                                        NodeDelete((node*)Block2);
-                                    }
-                                    else
-                                    {
-                                        // the old Block is not used anymore
-                                        BlockTime = 0;
-                                        for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block1);++Frame)
-                                            BlockTime += MATROSKA_BlockGetFrameDuration(Block1,Frame);
-                                        Node_SetData(Block1,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
-
-                                        BlockTime = 0;
-                                        for (Frame=0;Frame<MATROSKA_BlockGetFrameCount(Block2);++Frame)
-                                            BlockTime += MATROSKA_BlockGetFrameDuration(Block2,Frame);
-                                        Node_SetData(Block2,MATROSKA_BLOCK_DURATION,TYPE_INT64,&BlockTime);
-
-                                        NodeDelete((node*)Block);
-                                        NextBlock = EBML_MasterNext(Block2);
-                                    }
-                                }
-						    }
-                        }
-					}
-					Block = NextBlock;
-				}
-            }
-            Prev = *Tst;
-        }
-
-#ifdef TODO // the sorting should not put P frames further in the cluster
-        for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*); ClusterR!=ARRAYEND(RClusters,matroska_cluster*); ++ClusterR)
-            MATROSKA_ClusterSort(*ClusterR);
-        EndProgress(RSegment,2);
-#endif
-
 		// create each Cluster
 		TextWrite(StdErr,T("Reclustering...\r\n"));
-		for (Tst = ARRAYBEGIN(KeyFrames, timecode_t), ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*), Block = EBML_MasterChildren(*ClusterR);
-			Tst!=ARRAYEND(KeyFrames, timecode_t) && ClusterR!=ARRAYEND(RClusters,matroska_cluster*); ++Tst)
+		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
 		{
+			bool_t ReachedNextCluster = 0;
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterSegmentInfo(ClusterW, RSegmentInfo);
 			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster ?
 
-			//  move the Blocks from RCluster to WCluster
-			while (ClusterR!=ARRAYEND(RClusters,matroska_cluster*))
+			if ((Tst+1)==ARRAYEND(KeyFrameTimecodes, timecode_t))
+				MasterEnd = INVALID_TIMECODE_T;
+			else
+				MasterEnd = *(Tst+1);
+
+			while (!ReachedNextCluster && ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] != ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
 			{
-				// \todo  put the matching audio at the front
-				while (Block)
+				// next Block end in the master track
+				if (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack]+1 == ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
+					BlockEnd = INVALID_TIMECODE_T;
+				else
 				{
-					if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-					{
-						GBlock = EBML_MasterFindFirstElt(Block, &MATROSKA_ContextClusterBlock, 0, 0);
-						if (GBlock)
-						{
-							Duration = (timecode_t*)Node_GetData((node*)GBlock,MATROSKA_BLOCK_DURATION,TYPE_INT64);
-							if (Duration)
-							{
-								if ((Tst+1)!=ARRAYEND(KeyFrames, timecode_t) && (MATROSKA_BlockTimecode((matroska_block*)GBlock) + *Duration) > *(Tst+1))
-									break; // this block is for the next Cluster
-							}
-							GBlock = EBML_MasterNext(Block);
-							EBML_MasterAppend((ebml_element*)ClusterW,Block);
-							Block = GBlock;
-						}
-					}
-					else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-					{
-						Duration = (timecode_t*)Node_GetData((node*)Block,MATROSKA_BLOCK_DURATION,TYPE_INT64);
-						if (Duration)
-						{
-							if ((Tst+1)!=ARRAYEND(KeyFrames, timecode_t) && (MATROSKA_BlockTimecode((matroska_block*)Block) + *Duration) > *(Tst+1))
-								break; // this block is for the next Cluster
-						}
-						GBlock = EBML_MasterNext(Block);
-						if (EBML_MasterAppend((ebml_element*)ClusterW,Block)!=ERR_NONE)
-							break; // this block is for the next Cluster
-						Block = GBlock;
-					}
-					else
-						Block=EBML_MasterNext(Block);
+					pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] + 1;
+					BlockEnd = pBlockInfo->DecodeTime;
 				}
-				if (Block!=NULL)
-					break; // skip to the next Cluster
-				while (Block==NULL)
+
+				for (pTrackOrder=ARRAYBEGIN(TrackOrder,size_t);pTrackOrder!=ARRAYEND(TrackOrder,size_t);++pTrackOrder)
 				{
-					++ClusterR;
-					if (ClusterR==ARRAYEND(RClusters,matroska_cluster*))
-						break;
-					Block = EBML_MasterChildren(*ClusterR);
+					// output all the blocks (todo frames) until BlockEnd (included) for this track
+					while (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder] < ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
+					{
+						pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder];
+						if (BlockEnd <= pBlockInfo->DecodeTime)
+						{
+							if (*pTrackOrder==MainTrack && (BlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEnd))
+								ReachedNextCluster = 1;
+							break; // next track
+						}
+
+						if (pBlockInfo->FrameStart!=0)
+						{
+							if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+							{
+								Block1 = (matroska_block*)EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
+								MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack(pBlockInfo->Block));
+								MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
+								MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+
+								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+								{
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+										break;
+									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
+								}
+
+								if (MATROSKA_BlockGetFrameCount(Block1))
+									EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)Block1);
+								else
+									NodeDelete((node*)Block1);
+
+								if (pBlockInfo->FrameStart!=MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+									break; // next track
+								else
+								{
+									ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]++;
+									continue;
+								}
+							}
+							else if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id)
+							{
+								Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
+								Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
+								MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack(pBlockInfo->Block));
+								MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
+								MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+
+								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+								{
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+										break;
+									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
+								}
+
+								if (MATROSKA_BlockGetFrameCount(Block1))
+									EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)Elt);
+								else
+									NodeDelete((node*)Elt);
+
+								if (pBlockInfo->FrameStart!=MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+									break; // next track
+								else
+								{
+									ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]++;
+									continue;
+								}
+							}
+						}
+
+						if (BlockEnd==MasterEnd && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
+						{
+							// relacing
+							if (MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE)
+							{
+								if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+								{
+									// This block needs to be split
+									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
+									Block1 = (matroska_block*)EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
+									MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack(pBlockInfo->Block));
+									MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
+									MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+
+									for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+									{
+										if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+											break;
+										MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+										MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
+									}
+	                                
+									if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+									{
+										pBlockInfo->FrameStart = 0;
+										NodeDelete((node*)Block1);
+									}
+									else
+									{
+										if (MATROSKA_BlockGetFrameCount(Block1))
+											EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)Block1);
+										else
+											NodeDelete((node*)Block1);
+										break; // next track
+									}
+								}
+								else if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id)
+								{
+									// This block needs to be split
+									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
+									Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
+									Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
+									MATROSKA_LinkBlockTrack(Block1,MATROSKA_BlockTrack(pBlockInfo->Block));
+									MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
+									MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+
+									for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+									{
+										if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+											break;
+										MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+										MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
+									}
+	                                
+									if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+									{
+										pBlockInfo->FrameStart = 0;
+										NodeDelete((node*)Elt);
+									}
+									else
+									{
+										if (MATROSKA_BlockGetFrameCount(Block1))
+											EBML_MasterAppend((ebml_element*)ClusterW,Elt);
+										else
+											NodeDelete((node*)Elt);
+										break; // next track
+									}
+								}
+							}
+						}
+
+						if (MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+						{
+							if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+								EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)pBlockInfo->Block);
+							else
+							{
+								 assert(((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id);
+								 EBML_MasterAppend((ebml_element*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
+							}
+							ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]++;
+						}
+					} 
 				}
 			}
 			EBML_ElementUpdateSize(ClusterW, 0, 0);
 		}
 
-		ArrayClear(&KeyFrames);
-		ArrayClear(&TrackDuration);
+		ArrayClear(&KeyFrameTimecodes);
+		ArrayClear(&TrackBlocks);
+		ArrayClear(&TrackBlockCurrIdx);
+		ArrayClear(&TrackOrder);
 
 		Clusters = &WClusters;
 		NodeDelete((node*)RCues);
@@ -1400,6 +1448,7 @@ int main(int argc, const char *argv[])
 
     AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
     EBML_StringGet(AppName,String,TSIZEOF(String));
+	StringDiff = tcslen(String);
     if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
     {
         tcscat_s(Original,TSIZEOF(Original),T(" + "));
@@ -1418,6 +1467,7 @@ int main(int argc, const char *argv[])
 	if (s[0])
 		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
     EBML_UniStringSetValue(AppName,String);
+	StringDiff = tcslen(String) - StringDiff + 2;
 
 	if (Remux || !EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
 	{
@@ -1557,7 +1607,7 @@ int main(int argc, const char *argv[])
     // update the WSegment size
 	if (!Live)
 	{
-		if (SegmentSize > WSegment->DataSize)
+		if (SegmentSize - StringDiff > WSegment->DataSize)
 		{
 			if (EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0))
 			{

@@ -1,5 +1,6 @@
-2010-06-07
-version 0.2.6:
+2010-06-09
+version 0.3.0:
+    - always put the matching audio frames before the video frames
     - do a "relacing" when remuxing to put audio frames close to the corresponding video keyframes (not all audio codecs are supported)
       for Vorbis (via Tremor), MP3, AC3, E-AC3, AAC, DTS
 
