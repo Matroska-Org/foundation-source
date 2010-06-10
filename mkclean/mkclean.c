@@ -161,6 +161,11 @@ static void ReduceSize(ebml_element *Element)
 				NodeDelete((node*)i);
 				continue;
 			}
+			else if (Node_IsPartOf(i, EBML_DUMMY_ID))
+			{
+				NodeDelete((node*)i);
+				continue;
+			}
             ReduceSize(i);
 		}
 

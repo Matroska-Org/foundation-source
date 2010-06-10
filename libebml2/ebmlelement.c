@@ -45,6 +45,13 @@ static err_t Create(ebml_element *Element)
     return ERR_NONE;
 }
 
+#if defined(CONFIG_EBML_WRITING)
+static err_t RenderDataDummy(ebml_binary *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+{
+	return ERR_INVALID_DATA;
+}
+#endif
+
 META_START(EBMLElement_Class,EBML_ELEMENT_CLASS)
 META_CLASS(SIZE,sizeof(ebml_element))
 META_CLASS(VMT_SIZE,sizeof(ebml_element_vmt))
@@ -63,6 +70,9 @@ META_END_CONTINUE(NODETREE_CLASS)
 
 META_START_CONTINUE(EBML_DUMMY_ID)
 META_CLASS(SIZE,sizeof(ebml_dummy))
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataDummy)
+#endif
 META_END(EBML_BINARY_CLASS)
 
 bool_t EBML_ElementIsFiniteSize(const ebml_element *Element)
