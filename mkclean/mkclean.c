@@ -1601,7 +1601,7 @@ int main(int argc, const char *argv[])
     {
         if (EBML_ElementRender(RTrackInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
+            TextWrite(StdErr,T("Failed to write the Track Info\r\n"));
             Result = -12;
             goto exit;
         }
