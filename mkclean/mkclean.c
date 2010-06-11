@@ -1038,6 +1038,7 @@ int main(int argc, const char *argv[])
 		array KeyFrameTimecodes, TrackBlocks, TrackBlockCurrIdx, TrackOrder, *pTrackBlock;
         matroska_frame FrameData;
 		block_info BlockInfo,*pBlockInfo;
+		err_t Result;
 
 		TextWrite(StdErr,T("Remuxing...\r\n"));
 		// count the number of useful tracks and the max track number
@@ -1297,6 +1298,7 @@ int main(int argc, const char *argv[])
 							// relacing
 							if (MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE)
 							{
+								Result = ERR_NONE;
 								if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 								{
 									// This block needs to be split
@@ -1322,14 +1324,15 @@ int main(int argc, const char *argv[])
 									else
 									{
 										if (MATROSKA_BlockGetFrameCount(Block1))
-											EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)Block1);
+											Result = EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)Block1);
 										else
 											NodeDelete((node*)Block1);
 										break; // next track
 									}
 								}
-								else if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id)
+								else
 								{
+									assert(((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id);
 									// This block needs to be split
 									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
 									Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
@@ -1354,11 +1357,19 @@ int main(int argc, const char *argv[])
 									else
 									{
 										if (MATROSKA_BlockGetFrameCount(Block1))
-											EBML_MasterAppend((ebml_element*)ClusterW,Elt);
+											Result = EBML_MasterAppend((ebml_element*)ClusterW,Elt);
 										else
 											NodeDelete((node*)Elt);
 										break; // next track
 									}
+								}
+								if (Result != ERR_NONE)
+								{
+									if (Result==ERR_INVALID_DATA)
+										TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low\r\n"));
+									else
+										TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+									goto exit;
 								}
 							}
 						}
@@ -1366,11 +1377,19 @@ int main(int argc, const char *argv[])
 						if (MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 						{
 							if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-								EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)pBlockInfo->Block);
+								Result = EBML_MasterAppend((ebml_element*)ClusterW,(ebml_element*)pBlockInfo->Block);
 							else
 							{
 								 assert(((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id);
-								 EBML_MasterAppend((ebml_element*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
+								 Result = EBML_MasterAppend((ebml_element*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
+							}
+							if (Result != ERR_NONE)
+							{
+								if (Result==ERR_INVALID_DATA)
+									TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low\r\n"));
+								else
+									TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+								goto exit;
 							}
 							ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]++;
 						}
