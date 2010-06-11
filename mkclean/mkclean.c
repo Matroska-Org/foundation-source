@@ -703,6 +703,7 @@ int main(int argc, const char *argv[])
     filepos_t NextPos, SegmentSize = 0;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0;
 	size_t StringDiff = 0;
+	int64_t TimeCodeScale = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -732,6 +733,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
 		TextWrite(StdErr,T("    4: 'webm'\r\n"));
 		TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
+		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
         Result = -1;
         goto exit;
     }
@@ -760,6 +762,11 @@ int main(int argc, const char *argv[])
 				Result = -8;
 				goto exit;
 			}
+		}
+		else if (tcsisame_ascii(Path,T("--timecodescale")) && i+1<argc-2)
+		{
+		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+			TimeCodeScale = StringToInt(Path,0);
 		}
 	}
 
@@ -1188,6 +1195,19 @@ int main(int argc, const char *argv[])
 				Prev = *Tst++;
 		}
 
+		if (TimeCodeScale!=0)
+		{
+			RLevel1 = EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextTimecodeScale,1,1);
+			if (!RLevel1)
+			{
+				TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
+				Result = -10;
+				goto exit;
+			}
+			EBML_IntegerSetValue((ebml_integer*)RLevel1,TimeCodeScale);
+			RLevel1 = NULL;
+		}
+
 		// create each Cluster
 		TextWrite(StdErr,T("Reclustering...\r\n"));
 		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
@@ -1366,9 +1386,10 @@ int main(int argc, const char *argv[])
 								if (Result != ERR_NONE)
 								{
 									if (Result==ERR_INVALID_DATA)
-										TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low\r\n"));
+										TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
 									else
 										TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+									Result = -46;
 									goto exit;
 								}
 							}
@@ -1386,9 +1407,10 @@ int main(int argc, const char *argv[])
 							if (Result != ERR_NONE)
 							{
 								if (Result==ERR_INVALID_DATA)
-									TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low\r\n"));
+									TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
 								else
 									TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+								Result = -46;
 								goto exit;
 							}
 							ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]++;

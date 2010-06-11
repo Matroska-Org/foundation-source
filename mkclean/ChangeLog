@@ -1,6 +1,7 @@
 2010-06-11
 version 0.3.1:
     - output an error when the remuxing is not possible due to a low TimecodeScale (thanks to Ben Danper)
+    - add a --timecodescale <v> option to force the global timecodescale
 
 2010-06-09
 version 0.3.0:
