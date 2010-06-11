@@ -83,7 +83,7 @@ EBML_DLL timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_element *Segmen
 EBML_DLL void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode);
 EBML_DLL err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t Relative);
 EBML_DLL timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster);
-EBML_DLL timecode_t MATROSKA_BlockTimecode(const matroska_block *Block);
+EBML_DLL timecode_t MATROSKA_BlockTimecode(matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
 EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 EBML_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
@@ -132,6 +132,7 @@ extern const ebml_context MATROSKA_ContextWritingApp;
 extern const ebml_context MATROSKA_ContextMuxingApp;
 extern const ebml_context MATROSKA_ContextSegmentDate;
 extern const ebml_context MATROSKA_ContextDuration;
+extern const ebml_context MATROSKA_ContextTimecodeScale;
 
 extern const ebml_context MATROSKA_ContextCluster;
 extern const ebml_context MATROSKA_ContextTracks;

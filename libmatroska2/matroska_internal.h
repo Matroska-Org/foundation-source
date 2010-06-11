@@ -35,6 +35,7 @@ struct matroska_block
     uint16_t TrackNumber;
     int16_t LocalTimecode;
     bool_t LocalTimecodeUsed;
+	timecode_t GlobalTimecode;
     bool_t IsKeyframe;
     bool_t IsDiscardable;
     bool_t Invisible;

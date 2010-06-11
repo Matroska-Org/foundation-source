@@ -754,8 +754,8 @@ err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *CuePoint, matroska_block *Bl
 
 static int MATROSKA_BlockCmp(const matroska_block *BlockA, const matroska_block *BlockB)
 {
-    timecode_t TimeA = MATROSKA_BlockTimecode(BlockA);
-    timecode_t TimeB = MATROSKA_BlockTimecode(BlockB);
+    timecode_t TimeA = MATROSKA_BlockTimecode((matroska_block*)BlockA);
+    timecode_t TimeB = MATROSKA_BlockTimecode((matroska_block*)BlockB);
     if (TimeA != TimeB)
         return (int)((TimeA - TimeB)/100000);
     return MATROSKA_BlockTrackNum(BlockB) - MATROSKA_BlockTrackNum(BlockA); // usually the first track is video, so put audio/subs first
@@ -822,17 +822,20 @@ err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, time
 	return ERR_NONE;
 }
 
-timecode_t MATROSKA_BlockTimecode(const matroska_block *Block)
+timecode_t MATROSKA_BlockTimecode(matroska_block *Block)
 {
     ebml_element *Cluster;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+	if (Block->GlobalTimecode!=INVALID_TIMECODE_T)
+		return Block->GlobalTimecode;
     assert(Block->LocalTimecodeUsed);
     Cluster = EBML_ElementParent(Block);
     while (Cluster && Cluster->Context->Id != MATROSKA_ContextCluster.Id)
         Cluster = EBML_ElementParent(Cluster);
     if (!Cluster)
         return INVALID_TIMECODE_T;
-    return MATROSKA_ClusterTimecode((matroska_cluster*)Cluster) + (timecode_t)(Block->LocalTimecode * MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track));
+    Block->GlobalTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster) + (timecode_t)(Block->LocalTimecode * MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track));
+	return Block->GlobalTimecode;
 }
 
 int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
@@ -1271,7 +1274,7 @@ err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matro
         return ERR_INVALID_PARAM;
 
     Frame->Data = ARRAYBEGIN(Block->Data,uint8_t);
-    Frame->Timecode = MATROSKA_BlockTimecode(Block);
+    Frame->Timecode = MATROSKA_BlockTimecode((matroska_block*)Block);
     for (i=0;i<FrameNum;++i)
     {
         Frame->Data += ARRAYBEGIN(Block->SizeList,uint32_t)[i];
@@ -1568,8 +1571,15 @@ static bool_t ValidateSizeSegUID(const ebml_binary *p)
     return memcmp(ARRAYBEGIN(p->Data,uint8_t),test,16)!=0; // make sure the value is not 0
 }
 
+static err_t CreateBlock(matroska_block *p)
+{
+	p->GlobalTimecode = INVALID_TIMECODE_T;
+	return ERR_NONE;
+}
+
 META_START(Matroska_Class,MATROSKA_BLOCK_CLASS)
 META_CLASS(SIZE,sizeof(matroska_block))
+META_CLASS(CREATE,CreateBlock)
 META_VMT(TYPE_FUNC,nodetree_vmt,SetParent,SetBlockParent)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadBlockData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateBlockSize)
