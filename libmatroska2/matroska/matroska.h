@@ -43,6 +43,8 @@
 #define PROFILE_WEBM_V1              4
 #define PROFILE_WEBM_V2              8
 
+#define MATROSKA_VERSION  2
+
 
 EBML_DLL err_t MATROSKA_Init(nodecontext *p);
 EBML_DLL err_t MATROSKA_Done(nodecontext *p);
@@ -115,8 +117,6 @@ EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_f
 EBML_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
 EBML_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmentInfo, ebml_element *Tracks);
 
-#define MATROSKA_VERSION  2
-
 // EBML contexts
 extern const ebml_context MATROSKA_ContextStream;
 
@@ -133,6 +133,12 @@ extern const ebml_context MATROSKA_ContextMuxingApp;
 extern const ebml_context MATROSKA_ContextSegmentDate;
 extern const ebml_context MATROSKA_ContextDuration;
 extern const ebml_context MATROSKA_ContextTimecodeScale;
+extern const ebml_context MATROSKA_ContextSegmentFilename;
+extern const ebml_context MATROSKA_ContextPrevFilename;
+extern const ebml_context MATROSKA_ContextNextFilename;
+extern const ebml_context MATROSKA_ContextSegmentUid;
+extern const ebml_context MATROSKA_ContextPrevUid;
+extern const ebml_context MATROSKA_ContextNextUid;
 
 extern const ebml_context MATROSKA_ContextCluster;
 extern const ebml_context MATROSKA_ContextTracks;

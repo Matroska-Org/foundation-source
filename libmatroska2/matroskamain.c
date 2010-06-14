@@ -27,7 +27,9 @@
  */
 #include "matroska/matroska.h"
 #include "matroska_internal.h"
+#if defined(MATROSKA_LIBRARY)
 #include "matroska2_project.h"
+#endif
 
 #define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
 #define MATROSKA_BLOCKGROUP_CLASS FOURCC('M','K','B','G')
@@ -548,12 +550,16 @@ const ebml_context MATROSKA_ContextStream = {FOURCC('M','K','X','_'), EBML_MASTE
 
 err_t MATROSKA_Init(nodecontext *p)
 {
+#if defined(MATROSKA_LIBRARY)
     tchar_t LibName[MAXPATH];
+#endif
     err_t Err = EBML_Init(p);
     if (Err == ERR_NONE)
     {
+#if defined(MATROSKA_LIBRARY)
         tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" v") PROJECT_VERSION);
         Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,LibName);
+#endif
     }
     return Err;
 }
