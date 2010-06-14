@@ -35,6 +35,7 @@
 /*!
  * \todo support for updating/writing the PrevSize
  * \todo support for updating/writing the ClusterPosition
+ * \todo support for updating/writing the CRC32
  * \todo support the japanese translation
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
@@ -162,6 +163,11 @@ static void ReduceSize(ebml_element *Element)
 				continue;
 			}
 			else if (Node_IsPartOf(i, EBML_DUMMY_ID))
+			{
+				NodeDelete((node*)i);
+				continue;
+			}
+			else if (i->Context->Id == EBML_ContextEbmlCrc32.Id)
 			{
 				NodeDelete((node*)i);
 				continue;
