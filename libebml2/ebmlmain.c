@@ -516,6 +516,9 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
     filepos_t CurrentPos;
     filepos_t StartPos = Stream_Seek(Input,0,SEEK_CUR);
 
+	if (StartPos == INVALID_FILEPOS_T)
+		return NULL;
+
     assert(Context != NULL);
 	
     // adjust the Context to allow the StartPos to make sense
