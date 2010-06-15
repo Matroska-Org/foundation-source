@@ -291,6 +291,7 @@ const ebml_context MATROSKA_ContextTrackVideoDisplayUnit = {0x54B2, EBML_INTEGER
 const ebml_context MATROSKA_ContextTrackVideoAspectRatio = {0x54B3, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoAspectRatio", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackVideoColourSpace = {0x2EB524, EBML_BINARY_CLASS, 0, 0, "TrackVideoColourSpace", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackVideoFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "TrackVideoFrameRate", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackVideoGammaValue = {0x2FB523, EBML_FLOAT_CLASS, 0, 0, "TrackVideoGammaValue", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackVideo[] = {
     {1, 1, &MATROSKA_ContextTrackVideoInterlaced      ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
     {1, 1, &MATROSKA_ContextTrackVideoPixelWidth      ,0},
@@ -306,6 +307,7 @@ const ebml_semantic EBML_SemanticTrackVideo[] = {
     {0, 1, &MATROSKA_ContextTrackVideoColourSpace     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 1, &MATROSKA_ContextTrackVideoFrameRate       ,0},
+    {0, 1, &MATROSKA_ContextTrackVideoGammaValue      ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 

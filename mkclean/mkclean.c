@@ -44,7 +44,7 @@
  * \todo change the Segment UID (when key parts are altered)
  * \todo compute the segment duration (when it's not set)
  * \todo compute the track default duration (when it's not set or not optimal)
- * \todo optionally add a CRC32 on level1 elements
+ * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
  * \todo add support for compressed headers
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)

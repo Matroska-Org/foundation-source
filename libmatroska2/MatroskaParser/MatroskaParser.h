@@ -36,10 +36,6 @@ typedef uint64_t ulonglong;
 
 typedef struct InputStream
 {
-#if defined(NO_MATROSKA2_GLOBAL)
-	anynode *AnyNode;
-#endif
-
 	int (*read)(struct InputStream *cc, filepos_t pos, void *buffer, size_t count);
 	filepos_t (*scan)(struct InputStream *cc, filepos_t start, unsigned signature);
 	size_t (*getcachesize)(struct InputStream *cc);
@@ -58,27 +54,46 @@ typedef struct InputStream
 	void *(*memrealloc)(struct InputStream *cc,void *mem,size_t newsize);
 	void (*memfree)(struct InputStream *cc,void *mem);
 
+#if defined(NO_MATROSKA2_GLOBAL)
+	anynode *AnyNode;
+#endif
+
 } InputStream;
 
 typedef struct TrackInfo
 {
+	int Number;
+	uint8_t Type;
+	uint64_t UID;
+
 	uint8_t *CodecPrivate;
 	size_t CodecPrivateSize;
 	timecode_t DefaultDuration;
 	char *CodecID;
 	char *Name;
-	char *Language;
+	char Language[4];
+
+	bool_t Enabled;
+	bool_t Default;
+	bool_t Lacing;
+	bool_t DecodeAll;
+	float TimecodeScale;
+
+	int TrackOverlay;
+	uint8_t MinCache;
+	size_t MaxCache;
+	size_t MaxBlockAdditionID;
 
   union {
     struct {
-      unsigned char   StereoMode;
-      unsigned char   DisplayUnit;
-      unsigned char   AspectRatioType;
-      unsigned int    PixelWidth;
-      unsigned int    PixelHeight;
-      unsigned int    DisplayWidth;
-      unsigned int    DisplayHeight;
-      unsigned int    CropL, CropT, CropR, CropB;
+      uint8_t   StereoMode;
+      uint8_t   DisplayUnit;
+      uint8_t   AspectRatioType;
+      uint32_t    PixelWidth;
+      uint32_t    PixelHeight;
+      uint32_t    DisplayWidth;
+      uint32_t    DisplayHeight;
+      uint32_t    CropL, CropT, CropR, CropB;
       unsigned int    ColourSpace;
       float           GammaValue;
       //struct {
@@ -86,10 +101,10 @@ typedef struct TrackInfo
       //};
     } Video;
     struct {
-      float           SamplingFreq;
-      float           OutputSamplingFreq;
-      unsigned char   Channels;
-      unsigned char   BitDepth;
+      float     SamplingFreq;
+      float     OutputSamplingFreq;
+      uint8_t   Channels;
+      uint8_t   BitDepth;
     } Audio;
   } AV;
 
@@ -131,24 +146,31 @@ typedef struct Tag
 {
 	size_t nSimpleTags;
 	SimpleTag *SimpleTags;
+
 } Tag;
 
 typedef struct SegmentInfo
 {
-	float Duration;
-	timecode_t TimecodeScale;
-
-	char *Title;
-	char *Filename;
-	char *PrevFilename;
-	char *NextFilename;
 	uint8_t UID[16];
 	uint8_t PrevUID[16];
 	uint8_t NextUID[16];
+	char *Filename;
+	char *PrevFilename;
+	char *NextFilename;
+	char *Title;
+	char *MuxingApp;
+	char *WritingApp;
+
+	timecode_t TimecodeScale;
+	timecode_t Duration;
+
+	datetime_t DateUTC;
 
 } SegmentInfo;
 
 typedef struct MatroskaFile MatroskaFile;
+
+#define MKVF_AVOID_SEEKS    1 /* use sequential reading only */
 
 MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize);
 void mkv_Close(MatroskaFile *File);
@@ -162,7 +184,7 @@ void mkv_SetTrackMask(MatroskaFile *File, int Mask);
 #define FRAME_UNKNOWN_END    0x00000002
 #define FRAME_KF             0x00000004
 
-size_t mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *StartTime, ulonglong *EndTime, ulonglong *FilePos, unsigned int *FrameSize,
+int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *StartTime, ulonglong *EndTime, ulonglong *FilePos, unsigned int *FrameSize,
                 void** FrameRef, unsigned int *FrameFlags);
 
 #define MKVF_SEEK_TO_PREV_KEYFRAME  1
