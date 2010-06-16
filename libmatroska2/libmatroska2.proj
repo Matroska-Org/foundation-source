@@ -37,6 +37,7 @@ GROUP matroska2_haali
   USE(COREMAKE_STATIC) matroska2_group
   USE(!COREMAKE_STATIC) matroska2
 
+  INCLUDE MatroskaParser
   SOURCE MatroskaParser/MatroskaParser.c {class HaaliStream_Class}
   HEADER MatroskaParser/MatroskaParser.h
 }
