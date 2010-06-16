@@ -327,6 +327,13 @@ size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block)
     return ARRAYCOUNT(Block->SizeList,int32_t);
 }
 
+size_t MATROSKA_BlockGetLength(const matroska_block *Block, size_t FrameNum)
+{
+	if (FrameNum >= ARRAYCOUNT(Block->SizeList,int32_t))
+		return 0;
+	return ARRAYBEGIN(Block->SizeList,int32_t)[FrameNum];
+}
+
 timecode_t MATROSKA_BlockGetFrameDuration(const matroska_block *Block, size_t FrameNum)
 {
     if (FrameNum >= ARRAYCOUNT(Block->Durations,timecode_t))

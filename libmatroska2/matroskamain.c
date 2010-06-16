@@ -1263,7 +1263,12 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 	}
 
     if (Scope == SCOPE_PARTIAL_DATA)
-	    Result = ERR_NONE;
+	{
+		if (Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + (Element->Lacing==LACING_NONE ? BlockHeadSize : Element->FirstFrameLocation),SEEK_SET)==INVALID_FILEPOS_T)
+			Result = ERR_READ;
+		else
+			Result = ERR_NONE;
+	}
     else
         Result = MATROSKA_BlockReadData(Element, Input);
 
@@ -1271,21 +1276,21 @@ failed:
     return Result;
 }
 
-err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame)
+err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame, bool_t WithData)
 {
     size_t i;
 
-    assert(Block->Base.Base.bValueIsSet);
-    if (!ARRAYCOUNT(Block->Data,uint8_t))
+    assert(!WithData || Block->Base.Base.bValueIsSet);
+    if (WithData && !ARRAYCOUNT(Block->Data,uint8_t))
         return ERR_READ;
     if (FrameNum >= ARRAYCOUNT(Block->SizeList,uint32_t))
         return ERR_INVALID_PARAM;
 
-    Frame->Data = ARRAYBEGIN(Block->Data,uint8_t);
+	Frame->Data = WithData ? ARRAYBEGIN(Block->Data,uint8_t) : NULL;
     Frame->Timecode = MATROSKA_BlockTimecode((matroska_block*)Block);
     for (i=0;i<FrameNum;++i)
     {
-        Frame->Data += ARRAYBEGIN(Block->SizeList,uint32_t)[i];
+        if (WithData) Frame->Data += ARRAYBEGIN(Block->SizeList,uint32_t)[i];
         if (Frame->Timecode != INVALID_TIMECODE_T)
         {
             if (i < ARRAYCOUNT(Block->Durations,timecode_t) && ARRAYBEGIN(Block->Durations,timecode_t)[i] != INVALID_TIMECODE_T)

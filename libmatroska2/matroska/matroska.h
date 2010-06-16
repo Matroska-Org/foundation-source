@@ -109,8 +109,9 @@ EBML_DLL size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_BlockGetFrameDuration(const matroska_block *Block, size_t FrameNum);
 EBML_DLL timecode_t MATROSKA_BlockGetFrameStart(const matroska_block *Block, size_t FrameNum);
 EBML_DLL timecode_t MATROSKA_BlockGetFrameEnd(const matroska_block *Block, size_t FrameNum);
+EBML_DLL size_t MATROSKA_BlockGetLength(const matroska_block *Block, size_t FrameNum);
 
-EBML_DLL err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame);
+EBML_DLL err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame, bool_t WithData);
 EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t Relative);
 
 

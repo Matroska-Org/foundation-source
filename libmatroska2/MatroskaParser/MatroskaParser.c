@@ -812,7 +812,7 @@ void mkv_Close(MatroskaFile *File)
 int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *StartTime, ulonglong *EndTime, ulonglong *FilePos, unsigned int *FrameSize,
                 void** FrameRef, unsigned int *FrameFlags)
 {
-	ebml_element *Elt,*Elt2;
+	ebml_element *Elt = NULL,*Elt2;
 	TrackInfo *tr;
 	int16_t TrackNum;
 	matroska_frame Frame;
@@ -821,78 +821,94 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 	if (FrameFlags)
 		*FrameFlags = 0;
 
-	if (!File->CurrentCluster)
+	for (;;)
 	{
-		for (;;)
+		if (!File->CurrentCluster)
 		{
-			File->CurrentCluster = EBML_FindNextElement((stream*)File->Input,&File->L1Context,&UpperLevel,0);
-			if (!File->CurrentCluster)
-				return EOF;
-			if (UpperLevel)
+			for (;;)
 			{
-				// TODO: changing segments not supported yet
-				NodeDelete((node*)File->CurrentCluster);
-				return EOF;
+				if (!Elt)
+					Elt = EBML_FindNextElement((stream*)File->Input,&File->L1Context,&UpperLevel,0);
+				File->CurrentCluster = Elt;
+				if (!File->CurrentCluster)
+					return EOF;
+				if (UpperLevel)
+				{
+					// TODO: changing segments not supported yet
+					NodeDelete((node*)File->CurrentCluster);
+					return EOF;
+				}
+				if (File->CurrentCluster->Context->Id == MATROSKA_ContextCluster.Id)
+					break;
+
+				Elt = File->CurrentCluster;
+				File->CurrentCluster = EBML_ElementSkipData(File->CurrentCluster,(stream*)File->Input,&File->L1Context,NULL,1);
+				NodeDelete((node*)Elt);
+				Elt = NULL;
 			}
-			if (File->CurrentCluster->Context->Id == MATROSKA_ContextCluster.Id)
-				break;
 
-			Elt = File->CurrentCluster;
-			File->CurrentCluster = EBML_ElementSkipData(File->CurrentCluster,(stream*)File->Input,&File->L1Context,NULL,1);
-			NodeDelete((node*)Elt);
+			MATROSKA_LinkClusterSegmentInfo((matroska_cluster*)File->CurrentCluster,File->SegmentInfo);
+			File->ClusterContext.Context = &MATROSKA_ContextCluster;
+			if (EBML_ElementIsFiniteSize(File->CurrentCluster))
+				File->ClusterContext.EndPosition = EBML_ElementPositionEnd(File->CurrentCluster);
+			else
+				File->ClusterContext.EndPosition = INVALID_FILEPOS_T;
+			File->ClusterContext.UpContext = &File->L1Context;
+
+			File->CurrentBlock = NULL;
+			File->CurrentFrame = 0;
 		}
 
-		MATROSKA_LinkClusterSegmentInfo((matroska_cluster*)File->CurrentCluster,File->SegmentInfo);
-		File->ClusterContext.Context = &MATROSKA_ContextCluster;
-		if (EBML_ElementIsFiniteSize(File->CurrentCluster))
-			File->ClusterContext.EndPosition = EBML_ElementPositionEnd(File->CurrentCluster);
-		else
-			File->ClusterContext.EndPosition = INVALID_FILEPOS_T;
-		File->ClusterContext.UpContext = &File->L1Context;
-
-		File->CurrentBlock = NULL;
-		File->CurrentFrame = 0;
-	}
-
-	Elt = NULL;
-	while (!File->CurrentBlock)
-	{
-		if (!Elt)
-			Elt = EBML_FindNextElement((stream*)File->Input,&File->ClusterContext,&UpperLevel,1);
-		if (!Elt)
-			break; // TODO: go to the next Cluster
-
-		if (Elt->Context->Id == MATROSKA_ContextClusterTimecode.Id)
+		Elt = NULL;
+		while (!File->CurrentBlock)
 		{
-			if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
-				return EOF; // TODO: memory leak
-			Elt2 = EBML_MasterFindFirstElt(File->CurrentCluster,&MATROSKA_ContextClusterTimecode,1,1);
-			if (!Elt2)
-				return EOF; // TODO: memory leak
-			EBML_IntegerSetValue((ebml_integer*)Elt2,EBML_IntegerValue(Elt));
-			NodeDelete((node*)Elt);
-			Elt = NULL;
-		}
-		else if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-		{
-			if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
-				return EOF; // TODO: memory leak
+			if (!Elt)
+			{
+				UpperLevel = 0;
+				Elt = EBML_FindNextElement((stream*)File->Input,&File->ClusterContext,&UpperLevel,1);
+			}
+			if (!Elt || UpperLevel>0)
+			{
+				NodeDelete((node*)File->CurrentCluster);
+				File->CurrentCluster = NULL;
+				--UpperLevel;
+				break; // go to the next Cluster
+			}
 
-			EBML_MasterAppend(File->CurrentCluster, Elt);
-			MATROSKA_LinkBlockWithTracks((matroska_block*)Elt,File->TrackList);
-			MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
-			File->CurrentBlock = (matroska_block*)Elt;
+			if (Elt->Context->Id == MATROSKA_ContextClusterTimecode.Id)
+			{
+				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
+					return EOF; // TODO: memory leak
+				Elt2 = EBML_MasterFindFirstElt(File->CurrentCluster,&MATROSKA_ContextClusterTimecode,1,1);
+				if (!Elt2)
+					return EOF; // TODO: memory leak
+				EBML_IntegerSetValue((ebml_integer*)Elt2,EBML_IntegerValue(Elt));
+				NodeDelete((node*)Elt);
+				Elt = NULL;
+			}
+			else if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+			{
+				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
+					return EOF; // TODO: memory leak
+
+				EBML_MasterAppend(File->CurrentCluster, Elt);
+				MATROSKA_LinkBlockWithTracks((matroska_block*)Elt,File->TrackList);
+				MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
+				File->CurrentBlock = (matroska_block*)Elt;
+			}
+			else
+			{
+				Elt2 = Elt;
+				Elt = EBML_ElementSkipData(Elt2,(stream*)File->Input,&File->L1Context,NULL,1);
+				NodeDelete((node*)Elt2);
+			}
 		}
-		else
-		{
-			Elt2 = Elt;
-			Elt = EBML_ElementSkipData(Elt2,(stream*)File->Input,&File->L1Context,NULL,1);
-			NodeDelete((node*)Elt2);
-		}
+		if (File->CurrentCluster && File->CurrentBlock)
+			break;
 	}
 
 	assert(File->CurrentBlock!=NULL);
-	if (MATROSKA_BlockGetFrame(File->CurrentBlock,File->CurrentFrame++,&Frame)!=ERR_NONE)
+	if (MATROSKA_BlockGetFrame(File->CurrentBlock,File->CurrentFrame,&Frame,0)!=ERR_NONE)
 		return -1; // TODO: memory leaks
 
 	if (track)
@@ -912,7 +928,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 	}
 
 	if (FilePos)
-		*FilePos = Elt->ElementPosition;
+		*FilePos = ((ebml_element*)File->CurrentBlock)->ElementPosition;
 	if (FrameFlags)
 	{
 		if (Frame.Timecode == INVALID_TIMECODE_T)
@@ -922,7 +938,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 		if (MATROSKA_BlockKeyframe(File->CurrentBlock))
 			*FrameFlags |= FRAME_KF;
 	}
-	*FrameRef = File->Input->io->makeref(File->Input->io,Frame.Size);
+	*FrameRef = File->Input->io->makeref(File->Input->io,MATROSKA_BlockGetLength(File->CurrentBlock,File->CurrentFrame++));
 
 	if (File->CurrentFrame >= MATROSKA_BlockGetFrameCount(File->CurrentBlock))
 	{

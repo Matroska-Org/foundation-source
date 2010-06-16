@@ -1272,7 +1272,7 @@ int main(int argc, const char *argv[])
 								{
 									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
 										break;
-									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 								}
 
@@ -1301,7 +1301,7 @@ int main(int argc, const char *argv[])
 								{
 									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
 										break;
-									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 								}
 
@@ -1339,7 +1339,7 @@ int main(int argc, const char *argv[])
 									{
 										if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
 											break;
-										MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+										MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 										MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 									}
 	                                
@@ -1372,7 +1372,7 @@ int main(int argc, const char *argv[])
 									{
 										if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
 											break;
-										MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData);
+										MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 										MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 									}
 	                                
