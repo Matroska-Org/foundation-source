@@ -106,6 +106,7 @@ EBML_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with 
 EBML_DLL ebml_element *MATROSKA_BlockTrack(const matroska_block *Block);
 EBML_DLL ebml_element *MATROSKA_BlockSegmentInfo(const matroska_block *Block);
 
+EBML_DLL err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum);
 EBML_DLL void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set);
 EBML_DLL err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input);
 EBML_DLL size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block);

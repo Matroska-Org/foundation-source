@@ -819,6 +819,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 	TrackInfo *tr;
 	int16_t TrackNum;
 	matroska_frame Frame;
+	bool_t Skip;
 	int UpperLevel = 0;
 
 	if (FrameFlags)
@@ -878,6 +879,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				break; // go to the next Cluster
 			}
 
+			Skip = 0;
 			if (Elt->Context->Id == MATROSKA_ContextClusterTimecode.Id)
 			{
 				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
@@ -899,7 +901,25 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
 				File->CurrentBlock = (matroska_block*)Elt;
 			}
-			else
+			else if (Elt->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+			{
+				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
+					return EOF; // TODO: memory leak
+
+				Elt2 = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
+				if (!Elt2)
+					Skip = 1;
+				else
+				{
+					EBML_MasterAppend(File->CurrentCluster, Elt);
+					MATROSKA_LinkBlockWithTracks((matroska_block*)Elt2,File->TrackList);
+					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,File->SegmentInfo);
+					File->CurrentBlock = (matroska_block*)Elt2;
+				}
+			}
+			else Skip = 1;
+
+			if (Skip)
 			{
 				Elt2 = Elt;
 				Elt = EBML_ElementSkipData(Elt2,(stream*)File->Input,&File->L1Context,NULL,1);
@@ -941,6 +961,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 		if (MATROSKA_BlockKeyframe(File->CurrentBlock))
 			*FrameFlags |= FRAME_KF;
 	}
+	MATROSKA_BlockSkipToFrame(File->CurrentBlock, (stream*)File->Input, File->CurrentFrame);
 	*FrameRef = File->Input->io->makeref(File->Input->io,MATROSKA_BlockGetLength(File->CurrentBlock,File->CurrentFrame++));
 
 	if (File->CurrentFrame >= MATROSKA_BlockGetFrameCount(File->CurrentBlock))
@@ -999,7 +1020,8 @@ int mkv_TruncFloat(float f)
 
 static filepos_t Seek(haali_stream *p ,filepos_t Pos,int SeekMode)
 {
-	p->io->ioseek(p->io,Pos,SeekMode);
+	if (!(Pos == 0 && SeekMode==SEEK_CUR))
+		p->io->ioseek(p->io,Pos,SeekMode);
 	return p->io->iotell(p->io);
 }
 

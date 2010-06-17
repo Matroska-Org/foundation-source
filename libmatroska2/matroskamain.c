@@ -1061,6 +1061,25 @@ err_t MATROSKA_BlockReleaseData(matroska_block *Block)
     return ERR_NONE;
 }
 
+err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum)
+{
+	uint32_t *i;
+	filepos_t SeekPos = EBML_ElementPositionData((ebml_element*)Block);
+	if (FrameNum >= ARRAYCOUNT(Block->SizeList,uint32_t))
+		return ERR_INVALID_PARAM;
+	if (Block->Lacing == LACING_NONE)
+		SeekPos += GetBlockHeadSize(Block);
+	else
+	{
+		SeekPos += Block->FirstFrameLocation;
+		for (i=ARRAYBEGIN(Block->SizeList,uint32_t);FrameNum;--FrameNum,++i)
+			SeekPos += *i;
+	}
+	if (Stream_Seek(Input,SeekPos,SEEK_SET) != SeekPos)
+		return ERR_READ;
+	return ERR_NONE;
+}
+
 err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 {
     size_t Read;
