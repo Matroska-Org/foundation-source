@@ -820,10 +820,14 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 	int16_t TrackNum;
 	matroska_frame Frame;
 	bool_t Skip;
+	unsigned int Track;
 	int UpperLevel = 0;
 
 	if (FrameFlags)
 		*FrameFlags = 0;
+	if (!track)
+		track = &Track;
+	*track = (unsigned int)-1;
 
 	for (;;)
 	{
@@ -896,10 +900,19 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
 
-				EBML_MasterAppend(File->CurrentCluster, Elt);
-				MATROSKA_LinkBlockWithTracks((matroska_block*)Elt,File->TrackList);
-				MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
-				File->CurrentBlock = (matroska_block*)Elt;
+				TrackNum = MATROSKA_BlockTrackNum((matroska_block*)Elt);
+				for (*track=0, tr=ARRAYBEGIN(File->Tracks,TrackInfo);tr!=ARRAYEND(File->Tracks,TrackInfo);++tr,(*track)++)
+					if (TrackNum==tr->Number)
+						break;
+				if (tr==ARRAYEND(File->Tracks,TrackInfo) || (1<<*track & File->trackMask)!=0)
+					Skip = 1;
+				else
+				{
+					EBML_MasterAppend(File->CurrentCluster, Elt);
+					MATROSKA_LinkBlockWithTracks((matroska_block*)Elt,File->TrackList);
+					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
+					File->CurrentBlock = (matroska_block*)Elt;
+				}
 			}
 			else if (Elt->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
 			{
@@ -911,10 +924,20 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 					Skip = 1;
 				else
 				{
-					EBML_MasterAppend(File->CurrentCluster, Elt);
-					MATROSKA_LinkBlockWithTracks((matroska_block*)Elt2,File->TrackList);
-					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,File->SegmentInfo);
-					File->CurrentBlock = (matroska_block*)Elt2;
+					TrackNum = MATROSKA_BlockTrackNum((matroska_block*)Elt2);
+					for (*track=0, tr=ARRAYBEGIN(File->Tracks,TrackInfo);tr!=ARRAYEND(File->Tracks,TrackInfo);++tr,(*track)++)
+						if (TrackNum==tr->Number)
+							break;
+
+					if (tr==ARRAYEND(File->Tracks,TrackInfo) || (1<<*track & File->trackMask)!=0)
+						Skip = 1;
+					else
+					{
+						EBML_MasterAppend(File->CurrentCluster, Elt);
+						MATROSKA_LinkBlockWithTracks((matroska_block*)Elt2,File->TrackList);
+						MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,File->SegmentInfo);
+						File->CurrentBlock = (matroska_block*)Elt2;
+					}
 				}
 			}
 			else Skip = 1;
@@ -934,7 +957,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 	if (MATROSKA_BlockGetFrame(File->CurrentBlock,File->CurrentFrame,&Frame,0)!=ERR_NONE)
 		return -1; // TODO: memory leaks
 
-	if (track)
+	if (*track==(unsigned int)-1)
 	{
 		TrackNum = MATROSKA_BlockTrackNum(File->CurrentBlock);
 		for (*track=0, tr=ARRAYBEGIN(File->Tracks,TrackInfo);tr!=ARRAYEND(File->Tracks,TrackInfo);++tr,(*track)++)
