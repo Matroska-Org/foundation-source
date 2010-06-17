@@ -87,6 +87,7 @@ EBML_DLL err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timec
 EBML_DLL timecode_t MATROSKA_ClusterTimecode(const matroska_cluster *Cluster);
 EBML_DLL timecode_t MATROSKA_BlockTimecode(matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
+EBML_DLL filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue);
 EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 EBML_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
 EBML_DLL bool_t MATROSKA_BlockLaced(const matroska_block *Block);
@@ -97,6 +98,8 @@ EBML_DLL void MATROSKA_CuesSort(ebml_element *Cues);
 EBML_DLL fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSeek);
+
+EBML_DLL matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode);
 
 EBML_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!
 

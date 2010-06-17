@@ -758,6 +758,9 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 			parseTracks(Head, File, err_msg, err_msgSize);
 		else if (Head->Context->Id == MATROSKA_ContextCues.Id)
 			parseCues(Head, File, err_msg, err_msgSize);
+		// TODO handle attachments
+		// TODO handle chapters
+		// TODO handle tags
 		else
 		{
 			if (Head->Context->Id==MATROSKA_ContextCluster.Id && File->pFirstCluster==INVALID_FILEPOS_T)
@@ -949,18 +952,44 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 	return 0;
 }
 
+static void SeekToPos(MatroskaFile *File, filepos_t SeekPos)
+{
+	if (File->CurrentBlock)
+	{
+		NodeDelete((node*)File->CurrentBlock);
+		File->CurrentBlock = NULL;
+	}
+	File->CurrentFrame = 0;
+	if (File->CurrentCluster && File->CurrentCluster->ElementPosition!=SeekPos)
+	{
+		NodeDelete((node*)File->CurrentCluster);
+		File->CurrentCluster = NULL;
+	}
+	File->Input->io->ioseek(File->Input->io,SeekPos,SEEK_SET);
+}
+
 void mkv_Seek(MatroskaFile *File, timecode_t timecode, int flags)
 {
-	if (File->flags & MKVF_AVOID_SEEKS)
+	matroska_cuepoint *CuePoint;
+	filepos_t SeekPos;
+
+	if (File->flags & MKVF_AVOID_SEEKS || File->pFirstCluster==INVALID_FILEPOS_T || timecode==INVALID_TIMECODE_T)
 		return;
 
 	if (timecode==0)
 	{
-		File->CurrentCluster = NULL;
-		File->Input->io->ioseek(File->Input->io,File->pFirstCluster,SEEK_SET);
+		SeekToPos(File, File->pFirstCluster);
 		return;
 	}
-	assert(0); // not supported yet
+	if (!File->CueList)
+		return;
+
+	CuePoint = MATROSKA_CuesGetTimecodeStart(File->CueList,timecode);
+	if (CuePoint==NULL)
+		return;
+
+	SeekPos = MATROSKA_CuePosInSegment(CuePoint) + EBML_ElementPositionData(File->Segment);
+	SeekToPos(File, SeekPos);
 }
 
 int mkv_TruncFloat(float f)

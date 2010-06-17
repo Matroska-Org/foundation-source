@@ -932,6 +932,20 @@ timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue)
     return ((ebml_integer*)TimeCode)->Value * MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo);
 }
 
+filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue)
+{
+    ebml_element *TimeCode;
+    assert(Cue->Base.Context->Id == MATROSKA_ContextCuePoint.Id);
+    TimeCode = EBML_MasterFindFirstElt((ebml_element*)Cue,&MATROSKA_ContextCueTrackPositions,0,0);
+    if (!TimeCode)
+        return INVALID_TIMECODE_T;
+    TimeCode = EBML_MasterFindFirstElt((ebml_element*)TimeCode,&MATROSKA_ContextCueClusterPosition,0,0);
+    if (!TimeCode)
+        return INVALID_TIMECODE_T;
+    assert(TimeCode->bValueIsSet);
+    return EBML_IntegerValue(TimeCode);
+}
+
 err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
 {
     ebml_element *TimeCode, *Elt, *PosInCluster, *TrackNum;
@@ -1571,6 +1585,24 @@ static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)
     if (NB > NA)
         return -1;
     return 0;
+}
+
+matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode)
+{
+	matroska_cuepoint *Elt,*Prev=NULL;
+
+	assert(Cues!=NULL);
+	assert(Cues->Context->Id == MATROSKA_ContextCues.Id);
+	if (Timecode==INVALID_TIMECODE_T)
+		return NULL;
+
+	for (Elt=(matroska_cuepoint*)EBML_MasterChildren(Cues);Elt;Prev=Elt, Elt=(matroska_cuepoint*)EBML_MasterNext(Elt))
+	{
+		if (MATROSKA_CueTimecode(Elt) > Timecode)
+			break;
+	}
+
+	return Prev ? Prev : (matroska_cuepoint*)EBML_MasterChildren(Cues);
 }
 
 static bool_t ValidateSizeSegUID(const ebml_binary *p)
