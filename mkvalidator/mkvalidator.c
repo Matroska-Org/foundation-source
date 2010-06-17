@@ -608,6 +608,7 @@ int main(int argc, const char *argv[])
     int i,UpperElement;
 	int MatroskaProfile = 0;
     bool_t HasVideo = 0;
+	int DotCount;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -724,14 +725,13 @@ int main(int argc, const char *argv[])
     RSegmentContext.EndPosition = EBML_ElementPositionEnd(RSegment);
     RSegmentContext.UpContext = &RContext;
 	UpperElement = 0;
+	DotCount = 0;
 //TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
     RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
 	{
         if (RLevel1->Context->Id == MATROSKA_ContextCluster.Id)
         {
-            //TextWrite(StdErr,T("."));
-
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
@@ -954,7 +954,10 @@ int main(int argc, const char *argv[])
 			EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
             NodeDelete((node*)RLevel1);
 		}
-        //TextWrite(StdErr,T("."));
+        TextWrite(StdErr,T(".")); ++DotCount;
+		if (!(DotCount % 60))
+			TextWrite(StdErr,T("\r                                                              \r"));
+
 
 		RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
 	}
