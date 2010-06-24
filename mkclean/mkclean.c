@@ -774,7 +774,7 @@ int main(int argc, const char *argv[])
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 			TimeCodeScale = StringToInt(Path,0);
 		}
-		else TextPrintf(StdErr,T("Unknown parameters '%s'\r\n"),Path);
+		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-2]);

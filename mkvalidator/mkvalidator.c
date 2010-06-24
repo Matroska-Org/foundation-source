@@ -42,9 +42,21 @@
 static textwriter *StdErr = NULL;
 static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
 static array RClusters;
+static array Tracks;
 static size_t TrackMax=0;
 static bool_t Warnings = 1;
 static bool_t Live = 0;
+static bool_t Details = 0;
+static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
+
+typedef struct track_info
+{
+    int Num;
+    int Kind;
+    ebml_string *CodecID;
+    filepos_t DataLength;
+
+} track_info;
 
 #ifdef TARGET_WIN
 #include <windows.h>
@@ -517,6 +529,8 @@ static int CheckLacingKeyframe()
 	matroska_cluster **Cluster;
     ebml_element *Block, *GBlock;
     int16_t BlockNum;
+    timecode_t BlockTime;
+    size_t Frame,TrackIdx;
 
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
     {
@@ -530,10 +544,30 @@ static int CheckLacingKeyframe()
 				    {
                         //MATROSKA_ContextTrackLacing
                         BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
-                        if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(BlockNum))
-                            Result |= OutputError(0xB0,T("Block at %lld track #%d is laced but the track is not"),(long)GBlock->ElementPosition,(int)BlockNum);
-                        if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && !TrackIsVideo(BlockNum))
-                            Result |= OutputError(0xB1,T("Block at %lld track #%d is not a keyframe"),(long)GBlock->ElementPosition,(int)BlockNum);
+                        for (TrackIdx=0; TrackIdx<ARRAYCOUNT(Tracks,track_info); ++TrackIdx)
+                            if (ARRAYBEGIN(Tracks,track_info)[TrackIdx].Num == BlockNum)
+                                break;
+                        
+                        if (TrackIdx==ARRAYCOUNT(Tracks,track_info))
+                            Result |= OutputError(0xB2,T("Block at %lld is using an unknown track #%d"),(long)GBlock->ElementPosition,(int)BlockNum);
+                        else
+                        {
+                            if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(BlockNum))
+                                Result |= OutputError(0xB0,T("Block at %lld track #%d is laced but the track is not"),(long)GBlock->ElementPosition,(int)BlockNum);
+                            if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && !TrackIsVideo(BlockNum))
+                                Result |= OutputError(0xB1,T("Block at %lld track #%d is not a keyframe"),(long)GBlock->ElementPosition,(int)BlockNum);
+
+                            for (Frame=0; Frame<MATROSKA_BlockGetFrameCount((matroska_block*)GBlock); ++Frame)
+                                ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((matroska_block*)GBlock,Frame);
+                            if (Details)
+                            {
+                                BlockTime = MATROSKA_BlockTimecode((matroska_block*)GBlock);
+                                if (MinTime==INVALID_TIMECODE_T || MinTime>BlockTime)
+                                    MinTime = BlockTime;
+                                if (MaxTime==INVALID_TIMECODE_T || MaxTime<BlockTime)
+                                    MaxTime = BlockTime;
+                            }
+                        }
 					    break;
 				    }
 			    }
@@ -541,10 +575,29 @@ static int CheckLacingKeyframe()
 		    else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		    {
                 BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
-                if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(BlockNum))
-                    Result |= OutputError(0xB0,T("SimpleBlock at %lld track #%d is laced but the track is not"),(long)Block->ElementPosition,(int)BlockNum);
-                if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && !TrackIsVideo(BlockNum))
-                    Result |= OutputError(0xB1,T("SimpleBlock at %lld track #%d is not a keyframe"),(long)Block->ElementPosition,(int)BlockNum);
+                for (TrackIdx=0; TrackIdx<ARRAYCOUNT(Tracks,track_info); ++TrackIdx)
+                    if (ARRAYBEGIN(Tracks,track_info)[TrackIdx].Num == BlockNum)
+                        break;
+                
+                if (TrackIdx==ARRAYCOUNT(Tracks,track_info))
+                    Result |= OutputError(0xB2,T("Block at %lld is using an unknown track #%d"),(long)Block->ElementPosition,(int)BlockNum);
+                else
+                {
+                    if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(BlockNum))
+                        Result |= OutputError(0xB0,T("SimpleBlock at %lld track #%d is laced but the track is not"),(long)Block->ElementPosition,(int)BlockNum);
+                    if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && !TrackIsVideo(BlockNum))
+                        Result |= OutputError(0xB1,T("SimpleBlock at %lld track #%d is not a keyframe"),(long)Block->ElementPosition,(int)BlockNum);
+                    for (Frame=0; Frame<MATROSKA_BlockGetFrameCount((matroska_block*)Block); ++Frame)
+                        ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((matroska_block*)Block,Frame);
+                    if (Details)
+                    {
+                        BlockTime = MATROSKA_BlockTimecode((matroska_block*)Block);
+                        if (MinTime==INVALID_TIMECODE_T || MinTime>BlockTime)
+                            MinTime = BlockTime;
+                        if (MaxTime==INVALID_TIMECODE_T || MaxTime<BlockTime)
+                            MaxTime = BlockTime;
+                    }
+                }
 		    }
 	    }
     }
@@ -609,6 +662,7 @@ int main(int argc, const char *argv[])
 	int MatroskaProfile = 0;
     bool_t HasVideo = 0;
 	int DotCount;
+    track_info *TI;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -619,6 +673,7 @@ int main(int argc, const char *argv[])
     MATROSKA_Init((nodecontext*)&p);
 
     ArrayInit(&RClusters);
+    ArrayInit(&Tracks);
 
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));
@@ -632,6 +687,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("Options:\r\n"));
 		TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
         TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
+        TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
         goto exit;
     }
 
@@ -642,6 +698,9 @@ int main(int argc, const char *argv[])
 			Warnings = 0;
 		else if (tcsisame_ascii(Path,T("--live")))
 			Live = 1;
+		else if (tcsisame_ascii(Path,T("--details")))
+			Details = 1;
+		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
@@ -818,21 +877,47 @@ int main(int argc, const char *argv[])
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 
-                    EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
-                    while (EbmlHead)
+                    if (Result==0)
                     {
-                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
-                        if (EbmlDocVer && EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
+                        size_t TrackCount;
+
+                        EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                        TrackCount = 0;
+                        while (EbmlHead)
                         {
-                            HasVideo = 1;
+                            EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                            ++TrackCount;
                         }
-                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
-                        if (EbmlDocVer)
-                            TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
-                        EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+
+                        ArrayResize(&Tracks,TrackCount*sizeof(track_info),256);
+                        ArrayZero(&Tracks);
+
+                        EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                        TrackCount = 0;
+                        while (EbmlHead)
+                        {
+                            EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
+                            assert(EbmlDocVer!=NULL);
+                            if (EbmlDocVer)
+                            {
+                                if (EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
+                                    HasVideo = 1;
+                                ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
+                            }
+                            EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
+                            assert(EbmlDocVer!=NULL);
+                            if (EbmlDocVer)
+                            {
+                                TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
+                                ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EBML_IntegerValue(EbmlDocVer);
+                            }
+                            ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackCodecID,0,0);
+                            EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                            ++TrackCount;
+                        }
+                        EbmlDocVer = NULL;
+                        EbmlHead = NULL;
                     }
-                    EbmlDocVer = NULL;
-                    EbmlHead = NULL;
 				}
 			}
 			else
@@ -1005,8 +1090,25 @@ int main(int argc, const char *argv[])
 	if (RTrackInfo)
 		CheckCodecs(RTrackInfo, MatroskaProfile);
 
+    for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
+    {
+        if (TI->DataLength==0)
+            OutputWarning(0xB8,T("Track #%d is defined but has no frame"),TI->Num);
+    }
+
 	if (Result==0)
+    {
         TextPrintf(StdErr,T("\r%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
+        if (Details)
+        {
+            track_info *TI;
+            for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
+            {
+                EBML_StringGet(TI->CodecID,String,TSIZEOF(String));
+                TextPrintf(StdErr,T("Track #%d %18s %lld bits/s\r\n"),TI->Num,String,(long)Scale64(TI->DataLength,8000000000,MaxTime-MinTime));
+            }
+        }
+    }
 
 exit:
 	if (RSegmentInfo)
@@ -1053,6 +1155,7 @@ exit:
         NodeDelete((node*)RSegment);
     if (EbmlHead)
         NodeDelete((node*)EbmlHead);
+    ArrayClear(&Tracks);
     if (Input)
         StreamClose(Input);
 

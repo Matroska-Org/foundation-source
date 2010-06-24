@@ -1,3 +1,9 @@
+2010-06-24
+version 0.1.9:
+    - add a --details parameter to show the various tracks and bitrate of valid files
+    - add a warning when a track is defined but has no frame defined
+    - fix keyframe checking of the first video frame of each cluster
+
 2010-05-27
 version 0.1.8:
     - add a --live parameter to only check errors and warnings relevant to live streams
