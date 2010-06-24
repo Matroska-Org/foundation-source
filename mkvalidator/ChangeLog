@@ -2,6 +2,7 @@
 version 0.1.9:
     - add a --details parameter to show the various tracks and bitrate of valid files
     - add a warning when a track is defined but has no frame defined
+    - verify that timecodes of clusters are increasing
     - fix keyframe checking of the first video frame of each cluster
 
 2010-05-27

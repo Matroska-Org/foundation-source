@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo verify that timecodes of clusters are increasing
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
  * \todo optionally show the use of deprecated elements
@@ -48,6 +47,7 @@ static bool_t Warnings = 1;
 static bool_t Live = 0;
 static bool_t Details = 0;
 static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
+static timecode_t ClusterTime = INVALID_TIMECODE_T;
 
 typedef struct track_info
 {
@@ -452,6 +452,7 @@ static int CheckVideoStart()
 	ebml_element **Cluster;
     ebml_element *Block, *GBlock;
     int16_t BlockNum;
+    timecode_t ClusterTimecode;
     array TrackKeyframe;
 
 	for (Cluster=ARRAYBEGIN(RClusters,ebml_element*);Cluster!=ARRAYEND(RClusters,ebml_element*);++Cluster)
@@ -459,6 +460,14 @@ static int CheckVideoStart()
         ArrayInit(&TrackKeyframe);
         ArrayResize(&TrackKeyframe,sizeof(bool_t)*(TrackMax+1),256);
         ArrayZero(&TrackKeyframe);
+
+        ClusterTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)*Cluster);
+        if (ClusterTimecode==INVALID_TIMECODE_T)
+            Result |= OutputError(0xC1,T("The Cluster at %lld has no timecode"),(long)(*Cluster)->ElementPosition);
+        else if (ClusterTime!=INVALID_TIMECODE_T && ClusterTime >= ClusterTimecode)
+            Result |= OutputError(0xC2,T("The timecode of the Cluster at %lld is not incrementing"),(long)(*Cluster)->ElementPosition);
+        ClusterTime = ClusterTimecode;
+
 	    for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
 	    {
 		    if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
