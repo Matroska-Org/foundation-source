@@ -9,6 +9,7 @@ CON mkclean
   SOURCE mkclean.c
   COMPILE src.br
   COMPILE bootstrap.sh
+  COMPILE pkg.sh
 }
 
 
