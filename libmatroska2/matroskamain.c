@@ -37,6 +37,7 @@
 #define MATROSKA_CLUSTER_CLASS    FOURCC('M','K','C','U')
 #define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
 #define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
+#define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
 
 // Seek Header
 const ebml_context MATROSKA_ContextSeekId = {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_SemanticGlobals, NULL};
@@ -465,7 +466,7 @@ const ebml_context MATROSKA_ContextCues = {0x1C53BB6B, EBML_MASTER_CLASS, 0, 0, 
 const ebml_context MATROSKA_ContextAttachedFileDescription = {0x467E, EBML_UNISTRING_CLASS, 0, 0, "AttachedFileDescription", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextAttachedFileName = {0x466E, EBML_UNISTRING_CLASS, 0, 0, "AttachedFileName", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextAttachedFileMimeType = {0x4660, EBML_STRING_CLASS, 0, 0, "AttachedFileMimeType", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextAttachedFileData = {0x465C, EBML_BINARY_CLASS, 0, 0, "AttachedFileData", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextAttachedFileData = {0x465C, MATROSKA_BIGBINARY_CLASS, 0, 0, "AttachedFileData", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextAttachedFileUID = {0x46AE, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticAttachedFile[] = {
     {1, 1, &MATROSKA_ContextAttachedFileName        ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
@@ -1161,6 +1162,16 @@ static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Befo
 	return Result;
 }
 
+static err_t ReadBigBinaryData(ebml_binary *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+{
+    if (Scope == SCOPE_PARTIAL_DATA)
+    {
+        EBML_ElementSkipData(Element,Input,ParserContext,NULL,AllowDummyElt);
+        return ERR_NONE;
+    }
+    return INHERITED(Element,ebml_element_vmt,MATROSKA_BIGBINARY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope);
+}
+
 static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
     err_t Result;
@@ -1662,6 +1673,10 @@ META_END_CONTINUE(EBML_BINARY_CLASS)
 META_START_CONTINUE(MATROSKA_BLOCKGROUP_CLASS)
 META_VMT(TYPE_FUNC,nodetree_vmt,SetParent,SetBlockGroupParent)
 META_END_CONTINUE(EBML_MASTER_CLASS)
+
+META_START_CONTINUE(MATROSKA_BIGBINARY_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadBigBinaryData)
+META_END_CONTINUE(EBML_BINARY_CLASS)
 
 META_START_CONTINUE(MATROSKA_CUEPOINT_CLASS)
 META_CLASS(SIZE,sizeof(matroska_cuepoint))

@@ -153,6 +153,13 @@ extern const ebml_context MATROSKA_ContextAttachments;
 extern const ebml_context MATROSKA_ContextChapters;
 extern const ebml_context MATROSKA_ContextTags;
 
+extern const ebml_context MATROSKA_ContextAttachedFile;
+extern const ebml_context MATROSKA_ContextAttachedFileName;
+extern const ebml_context MATROSKA_ContextAttachedFileMimeType;
+extern const ebml_context MATROSKA_ContextAttachedFileData;
+extern const ebml_context MATROSKA_ContextAttachedFileUID;
+extern const ebml_context MATROSKA_ContextAttachedFileDescription;
+
 extern const ebml_context MATROSKA_ContextTrackEntry;
 extern const ebml_context MATROSKA_ContextTrackType;
 extern const ebml_context MATROSKA_ContextTrackNumber;
