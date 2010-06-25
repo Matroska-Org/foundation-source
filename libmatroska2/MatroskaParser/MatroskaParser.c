@@ -666,6 +666,72 @@ static bool_t parseCues(ebml_element *Cues, MatroskaFile *File, char *err_msg, s
 	return 1;
 }
 
+static bool_t parseAttachments(ebml_element *Attachments, MatroskaFile *File, char *err_msg, size_t err_msgSize)
+{
+	ebml_parser_context RContext;
+    ebml_element *Elt, *Elt2;
+    size_t Count;
+    Attachment *At;
+
+	RContext.Context = Attachments->Context;
+	if (EBML_ElementIsFiniteSize(Attachments))
+		RContext.EndPosition = EBML_ElementPositionEnd(Attachments);
+	else
+		RContext.EndPosition = INVALID_FILEPOS_T;
+    RContext.UpContext = &File->L1Context;
+	if (EBML_ElementReadData(Attachments,(stream*)File->Input,&RContext,1,SCOPE_PARTIAL_DATA)!=ERR_NONE)
+	{
+		strncpy(err_msg,"Failed to read the Attachments",err_msgSize);
+		File->pAttachments = INVALID_FILEPOS_T;
+		return 0;
+	}
+	File->pAttachments = Attachments->ElementPosition;
+
+    Count=0;
+    Elt = EBML_MasterFindFirstElt(Attachments, &MATROSKA_ContextAttachedFile, 0,0);
+    while (Elt)
+    {
+        ++Count;
+        Elt = EBML_MasterFindNextElt(Attachments, Elt, 0,0);
+    }
+    ArrayResize(&File->Attachments,Count*sizeof(Attachment),0);
+    ArrayZero(&File->Attachments);
+
+    for (Elt = EBML_MasterFindFirstElt(Attachments, &MATROSKA_ContextAttachedFile, 0,0),At=ARRAYBEGIN(File->Attachments,Attachment);
+        At!=ARRAYEND(File->Attachments,Attachment); ++At, Elt = EBML_MasterFindNextElt(Attachments, Elt, 0,0))
+    {
+        At->Length = INVALID_FILEPOS_T;
+        At->Position = INVALID_FILEPOS_T;
+        for (Elt2=EBML_MasterChildren(Elt);Elt2;Elt2=EBML_MasterNext(Elt2))
+        {
+            if (Elt2->Context->Id == MATROSKA_ContextAttachedFileName.Id)
+            {
+                At->Name = File->Input->io->memalloc(File->Input->io, (size_t)(Elt2->DataSize+1));
+			    strcpy(At->Name,((ebml_string*)Elt2)->Buffer);
+            }
+            else if (Elt2->Context->Id == MATROSKA_ContextAttachedFileData.Id)
+            {
+                At->Position = EBML_ElementPositionData(Elt2);
+                At->Length = Elt2->DataSize;
+            }
+            else if (Elt2->Context->Id == MATROSKA_ContextAttachedFileUID.Id)
+                At->UID = EBML_IntegerValue(Elt2);
+            else if (Elt2->Context->Id == MATROSKA_ContextAttachedFileMimeType.Id)
+            {
+                At->MimeType = File->Input->io->memalloc(File->Input->io, (size_t)(Elt2->DataSize+1));
+			    strcpy(At->MimeType,((ebml_string*)Elt2)->Buffer);
+            }
+            else if (Elt2->Context->Id == MATROSKA_ContextAttachedFileDescription.Id)
+            {
+                At->Description = File->Input->io->memalloc(File->Input->io, (size_t)(Elt2->DataSize+1));
+			    strcpy(At->Description,((ebml_string*)Elt2)->Buffer);
+            }
+        }
+    }
+
+	return 1;
+}
+
 MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 {
 	int UpperLevel;
@@ -758,7 +824,11 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 			parseTracks(Head, File, err_msg, err_msgSize);
 		else if (Head->Context->Id == MATROSKA_ContextCues.Id)
 			parseCues(Head, File, err_msg, err_msgSize);
-		// TODO handle attachments
+		else if (Head->Context->Id == MATROSKA_ContextAttachments.Id)
+        {
+			parseAttachments(Head, File, err_msg, err_msgSize);
+			NodeDelete((node*)Head);
+		}
 		// TODO handle chapters
 		// TODO handle tags
 		else
@@ -791,6 +861,19 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 	return File;
 }
 
+static void releaseAttachments(array *Attachments, MatroskaFile *File)
+{
+    Attachment *At;
+    for (At=ARRAYBEGIN(File->Attachments,Attachment); At!=ARRAYEND(File->Attachments,Attachment); ++At)
+    {
+        if (At->Name) File->Input->io->memfree(File->Input->io, At->Name);
+        if (At->MimeType) File->Input->io->memfree(File->Input->io, At->MimeType);
+        if (At->Description) File->Input->io->memfree(File->Input->io, At->Description);
+    }
+	ArrayClear(Attachments);
+}
+
+
 void mkv_Close(MatroskaFile *File)
 {
 	if (File->Seg.Filename) File->Input->io->memfree(File->Input->io, File->Seg.Filename);
@@ -801,7 +884,7 @@ void mkv_Close(MatroskaFile *File)
 	if (File->Seg.WritingApp) File->Input->io->memfree(File->Input->io, File->Seg.WritingApp);
 
 	ArrayClear(&File->Tracks);
-	ArrayClear(&File->Attachments);
+    releaseAttachments(&File->Attachments, File);
 	ArrayClear(&File->Chapters);
 	ArrayClear(&File->Tags);
 

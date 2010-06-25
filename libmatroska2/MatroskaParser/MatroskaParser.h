@@ -112,9 +112,12 @@ typedef struct TrackInfo
 
 typedef struct Attachment
 {
-	char* MimeType;
 	filepos_t Position;
-	size_t Length;
+	filepos_t Length;
+	uint64_t UID;
+	char* Name;
+	char* Description;
+	char* MimeType;
 
 } Attachment;
 
