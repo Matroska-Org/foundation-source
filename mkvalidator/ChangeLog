@@ -1,3 +1,7 @@
+2010-06-xx
+version 0.1.10:
+    - display the 64 bits integers correctly on all platforms
+
 2010-06-24
 version 0.1.9:
     - add a --details parameter to show the various tracks and bitrate of valid files

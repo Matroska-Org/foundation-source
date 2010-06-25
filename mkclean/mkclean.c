@@ -188,7 +188,7 @@ static void ReduceSize(ebml_element *Element)
 						{
 							tchar_t IdString[MAXPATH];
 							Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
-							TextPrintf(StdErr,T("The %s element at %lld is missing mandatory elements, skipping\r\n"),IdString,(long)i->ElementPosition);
+							TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory elements, skipping\r\n"),IdString,i->ElementPosition);
 							EBML_MasterRemove(Element,i);
 							NodeDelete((node*)i);
 							i=EBML_MasterChildren(Element);
@@ -352,7 +352,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > EBML_MAX_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -365,7 +365,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > EBML_MAX_ID)
             {
-                TextPrintf(StdErr,T("EBML Max ID Length %ld not supported"),(long)EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Max ID Length %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -378,7 +378,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > EBML_MAX_SIZE)
             {
-                TextPrintf(StdErr,T("EBML Max Coded Size %ld not supported"),(long)EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Max Coded Size %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -398,7 +398,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                     SrcProfile = PROFILE_WEBM_V2;
                 else
                 {
-                    TextPrintf(StdErr,T("EBML DocType %s not supported"),(long)EBML_IntegerValue(SubElement));
+                    TextPrintf(StdErr,T("EBML DocType %s not supported"),EBML_IntegerValue(SubElement));
                     break;
                 }
             }
@@ -412,7 +412,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > MATROSKA_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %ld not supported"),(long)EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
                 break;
             }
             else
@@ -471,7 +471,7 @@ static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input, b
 
     if (!Live && Cluster->ElementPosition != IntendedPosition)
     {
-        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %ld vs %ld"),(long)Cluster->ElementPosition,(long)IntendedPosition);
+        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T(""),Cluster->ElementPosition,IntendedPosition);
     }
 }
 
@@ -639,7 +639,7 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
 		Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackNumber,0,0);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track at %lld has no number set!\r\n"), (long)CurTrack->ElementPosition);
+			TextPrintf(StdErr,T("The track at %") TPRId64 T(" has no number set!\r\n"),CurTrack->ElementPosition);
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -648,7 +648,7 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
 		Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackCodecID,0,0);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track %d at %lld has no CodecID set!\r\n"), TrackNum, (long)CurTrack->ElementPosition);
+			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,CurTrack->ElementPosition);
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -656,7 +656,7 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
 		Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackType,0,0);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track %d at %lld has no type set!\r\n"), TrackNum, (long)CurTrack->ElementPosition);
+			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no type set!\r\n"), TrackNum,CurTrack->ElementPosition);
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -1675,11 +1675,11 @@ int main(int argc, const char *argv[])
 		{
 			if (EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0))
 			{
-				TextPrintf(StdErr,T("The segment written is much bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->DataSize);
+				TextPrintf(StdErr,T("The segment written is much bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->DataSize);
 				Result = -20;
 				goto exit;
 			}
-			TextPrintf(StdErr,T("The segment written is bigger than the original %ld vs %ld !\r\n"),(long)SegmentSize,(long)WSegment->DataSize);
+			TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->DataSize);
 		}
 		WSegment->DataSize = SegmentSize;
 		Stream_Seek(Output,WSegment->ElementPosition,SEEK_SET);
@@ -1701,7 +1701,7 @@ int main(int argc, const char *argv[])
 		}
 		if (MetaSeekBefore != MetaSeekAfter)
 		{
-			TextPrintf(StdErr,T("The final Seek Head size has changed %ld vs %ld !\r\n"),(long)MetaSeekBefore,(long)MetaSeekAfter);
+			TextPrintf(StdErr,T("The final Seek Head size has changed %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),MetaSeekBefore,MetaSeekAfter);
 			Result = -23;
 			goto exit;
 		}
