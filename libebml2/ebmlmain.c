@@ -412,9 +412,9 @@ int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFin
 			CodedSize = 1;
 		else if (Length < 16383) // 2^14 - 1
 			CodedSize = 2;
-		else if (Length < 2097151L) // 2^21 - 1
+		else if (Length < 2097151) // 2^21 - 1
 			CodedSize = 3;
-		else if (Length < 268435455L) // 2^28 - 1
+		else if (Length < 268435455) // 2^28 - 1
 			CodedSize = 4;
 		else CodedSize = 5;
 	}
@@ -424,9 +424,9 @@ int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFin
 			CodedSize = 1;
 		else if (Length <= 16383) // 2^14 - 1
 			CodedSize = 2;
-		else if (Length <= 2097151L) // 2^21 - 1
+		else if (Length <= 2097151) // 2^21 - 1
 			CodedSize = 3;
-		else if (Length <= 268435455L) // 2^28 - 1
+		else if (Length <= 268435455) // 2^28 - 1
 			CodedSize = 4;
 		else CodedSize = 5;
 	}
@@ -447,9 +447,9 @@ int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength)
 		CodedSize = 1;
 	else if (Length > -8192 && Length < 8192) // 2^13
 		CodedSize = 2;
-	else if (Length > -1048576L && Length < 1048576L) // 2^20
+	else if (Length > -1048576 && Length < 1048576) // 2^20
 		CodedSize = 3;
-	else if (Length > -134217728L && Length < 134217728L) // 2^27
+	else if (Length > -134217728 && Length < 134217728) // 2^27
 		CodedSize = 4;
 	else CodedSize = 5;
 
@@ -493,10 +493,10 @@ int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * Ou
 		Length += 63;
 	else if (Length > -8192 && Length < 8192) // 2^13
 		Length += 8191;
-	else if (Length > -1048576L && Length < 1048576L) // 2^20
-		Length += 1048575L;
-	else if (Length > -134217728L && Length < 134217728L) // 2^27
-		Length += 134217727L;
+	else if (Length > -1048576 && Length < 1048576) // 2^20
+		Length += 1048575;
+	else if (Length > -134217728 && Length < 134217728) // 2^27
+		Length += 134217727;
 
 	return EBML_CodedValueLength(Length, CodedSize, OutBuffer, 1);
 }
