@@ -32,6 +32,79 @@
 #include "matroska/matroska.h"
 #include "mkvtree_stdafx.h"
 
+static int ShowPos = 0;
+
+#ifdef TARGET_WIN
+#include <windows.h>
+void DebugMessage(const tchar_t* Msg,...)
+{
+#if !defined(NDEBUG) || defined(LOGFILE) || defined(LOGTIME)
+	va_list Args;
+	tchar_t Buffer[1024],*s=Buffer;
+
+	va_start(Args,Msg);
+	vstprintf_s(Buffer,TSIZEOF(Buffer), Msg, Args);
+	va_end(Args);
+	tcscat_s(Buffer,TSIZEOF(Buffer),T("\r\n"));
+#endif
+
+#ifdef LOGTIME
+    {
+        tchar_t timed[1024];
+        SysTickToString(timed,TSIZEOF(timed),GetTimeTick(),1,1,0);
+        stcatprintf_s(timed,TSIZEOF(timed),T(" %s"),s);
+        s = timed;
+    }
+#endif
+
+#if !defined(NDEBUG)
+	OutputDebugString(s);
+#endif
+
+#if defined(LOGFILE)
+{
+    static FILE* f=NULL;
+    static char s8[1024];
+    size_t i;
+    if (!f)
+#if defined(TARGET_WINCE)
+    {
+        tchar_t DocPath[MAXPATH];
+        char LogPath[MAXPATH];
+        charconv *ToStr = CharConvOpen(NULL,CHARSET_DEFAULT);
+        GetDocumentPath(NULL,DocPath,TSIZEOF(DocPath),FTYPE_LOG); // more visible via ActiveSync
+        if (!DocPath[0])
+            tcscpy_s(DocPath,TSIZEOF(DocPath),T("\\My Documents"));
+        if (!PathIsFolder(NULL,DocPath))
+            FolderCreate(NULL,DocPath);
+        tcscat_s(DocPath,TSIZEOF(DocPath),T("\\corelog.txt"));
+        CharConvST(ToStr,LogPath,sizeof(LogPath),DocPath);
+        CharConvClose(ToStr);
+        f=fopen(LogPath,"a+b");
+        if (!f)
+            f=fopen("\\corelog.txt","a+b");
+    }
+#else
+        f=fopen("\\corelog.txt","a+b");
+#endif
+    for (i=0;s[i];++i)
+        s8[i]=(char)s[i];
+    s8[i]=0;
+    fputs(s8,f);
+    fflush(f);
+}
+#endif
+}
+#endif
+
+static void EndLine(ebml_element *Element)
+{
+    if (ShowPos && Element->ElementPosition!=INVALID_FILEPOS_T)
+        fprintf(stdout," at %"PRId64"\r\n",Element->ElementPosition);
+    else
+        fprintf(stdout,"\r\n");
+}
+
 static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, stream *Input, int *Level)
 {
     int LevelPrint;
@@ -45,11 +118,12 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         ebml_parser_context SubContext;
 
         if (Element->DataSize == INVALID_FILEPOS_T)
-            fprintf(stdout,"(master)\r\n");
+            fprintf(stdout,"(master)");
         else if (!EBML_ElementIsFiniteSize(Element))
-            fprintf(stdout,"(master) [unknown size]\r\n",(int)Element->DataSize);
+            fprintf(stdout,"(master) [unknown size]",Element->DataSize);
         else
-            fprintf(stdout,"(master) [%d bytes]\r\n",(int)Element->DataSize);
+            fprintf(stdout,"(master) [%"PRId64" bytes]",Element->DataSize);
+        EndLine(Element);
         SubContext.UpContext = Context;
         SubContext.Context = Element->Context;
         SubContext.EndPosition = EBML_ElementPositionEnd(Element);
@@ -79,9 +153,10 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         //tchar_t UnicodeString[MAXDATA];
         //EBML_StringRead((ebml_string*)Element,Input,UnicodeString,TSIZEOF(UnicodeString));
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA)==ERR_NONE)
-            fprintf(stdout,"'%s'\r\n",((ebml_string*)Element)->Buffer);
+            fprintf(stdout,"'%s'",((ebml_string*)Element)->Buffer);
         else
-            fprintf(stdout,"<error reading>\r\n");
+            fprintf(stdout,"<error reading>");
+        EndLine(Element);
     }
     else if (Node_IsPartOf(Element,EBML_DATE_CLASS))
     {
@@ -90,34 +165,38 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             datepack_t Date;
             datetime_t DateTime = EBML_DateTime((ebml_date*)Element);
             GetDatePacked(DateTime,&Date,1);
-            fprintf(stdout,"%04d-%02d-%02d %02d:%02d:%02d UTC\r\n",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
+            fprintf(stdout,"%04d-%02d-%02d %02d:%02d:%02d UTC",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
         }
         else
-            fprintf(stdout,"<error reading>\r\n");
+            fprintf(stdout,"<error reading>");
+        EndLine(Element);
     }
     else if (Node_IsPartOf(Element,EBML_INTEGER_CLASS) || Node_IsPartOf(Element,EBML_SINTEGER_CLASS))
     {
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA)==ERR_NONE)
         {
             if (Node_IsPartOf(Element,EBML_SINTEGER_CLASS))
-                fprintf(stdout,"%ld\r\n",(int)((ebml_integer*)Element)->Value);
+                fprintf(stdout,"%"PRId64,EBML_IntegerValue(Element));
             else
-                fprintf(stdout,"%lu\r\n",(int)((ebml_integer*)Element)->Value);
+                fprintf(stdout,"%"PRIu64,EBML_IntegerValue(Element));
         }
         else
-            fprintf(stdout,"<error reading>\r\n");
+            fprintf(stdout,"<error reading>");
+        EndLine(Element);
     }
     else if (Node_IsPartOf(Element,EBML_FLOAT_CLASS))
     {
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA)==ERR_NONE)
-            fprintf(stdout,"%f\r\n",((ebml_float*)Element)->Value);
+            fprintf(stdout,"%f",((ebml_float*)Element)->Value);
         else
-            fprintf(stdout,"<error reading>\r\n");
+            fprintf(stdout,"<error reading>");
+        EndLine(Element);
     }
     else if (EBML_ElementIsDummy(Element))
     {
-        fprintf(stdout,"[%X] [%d bytes]\r\n",Element->Context->Id,(int)Element->DataSize);
+        fprintf(stdout,"[%X] [%"PRId64" bytes]",Element->Context->Id,Element->DataSize);
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
+        EndLine(Element);
     }
     else if (Node_IsPartOf(Element,EBML_BINARY_CLASS))
     {
@@ -127,25 +206,27 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             if (Element->DataSize != 0)
             {
                 if (Element->DataSize == 1)
-                    fprintf(stdout,"%02X (%d)\r\n",Data[0],Element->DataSize);
+                    fprintf(stdout,"%02X (%"PRId64")",Data[0],Element->DataSize);
                 else if (Element->DataSize == 2)
-                    fprintf(stdout,"%02X %02X (%d)\r\n",Data[0],Data[1],Element->DataSize);
+                    fprintf(stdout,"%02X %02X (%"PRId64")",Data[0],Data[1],Element->DataSize);
                 else if (Element->DataSize == 3)
-                    fprintf(stdout,"%02X %02X %02X (%d)\r\n",Data[0],Data[1],Data[2],Element->DataSize);
+                    fprintf(stdout,"%02X %02X %02X (%"PRId64")",Data[0],Data[1],Data[2],Element->DataSize);
                 else if (Element->DataSize == 4)
-                    fprintf(stdout,"%02X %02X %02X %02X (%d)\r\n",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
+                    fprintf(stdout,"%02X %02X %02X %02X (%"PRId64")",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
                 else
-                    fprintf(stdout,"%02X %02X %02X %02X.. (%d)\r\n",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
+                    fprintf(stdout,"%02X %02X %02X %02X.. (%"PRId64")",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
             }
         }
         else
-            fprintf(stdout,"<error reading>\r\n");
+            fprintf(stdout,"<error reading>");
 		EBML_ElementSkipData(Element, Input, Context, NULL, 0);
+        EndLine(Element);
     }
     else if (Node_IsPartOf(Element,EBML_VOID_CLASS))
     {
-        fprintf(stdout,"[%d bytes]\r\n",(int)Element->DataSize);
+        fprintf(stdout,"[%"PRId64" bytes]",Element->DataSize);
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
+        EndLine(Element);
 	}
     // TODO: handle crc32
     else
@@ -160,9 +241,10 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             fprintf(stdout,"[%x]",Id & 0xFF);
             Id >>= 8;
         }
-        fprintf(stdout,">\r\n",Element->Context->Id);
+        fprintf(stdout,">",Element->Context->Id);
 #endif
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
+        EndLine(Element);
     }
     return NULL;
 }
@@ -189,11 +271,16 @@ int main(int argc, const char *argv[])
     stream *Input;
     tchar_t Path[MAXPATHFULL];
 
-    if (argc != 2)
+    if (argc!=2 && argc!=3 || (argc==3 && strcmp(argv[1],"--pos")))
     {
-        fprintf(stderr, "Usage: mkvtree [matroska_file]\r\n");
+        fprintf(stderr, "Usage: mkvtree --pos [matroska_file]\r\n");
+		fprintf(stderr, "Options:\r\n");
+		fprintf(stderr, "  --pos     output the position of elements\r\n");
         return 1;
     }
+
+    if (argc==3)
+        ShowPos = 1;
 
     // Core-C init phase
 #if defined(CONFIG_EBML_UNICODE)
@@ -206,7 +293,7 @@ int main(int argc, const char *argv[])
     MATROSKA_Init((nodecontext*)&p);
 
     // open the file to parse
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[1]);
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (Input == NULL)
         fprintf(stderr, "error: mkvtree cannot open file \"%s\"\r\n",argv[1]);
