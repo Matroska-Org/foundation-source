@@ -243,16 +243,6 @@
 #endif
 
 #ifdef _MSC_VER
-#define LL(x)   x##i64
-#define ULL(x)  x##ui64
-#else
-#define LL(x)   x##ll
-#define ULL(x)  x##ull
-#endif
-
-#define MAX_INT64 LL(0x7fffffffffffffff)
-
-#ifdef _MSC_VER
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -449,6 +439,28 @@ typedef signed __int64 int_fast64_t;
 typedef unsigned __int64 uint_fast64_t;
 #endif
 #endif
+
+#ifdef _MSC_VER
+#define LL(x)   x##i64
+#define ULL(x)  x##ui64
+#define PRId64  "I64d"
+#define PRIu64  "I64u"
+#define PRIx64  "I64x"
+#else
+#define LL(x)   x##ll
+#define ULL(x)  x##ull
+#ifndef PRId64
+#define PRId64  "lld"
+#endif
+#ifndef PRIu64
+#define PRIu64  "llu"
+#endif
+#ifndef PRIx64
+#define PRIx64  "llx"
+#endif
+#endif
+
+#define MAX_INT64 LL(0x7fffffffffffffff)
 
 #define MAX_TICK INT_MAX
 
