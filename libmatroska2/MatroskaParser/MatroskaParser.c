@@ -943,8 +943,6 @@ static bool_t parseSimpleTag(ebml_element *SimpleTag, MatroskaFile *File, char *
 		}
 		else if (Elt->Context->Id == MATROSKA_ContextTagString.Id)
 			simpleTag.Default = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextSimpleTag.Id)
-			parseSimpleTag(Elt,File,err_msg,err_msgSize,Parent);
 	}
 	
 	if (!simpleTag.Value || !simpleTag.Name || !ArrayAppend(&Parent->aSimpleTags,&simpleTag,sizeof(simpleTag),256))
@@ -953,6 +951,14 @@ static bool_t parseSimpleTag(ebml_element *SimpleTag, MatroskaFile *File, char *
 		if (simpleTag.Name) File->Input->io->memfree(File->Input->io, simpleTag.Name);
 		return 0;
 	}
+
+	Elt = EBML_MasterFindFirstElt(SimpleTag, &MATROSKA_ContextSimpleTag, 0, 0);
+	while (Elt)
+	{
+		parseSimpleTag(Elt, File, err_msg, err_msgSize, Parent);
+		Elt = EBML_MasterFindNextElt(SimpleTag, Elt, 0, 0);
+	}
+
 	return 1;
 }
 
