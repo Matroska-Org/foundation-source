@@ -124,6 +124,8 @@ typedef struct Attachment
 typedef struct ChapterDisplay
 {
 	char *String;
+	char Language[4];
+	char Country[4];
 
 } ChapterDisplay;
 
@@ -135,6 +137,16 @@ typedef struct Chapter
 	struct ChapterDisplay *Display;
 
 	timecode_t Start;
+	timecode_t End;
+	uint64_t UID;
+
+	bool_t Enabled;
+	bool_t Ordered;
+	bool_t Default;
+	bool_t Hidden;
+
+	array aChildren; // Chapter
+	array aDisplays;  // ChapterDisplay
 
 } Chapter;
 

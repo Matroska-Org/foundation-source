@@ -208,7 +208,21 @@ extern const ebml_context MATROSKA_ContextTag;
 extern const ebml_context MATROSKA_ContextSimpleTag;
 extern const ebml_context MATROSKA_ContextTagTargets;
 
+extern const ebml_context MATROSKA_ContextChapterEntry;
+extern const ebml_context MATROSKA_ContextEditionUID;
+extern const ebml_context MATROSKA_ContextEditionHidden;
+extern const ebml_context MATROSKA_ContextEditionDefault;
+extern const ebml_context MATROSKA_ContextEditionOrdered;
 extern const ebml_context MATROSKA_ContextChapterAtom;
+extern const ebml_context MATROSKA_ContextChapterUID;
+extern const ebml_context MATROSKA_ContextChapterTimeStart;
+extern const ebml_context MATROSKA_ContextChapterTimeEnd;
+extern const ebml_context MATROSKA_ContextChapterHidden;
+extern const ebml_context MATROSKA_ContextChapterEnabled;
+extern const ebml_context MATROSKA_ContextChapterDisplay;
+extern const ebml_context MATROSKA_ContextChapterString;
+extern const ebml_context MATROSKA_ContextChapterLanguage;
+extern const ebml_context MATROSKA_ContextChapterCountry;
 
 extern const ebml_context MATROSKA_ContextClusterTimecode;
 extern const ebml_context MATROSKA_ContextClusterBlockGroup;

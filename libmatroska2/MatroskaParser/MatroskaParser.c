@@ -732,6 +732,132 @@ static bool_t parseAttachments(ebml_element *Attachments, MatroskaFile *File, ch
 	return 1;
 }
 
+static bool_t addChapterDisplay(ebml_element *ChapterDisplay, MatroskaFile *File, struct Chapter *Chapter)
+{
+	struct ChapterDisplay *pDisplay,Display;
+	ebml_element *Elt;
+
+	if (!ArrayAppend(&Chapter->aDisplays,&Display,sizeof(struct ChapterDisplay),512))
+		return 0;
+	pDisplay = ARRAYEND(Chapter->aDisplays,struct ChapterDisplay)-1;
+	memset(pDisplay,0,sizeof(*pDisplay));
+	memcpy(pDisplay->Language, (char*)MATROSKA_ContextChapterLanguage.DefaultValue, 4);
+
+	for (Elt=EBML_MasterChildren(ChapterDisplay); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextChapterString.Id)
+		{
+			pDisplay->String = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
+			strcpy(pDisplay->String,((ebml_string*)Elt)->Buffer);
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextChapterLanguage.Id)
+		{
+			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
+			memcpy(pDisplay->Language,((ebml_string*)Elt)->Buffer,copy);
+			memset(pDisplay->Language + copy,0,4-copy);
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextChapterCountry.Id)
+		{
+			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
+			memcpy(pDisplay->Country,((ebml_string*)Elt)->Buffer,copy);
+			memset(pDisplay->Country+ copy,0,4-copy);
+		}
+	}
+
+	return 1;
+}
+
+static bool_t parseChapter(ebml_element *Chapter, MatroskaFile *File, char *err_msg, size_t err_msgSize, struct Chapter *Parent, array *Editions)
+{
+	struct Chapter *pChapter,Chap;
+	ebml_element *Elt;
+
+	pChapter = &Chap;
+	for (Elt=EBML_MasterChildren(Chapter); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextChapterAtom.Id)
+		{
+			if (!ArrayAppend(&Parent->aChildren,&Chap,sizeof(Chap),512))
+				return 0;
+			pChapter = ARRAYEND(Parent->aChildren,struct Chapter)-1;
+			memset(pChapter,0,sizeof(*pChapter));
+			pChapter->Start = INVALID_TIMECODE_T;
+			if (!parseChapter(Elt,File,err_msg,err_msgSize,pChapter,NULL))
+				ArrayRemove(&Parent->aChildren,struct Chapter,pChapter,NULL,NULL);
+		}
+		// Atom
+		else if (Elt->Context->Id == MATROSKA_ContextChapterUID.Id)
+			Parent->UID = EBML_IntegerValue(Elt);
+		else if (Elt->Context->Id == MATROSKA_ContextChapterTimeStart.Id)
+			Parent->Start = EBML_IntegerValue(Elt);
+		else if (Elt->Context->Id == MATROSKA_ContextChapterTimeEnd.Id)
+			Parent->End = EBML_IntegerValue(Elt);
+		else if (Elt->Context->Id == MATROSKA_ContextChapterHidden.Id)
+			Parent->Hidden = EBML_IntegerValue(Elt)!=0;
+		else if (Elt->Context->Id == MATROSKA_ContextChapterEnabled.Id)
+			Parent->Enabled = EBML_IntegerValue(Elt)!=0;
+		else if (Elt->Context->Id == MATROSKA_ContextChapterDisplay.Id)
+			addChapterDisplay(Elt, File, Parent);
+		// Edition
+		else if (Elt->Context->Id == MATROSKA_ContextEditionUID.Id)
+			Parent->UID = EBML_IntegerValue(Elt);
+		else if (Elt->Context->Id == MATROSKA_ContextEditionHidden.Id)
+			Parent->Hidden = EBML_IntegerValue(Elt)!=0;
+		else if (Elt->Context->Id == MATROSKA_ContextEditionDefault.Id)
+			Parent->Default = EBML_IntegerValue(Elt)!=0;
+		else if (Elt->Context->Id == MATROSKA_ContextEditionOrdered.Id)
+			Parent->Ordered = EBML_IntegerValue(Elt)!=0;
+	}
+
+	Parent->nChildren = ARRAYCOUNT(Parent->aChildren,struct Chapter);
+	Parent->Children = ARRAYBEGIN(Parent->aChildren,struct Chapter);
+	Parent->nDisplay = ARRAYCOUNT(Parent->aDisplays,struct ChapterDisplay);
+	Parent->Display = ARRAYBEGIN(Parent->aDisplays,struct ChapterDisplay);
+
+	return 1;
+}
+
+static bool_t parseChapters(ebml_element *Chapters, MatroskaFile *File, char *err_msg, size_t err_msgSize)
+{
+	ebml_parser_context RContext;
+	struct Chapter *pChapter,Chap;
+	ebml_element *Elt;
+
+	RContext.Context = Chapters->Context;
+	if (EBML_ElementIsFiniteSize(Chapters))
+		RContext.EndPosition = EBML_ElementPositionEnd(Chapters);
+	else
+		RContext.EndPosition = INVALID_FILEPOS_T;
+    RContext.UpContext = &File->L1Context;
+	if (EBML_ElementReadData(Chapters,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	{
+		strncpy(err_msg,"Failed to read the Chapters",err_msgSize);
+		File->pCues = INVALID_FILEPOS_T;
+		return 0;
+	}
+	File->pChapters = Chapters->ElementPosition;
+
+	pChapter = &Chap;
+	memset(pChapter,0,sizeof(*pChapter));
+	Chap.Start = INVALID_TIMECODE_T;
+	Chap.Ordered = MATROSKA_ContextEditionOrdered.DefaultValue;
+	Chap.Hidden = MATROSKA_ContextEditionHidden.DefaultValue;
+	Chap.Default = MATROSKA_ContextEditionDefault.DefaultValue;
+	for (Elt=EBML_MasterChildren(Chapters); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextChapterEntry.Id)
+		{
+			if (!ArrayAppend(&File->Chapters,&Chap,sizeof(Chap),512))
+				return 0;
+			pChapter = ARRAYEND(File->Chapters,struct Chapter)-1;
+			if (!parseChapter(Elt, File, err_msg, err_msgSize, pChapter, &File->Chapters))
+				ArrayRemove(&File->Chapters,struct Chapter,pChapter,NULL,NULL);
+		}
+	}
+
+	return 1;
+}
+
 MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 {
 	int UpperLevel;
@@ -829,7 +955,11 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 			parseAttachments(Head, File, err_msg, err_msgSize);
 			NodeDelete((node*)Head);
 		}
-		// TODO handle chapters
+		else if (Head->Context->Id == MATROSKA_ContextChapters.Id)
+		{
+			parseChapters(Head, File, err_msg, err_msgSize);
+			NodeDelete((node*)Head);
+		}
 		// TODO handle tags
 		else
 		{
@@ -857,7 +987,6 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 		MATROSKA_CuesSort(File->CueList);
 	}
 
-
 	return File;
 }
 
@@ -873,6 +1002,27 @@ static void releaseAttachments(array *Attachments, MatroskaFile *File)
 	ArrayClear(Attachments);
 }
 
+static void releaseChapterDisplays(array *ChapterDisplays, MatroskaFile *File)
+{
+	struct ChapterDisplay *pChapter;
+
+	for (pChapter = ARRAYBEGIN(*ChapterDisplays,struct ChapterDisplay); pChapter != ARRAYEND(*ChapterDisplays,struct ChapterDisplay); ++pChapter)
+		File->Input->io->memfree(File->Input->io, pChapter->String);
+	ArrayClear(ChapterDisplays);
+}
+
+static void releaseChapters(array *Chapters, MatroskaFile *File)
+{
+	struct Chapter *pChapter;
+
+	for (pChapter = ARRAYBEGIN(*Chapters,struct Chapter); pChapter != ARRAYEND(*Chapters,struct Chapter); ++pChapter)
+	{
+		releaseChapterDisplays(&pChapter->aDisplays, File);
+		releaseChapters(&pChapter->aChildren,File);
+	}
+
+	ArrayClear(Chapters);
+}
 
 void mkv_Close(MatroskaFile *File)
 {
@@ -885,8 +1035,8 @@ void mkv_Close(MatroskaFile *File)
 
 	ArrayClear(&File->Tracks);
     releaseAttachments(&File->Attachments, File);
-	ArrayClear(&File->Chapters);
 	ArrayClear(&File->Tags);
+	releaseChapters(&File->Chapters, File);
 
 	if (File->TrackList) NodeDelete((node*)File->TrackList);
 	if (File->CueList) NodeDelete((node*)File->CueList);
