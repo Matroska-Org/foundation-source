@@ -150,10 +150,23 @@ typedef struct Chapter
 
 } Chapter;
 
+typedef struct Target {
+  uint64_t UID;
+  uint8_t  Type;
+  uint8_t  Level;
+};
+// Tag Target types
+#define TARGET_TRACK      0
+#define TARGET_CHAPTER    1
+#define TARGET_ATTACHMENT 2
+#define TARGET_EDITION    3
+
 typedef struct SimpleTag
 {
 	char *Name;
 	char *Value;
+    char Language[4];
+    bool_t Default;
 
 } SimpleTag;
 
@@ -161,6 +174,12 @@ typedef struct Tag
 {
 	size_t nSimpleTags;
 	SimpleTag *SimpleTags;
+
+	size_t nTargets;
+	struct Target *Targets;
+
+	array aTargets; // Target
+	array aSimpleTags; // SimpleTag
 
 } Tag;
 

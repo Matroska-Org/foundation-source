@@ -1166,7 +1166,7 @@ static err_t ReadBigBinaryData(ebml_binary *Element, stream *Input, const ebml_p
 {
     if (Scope == SCOPE_PARTIAL_DATA)
     {
-        EBML_ElementSkipData(Element,Input,ParserContext,NULL,AllowDummyElt);
+        EBML_ElementSkipData((ebml_element*)Element,Input,ParserContext,NULL,AllowDummyElt);
         return ERR_NONE;
     }
     return INHERITED(Element,ebml_element_vmt,MATROSKA_BIGBINARY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope);

@@ -207,6 +207,17 @@ extern const ebml_context MATROSKA_ContextCuePoint;
 extern const ebml_context MATROSKA_ContextTag;
 extern const ebml_context MATROSKA_ContextSimpleTag;
 extern const ebml_context MATROSKA_ContextTagTargets;
+extern const ebml_context MATROSKA_ContextTagTargetTypeValue;
+extern const ebml_context MATROSKA_ContextTagTargetType;
+extern const ebml_context MATROSKA_ContextTagTargetTrackUID;
+extern const ebml_context MATROSKA_ContextTagTargetEditionUID;
+extern const ebml_context MATROSKA_ContextTagTargetChapterUID;
+extern const ebml_context MATROSKA_ContextTagTargetAttachmentUID;
+extern const ebml_context MATROSKA_ContextTagName;
+extern const ebml_context MATROSKA_ContextTagLanguage;
+extern const ebml_context MATROSKA_ContextTagDefault;
+extern const ebml_context MATROSKA_ContextTagString;
+extern const ebml_context MATROSKA_ContextTagBinary;
 
 extern const ebml_context MATROSKA_ContextChapterEntry;
 extern const ebml_context MATROSKA_ContextEditionUID;

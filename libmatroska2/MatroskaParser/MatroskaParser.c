@@ -832,7 +832,7 @@ static bool_t parseChapters(ebml_element *Chapters, MatroskaFile *File, char *er
 	if (EBML_ElementReadData(Chapters,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Chapters",err_msgSize);
-		File->pCues = INVALID_FILEPOS_T;
+		File->pChapters = INVALID_FILEPOS_T;
 		return 0;
 	}
 	File->pChapters = Chapters->ElementPosition;
@@ -854,6 +854,162 @@ static bool_t parseChapters(ebml_element *Chapters, MatroskaFile *File, char *er
 				ArrayRemove(&File->Chapters,struct Chapter,pChapter,NULL,NULL);
 		}
 	}
+
+	return 1;
+}
+
+static bool_t parseTargets(ebml_element *Targets, MatroskaFile *File, char *err_msg, size_t err_msgSize, struct Tag *Parent)
+{
+	ebml_element *Elt;
+	uint8_t Level;
+	struct Target *pTarget,Target;
+
+	Elt = EBML_MasterFindFirstElt(Targets, &MATROSKA_ContextTagTargetTypeValue, 1, 1);
+	if (!Elt || EBML_IntegerValue(Elt) > 0xFF)
+		return 0;
+
+	Level = (uint8_t)EBML_IntegerValue(Elt);
+
+	pTarget = &Target;
+	memset(pTarget,0,sizeof(*pTarget));
+	for (Elt=EBML_MasterChildren(Targets); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextTagTargetTrackUID.Id)
+		{
+			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
+				return 0;
+			pTarget = ARRAYEND(Parent->aTargets,struct Target)-1;
+			pTarget->Type = TARGET_TRACK;
+			pTarget->UID = EBML_IntegerValue(Elt);
+			pTarget->Level = Level;
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextTagTargetChapterUID.Id)
+		{
+			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
+				return 0;
+			pTarget = ARRAYEND(Parent->aTargets,struct Target)-1;
+			pTarget->Type = TARGET_CHAPTER;
+			pTarget->UID = EBML_IntegerValue(Elt);
+			pTarget->Level = Level;
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextTagTargetAttachmentUID.Id)
+		{
+			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
+				return 0;
+			pTarget = ARRAYEND(Parent->aTargets,struct Target)-1;
+			pTarget->Type = TARGET_ATTACHMENT;
+			pTarget->UID = EBML_IntegerValue(Elt);
+			pTarget->Level = Level;
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextTagTargetEditionUID.Id)
+		{
+			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
+				return 0;
+			pTarget = ARRAYEND(Parent->aTargets,struct Target)-1;
+			pTarget->Type = TARGET_EDITION;
+			pTarget->UID = EBML_IntegerValue(Elt);
+			pTarget->Level = Level;
+		}
+	}
+
+	return 1;
+}
+
+static bool_t parseSimpleTag(ebml_element *SimpleTag, MatroskaFile *File, char *err_msg, size_t err_msgSize, struct Tag *Parent)
+{
+	ebml_element *Elt;
+	struct SimpleTag simpleTag;
+
+	memset(&simpleTag,0,sizeof(simpleTag));
+	simpleTag.Default = MATROSKA_ContextTagDefault.DefaultValue;
+	memcpy(simpleTag.Language, (const char*)MATROSKA_ContextTagLanguage.DefaultValue, 4);
+	for (Elt=EBML_MasterChildren(SimpleTag); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextTagName.Id)
+		{
+			simpleTag.Name = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
+			strcpy(simpleTag.Name,((ebml_string*)Elt)->Buffer);
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextTagString.Id)
+		{
+			simpleTag.Value = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
+			strcpy(simpleTag.Value,((ebml_string*)Elt)->Buffer);
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextTagLanguage.Id)
+		{
+			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
+			memcpy(simpleTag.Language,((ebml_string*)Elt)->Buffer,copy);
+			memset(simpleTag.Language + copy,0,4-copy);
+		}
+		else if (Elt->Context->Id == MATROSKA_ContextTagString.Id)
+			simpleTag.Default = EBML_IntegerValue(Elt)!=0;
+		else if (Elt->Context->Id == MATROSKA_ContextSimpleTag.Id)
+			parseSimpleTag(Elt,File,err_msg,err_msgSize,Parent);
+	}
+	
+	if (!simpleTag.Value || !simpleTag.Name || !ArrayAppend(&Parent->aSimpleTags,&simpleTag,sizeof(simpleTag),256))
+	{
+		if (simpleTag.Value) File->Input->io->memfree(File->Input->io, simpleTag.Value);
+		if (simpleTag.Name) File->Input->io->memfree(File->Input->io, simpleTag.Name);
+		return 0;
+	}
+	return 1;
+}
+
+static bool_t parseTag(ebml_element *Tag, MatroskaFile *File, char *err_msg, size_t err_msgSize, struct Tag *Parent)
+{
+	ebml_element *Elt;
+
+	for (Elt=EBML_MasterChildren(Tag); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextTagTargets.Id)
+			parseTargets(Elt,File,err_msg,err_msgSize,Parent);
+		else if (Elt->Context->Id == MATROSKA_ContextSimpleTag.Id)
+			parseSimpleTag(Elt,File,err_msg,err_msgSize,Parent);
+	}
+
+	Parent->Targets = ARRAYBEGIN(Parent->aTargets,struct Target);
+	Parent->nTargets = ARRAYCOUNT(Parent->aTargets,struct Target);
+	Parent->SimpleTags = ARRAYBEGIN(Parent->aSimpleTags,struct SimpleTag);
+	Parent->nSimpleTags = ARRAYCOUNT(Parent->aSimpleTags,struct SimpleTag);
+
+	return 1;
+}
+
+static bool_t parseTags(ebml_element *Tags, MatroskaFile *File, char *err_msg, size_t err_msgSize)
+{
+	ebml_parser_context RContext;
+	struct Tag *pTag,Tag;
+	ebml_element *Elt;
+
+	RContext.Context = Tags->Context;
+	if (EBML_ElementIsFiniteSize(Tags))
+		RContext.EndPosition = EBML_ElementPositionEnd(Tags);
+	else
+		RContext.EndPosition = INVALID_FILEPOS_T;
+    RContext.UpContext = &File->L1Context;
+	if (EBML_ElementReadData(Tags,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	{
+		strncpy(err_msg,"Failed to read the Tags",err_msgSize);
+		File->pTags = INVALID_FILEPOS_T;
+		return 0;
+	}
+	File->pTags = Tags->ElementPosition;
+
+	pTag = &Tag;
+	memset(pTag,0,sizeof(*pTag));
+	for (Elt=EBML_MasterChildren(Tags); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id == MATROSKA_ContextTag.Id)
+		{
+			if (!ArrayAppend(&File->Tags,&Tag,sizeof(Tag),512))
+				return 0;
+			pTag = ARRAYEND(File->Tags,struct Tag)-1;
+			if (!parseTag(Elt, File, err_msg, err_msgSize, pTag))
+				ArrayRemove(&File->Tags,struct Tag,pTag,NULL,NULL);
+		}
+	}
+
 
 	return 1;
 }
@@ -960,7 +1116,11 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 			parseChapters(Head, File, err_msg, err_msgSize);
 			NodeDelete((node*)Head);
 		}
-		// TODO handle tags
+		else if (Head->Context->Id == MATROSKA_ContextTags.Id)
+		{
+			parseTags(Head, File, err_msg, err_msgSize);
+			NodeDelete((node*)Head);
+		}
 		else
 		{
 			if (Head->Context->Id==MATROSKA_ContextCluster.Id && File->pFirstCluster==INVALID_FILEPOS_T)
@@ -1024,6 +1184,30 @@ static void releaseChapters(array *Chapters, MatroskaFile *File)
 	ArrayClear(Chapters);
 }
 
+static void releaseSimpleTags(array *SimpleTags, MatroskaFile *File)
+{
+	struct SimpleTag *pSimpleTag;
+	for (pSimpleTag = ARRAYBEGIN(*SimpleTags,struct SimpleTag); pSimpleTag != ARRAYEND(*SimpleTags,struct SimpleTag); ++pSimpleTag)
+	{
+		if (pSimpleTag->Name) File->Input->io->memfree(File->Input->io, pSimpleTag->Name);
+		if (pSimpleTag->Value) File->Input->io->memfree(File->Input->io, pSimpleTag->Value);
+	}
+	ArrayClear(SimpleTags);
+}
+
+static void releaseTags(array *Tags, MatroskaFile *File)
+{
+	struct Tag *pTag;
+
+	for (pTag = ARRAYBEGIN(*Tags,struct Tag); pTag != ARRAYEND(*Tags,struct Tag); ++pTag)
+	{
+		releaseSimpleTags(&pTag->aSimpleTags, File);
+		ArrayClear(&pTag->aTargets);
+	}
+
+	ArrayClear(Tags);
+}
+
 void mkv_Close(MatroskaFile *File)
 {
 	if (File->Seg.Filename) File->Input->io->memfree(File->Input->io, File->Seg.Filename);
@@ -1035,8 +1219,8 @@ void mkv_Close(MatroskaFile *File)
 
 	ArrayClear(&File->Tracks);
     releaseAttachments(&File->Attachments, File);
-	ArrayClear(&File->Tags);
 	releaseChapters(&File->Chapters, File);
+	releaseTags(&File->Tags, File);
 
 	if (File->TrackList) NodeDelete((node*)File->TrackList);
 	if (File->CueList) NodeDelete((node*)File->CueList);

@@ -348,7 +348,7 @@ timecode_t MATROSKA_BlockGetFrameStart(const matroska_block *Block, size_t Frame
     else
     {
         size_t i;
-        timecode_t Start = MATROSKA_BlockTimecode(Block);
+        timecode_t Start = MATROSKA_BlockTimecode((matroska_block*)Block);
         if (Start!=INVALID_TIMECODE_T)
         {
             for (i=0;i<FrameNum;++i)
