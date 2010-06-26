@@ -36,9 +36,14 @@
  * \todo support for updating/writing the PrevSize
  * \todo support for updating/writing the ClusterPosition
  * \todo support for updating/writing the CRC32
+ * \todo add a batch mode to treat more than one file at once
+ * \todo get the file name/list to treat from stdin too
+ * \todo add an option to remove the original file
+ * \todo add an option to rename the output to the original file
  * \todo support the japanese translation
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
+ * \todo support compressed headers (header stripping or zlib)
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?)
  * \todo change the Segment UID (when key parts are altered)
@@ -707,7 +712,7 @@ int main(int argc, const char *argv[])
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0;
-	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0;
 	size_t StringDiff = 0;
 	int64_t TimeCodeScale = 0;
 
@@ -740,6 +745,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("    4: 'webm'\r\n"));
 		TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
 		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
+		//TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
         Result = -1;
         goto exit;
     }
