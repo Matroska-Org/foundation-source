@@ -5,16 +5,21 @@ GROUP ebml2_group
   PROJECT_NAME  "libebml2"
   PROJECT_VERSION  0.9.7
   PROJECT_VENDOR   "Matroska Foundation"
-  EXPDEFINE HAVE_EBML2
+  EXPDEFINE HAS_EBML2
   
   INCLUDE .
   EXPINCLUDE .
-  USE ebml2_project
-  USE node
-  USE file
-  USE date
+  IF CONFIG_EBML2_LIB
+    USEINCLUDE node
+  ELSE
+    USE node
+    USE file
+    USE date
+    IF COREMAKE_UNICODE
+      USE parser
+    ENDIF
+  ENDIF
   IF COREMAKE_UNICODE
-    USE parser
     DEFINE CONFIG_EBML_UNICODE
     EXPDEFINE CONFIG_EBML_UNICODE
   ENDIF
