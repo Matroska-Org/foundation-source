@@ -3,6 +3,7 @@ version 0.3.2:
     - delete CRC-32 elements until we can update them correctly
     - display the 64 bits integers correctly on all platforms
     - write the Cluster PrevSize and position in the Segment by default (can be disabled with --unsafe)
+    - reserve a place after the SeekHead for a reference to Tags when they are not there (for easy editing)
 
 2010-06-11
 version 0.3.1:

@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
@@ -770,7 +769,7 @@ int main(int argc, const char *argv[])
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
     ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
     ebml_element *WSegment = NULL, *WMetaSeek = NULL, *Elt;
-    matroska_seekpoint *WSeekPoint = NULL;
+    matroska_seekpoint *WSeekPoint = NULL, *WSeekPointTags = NULL;
     ebml_string *LibName, *AppName;
     array RClusters, WClusters, *Clusters;
     ebml_parser_context RContext;
@@ -1567,6 +1566,15 @@ int main(int argc, const char *argv[])
 			}
 		}
 
+        if (!RTags)
+        {
+            // create a fake Tags element to have its position prepared in the SeekHead
+            RTags = EBML_ElementCreate(WMetaSeek,&MATROSKA_ContextTags,1,NULL);
+            RTags->ElementPosition = RSegment->DataSize;
+			WSeekPointTags = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+            MATROSKA_LinkMetaSeekElement(WSeekPointTags,RTags);
+        }
+
 		// first estimation of the MetaSeek size
 		MetaSeekUpdate(WMetaSeek);
 		MetaSeekBefore = EBML_ElementFullSize(WMetaSeek,0);
@@ -1636,7 +1644,7 @@ int main(int argc, const char *argv[])
 		}
 
 		//  Compute the Tags size
-		if (RTags)
+		if (RTags && !WSeekPointTags)
 		{
 			EBML_ElementUpdateSize(RTags,0,0);
 			RTags->ElementPosition = NextPos;
@@ -1656,9 +1664,13 @@ int main(int argc, const char *argv[])
 		}
 
 		// update and write the MetaSeek and the elements following
-		MetaSeekUpdate(WMetaSeek);
-		EBML_ElementFullSize(WMetaSeek,0);
+        // write without the fake Tags pointer
 		Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
+        MetaSeekUpdate(WMetaSeek);
+        if (WSeekPointTags)
+            NodeTree_SetParent(WSeekPointTags,NULL,NULL); // remove the fake tags pointer
+
+		EBML_ElementFullSize(WMetaSeek,0);
 		if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekBefore,0)!=ERR_NONE)
 		{
 			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
@@ -1666,6 +1678,25 @@ int main(int argc, const char *argv[])
 			goto exit;
 		}
 		SegmentSize += EBML_ElementFullSize(WMetaSeek,0);
+        if (WSeekPointTags)
+        {
+            // write a Void element the size of WSeekPointTags
+            filepos_t SeekPointSize = EBML_ElementFullSize((ebml_element*)WSeekPointTags, 0);
+            ebml_element * Void = EBML_ElementCreate(WSeekPointTags,&EBML_ContextEbmlVoid,1,NULL);
+            EBML_VoidSetSize(Void, SeekPointSize - 1 - EBML_CodedSizeLength(SeekPointSize,0,1));
+	        if (EBML_ElementRender(Void,Output,0,0,1,NULL,0)!=ERR_NONE)
+	        {
+		        TextWrite(StdErr,T("Failed to write the tag placeholder in Seek Head\r\n"));
+		        Result = -24;
+		        goto exit;
+	        }
+            SegmentSize += EBML_ElementFullSize(Void,0);
+            NodeDelete((node*)WSeekPointTags);
+            WSeekPointTags = NULL;
+            NodeDelete((node*)RTags);
+            RTags = NULL;
+            NodeDelete((node*)Void);
+        }
 	}
     else if (!Unsafe)
         SetClusterPrevSize(Clusters);
