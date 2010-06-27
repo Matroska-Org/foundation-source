@@ -222,7 +222,6 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 	const tchar_t *In;
 	const char *InA;
 	size_t n;
-    bool_t Long;
     int64_t lvs,_lvs;
 
 	while (OutLen>1 && *Mask)
@@ -273,12 +272,11 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 				Width = va_arg(Arg,int);
 			}
 
-            Long = 0;
             while (*Mask == 'l')
-			{
-				Long++;
-				++Mask;
-			}
+				++Mask; // long
+
+            if (*Mask=='I' && *(Mask+1)=='6' && *(Mask+2)=='4')
+				Mask += 3;
 
 			Unsigned = *Mask=='u';
 			if (Unsigned)
