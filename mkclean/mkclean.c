@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo support for updating/writing the ClusterPosition (not in live)
  * \todo optionally reserve space in the front Seek Head for a link to tags at the end
  * \todo make sure audio frames are all keyframes (no known codec so far are not)
  * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
@@ -243,16 +242,37 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
     for (Cluster=ARRAYBEGIN(*Clusters,ebml_element*);Cluster!=ARRAYEND(*Clusters,ebml_element*);++Cluster)
     {
         (*Cluster)->ElementPosition = ClusterPos;
-        if (Safe && ClusterSize != INVALID_FILEPOS_T)
+        if (Safe)
         {
-            Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
-            if (Elt)
+            Elt = NULL;
+            if (ClusterSize != INVALID_FILEPOS_T)
             {
-                EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
-                Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
-                if (Elt2 && NodeTree_Next(Elt2)!=(nodetree*)Elt)
-                    NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
-                ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
+                Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
+                if (Elt)
+                {
+                    EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
+                    Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
+                    if (Elt2 && NodeTree_Next(Elt2)!=(nodetree*)Elt)
+                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
+                    ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
+                }
+            }
+
+            // output the Cluster position as well
+            if (Elt)
+                Elt2 = Elt; // make sure the Cluster Position is just after the PrevSize
+            else
+                Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0); // make sure the Cluster Position is just after the ClusterTimecode
+            if (Elt2)
+            {
+                Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPosition, 1, 1);
+                if (Elt)
+                {
+                    EBML_IntegerSetValue((ebml_integer*)Elt, ClusterPos - EBML_ElementPositionData(Segment));
+                    if (Elt2 && NodeTree_Next(Elt2)!=(nodetree*)Elt)
+                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
+                    ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
+                }
             }
         }
         EBML_ElementUpdateSize(*Cluster,0,0);
@@ -790,7 +810,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("    4: 'webm'\r\n"));
 		TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
 		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
-		TextWrite(StdErr,T("  --unsafe      don't output elements that can be used for file recovery\r\n"));
+		TextWrite(StdErr,T("  --unsafe      don't output elements that can be used for file recovery (saves more space)\r\n"));
 		//TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
         Result = -1;
         goto exit;
