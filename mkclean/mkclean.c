@@ -33,28 +33,28 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo support for updating/writing the PrevSize
- * \todo support for updating/writing the ClusterPosition
- * \todo support for updating/writing the CRC32
+ * \todo support for updating/writing the ClusterPosition (not in live)
+ * \todo optionally reserve space in the front Seek Head for a link to tags at the end
+ * \todo make sure audio frames are all keyframes (no known codec so far are not)
+ * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
+ * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
+ * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
+ * \todo compute the segment duration (when it's not set) (remove it in live mode)
+ * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
+ * \todo compute the track default duration (when it's not set or not optimal)
+ * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
+ * \todo support compressed headers (header stripping or zlib)
  * \todo add a batch mode to treat more than one file at once
  * \todo get the file name/list to treat from stdin too
  * \todo add an option to remove the original file
  * \todo add an option to rename the output to the original file
  * \todo support the japanese translation
- * \todo optionally reserve space in the front Seek Head for a link to tags at the end
- * \todo make sure audio frames are all keyframes (no known codec so far are not)
- * \todo support compressed headers (header stripping or zlib)
- * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?)
- * \todo change the Segment UID (when key parts are altered)
- * \todo compute the segment duration (when it's not set)
- * \todo compute the track default duration (when it's not set or not optimal)
- * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
- * \todo add support for compressed headers
- * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
- * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
+ *
+ * less important:
+ * \todo (optionally) change the Segment UID (when key parts are altered/added)
  * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm')
- * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
+ * \todo support for updating/writing the CRC32
  * \todo allow creating/replacing Tags
  * \todo allow creating/replacing Chapters
  * \todo allow creating/replacing Attachments
@@ -434,10 +434,12 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     return NULL;
 }
 
-static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input, bool_t Live)
+static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input, bool_t Live, filepos_t PrevSize)
 {
     filepos_t IntendedPosition = Cluster->ElementPosition;
     ebml_element *Block, *GBlock;
+
+    // read all the Block/SimpleBlock data
     for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
     {
         if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
@@ -475,8 +477,12 @@ static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input, b
     }
 
     if (!Live && Cluster->ElementPosition != IntendedPosition)
+        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64, Cluster->ElementPosition,IntendedPosition);
+    if (PrevSize!=INVALID_FILEPOS_T)
     {
-        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T(""),Cluster->ElementPosition,IntendedPosition);
+        Block = EBML_MasterFindFirstElt(Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
+        if (Block && PrevSize!=EBML_IntegerValue(Block))
+            TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64, Cluster->ElementPosition,EBML_IntegerValue(Block),PrevSize);
     }
 }
 
@@ -703,7 +709,7 @@ int main(int argc, const char *argv[])
     tchar_t String[MAXLINE],Original[MAXLINE],*s;
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
     ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
-    ebml_element *WSegment = NULL, *WMetaSeek = NULL;
+    ebml_element *WSegment = NULL, *WMetaSeek = NULL, *Elt, *Elt2;
     matroska_seekpoint *WSeekPoint = NULL;
     ebml_string *LibName, *AppName;
     array RClusters, WClusters, *Clusters;
@@ -711,8 +717,8 @@ int main(int argc, const char *argv[])
     ebml_parser_context RSegmentContext;
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
-    filepos_t NextPos, SegmentSize = 0;
-	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0;
+    filepos_t NextPos, SegmentSize = 0, ClusterSize;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0;
 	size_t StringDiff = 0;
 	int64_t TimeCodeScale = 0;
 
@@ -745,6 +751,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("    4: 'webm'\r\n"));
 		TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
 		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
+		TextWrite(StdErr,T("  --unsafe      don't output elements that can be used for file recovery\r\n"));
 		//TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
         Result = -1;
         goto exit;
@@ -753,12 +760,9 @@ int main(int argc, const char *argv[])
 	for (i=1;i<argc-2;++i)
 	{
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
-		if (tcsisame_ascii(Path,T("--keep-cues")))
-			KeepCues = 1;
-		else if (tcsisame_ascii(Path,T("--remux")))
-			Remux = 1;
-		else if (tcsisame_ascii(Path,T("--live")))
-			Live = 1;
+		if (tcsisame_ascii(Path,T("--keep-cues"))) KeepCues = 1;
+		else if (tcsisame_ascii(Path,T("--remux"))) Remux = 1;
+		else if (tcsisame_ascii(Path,T("--live"))) Live = 1;
 		else if (tcsisame_ascii(Path,T("--doctype")) && i+1<argc-2)
 		{
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
@@ -780,6 +784,8 @@ int main(int argc, const char *argv[])
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 			TimeCodeScale = StringToInt(Path,0);
 		}
+		else if (tcsisame_ascii(Path,T("--unsafe"))) Unsafe = 1;
+		//else if (tcsisame_ascii(Path,T("--optimize"))) Optimize = 1;
 		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
 
@@ -1049,7 +1055,7 @@ int main(int argc, const char *argv[])
 		// create WClusters
 		matroska_cluster **ClusterR, *ClusterW;
 	    ebml_element *Block, *GBlock;
-		ebml_element *Track,*Elt;
+		ebml_element *Track;
         matroska_block *Block1;
 		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEnd, BlockEnd, MainBlockEnd;
 		size_t MainTrack, BlockTrack;
@@ -1160,7 +1166,7 @@ int main(int argc, const char *argv[])
 					BlockDuration = MATROSKA_BlockTimecode((pBlockInfo+1)->Block);
 					if (BlockTime > BlockDuration)
 					{
-						assert(BlockDuration > BlockEnd);
+						//assert(BlockDuration > BlockEnd);
 						pBlockInfo->DecodeTime = BlockEnd + ((BlockTime - BlockDuration) >> 2);
 					}
 				}
@@ -1559,6 +1565,28 @@ int main(int argc, const char *argv[])
         NextPos += EBML_ElementFullSize(RTrackInfo,0);
     }
 
+    if (!Unsafe)
+    {
+        // Write the Cluster PrevSize
+        ClusterSize = INVALID_FILEPOS_T;
+        for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
+        {
+            if (ClusterSize != INVALID_FILEPOS_T)
+            {
+                Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
+                if (Elt)
+                {
+                    EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
+                    Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
+                    if (Elt2)
+                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
+                    EBML_ElementUpdateSize(*Cluster,0,1);
+                }
+            }
+            ClusterSize = EBML_ElementFullSize(*Cluster,0);
+        }
+    }
+
 	if (!Live)
 	{
 		//  Compute the Chapters size
@@ -1652,11 +1680,14 @@ int main(int argc, const char *argv[])
     }
 
     //  Write the Clusters
+    ClusterSize = INVALID_FILEPOS_T;
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
     {
         ShowProgress(*Cluster,RSegment,3);
         EBML_ElementSetInfiniteSize(*Cluster,Live);
-        WriteCluster(*Cluster,Output,Input, Live);
+        WriteCluster(*Cluster,Output,Input, Live, ClusterSize);
+        if (!Unsafe)
+            ClusterSize = EBML_ElementFullSize(*Cluster,0);
         SegmentSize += EBML_ElementFullSize(*Cluster,0);
     }
     EndProgress(RSegment,3);

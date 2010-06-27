@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2008, Matroska Foundation
+ * Copyright (c) 2010, Matroska Foundation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -233,7 +233,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
 		                    vorbis_comment_init(&vc);
                             memset(&OggPacket,0,sizeof(ogg_packet));
 
-		                    OggBuffer.data = EBML_BinaryGetData((ebml_binary*)Elt);
+		                    OggBuffer.data = (uint8_t*)EBML_BinaryGetData((ebml_binary*)Elt);
 		                    OggBuffer.size = (long)Elt->DataSize;
 		                    OggBuffer.refcount = 1;
 
