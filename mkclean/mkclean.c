@@ -1580,6 +1580,7 @@ int main(int argc, const char *argv[])
                     Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
                     if (Elt2)
                         NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
+                    StringDiff += (size_t)EBML_ElementFullSize(Elt,0);
                     EBML_ElementUpdateSize(*Cluster,0,1);
                 }
             }
