@@ -149,6 +149,7 @@ static int GetProfileId(int Profile)
 static int DocVersion = 1;
 static int SrcProfile = 0, DstProfile = 0;
 static textwriter *StdErr = NULL;
+static size_t ExtraSizeDiff = 0;
 
 static void ReduceSize(ebml_element *Element)
 {
@@ -206,18 +207,57 @@ static void ReduceSize(ebml_element *Element)
 	}
 }
 
-static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_element *Cues, ebml_element *Segment)
+static void SetClusterPrevSize(array *Clusters)
 {
-    ebml_element **Cluster;
+    ebml_element **Cluster, *Elt, *Elt2;
+    filepos_t ClusterSize = INVALID_FILEPOS_T;
+    // Write the Cluster PrevSize
+    for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
+    {
+        if (ClusterSize != INVALID_FILEPOS_T)
+        {
+            Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
+            if (Elt)
+            {
+                EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
+                Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
+                if (Elt2)
+                    NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
+                ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
+                EBML_ElementUpdateSize(*Cluster,0,1);
+            }
+        }
+        ClusterSize = EBML_ElementFullSize(*Cluster,0);
+    }
+}
+
+static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_element *Cues, ebml_element *Segment, bool_t Safe)
+{
+    ebml_element **Cluster, *Elt, *Elt2;
     ebml_element *Cue;
     filepos_t OriginalSize = Cues->DataSize;
     filepos_t ClusterPos = ClusterStart + EBML_ElementFullSize(Cues,0);
+    filepos_t ClusterSize = INVALID_FILEPOS_T;
+
     // reposition all the Clusters
     for (Cluster=ARRAYBEGIN(*Clusters,ebml_element*);Cluster!=ARRAYEND(*Clusters,ebml_element*);++Cluster)
     {
         (*Cluster)->ElementPosition = ClusterPos;
+        if (Safe && ClusterSize != INVALID_FILEPOS_T)
+        {
+            Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
+            if (Elt)
+            {
+                EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
+                Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
+                if (Elt2 && NodeTree_Next(Elt2)!=(nodetree*)Elt)
+                    NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
+                ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
+            }
+        }
         EBML_ElementUpdateSize(*Cluster,0,0);
         ClusterPos += EBML_ElementFullSize(*Cluster,0);
+        ClusterSize = EBML_ElementFullSize(*Cluster,0);
     }
 
     // reevaluate the size needed for the Cues
@@ -225,7 +265,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
         MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, Segment);
     ClusterPos = EBML_ElementUpdateSize(Cues,0,0);
     if (ClusterPos != OriginalSize)
-        SettleClustersWithCues(Clusters,ClusterStart,Cues,Segment);
+        SettleClustersWithCues(Clusters,ClusterStart,Cues,Segment, Safe);
 }
 
 static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegment, int phase)
@@ -309,7 +349,7 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
 	return 0;
 }
 
-static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment, bool_t ReLink)
+static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *RSegmentInfo, filepos_t StartPos, ebml_element *WSegment, const ebml_element *RSegment, bool_t ReLink, bool_t Safe)
 {
     matroska_cluster **Cluster;
     matroska_cuepoint *Cue;
@@ -332,7 +372,7 @@ static void OptimizeCues(ebml_element *Cues, array *Clusters, ebml_element *RSeg
     // sort the Cues
     MATROSKA_CuesSort(Cues);
 
-    SettleClustersWithCues(Clusters,StartPos,Cues,WSegment);
+    SettleClustersWithCues(Clusters,StartPos,Cues,WSegment,Safe);
 }
 
 static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_parser_context *Parser, stream *Input)
@@ -709,7 +749,7 @@ int main(int argc, const char *argv[])
     tchar_t String[MAXLINE],Original[MAXLINE],*s;
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
     ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
-    ebml_element *WSegment = NULL, *WMetaSeek = NULL, *Elt, *Elt2;
+    ebml_element *WSegment = NULL, *WMetaSeek = NULL, *Elt;
     matroska_seekpoint *WSeekPoint = NULL;
     ebml_string *LibName, *AppName;
     array RClusters, WClusters, *Clusters;
@@ -719,7 +759,6 @@ int main(int argc, const char *argv[])
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0, ClusterSize;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0;
-	size_t StringDiff = 0;
 	int64_t TimeCodeScale = 0;
 
     // Core-C init phase
@@ -1524,7 +1563,7 @@ int main(int argc, const char *argv[])
 
     AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
     EBML_StringGet(AppName,String,TSIZEOF(String));
-	StringDiff = tcslen(String);
+	ExtraSizeDiff = tcslen(String);
     if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
     {
         tcscat_s(Original,TSIZEOF(Original),T(" + "));
@@ -1543,7 +1582,7 @@ int main(int argc, const char *argv[])
 	if (s[0])
 		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
     EBML_UniStringSetValue(AppName,String);
-	StringDiff = tcslen(String) - StringDiff + 2;
+	ExtraSizeDiff = tcslen(String) - ExtraSizeDiff + 2;
 
 	if (Remux || !EBML_MasterFindFirstElt(RSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
 	{
@@ -1563,29 +1602,6 @@ int main(int argc, const char *argv[])
         EBML_ElementUpdateSize(RTrackInfo,0,0);
         RTrackInfo->ElementPosition = NextPos;
         NextPos += EBML_ElementFullSize(RTrackInfo,0);
-    }
-
-    if (!Unsafe)
-    {
-        // Write the Cluster PrevSize
-        ClusterSize = INVALID_FILEPOS_T;
-        for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
-        {
-            if (ClusterSize != INVALID_FILEPOS_T)
-            {
-                Elt = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
-                if (Elt)
-                {
-                    EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
-                    Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
-                    if (Elt2)
-                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
-                    StringDiff += (size_t)EBML_ElementFullSize(Elt,0);
-                    EBML_ElementUpdateSize(*Cluster,0,1);
-                }
-            }
-            ClusterSize = EBML_ElementFullSize(*Cluster,0);
-        }
     }
 
 	if (!Live)
@@ -1613,7 +1629,7 @@ int main(int argc, const char *argv[])
 		//  Compute the Cues size
 		if (RTrackInfo && RCues)
 		{
-			OptimizeCues(RCues,Clusters,RSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated);
+			OptimizeCues(RCues,Clusters,RSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated, !Unsafe);
 			EBML_ElementUpdateSize(RCues,0,0);
 			RCues->ElementPosition = NextPos;
 			NextPos += EBML_ElementFullSize(RCues,0);
@@ -1631,6 +1647,8 @@ int main(int argc, const char *argv[])
 		}
 		SegmentSize += EBML_ElementFullSize(WMetaSeek,0);
 	}
+    else if (!Unsafe)
+        SetClusterPrevSize(Clusters);
 
     if (EBML_ElementRender(RSegmentInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
     {
@@ -1709,7 +1727,7 @@ int main(int argc, const char *argv[])
     // update the WSegment size
 	if (!Live)
 	{
-		if (SegmentSize - StringDiff > WSegment->DataSize)
+		if (SegmentSize - ExtraSizeDiff > WSegment->DataSize)
 		{
 			if (EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->SizeLength,0))
 			{
