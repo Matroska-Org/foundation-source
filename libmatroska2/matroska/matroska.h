@@ -52,9 +52,13 @@ EBML_DLL err_t MATROSKA_Done(nodecontext *p);
 #define INVALID_TIMECODE_T      MAX_INT64
 typedef int64_t    timecode_t; // in nanoseconds
 
-#define TRACK_TYPE_VIDEO   1
-#define TRACK_TYPE_AUDIO   2
-#define TRACK_TYPE_COMPLEX 3
+#define TRACK_TYPE_VIDEO    1
+#define TRACK_TYPE_AUDIO    2
+#define TRACK_TYPE_COMPLEX  3
+#define TRACK_TYPE_SUBTITLE 17
+#define TRACK_TYPE_LOGO     16
+#define TRACK_TYPE_BUTTONS  18
+#define TRACK_TYPE_CONTROL  32
 
 typedef struct matroska_block matroska_block;
 typedef struct matroska_cuepoint matroska_cuepoint;

@@ -33,14 +33,13 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo make sure audio frames are all keyframes (no known codec so far are not)
- * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
+ * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
  * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
+ * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
+ * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo compute the segment duration (when it's not set) (remove it in live mode)
- * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo compute the track default duration (when it's not set or not optimal)
- * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
  * \todo support compressed headers (header stripping or zlib)
  * \todo add a batch mode to treat more than one file at once
  * \todo get the file name/list to treat from stdin too
@@ -339,7 +338,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
 static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int DstProfile)
 {
     matroska_cluster **Cluster;
-	ebml_element *Block;
+	ebml_element *Block, *GBlock, *BlockTrack, *Type;
 
 	// find out if the Clusters use forbidden features for that DstProfile
 	if (DstProfile == PROFILE_MATROSKA_V1)
@@ -365,6 +364,36 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
 		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks);
 		ReduceSize((ebml_element*)*Cluster);
 	}
+
+    // mark all the audio/subtitle tracks as keyframes
+	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
+	{
+		for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
+		{
+			if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+			{
+				GBlock = EBML_MasterFindFirstElt(Block, &MATROSKA_ContextClusterBlock, 0, 0);
+				if (GBlock)
+				{
+					BlockTrack = MATROSKA_BlockTrack((matroska_block*)GBlock);
+                    if (!BlockTrack) continue;
+                    Type = EBML_MasterFindFirstElt(BlockTrack,&MATROSKA_ContextTrackType,0,0);
+                    if (!Type) continue;
+                    if (EBML_IntegerValue(Type)!=TRACK_TYPE_VIDEO)
+                        MATROSKA_BlockSetKeyframe((matroska_block*)GBlock,1);
+				}
+			}
+			else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+			{
+				BlockTrack = MATROSKA_BlockTrack((matroska_block *)Block);
+                if (!BlockTrack) continue;
+                Type = EBML_MasterFindFirstElt(BlockTrack,&MATROSKA_ContextTrackType,0,0);
+                if (!Type) continue;
+                if (EBML_IntegerValue(Type)!=TRACK_TYPE_VIDEO)
+                    MATROSKA_BlockSetKeyframe((matroska_block*)Block,1);
+			}
+		}
+    }
 	return 0;
 }
 
