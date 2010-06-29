@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo compute the segment duration (when it's not set) (remove it in live mode)
@@ -851,6 +850,23 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
     
     if (EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0)==NULL)
         return -19;
+
+    // put the TrackNumber, TrackType and CodecId at the front of the Track elements
+    for (Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0); Track; Track = EBML_MasterNext(Track))
+    {
+        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+        if (Elt != EBML_MasterChildren(Track))
+            NodeTree_SetParent(Elt,Track,EBML_MasterChildren(Track));
+
+        Elt2 = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
+        if (Elt2 != EBML_MasterNext(Elt))
+            NodeTree_SetParent(Elt2,Track,EBML_MasterNext(Elt));
+
+        DisplayW = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecID,0,0);
+        if (DisplayW != EBML_MasterNext(Elt2))
+            NodeTree_SetParent(DisplayW,Track,EBML_MasterNext(Elt2));
+    }
+
     return 0;
 }
 
