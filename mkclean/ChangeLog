@@ -6,6 +6,8 @@ version 0.3.2:
     - reserve a place after the SeekHead for a reference to Tags when they are not there (for easy editing)
     - make sure audio/subtitles frames are all keyframes (no known codec so far are not)
     - make sure the lacing flag in the track info matches what is used in the file
+    - clean Haali's style aspect ratio (16/9 instead of the pixel values)
+    - remove values that are the same as their (indirect) default values (like DisplayWidth/DisplayHeight and OutputSamplingFreq)
 
 2010-06-11
 version 0.3.1:

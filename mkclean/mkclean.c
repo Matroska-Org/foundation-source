@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
  * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
@@ -733,8 +732,8 @@ static int TimcodeCmp(const void* Param, const timecode_t *a, const timecode_t *
 
 static int CleanTracks(ebml_element *Tracks, int Profile)
 {
-    ebml_element *Track, *CurTrack, *Elt;
-    int TrackType, TrackNum;
+    ebml_element *Track, *CurTrack, *Elt, *Elt2, *DisplayW, *DisplayH;
+    int TrackType, TrackNum, Width, Height;
     tchar_t CodecID[MAXPATH];
     
     for (Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0); Track;)
@@ -778,7 +777,77 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
 				NodeDelete((node*)CurTrack);
 			}
 		}
-	}
+
+        // clean the aspect ratio
+        Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackVideo,0,0);
+        if (Elt)
+        {
+            DisplayW = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
+            DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
+            if (DisplayW || DisplayH)
+            {
+                Width = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelWidth,0,0));
+                Height = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelHeight,0,0));
+                Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 0, 0);
+                if (!Elt2 || EBML_IntegerValue(Elt2)==0) // pixel AR
+                {
+                    if (!DisplayW)
+                    {
+                        if (EBML_IntegerValue(DisplayH)==Height)
+                        {
+                            NodeDelete((node*)DisplayH);
+                            DisplayH = NULL;
+                        }
+                        else
+                        {
+                            DisplayW = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayWidth,1,0);
+                            EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(EBML_IntegerValue(DisplayH),Width,Height));
+                        }
+                    }
+                    else if (!DisplayH)
+                    {
+                        if (EBML_IntegerValue(DisplayW)==Width)
+                        {
+                            NodeDelete((node*)DisplayW);
+                            DisplayW = NULL;
+                        }
+                        else
+                        {
+                            DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayHeight,1,0);
+                            EBML_IntegerSetValue((ebml_integer*)DisplayH,Scale64(EBML_IntegerValue(DisplayW),Height,Width));
+                        }
+                    }
+
+                    if (DisplayW && DisplayH)
+                    {
+                        if (EBML_IntegerValue(DisplayH) < 20 && Height > 20) // Haali's kind
+                        {
+                            EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(Height,EBML_IntegerValue(DisplayW),EBML_IntegerValue(DisplayH)));
+                            EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
+                        }
+                        if (EBML_IntegerValue(DisplayH) == Height)
+                            NodeDelete((node*)DisplayH);
+                        if (EBML_IntegerValue(DisplayW) == Width)
+                            NodeDelete((node*)DisplayW);
+                    }
+                }
+            }
+        }
+
+        // clean the output sampling freq
+        Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackAudio,0,0);
+        if (Elt)
+        {
+            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackAudioOutputSamplingFreq,0,0);
+            if (Elt2)
+            {
+                DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackAudioSamplingFreq,0,0);
+                assert(DisplayH!=NULL);
+                if (((ebml_float*)Elt2)->Value == ((ebml_float*)DisplayH)->Value)
+                    NodeDelete((node*)Elt2);
+            }
+        }
+    }
     
     if (EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0)==NULL)
         return -19;
