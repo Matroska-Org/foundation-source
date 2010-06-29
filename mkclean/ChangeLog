@@ -4,6 +4,8 @@ version 0.3.2:
     - display the 64 bits integers correctly on all platforms
     - write the Cluster PrevSize and position in the Segment by default (can be disabled with --unsafe)
     - reserve a place after the SeekHead for a reference to Tags when they are not there (for easy editing)
+    - make sure audio/subtitles frames are all keyframes (no known codec so far are not)
+    - make sure the lacing flag in the track info matches what is used in the file
 
 2010-06-11
 version 0.3.1:

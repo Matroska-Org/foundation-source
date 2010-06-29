@@ -36,7 +36,6 @@
  * \todo remove values that are the same as their (indirect) default values (like DisplayWidth)
  * \todo put the TrackNumber, TrackType and TrackLanguage at the front of the Track elements
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
- * \todo verify that no lacing is used when lacing is disabled in the SegmentInfo
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
  * \todo compute the segment duration (when it's not set) (remove it in live mode)
  * \todo compute the track default duration (when it's not set or not optimal)
@@ -335,10 +334,11 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int DstProfile)
+static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_element *Tracks, int DstProfile, array *WTracks)
 {
     matroska_cluster **Cluster;
 	ebml_element *Block, *GBlock, *BlockTrack, *Type;
+    int BlockNum;
 
 	// find out if the Clusters use forbidden features for that DstProfile
 	if (DstProfile == PROFILE_MATROSKA_V1)
@@ -379,8 +379,11 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
                     if (!BlockTrack) continue;
                     Type = EBML_MasterFindFirstElt(BlockTrack,&MATROSKA_ContextTrackType,0,0);
                     if (!Type) continue;
-                    if (EBML_IntegerValue(Type)!=TRACK_TYPE_VIDEO)
+                    if (EBML_IntegerValue(Type)==TRACK_TYPE_AUDIO || EBML_IntegerValue(Type)==TRACK_TYPE_SUBTITLE)
                         MATROSKA_BlockSetKeyframe((matroska_block*)GBlock,1);
+                    BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
+                    if (MATROSKA_BlockGetFrameCount((matroska_block*)GBlock)>1)
+                        ARRAYBEGIN(*WTracks,bool_t)[BlockNum] = 1;
 				}
 			}
 			else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
@@ -389,8 +392,11 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
                 if (!BlockTrack) continue;
                 Type = EBML_MasterFindFirstElt(BlockTrack,&MATROSKA_ContextTrackType,0,0);
                 if (!Type) continue;
-                if (EBML_IntegerValue(Type)!=TRACK_TYPE_VIDEO)
+                if (EBML_IntegerValue(Type)==TRACK_TYPE_AUDIO || EBML_IntegerValue(Type)==TRACK_TYPE_SUBTITLE)
                     MATROSKA_BlockSetKeyframe((matroska_block*)Block,1);
+                BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
+                if (MATROSKA_BlockGetFrameCount((matroska_block*)Block)>1)
+                    ARRAYBEGIN(*WTracks,bool_t)[BlockNum] = 1;
 			}
 		}
     }
@@ -797,10 +803,10 @@ int main(int argc, const char *argv[])
     tchar_t String[MAXLINE],Original[MAXLINE],*s;
     ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
     ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
-    ebml_element *WSegment = NULL, *WMetaSeek = NULL, *Elt;
+    ebml_element *WSegment = NULL, *WMetaSeek = NULL, *Elt, *Elt2;
     matroska_seekpoint *WSeekPoint = NULL, *WSeekPointTags = NULL;
     ebml_string *LibName, *AppName;
-    array RClusters, WClusters, *Clusters;
+    array RClusters, WClusters, *Clusters, WTracks;
     ebml_parser_context RContext;
     ebml_parser_context RSegmentContext;
     int UpperElement;
@@ -1018,6 +1024,17 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+    // make sure the lacing flag is set on tracks that use it
+    ArrayInit(&WTracks);
+    i = -1;
+    for (Elt = EBML_MasterChildren(RTrackInfo);Elt;Elt=EBML_MasterNext(Elt))
+    {
+        Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
+        i = max(i,(int)EBML_IntegerValue(Elt2));
+    }
+    ArrayResize(&WTracks,sizeof(bool_t)*i,0);
+    ArrayZero(&WTracks);
+
     // Write the EBMLHead
     EbmlHead = EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
@@ -1133,7 +1150,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile);
+	Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile, &WTracks);
 	if (Result!=0)
 		goto exit;
 
@@ -1544,6 +1561,27 @@ int main(int argc, const char *argv[])
 		RCues = NULL;
 	}
 
+    // fix/clean the Lacing flag for each track
+    assert(MATROSKA_ContextTrackLacing.DefaultValue==1);
+    for (Elt = EBML_MasterChildren(RTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
+    {
+		Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
+		if (!Elt2) continue;
+        if (ARRAYBEGIN(WTracks,bool_t)[(size_t)EBML_IntegerValue(Elt2)])
+        {
+            // has lacing
+            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackLacing,0,0);
+            if (Elt2)
+                NodeDelete((node*)Elt2);
+        }
+        else
+        {
+            // doesn't have lacing
+            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackLacing,1,0);
+            EBML_IntegerSetValue((ebml_integer*)Elt2,0);
+        }
+    }
+
     // cues
 	if (!Live)
 	{
@@ -1855,6 +1893,7 @@ exit:
     for (Cluster = ARRAYBEGIN(WClusters,ebml_element*);Cluster != ARRAYEND(WClusters,ebml_element*); ++Cluster)
         NodeDelete((node*)*Cluster);
     ArrayClear(&WClusters);
+    ArrayClear(&WTracks);
     if (RAttachments)
         NodeDelete((node*)RAttachments);
     if (RTags)
