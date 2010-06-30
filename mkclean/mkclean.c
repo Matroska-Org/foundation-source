@@ -33,21 +33,21 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration)
- * \todo error when an unknown codec (for the profile) is found (option to turn into a warning)
- * \todo compute the segment duration (when it's not set) (remove it in live mode)
- * \todo compute the track default duration (when it's not set or not optimal)
- * \todo support compressed headers (header stripping or zlib)
+ * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
+ * \todo compute the segment duration based on audio (when it's not set) (remove it in live mode)
+ * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
+ * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?) (optimize mode)
+ * \todo compute the track default duration (when it's not set or not optimal) (optimize mode)
+ * \todo support compressed headers (header stripping or zlib) (optimize mode)
  * \todo add a batch mode to treat more than one file at once
  * \todo get the file name/list to treat from stdin too
  * \todo add an option to remove the original file
  * \todo add an option to rename the output to the original file
  * \todo support the japanese translation
- * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?)
  *
  * less important:
  * \todo (optionally) change the Segment UID (when key parts are altered/added)
- * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm')
+ * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm') (loose mode)
  * \todo support for updating/writing the CRC32
  * \todo allow creating/replacing Tags
  * \todo allow creating/replacing Chapters
