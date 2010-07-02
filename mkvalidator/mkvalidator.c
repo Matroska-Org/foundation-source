@@ -412,7 +412,7 @@ static void LinkClusterBlocks()
 {
 	matroska_cluster **Cluster;
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
-		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, RTrackInfo);
+		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, RTrackInfo, 1);
 }
 
 static bool_t TrackIsLaced(int16_t TrackNum)

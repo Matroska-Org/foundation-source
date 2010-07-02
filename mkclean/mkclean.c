@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo discards tracks that has the same UID
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
  * \todo compute the segment duration based on audio (when it's not set) (remove it in live mode)
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
@@ -43,6 +44,7 @@
  * \todo get the file name/list to treat from stdin too
  * \todo add an option to remove the original file
  * \todo add an option to rename the output to the original file
+ * \todo add an option to show the size gained/added compared to the original
  * \todo support the japanese translation
  *
  * less important:
@@ -359,7 +361,7 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 	{
-		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks);
+		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks, 0);
 		ReduceSize((ebml_element*)*Cluster);
 	}
 
@@ -1117,7 +1119,7 @@ int main(int argc, const char *argv[])
         Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
         i = max(i,(int)EBML_IntegerValue(Elt2));
     }
-    ArrayResize(&WTracks,sizeof(bool_t)*i,0);
+    ArrayResize(&WTracks,sizeof(bool_t)*(i+1),0);
     ArrayZero(&WTracks);
 
     // Write the EBMLHead
@@ -1250,7 +1252,8 @@ int main(int argc, const char *argv[])
 		size_t MainTrack, BlockTrack;
         size_t Frame, *pTrackOrder;
 		bool_t Deleted;
-		array KeyFrameTimecodes, TrackBlocks, TrackBlockCurrIdx, TrackOrder, *pTrackBlock;
+		array KeyFrameTimecodes, TrackBlockCurrIdx, TrackOrder, *pTrackBlock;
+        array TrackBlocks; // array of block_info
         matroska_frame FrameData;
 		block_info BlockInfo,*pBlockInfo;
 		err_t Result;
@@ -1282,6 +1285,7 @@ int main(int argc, const char *argv[])
 		// fill TrackBlocks with all the Blocks per track
 		BlockInfo.DecodeTime = INVALID_TIMECODE_T;
 		BlockInfo.FrameStart = 0;
+
 		for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*);ClusterR!=ARRAYEND(RClusters,matroska_cluster*);++ClusterR)
 		{
 			for (Block = EBML_MasterChildren(*ClusterR);Block;Block=EBML_MasterNext(Block))
