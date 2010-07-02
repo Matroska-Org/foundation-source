@@ -345,7 +345,7 @@ static void releaseTrackEntry(TrackInfo *track, InputStream *io)
 
 static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err_msg, size_t err_msgSize)
 {
-	TrackInfo track;
+	TrackInfo track,*Tracks;
 	ebml_element *Elt,*TElt;
 
 	if (ARRAYCOUNT(File->Tracks,TrackInfo) >= MAX_TRACKS)
@@ -604,7 +604,18 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 		goto fail;
 	}
 
-	// TODO: check for duplicate track UID entries
+	// check for duplicate track UID entries
+    if (track.UID)
+    {
+        for (Tracks=ARRAYBEGIN(File->Tracks,TrackInfo);Tracks!=ARRAYEND(File->Tracks,TrackInfo);++Tracks)
+        {
+            if (Tracks->UID == track.UID)
+            {
+                snprintf(err_msg,err_msgSize,"A track with UID 0x" PRIx64 " already exists",track.UID);
+                goto fail;
+            }
+        }
+    }
 
 	ArrayAppend(&File->Tracks,&track,sizeof(track),256);
 	return 1;
