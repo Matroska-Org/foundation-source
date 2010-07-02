@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo support track compression header on reading (transparent to the current API)
  * \todo discards tracks that has the same UID
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
  * \todo compute the segment duration based on audio (when it's not set) (remove it in live mode)
@@ -901,6 +902,7 @@ int main(int argc, const char *argv[])
     filepos_t NextPos, SegmentSize = 0, ClusterSize;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0;
 	int64_t TimeCodeScale = 0;
+    size_t MaxTrackNum = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -1111,6 +1113,17 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+	// count the max track number
+	for (Elt=EBML_MasterChildren(RTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
+	{
+		if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
+		{
+			Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
+			if ((size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
+				MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
+		}
+	}
+
     // make sure the lacing flag is set on tracks that use it
     ArrayInit(&WTracks);
     i = -1;
@@ -1259,25 +1272,20 @@ int main(int argc, const char *argv[])
 		err_t Result;
 
 		TextWrite(StdErr,T("Remuxing...\r\n"));
-		// count the number of useful tracks and the max track number
+		// count the number of useful tracks
 		Frame = 0;
-		for (MainTrack=0, Track=EBML_MasterChildren(RTrackInfo); Track; Track=EBML_MasterNext(Track))
+		for (Track=EBML_MasterChildren(RTrackInfo); Track; Track=EBML_MasterNext(Track))
 		{
 			if (Track->Context->Id && MATROSKA_ContextTrackEntry.Id)
-			{
-				Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
 				++Frame;
-				if ((size_t)EBML_IntegerValue(Elt) > MainTrack)
-					MainTrack = (int16_t)EBML_IntegerValue(Elt);
-			}
 		}
 
 		ArrayInit(&TrackBlocks);
-		ArrayResize(&TrackBlocks, sizeof(array)*(MainTrack+1), 0);
+		ArrayResize(&TrackBlocks, sizeof(array)*(MaxTrackNum+1), 0);
 		ArrayZero(&TrackBlocks);
 
 		ArrayInit(&TrackBlockCurrIdx);
-		ArrayResize(&TrackBlockCurrIdx, sizeof(size_t)*(MainTrack+1), 0);
+		ArrayResize(&TrackBlockCurrIdx, sizeof(size_t)*(MaxTrackNum+1), 0);
 		ArrayZero(&TrackBlockCurrIdx);
 
 		ArrayInit(&TrackOrder);
@@ -1757,10 +1765,12 @@ int main(int argc, const char *argv[])
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
 	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
-	if (Remux ||Live)
+	if (Remux ||Live || Optimize)
 		tcscat_s(String,TSIZEOF(String),T(" "));
 	if (Remux)
 		tcscat_s(String,TSIZEOF(String),T("r"));
+	if (Optimize)
+		tcscat_s(String,TSIZEOF(String),T("o"));
 	if (Live)
 		tcscat_s(String,TSIZEOF(String),T("l"));
 	if (s[0])
