@@ -1081,6 +1081,8 @@ err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size
 	return ERR_NONE;
 }
 
+// TODO: support zero copy reading (read the frames directly into a buffer with a callback per frame)
+//       pass the Input stream and the amount to read per frame, give the timecode of the frame and get the end timecode in return, get an error code if reading failed
 err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 {
     size_t Read;
