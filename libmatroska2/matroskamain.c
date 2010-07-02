@@ -1014,9 +1014,9 @@ matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode
     return NULL;
 }
 
-void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmentInfo, ebml_element *Tracks)
+void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmentInfo, ebml_element *Tracks, bool_t KeepUnmatched)
 {
-    ebml_element *Block, *GBlock;
+    ebml_element *Block, *GBlock,*NextBlock;
 
 	assert(Node_IsPartOf(Cluster,MATROSKA_CLUSTER_CLASS));
 	assert(RSegmentInfo->Context->Id == MATROSKA_ContextSegmentInfo.Id);
@@ -1024,24 +1024,29 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmen
 
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	MATROSKA_LinkClusterSegmentInfo(Cluster,RSegmentInfo);
-	for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+	for (Block = EBML_MasterChildren(Cluster);Block;Block=NextBlock)
 	{
+        NextBlock = EBML_MasterNext(Block);
 		if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
 		{
 			for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
 			{
 				if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
 				{
-					MATROSKA_LinkBlockWithTracks((matroska_block*)GBlock,Tracks);
-					MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
+					if (MATROSKA_LinkBlockWithTracks((matroska_block*)GBlock,Tracks)!=ERR_NONE && !KeepUnmatched)
+                        NodeDelete((node*)Block);
+                    else
+					    MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
 					break;
 				}
 			}
 		}
 		else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		{
-			MATROSKA_LinkBlockWithTracks((matroska_block*)Block,Tracks);
-			MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
+			if (MATROSKA_LinkBlockWithTracks((matroska_block*)Block,Tracks)!=ERR_NONE && !KeepUnmatched)
+                NodeDelete((node*)Block);
+            else
+    			MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
 		}
 	}
 }
