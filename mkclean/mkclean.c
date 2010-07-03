@@ -384,7 +384,10 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
                     Type = EBML_MasterFindFirstElt(BlockTrack,&MATROSKA_ContextTrackType,0,0);
                     if (!Type) continue;
                     if (EBML_IntegerValue(Type)==TRACK_TYPE_AUDIO || EBML_IntegerValue(Type)==TRACK_TYPE_SUBTITLE)
+                    {
                         MATROSKA_BlockSetKeyframe((matroska_block*)GBlock,1);
+						MATROSKA_BlockSetDiscardable((matroska_block*)GBlock,0);
+                    }
                     BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
                     if (MATROSKA_BlockGetFrameCount((matroska_block*)GBlock)>1)
                         ARRAYBEGIN(*WTracks,bool_t)[BlockNum] = 1;
@@ -397,7 +400,10 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
                 Type = EBML_MasterFindFirstElt(BlockTrack,&MATROSKA_ContextTrackType,0,0);
                 if (!Type) continue;
                 if (EBML_IntegerValue(Type)==TRACK_TYPE_AUDIO || EBML_IntegerValue(Type)==TRACK_TYPE_SUBTITLE)
+                {
                     MATROSKA_BlockSetKeyframe((matroska_block*)Block,1);
+                    MATROSKA_BlockSetDiscardable((matroska_block*)Block,0);
+                }
                 BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
                 if (MATROSKA_BlockGetFrameCount((matroska_block*)Block)>1)
                     ARRAYBEGIN(*WTracks,bool_t)[BlockNum] = 1;
@@ -1588,6 +1594,7 @@ int main(int argc, const char *argv[])
 								MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
 								MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
 								MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 								{
@@ -1617,6 +1624,7 @@ int main(int argc, const char *argv[])
 								MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
 								MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
 								MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 								{
@@ -1655,6 +1663,7 @@ int main(int argc, const char *argv[])
 									MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
 									MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
 									MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+    								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 									for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 									{
@@ -1688,6 +1697,7 @@ int main(int argc, const char *argv[])
 									MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
 									MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
 									MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
+    								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 									for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 									{
