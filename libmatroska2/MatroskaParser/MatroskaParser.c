@@ -1343,7 +1343,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				else
 				{
 					EBML_MasterAppend(File->CurrentCluster, Elt);
-					MATROSKA_LinkBlockWithTracks((matroska_block*)Elt,File->TrackList);
+					MATROSKA_LinkBlockWithReadTracks((matroska_block*)Elt,File->TrackList,1);
 					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
 					File->CurrentBlock = (matroska_block*)Elt;
 				}
@@ -1368,7 +1368,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 					else
 					{
 						EBML_MasterAppend(File->CurrentCluster, Elt);
-						MATROSKA_LinkBlockWithTracks((matroska_block*)Elt2,File->TrackList);
+						MATROSKA_LinkBlockWithReadTracks((matroska_block*)Elt2,File->TrackList,1);
 						MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,File->SegmentInfo);
 						File->CurrentBlock = (matroska_block*)Elt2;
 					}
