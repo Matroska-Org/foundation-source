@@ -3,7 +3,7 @@
 CON(CONFIG_EBML_WRITING) mkclean
 {
   PROJECT_NAME "mkclean"
-  PROJECT_VERSION  0.4.0
+  PROJECT_VERSION  0.4.1
   PROJECT_VENDOR   "Matroska Foundation"
   USE matroska2
   SOURCE mkclean.c

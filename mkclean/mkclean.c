@@ -147,6 +147,7 @@ static int DocVersion = 1;
 static int SrcProfile = 0, DstProfile = 0;
 static textwriter *StdErr = NULL;
 static size_t ExtraSizeDiff = 0;
+static bool_t Quiet = 0;
 
 static void ReduceSize(ebml_element *Element)
 {
@@ -288,12 +289,14 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 
 static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegment, int phase)
 {
-    TextPrintf(StdErr,T("Progress %d/3: %3d%%\r"),phase,Scale32(100,RCluster->ElementPosition,RSegment->DataSize)+1);
+    if (!Quiet)
+        TextPrintf(StdErr,T("Progress %d/3: %3d%%\r"),phase,Scale32(100,RCluster->ElementPosition,RSegment->DataSize)+1);
 }
 
 static void EndProgress(const ebml_element *RSegment, int phase)
 {
-    TextPrintf(StdErr,T("Progress %d/3: 100%%\r\n"),phase);
+    if (!Quiet)
+        TextPrintf(StdErr,T("Progress %d/3: 100%%\r\n"),phase);
 }
 
 static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, const ebml_element *RSegment)
@@ -452,7 +455,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > EBML_MAX_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -465,7 +468,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > EBML_MAX_ID)
             {
-                TextPrintf(StdErr,T("EBML Max ID Length %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Max ID Length %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -478,7 +481,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > EBML_MAX_SIZE)
             {
-                TextPrintf(StdErr,T("EBML Max Coded Size %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Max Coded Size %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue(SubElement));
                 break;
             }
         }
@@ -498,7 +501,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                     SrcProfile = PROFILE_WEBM_V2;
                 else
                 {
-                    TextPrintf(StdErr,T("EBML DocType %s not supported"),EBML_IntegerValue(SubElement));
+                    TextPrintf(StdErr,T("EBML DocType %s not supported\r\n"),EBML_IntegerValue(SubElement));
                     break;
                 }
             }
@@ -512,7 +515,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             }
             else if (EBML_IntegerValue(SubElement) > MATROSKA_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported"),EBML_IntegerValue(SubElement));
+                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue(SubElement));
                 break;
             }
             else
@@ -577,12 +580,12 @@ static void WriteCluster(ebml_element *Cluster, stream *Output, stream *Input, b
     }
 
     if (!Live && Cluster->ElementPosition != IntendedPosition)
-        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64, Cluster->ElementPosition,IntendedPosition);
+        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), Cluster->ElementPosition,IntendedPosition);
     if (PrevSize!=INVALID_FILEPOS_T)
     {
         Block = EBML_MasterFindFirstElt(Cluster, &MATROSKA_ContextClusterPrevSize, 1, 1);
         if (Block && PrevSize!=EBML_IntegerValue(Block))
-            TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64, Cluster->ElementPosition,EBML_IntegerValue(Block),PrevSize);
+            TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), Cluster->ElementPosition,EBML_IntegerValue(Block),PrevSize);
     }
 }
 
@@ -704,7 +707,7 @@ static bool_t GenerateCueEntries(ebml_element *Cues, array *Clusters, ebml_eleme
 				CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,&MATROSKA_ContextCuePoint,1);
 				if (!CuePoint)
 				{
-					TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?"));
+					TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?\r\n"));
 					return 0;
 				}
 				MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
@@ -720,7 +723,7 @@ static bool_t GenerateCueEntries(ebml_element *Cues, array *Clusters, ebml_eleme
 
 	if (!EBML_MasterChildren(Cues))
 	{
-		TextPrintf(StdErr,T("Failed to create the Cue entries, no Block found"));
+		TextPrintf(StdErr,T("Failed to create the Cue entries, no Block found\r\n"));
 		return 0;
 	}
 
@@ -886,10 +889,12 @@ typedef struct block_info
 
 } block_info;
 
+#define TABLE_MARKER (uint8_t*)1
+
 static void InitCommonHeader(array *TrackHeader)
 {
     // special mark to tell the header has not been used yet
-    TrackHeader->_Begin = (uint8_t*)1;
+    TrackHeader->_Begin = TABLE_MARKER;
 }
 
 static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream *Input)
@@ -897,13 +902,13 @@ static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream
     size_t Frame,FrameCount,EqualData;
     matroska_frame FrameData;
 
-    if (TrackHeader->_Begin != (uint8_t*)1 && ARRAYCOUNT(*TrackHeader,uint8_t)==0)
+    if (TrackHeader->_Begin != TABLE_MARKER && ARRAYCOUNT(*TrackHeader,uint8_t)==0)
         return;
     if (MATROSKA_BlockReadData(Block,Input)!=ERR_NONE)
         return;
     FrameCount = MATROSKA_BlockGetFrameCount(Block);
     Frame = 0;
-    if (FrameCount && TrackHeader->_Begin == (uint8_t*)1)
+    if (FrameCount && TrackHeader->_Begin == TABLE_MARKER)
     {
         // use the first frame as the reference
         MATROSKA_BlockGetFrame(Block,Frame,&FrameData,1);
@@ -932,7 +937,7 @@ static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream
 
 static void ClearCommonHeader(array *TrackHeader)
 {
-    if (TrackHeader->_Begin == (uint8_t*)1)
+    if (TrackHeader->_Begin == TABLE_MARKER)
         TrackHeader->_Begin = NULL;
 }
 
@@ -993,6 +998,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
 		TextWrite(StdErr,T("  --unsafe      don't output elements that can be used for file recovery (saves more space)\r\n"));
 		TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
+		TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
         Result = -1;
         goto exit;
     }
@@ -1026,6 +1032,7 @@ int main(int argc, const char *argv[])
 		}
 		else if (tcsisame_ascii(Path,T("--unsafe"))) Unsafe = 1;
 		else if (tcsisame_ascii(Path,T("--optimize"))) Optimize = 1;
+		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
 		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
 
@@ -1323,7 +1330,7 @@ int main(int argc, const char *argv[])
         ebml_element *Block, *GBlock;
         matroska_cluster **ClusterR;
 
-	    TextWrite(StdErr,T("Optimizing...\r\n"));
+	    if (!Quiet) TextWrite(StdErr,T("Optimizing...\r\n"));
 
 		ArrayResize(&TrackMaxHeader, sizeof(array)*(MaxTrackNum+1), 0);
 		ArrayZero(&TrackMaxHeader);
@@ -1372,7 +1379,7 @@ int main(int argc, const char *argv[])
 		block_info BlockInfo,*pBlockInfo;
 		err_t Result;
 
-		TextWrite(StdErr,T("Remuxing...\r\n"));
+		if (!Quiet) TextWrite(StdErr,T("Remuxing...\r\n"));
 		// count the number of useful tracks
 		Frame = 0;
 		for (Track=EBML_MasterChildren(WTrackInfo); Track; Track=EBML_MasterNext(Track))
@@ -1530,7 +1537,7 @@ int main(int argc, const char *argv[])
 		}
 
 		// create each Cluster
-		TextWrite(StdErr,T("Reclustering...\r\n"));
+		if (!Quiet) TextWrite(StdErr,T("Reclustering...\r\n"));
 		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
 		{
 			bool_t ReachedNextCluster = 0;
@@ -1849,7 +1856,7 @@ int main(int argc, const char *argv[])
 		{
 			// generate the cues
 			RCues = EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
-			TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
+			if (!Quiet) TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
 			CuesCreated = GenerateCueEntries(RCues,Clusters,WTrackInfo,RSegmentInfo,RSegment);
 			if (!CuesCreated)
 			{
