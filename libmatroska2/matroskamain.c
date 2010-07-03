@@ -610,8 +610,8 @@ struct matroska_seekpoint
 static err_t AdjustBlockSizes(matroska_block *Block)
 {
     ebml_element *Elt, *Header;
-    assert(Block->Track!=NULL);
-    Elt = EBML_MasterFindFirstElt(Block->Track, &MATROSKA_ContextTrackEncodings, 0, 0);
+    assert(Block->ReadTrack!=NULL);
+    Elt = EBML_MasterFindFirstElt(Block->ReadTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
     if (Elt)
     {
         if (ARRAYCOUNT(Block->Data,uint8_t))
@@ -643,10 +643,10 @@ static err_t AdjustBlockSizes(matroska_block *Block)
     return ERR_NONE;
 }
 
-err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks)
+err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_element *Tracks, bool_t UseForWriteToo)
 {
     ebml_element *Track, *TrackNum;
-    bool_t WasLinked = Block->Track!=NULL;
+    bool_t WasLinked = Block->ReadTrack!=NULL;
 
     assert(Tracks->Context->Id == MATROSKA_ContextTracks.Id);
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
@@ -655,7 +655,9 @@ err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks)
         TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
         if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && EBML_IntegerValue(TrackNum)==Block->TrackNumber)
         {
-            Node_SET(Block,MATROSKA_BLOCK_TRACK,&Track);
+            Node_SET(Block,MATROSKA_BLOCK_READ_TRACK,&Track);
+            if (UseForWriteToo)
+                Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
             if (WasLinked)
                 return ERR_NONE;
             return AdjustBlockSizes(Block);
@@ -664,10 +666,10 @@ err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks)
     return ERR_INVALID_DATA;
 }
 
-err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track)
+err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_element *Track, bool_t UseForWriteToo)
 {
     ebml_element *TrackNum;
-    bool_t WasLinked = Block->Track!=NULL;
+    bool_t WasLinked = Block->ReadTrack!=NULL;
 
     assert(Track->Context->Id == MATROSKA_ContextTrackEntry.Id);
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
@@ -675,7 +677,9 @@ err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track)
     if (TrackNum && TrackNum->bValueIsSet)
     {
         Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
-        Node_SET(Block,MATROSKA_BLOCK_TRACK,&Track);
+        Node_SET(Block,MATROSKA_BLOCK_READ_TRACK,&Track);
+        if (UseForWriteToo)
+            Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
         if (WasLinked)
             return ERR_NONE;
         return AdjustBlockSizes(Block);
@@ -683,11 +687,58 @@ err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track)
     return ERR_INVALID_DATA;
 }
 
+err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_element *Tracks)
+{
+    ebml_element *Track, *TrackNum;
+    bool_t WasLinked = Block->WriteTrack!=NULL;
 
-ebml_element *MATROSKA_BlockTrack(const matroska_block *Block)
+    assert(Tracks->Context->Id == MATROSKA_ContextTracks.Id);
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    for (Track=EBML_MasterChildren(Tracks);Track;Track=EBML_MasterNext(Track))
+    {
+        TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+        if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && EBML_IntegerValue(TrackNum)==Block->TrackNumber)
+        {
+            Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
+            if (WasLinked)
+                return ERR_NONE;
+            return AdjustBlockSizes(Block);
+        }
+    }
+    return ERR_INVALID_DATA;
+}
+
+err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_element *Track)
+{
+    ebml_element *TrackNum;
+    bool_t WasLinked = Block->WriteTrack!=NULL;
+
+    assert(Track->Context->Id == MATROSKA_ContextTrackEntry.Id);
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+    TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+    if (TrackNum && TrackNum->bValueIsSet)
+    {
+        Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
+        Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
+        if (WasLinked)
+            return ERR_NONE;
+        return AdjustBlockSizes(Block);
+    }
+    return ERR_INVALID_DATA;
+}
+
+ebml_element *MATROSKA_BlockReadTrack(const matroska_block *Block)
 {
     ebml_element *Track;
-    if (Node_GET((node*)Block,MATROSKA_BLOCK_TRACK,&Track)!=ERR_NONE)
+    if (Node_GET((node*)Block,MATROSKA_BLOCK_READ_TRACK,&Track)!=ERR_NONE)
+        return NULL;
+    return Track;
+}
+
+ebml_element *MATROSKA_BlockWriteTrack(const matroska_block *Block)
+{
+    ebml_element *Track;
+    if (Node_GET((node*)Block,MATROSKA_BLOCK_WRITE_TRACK,&Track)!=ERR_NONE)
         return NULL;
     return Track;
 }
@@ -867,7 +918,7 @@ err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, time
 	int64_t InternalTimecode;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     assert(Timecode!=INVALID_TIMECODE_T);
-	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track)));
+	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->WriteTrack)));
 	if (InternalTimecode > 32767 || InternalTimecode < -32768)
 		return ERR_INVALID_DATA;
 	Block->LocalTimecode = (int16_t)InternalTimecode;
@@ -887,7 +938,7 @@ timecode_t MATROSKA_BlockTimecode(matroska_block *Block)
         Cluster = EBML_ElementParent(Cluster);
     if (!Cluster)
         return INVALID_TIMECODE_T;
-    Block->GlobalTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster) + (timecode_t)(Block->LocalTimecode * MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->Track));
+    Block->GlobalTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster) + (timecode_t)(Block->LocalTimecode * MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->ReadTrack));
 	return Block->GlobalTimecode;
 }
 
@@ -1077,7 +1128,7 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmen
 			{
 				if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
 				{
-					if (MATROSKA_LinkBlockWithTracks((matroska_block*)GBlock,Tracks)!=ERR_NONE && !KeepUnmatched)
+					if (MATROSKA_LinkBlockWithReadTracks((matroska_block*)GBlock,Tracks,1)!=ERR_NONE && !KeepUnmatched)
                         NodeDelete((node*)Block);
                     else
 					    MATROSKA_LinkBlockSegmentInfo((matroska_block*)GBlock,RSegmentInfo);
@@ -1087,7 +1138,7 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_element *RSegmen
 		}
 		else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		{
-			if (MATROSKA_LinkBlockWithTracks((matroska_block*)Block,Tracks)!=ERR_NONE && !KeepUnmatched)
+			if (MATROSKA_LinkBlockWithReadTracks((matroska_block*)Block,Tracks,1)!=ERR_NONE && !KeepUnmatched)
                 NodeDelete((node*)Block);
             else
     			MATROSKA_LinkBlockSegmentInfo((matroska_block*)Block,RSegmentInfo);
@@ -1142,8 +1193,8 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     uint8_t *Buf;
 
     // find out if compressed headers are used
-    assert(Element->Track!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->Track, &MATROSKA_ContextTrackEncodings, 0, 0);
+    assert(Element->ReadTrack!=NULL);
+    Elt = EBML_MasterFindFirstElt(Element->ReadTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
     if (Elt)
     {
         Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
@@ -1197,7 +1248,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             ArrayResize(&Element->Data,BufSize,0);
             if (!Header)
             {
-                assert(BufSize + Element->FirstFrameLocation == Element->Base.Base.DataSize);
+                //assert(BufSize + Element->FirstFrameLocation == Element->Base.Base.DataSize);
                 Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),BufSize,&BufSize);
             }
             else
@@ -1236,7 +1287,7 @@ static err_t SetBlockParent(matroska_block *Block, void* Parent, void* Before)
 	// update the timecode
 	timecode_t AbsTimeCode;
 	err_t Result = ERR_NONE;
-	if (Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent && NodeTree_Parent(Block))
+	if (Block->LocalTimecodeUsed && Block->SegInfo && Parent && NodeTree_Parent(Block))
 	{
 		assert(Node_IsPartOf(Parent,MATROSKA_CLUSTER_CLASS));
 		AbsTimeCode = MATROSKA_BlockTimecode(Block);
@@ -1254,7 +1305,7 @@ static err_t SetBlockGroupParent(ebml_element *Element, void* Parent, void* Befo
 	err_t Result = ERR_NONE;
 	matroska_block *Block = (matroska_block*)EBML_MasterFindFirstElt(Element, &MATROSKA_ContextClusterBlock, 0, 0);
 	timecode_t AbsTimeCode;
-	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Block->Track && Parent && NodeTree_Parent(Block) && NodeTree_Parent(NodeTree_Parent(Block)))
+	if (Block && Block->LocalTimecodeUsed && Block->SegInfo && Parent && NodeTree_Parent(Block) && NodeTree_Parent(NodeTree_Parent(Block)))
 	{
 		assert(Node_IsPartOf(Parent,MATROSKA_CLUSTER_CLASS));
 		AbsTimeCode = MATROSKA_BlockTimecode(Block);
@@ -1488,8 +1539,8 @@ static char GetBestLacingType(const matroska_block *Element)
         return LACING_FIXED;
 
     // find out if compressed headers are used
-    assert(Element->Track!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->Track, &MATROSKA_ContextTrackEncodings, 0, 0);
+    assert(Element->WriteTrack!=NULL);
+    Elt = EBML_MasterFindFirstElt(Element->WriteTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
     if (Elt)
     {
         Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
@@ -1586,8 +1637,8 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     if (Rendered)
         *Rendered = Written;
 
-    assert(Element->Track!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->Track, &MATROSKA_ContextTrackEncodings, 0, 0);
+    assert(Element->WriteTrack!=NULL);
+    Elt = EBML_MasterFindFirstElt(Element->WriteTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
     if (Elt)
     {
         Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
@@ -1655,6 +1706,8 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
             *Rendered += Written;
         free(LaceHead);
     }
+    Node_SET(Element,MATROSKA_BLOCK_READ_TRACK,&Element->WriteTrack); // now use the write track to read the same element
+
     Cursor = ARRAYBEGIN(Element->Data,uint8_t);
     ToWrite = ARRAYCOUNT(Element->Data,uint8_t);
     if (Header)
@@ -1699,8 +1752,8 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
     if (Element->Lacing == LACING_AUTO)
         Element->Lacing = GetBestLacingType(Element);
 
-    assert(Element->Track!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->Track, &MATROSKA_ContextTrackEncodings, 0, 0);
+    assert(Element->WriteTrack!=NULL);
+    Elt = EBML_MasterFindFirstElt(Element->WriteTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
     if (Elt)
     {
         Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
@@ -1869,8 +1922,10 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyBlockData)
 META_DATA(TYPE_ARRAY,0,matroska_block,SizeList)
 META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
-META_PARAM(TYPE,MATROSKA_BLOCK_TRACK,TYPE_NODE)
-META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_TRACK,matroska_block,Track)
+META_PARAM(TYPE,MATROSKA_BLOCK_READ_TRACK,TYPE_NODE)
+META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_READ_TRACK,matroska_block,ReadTrack)
+META_PARAM(TYPE,MATROSKA_BLOCK_WRITE_TRACK,TYPE_NODE)
+META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_WRITE_TRACK,matroska_block,WriteTrack)
 META_PARAM(TYPE,MATROSKA_BLOCK_SEGMENTINFO,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_SEGMENTINFO,matroska_block,SegInfo)
 META_END_CONTINUE(EBML_BINARY_CLASS)

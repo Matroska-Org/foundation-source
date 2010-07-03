@@ -76,7 +76,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
     size_t Frame;
     int Version, Layer, SampleRate, Samples, fscod, fscod2;
 
-    Err = Node_GET(Block,MATROSKA_BLOCK_TRACK,&Track);
+    Err = Node_GET(Block,MATROSKA_BLOCK_READ_TRACK,&Track);
     if (Err==ERR_NONE)
     {
         assert(Track!=NULL);

@@ -82,8 +82,10 @@ typedef struct matroska_frame
 EBML_DLL err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link);
 EBML_DLL err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek);
 EBML_DLL err_t MATROSKA_LinkClusterSegmentInfo(matroska_cluster *Cluster, ebml_element *SegmentInfo);
-EBML_DLL err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks);
-EBML_DLL err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track);
+EBML_DLL err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_element *Tracks, bool_t UseForWriteToo);
+EBML_DLL err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_element *Track, bool_t UseForWriteToo);
+EBML_DLL err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_element *Tracks);
+EBML_DLL err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_element *Track);
 EBML_DLL err_t MATROSKA_LinkBlockSegmentInfo(matroska_block *Block, ebml_element *SegmentInfo);
 //EBML_DLL err_t MATROSKA_LinkCueTrack(const ebml_element *Cue, ebml_element *Tracks);
 EBML_DLL err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_element *SegmentInfo);
@@ -112,7 +114,8 @@ EBML_DLL matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cu
 
 EBML_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!
 
-EBML_DLL ebml_element *MATROSKA_BlockTrack(const matroska_block *Block);
+EBML_DLL ebml_element *MATROSKA_BlockReadTrack(const matroska_block *Block);
+EBML_DLL ebml_element *MATROSKA_BlockWriteTrack(const matroska_block *Block);
 EBML_DLL ebml_element *MATROSKA_BlockSegmentInfo(const matroska_block *Block);
 
 EBML_DLL err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum);
