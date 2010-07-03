@@ -1,5 +1,6 @@
-2010-06-xx
-version 0.3.2:
+2010-07-03
+version 0.4.0:
+    - allow using compressed headers (with --optimize) automatically picking the best size
     - delete CRC-32 elements until we can update them correctly
     - display the 64 bits integers correctly on all platforms
     - write the Cluster PrevSize and position in the Segment by default (can be disabled with --unsafe)
