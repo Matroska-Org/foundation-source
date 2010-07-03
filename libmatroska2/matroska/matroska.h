@@ -101,6 +101,7 @@ EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
 EBML_DLL filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue);
 EBML_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 EBML_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
+EBML_DLL bool_t MATROSKA_BlockDiscardable(const matroska_block *Block);
 EBML_DLL bool_t MATROSKA_BlockLaced(const matroska_block *Block);
 EBML_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
 EBML_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block);
@@ -120,6 +121,7 @@ EBML_DLL ebml_element *MATROSKA_BlockSegmentInfo(const matroska_block *Block);
 
 EBML_DLL err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum);
 EBML_DLL void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set);
+EBML_DLL void MATROSKA_BlockSetDiscardable(matroska_block *Block, bool_t Set);
 EBML_DLL err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input);
 EBML_DLL size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_BlockGetFrameDuration(const matroska_block *Block, size_t FrameNum);

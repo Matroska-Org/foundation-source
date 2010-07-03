@@ -952,7 +952,6 @@ int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
 bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-    assert(Block->LocalTimecodeUsed);
 	if (Block->Base.Base.Context->Id == MATROSKA_ContextClusterBlock.Id)
 	{
 		ebml_element *BlockGroup = EBML_ElementParent(Block);
@@ -962,10 +961,25 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 	return Block->IsKeyframe;
 }
 
+bool_t MATROSKA_BlockDiscardable(const matroska_block *Block)
+{
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+	if (Block->Base.Base.Context->Id == MATROSKA_ContextClusterBlock.Id)
+        return 0;
+	return Block->IsDiscardable;
+}
+
 void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
 	Block->IsKeyframe = Set;
+}
+
+void MATROSKA_BlockSetDiscardable(matroska_block *Block, bool_t Set)
+{
+    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
+	if (Block->Base.Base.Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+    	Block->IsDiscardable = Set;
 }
 
 bool_t MATROSKA_BlockLaced(const matroska_block *Block)
