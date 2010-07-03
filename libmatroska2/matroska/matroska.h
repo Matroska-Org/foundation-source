@@ -45,6 +45,11 @@
 
 #define MATROSKA_VERSION  2
 
+#define MATROSKA_BLOCK_COMPR_ZLIB    0
+#define MATROSKA_BLOCK_COMPR_BZLIB   1
+#define MATROSKA_BLOCK_COMPR_LZO1X   2
+#define MATROSKA_BLOCK_COMPR_HEADER  3
+
 
 EBML_DLL err_t MATROSKA_Init(nodecontext *p);
 EBML_DLL err_t MATROSKA_Done(nodecontext *p);
@@ -183,6 +188,12 @@ extern const ebml_context MATROSKA_ContextTrackDefaultDuration;
 extern const ebml_context MATROSKA_ContextTrackOverlay;
 extern const ebml_context MATROSKA_ContextTrackCodecPrivate;
 extern const ebml_context MATROSKA_ContextTrackMaxBlockAdditionID;
+
+extern const ebml_context MATROSKA_ContextTrackEncodings;
+extern const ebml_context MATROSKA_ContextTrackEncoding;
+extern const ebml_context MATROSKA_ContextTrackEncodingCompression;
+extern const ebml_context MATROSKA_ContextTrackEncodingCompressionAlgo;
+extern const ebml_context MATROSKA_ContextTrackEncodingCompressionSetting;
 
 extern const ebml_context MATROSKA_ContextTrackAudio;
 extern const ebml_context MATROSKA_ContextTrackAudioSamplingFreq;

@@ -39,11 +39,6 @@
 #define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
 #define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
 
-#define MATROSKA_BLOCK_COMPR_ZLIB    0
-#define MATROSKA_BLOCK_COMPR_BZLIB   1
-#define MATROSKA_BLOCK_COMPR_LZO1X   2
-#define MATROSKA_BLOCK_COMPR_HEADER  3
-
 // Seek Header
 const ebml_context MATROSKA_ContextSeekId = {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextSeekPosition = {0x53AC, EBML_INTEGER_CLASS, 0, 0, "SeekPosition", NULL, EBML_SemanticGlobals, NULL};
@@ -651,15 +646,18 @@ static err_t AdjustBlockSizes(matroska_block *Block)
 err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks)
 {
     ebml_element *Track, *TrackNum;
+    bool_t WasLinked = Block->Track!=NULL;
+
     assert(Tracks->Context->Id == MATROSKA_ContextTracks.Id);
-    assert(Block->Track==NULL); // not supported due to AdjustBlockSizes()
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     for (Track=EBML_MasterChildren(Tracks);Track;Track=EBML_MasterNext(Track))
     {
         TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-        if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && ((ebml_integer*)TrackNum)->Value==Block->TrackNumber)
+        if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && EBML_IntegerValue(TrackNum)==Block->TrackNumber)
         {
             Node_SET(Block,MATROSKA_BLOCK_TRACK,&Track);
+            if (WasLinked)
+                return ERR_NONE;
             return AdjustBlockSizes(Block);
         }
     }
@@ -669,14 +667,17 @@ err_t MATROSKA_LinkBlockWithTracks(matroska_block *Block, ebml_element *Tracks)
 err_t MATROSKA_LinkBlockTrack(matroska_block *Block, ebml_element *Track)
 {
     ebml_element *TrackNum;
+    bool_t WasLinked = Block->Track!=NULL;
+
     assert(Track->Context->Id == MATROSKA_ContextTrackEntry.Id);
-    assert(Block->Track==NULL); // not supported due to AdjustBlockSizes()
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
     if (TrackNum && TrackNum->bValueIsSet)
     {
         Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
         Node_SET(Block,MATROSKA_BLOCK_TRACK,&Track);
+        if (WasLinked)
+            return ERR_NONE;
         return AdjustBlockSizes(Block);
     }
     return ERR_INVALID_DATA;
@@ -1107,6 +1108,7 @@ static size_t GetBlockHeadSize(const matroska_block *Element)
 err_t MATROSKA_BlockReleaseData(matroska_block *Block)
 {
     ArrayClear(&Block->Data);
+    Block->Base.Base.bValueIsSet = 0;
     return ERR_NONE;
 }
 
@@ -1666,7 +1668,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
                 goto failed;
             }
             Cursor += Header->DataSize;
-            ToWrite = *i - Header->DataSize;
+            ToWrite = *i - (size_t)Header->DataSize;
             Err = Stream_Write(Output,Cursor,ToWrite,&Written);
             if (Rendered)
                 *Rendered += Written;
@@ -1684,6 +1686,12 @@ failed:
     return Err;
 }
 #endif
+
+static ebml_element *CopyBlockData(const matroska_block *Element, const void *Cookie)
+{
+    assert(Element!=NULL); // not supported yet
+    return NULL;
+}
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)
 {
@@ -1857,6 +1865,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateBlockSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderBlockData)
 #endif
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyBlockData)
 META_DATA(TYPE_ARRAY,0,matroska_block,SizeList)
 META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
