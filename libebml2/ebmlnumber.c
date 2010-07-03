@@ -358,6 +358,37 @@ static void PostCreateFloat(ebml_element *Element)
     }
 }
 
+static ebml_integer *CopyInt(const ebml_integer *Element, const void *Cookie)
+{
+    ebml_integer *Result = (ebml_integer*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    if (Result)
+    {
+        Result->Value = Element->Value;
+        Result->Base.bValueIsSet = Element->Base.bValueIsSet;
+        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
+        Result->Base.DataSize = Element->Base.DataSize;
+        Result->Base.ElementPosition = Element->Base.ElementPosition;
+        Result->Base.SizeLength = Element->Base.SizeLength;
+        Result->Base.SizePosition = Element->Base.SizePosition;
+    }
+    return Result;
+}
+
+static ebml_float *CopyFloat(const ebml_float *Element, const void *Cookie)
+{
+    ebml_float *Result = (ebml_float*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    if (Result)
+    {
+        Result->Value = Element->Value;
+        Result->Base.bValueIsSet = Element->Base.bValueIsSet;
+        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
+        Result->Base.DataSize = Element->Base.DataSize;
+        Result->Base.ElementPosition = Element->Base.ElementPosition;
+        Result->Base.SizeLength = Element->Base.SizeLength;
+        Result->Base.SizePosition = Element->Base.SizePosition;
+    }
+    return Result;
+}
 
 META_START(EBMLInteger_Class,EBML_INTEGER_CLASS)
 META_CLASS(SIZE,sizeof(ebml_integer))
@@ -369,6 +400,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataInt)
 #endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateInt)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
 META_START_CONTINUE(EBML_SINTEGER_CLASS)
@@ -381,6 +413,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataSignedInt)
 #endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeSignedInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateSignedInt)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
 META_START_CONTINUE(EBML_BOOLEAN_CLASS)
@@ -396,6 +429,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeFloat)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataFloat)
 #endif
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyFloat)
 META_END(EBML_ELEMENT_CLASS)
 
 err_t EBML_IntegerSetValue(ebml_integer *Element, int64_t Value)

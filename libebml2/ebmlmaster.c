@@ -355,11 +355,39 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 }
 #endif
 
+static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
+{
+    ebml_element *i, *Elt;
+    ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,Cookie);
+    if (Result)
+    {
+        EBML_MasterClear(Result);
+        Result->bValueIsSet = Element->bValueIsSet;
+        Result->bDefaultIsSet = Element->bDefaultIsSet;
+        Result->DataSize = Element->DataSize;
+        Result->ElementPosition = Element->ElementPosition;
+        Result->SizeLength = Element->SizeLength;
+        Result->SizePosition = Element->SizePosition;
+        for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+        {
+            Elt = EBML_ElementCopy(i,Cookie);
+            if (!Elt || EBML_MasterAppend(Result, Elt)!=ERR_NONE)
+            {
+                NodeDelete((node*)Result);
+                Result = NULL;
+                break;
+            }
+        }
+    }
+    return Result;
+}
+
 META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif

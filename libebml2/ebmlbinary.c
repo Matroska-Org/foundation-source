@@ -92,6 +92,22 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p);
 }
 
+static ebml_binary *Copy(const ebml_binary *Element, const void *Cookie)
+{
+    ebml_binary *Result = (ebml_binary*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    if (Result)
+    {
+        ArrayCopy(&Result->Data,&Element->Data);
+        Result->Base.bValueIsSet = Element->Base.bValueIsSet;
+        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
+        Result->Base.DataSize = Element->Base.DataSize;
+        Result->Base.ElementPosition = Element->Base.ElementPosition;
+        Result->Base.SizeLength = Element->Base.SizeLength;
+        Result->Base.SizePosition = Element->Base.SizePosition;
+    }
+    return Result;
+}
+
 META_START(EBMLBinary_Class,EBML_BINARY_CLASS)
 META_CLASS(SIZE,sizeof(ebml_binary))
 META_CLASS(DELETE,Delete)
@@ -103,6 +119,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_END(EBML_ELEMENT_CLASS)
 
 err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataSize)

@@ -191,6 +191,22 @@ static void PostCreateUniString(ebml_element *Element)
     }
 }
 
+static ebml_string *Copy(const ebml_string *Element, const void *Cookie)
+{
+    ebml_string *Result = (ebml_string*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    if (Result)
+    {
+        Result->Buffer = strdup(Element->Buffer);
+        Result->Base.bValueIsSet = Element->Base.bValueIsSet;
+        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
+        Result->Base.DataSize = Element->Base.DataSize;
+        Result->Base.ElementPosition = Element->Base.ElementPosition;
+        Result->Base.SizeLength = Element->Base.SizeLength;
+        Result->Base.SizePosition = Element->Base.SizePosition;
+    }
+    return Result;
+}
+
 META_START(EBMLString_Class,EBML_STRING_CLASS)
 META_CLASS(SIZE,sizeof(ebml_string))
 META_CLASS(DELETE,Delete)
@@ -201,6 +217,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateString)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
 
 META_START_CONTINUE(EBML_UNISTRING_CLASS)
@@ -213,4 +230,5 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateUniString)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_END(EBML_ELEMENT_CLASS)

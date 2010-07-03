@@ -137,6 +137,7 @@ typedef struct ebml_element_vmt
     bool_t (*DefaultIsSet)(const void*);
     filepos_t (*UpdateSize)(void*, bool_t bWithDefault, bool_t bForceRender);
     int (*Cmp)(const void*, const void*);
+    ebml_element *(*Copy)(const void*, const void *Cookie);
     
     // internal call only
     void (*PostCreate)(void*);
@@ -149,6 +150,7 @@ typedef struct ebml_element_vmt
 #define EBML_ElementIsDefaultValue(p)      VMT_FUNC(p,ebml_element_vmt)->IsDefaultValue(p)
 #define EBML_ElementUpdateSize(p,k,f)      VMT_FUNC(p,ebml_element_vmt)->UpdateSize(p,k,f)
 #define EBML_ElementCmp(p,e)               VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
+#define EBML_ElementCopy(p,c)              VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
 
 typedef struct ebml_string
 {
