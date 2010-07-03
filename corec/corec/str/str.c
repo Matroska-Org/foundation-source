@@ -210,6 +210,7 @@ static int get_decimals(int Decimals, int64_t IntValue)
 
 void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 {
+    int64_t vl;
 	int vs;
     double dvs, _dvs;
 	intptr_t Width,ptr;
@@ -218,6 +219,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 	bool_t Unsigned;
 	bool_t Sign;
 	bool_t AlignLeft;
+    bool_t Long;
     int Decimals;
 	const tchar_t *In;
 	const char *InA;
@@ -266,6 +268,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 			    }
             }
 
+            Long = 0;
             if (*Mask == '*')
 			{
 				++Mask;
@@ -273,10 +276,16 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 			}
 
             while (*Mask == 'l')
+            {
+                Long=1;
 				++Mask; // long
+            }
 
             if (*Mask=='I' && *(Mask+1)=='6' && *(Mask+2)=='4')
+            {
+                Long=1;
 				Mask += 3;
+            }
 
 			Unsigned = *Mask=='u';
 			if (Unsigned)
@@ -288,7 +297,10 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 			case 'i':
 			case 'X':
 			case 'x':
-				vs = va_arg(Arg,int);
+                if (Long)
+				    vl = va_arg(Arg,int64_t);
+                else
+				    vl = va_arg(Arg,int);
 
 				if (*Mask=='x' || *Mask=='X')
 				{
@@ -302,10 +314,10 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 					w = 1000000000;
 				}
 
-				Sign = vs<0 && !Unsigned;
+				Sign = vl<0 && !Unsigned;
 				if (Sign)
 				{
-					vs=-vs;
+					vl=-vl;
 					--Width;
 				}
 
@@ -313,7 +325,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 				for (;Width>1;--Width)
 					w0 *= q;
 
-				v = vs;
+				v = vl;
 				while (v<w && w>w0)
 					w/=q;
 
