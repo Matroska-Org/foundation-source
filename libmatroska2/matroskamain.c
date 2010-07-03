@@ -1173,7 +1173,7 @@ err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size
 		SeekPos += GetBlockHeadSize(Block);
 	else
 	{
-		SeekPos += Block->FirstFrameLocation;
+		SeekPos = Block->FirstFrameLocation;
 		for (i=ARRAYBEGIN(Block->SizeList,uint32_t);FrameNum;--FrameNum,++i)
 			SeekPos += *i;
 	}
@@ -1217,10 +1217,10 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 
     if (!Element->Base.Base.bValueIsSet)
     {
+        Stream_Seek(Input,Element->FirstFrameLocation,SEEK_SET);
         switch (Element->Lacing)
         {
         case LACING_NONE:
-            Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + GetBlockHeadSize(Element),SEEK_SET);
             ArrayResize(&Element->Data,(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element) + (Header?(size_t)Header->DataSize:0),0);
             Buf = ARRAYBEGIN(Element->Data,uint8_t);
             if (Header)
@@ -1240,7 +1240,6 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         case LACING_EBML:
         case LACING_XIPH:
         case LACING_FIXED:
-            Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + Element->FirstFrameLocation,SEEK_SET);
             Read = 0;
             BufSize = 0;
             for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
@@ -1379,12 +1378,13 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 	}
 	Element->Invisible = (*cursor & 0x08) >> 3;
 	Element->Lacing = (*cursor++ & 0x06) >> 1;
-	if (cursor == &_TempHead[4])
+
+    Element->FirstFrameLocation = EBML_ElementPositionData((ebml_element*)Element) + BlockHeadSize;
+
+    if (cursor == &_TempHead[4])
 		_TempHead[0] = _TempHead[4];
 	else
 		Result += Stream_Read(Input,_TempHead, 1, NULL);
-
-	Element->FirstFrameLocation += cursor - _TempHead;
 
 	// put all Frames in the list
 	if (Element->Lacing == LACING_NONE)
@@ -1463,7 +1463,7 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 
     if (Scope == SCOPE_PARTIAL_DATA)
 	{
-		if (Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element) + (Element->Lacing==LACING_NONE ? BlockHeadSize : Element->FirstFrameLocation),SEEK_SET)==INVALID_FILEPOS_T)
+		if (Stream_Seek(Input,Element->Lacing==LACING_NONE ? (EBML_ElementPositionData((ebml_element*)Element) + BlockHeadSize) : Element->FirstFrameLocation,SEEK_SET)==INVALID_FILEPOS_T)
 			Result = ERR_READ;
 		else
 			Result = ERR_NONE;
