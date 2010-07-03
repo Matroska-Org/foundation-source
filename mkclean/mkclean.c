@@ -2136,8 +2136,7 @@ int main(int argc, const char *argv[])
     TextPrintf(StdErr,T("Finished cleaning & optimizing \"%s\"\r\n"),Path);
 
 exit:
-    if (WSegment)
-        NodeDelete((node*)WSegment);
+    NodeDelete((node*)WSegment);
 
     for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
         NodeDelete((node*)*Cluster);
@@ -2149,26 +2148,16 @@ exit:
     ArrayClear(&TrackMaxHeader);
     ArrayClear(&WClusters);
     ArrayClear(&WTracks);
-    if (RAttachments)
-        NodeDelete((node*)RAttachments);
-    if (RTags)
-        NodeDelete((node*)RTags);
-    if (RCues)
-        NodeDelete((node*)RCues);
-    if (RChapters)
-        NodeDelete((node*)RChapters);
-    if (RTrackInfo)
-        NodeDelete((node*)RTrackInfo);
-    if (WTrackInfo)
-        NodeDelete((node*)WTrackInfo);
-    if (RSegmentInfo)
-        NodeDelete((node*)RSegmentInfo);
-    if (RLevel1)
-        NodeDelete((node*)RLevel1);
-    if (RSegment)
-        NodeDelete((node*)RSegment);
-    if (EbmlHead)
-        NodeDelete((node*)EbmlHead);
+    NodeDelete((node*)RAttachments);
+    NodeDelete((node*)RTags);
+    NodeDelete((node*)RCues);
+    NodeDelete((node*)RChapters);
+    NodeDelete((node*)RTrackInfo);
+    NodeDelete((node*)WTrackInfo);
+    NodeDelete((node*)RSegmentInfo);
+    NodeDelete((node*)RLevel1);
+    NodeDelete((node*)RSegment);
+    NodeDelete((node*)EbmlHead);
     if (Input)
         StreamClose(Input);
     if (Output)

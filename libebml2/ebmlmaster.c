@@ -361,7 +361,7 @@ static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
     ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,Cookie);
     if (Result)
     {
-        EBML_MasterClear(Result);
+        EBML_MasterErase(Result); // delete the children elements created by default
         Result->bValueIsSet = Element->bValueIsSet;
         Result->bDefaultIsSet = Element->bDefaultIsSet;
         Result->DataSize = Element->DataSize;
