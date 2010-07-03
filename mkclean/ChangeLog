@@ -1,4 +1,4 @@
-2010-07-03
+2010-07-xx
 version 0.4.1:
     - fix a possible data corruption when optimizing blocks
     - add a --quiet option to only output errors

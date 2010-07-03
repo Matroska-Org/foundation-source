@@ -656,8 +656,10 @@ err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_element *Trac
         if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && EBML_IntegerValue(TrackNum)==Block->TrackNumber)
         {
             Node_SET(Block,MATROSKA_BLOCK_READ_TRACK,&Track);
+#if defined(CONFIG_EBML_WRITING)
             if (UseForWriteToo)
                 Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
+#endif
             if (WasLinked)
                 return ERR_NONE;
             return AdjustBlockSizes(Block);
@@ -678,8 +680,10 @@ err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_element *Track, bo
     {
         Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
         Node_SET(Block,MATROSKA_BLOCK_READ_TRACK,&Track);
+#if defined(CONFIG_EBML_WRITING)
         if (UseForWriteToo)
             Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
+#endif
         if (WasLinked)
             return ERR_NONE;
         return AdjustBlockSizes(Block);
@@ -687,6 +691,7 @@ err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_element *Track, bo
     return ERR_INVALID_DATA;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_element *Tracks)
 {
     ebml_element *Track, *TrackNum;
@@ -726,6 +731,7 @@ err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_element *Track)
     }
     return ERR_INVALID_DATA;
 }
+#endif
 
 ebml_element *MATROSKA_BlockReadTrack(const matroska_block *Block)
 {
@@ -735,6 +741,7 @@ ebml_element *MATROSKA_BlockReadTrack(const matroska_block *Block)
     return Track;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 ebml_element *MATROSKA_BlockWriteTrack(const matroska_block *Block)
 {
     ebml_element *Track;
@@ -742,6 +749,7 @@ ebml_element *MATROSKA_BlockWriteTrack(const matroska_block *Block)
         return NULL;
     return Track;
 }
+#endif
 
 err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link)
 {
@@ -918,7 +926,11 @@ err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, time
 	int64_t InternalTimecode;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     assert(Timecode!=INVALID_TIMECODE_T);
+#if defined(CONFIG_EBML_WRITING)
 	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->WriteTrack)));
+#else
+	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->SegInfo) * MATROSKA_TrackTimecodeScale(Block->ReadTrack)));
+#endif
 	if (InternalTimecode > 32767 || InternalTimecode < -32768)
 		return ERR_INVALID_DATA;
 	Block->LocalTimecode = (int16_t)InternalTimecode;
@@ -1533,6 +1545,7 @@ err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Fra
     return ERR_NONE;
 }
 
+#if defined(CONFIG_EBML_WRITING)
 static char GetBestLacingType(const matroska_block *Element)
 {
 	int XiphLacingSize, EbmlLacingSize;
@@ -1600,7 +1613,6 @@ static char GetBestLacingType(const matroska_block *Element)
 		return LACING_EBML;
 }
 
-#if defined(CONFIG_EBML_WRITING)
 static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     err_t Err = ERR_NONE;
@@ -1762,7 +1774,9 @@ static ebml_element *CopyBlockData(const matroska_block *Element, const void *Co
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-    ebml_element *Elt, *Header = NULL;
+    ebml_element *Header = NULL;
+#if defined(CONFIG_EBML_WRITING)
+    ebml_element *Elt;
     if (Element->Lacing == LACING_AUTO)
         Element->Lacing = GetBestLacingType(Element);
 
@@ -1787,6 +1801,9 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
             Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
         }
     }
+#else
+    assert(Element->Lacing!=LACING_AUTO);
+#endif
 
     if (Element->Lacing == LACING_NONE)
     {
@@ -1938,8 +1955,10 @@ META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
 META_PARAM(TYPE,MATROSKA_BLOCK_READ_TRACK,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_READ_TRACK,matroska_block,ReadTrack)
+#if defined(CONFIG_EBML_WRITING)
 META_PARAM(TYPE,MATROSKA_BLOCK_WRITE_TRACK,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_WRITE_TRACK,matroska_block,WriteTrack)
+#endif
 META_PARAM(TYPE,MATROSKA_BLOCK_SEGMENTINFO,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_SEGMENTINFO,matroska_block,SegInfo)
 META_END_CONTINUE(EBML_BINARY_CLASS)

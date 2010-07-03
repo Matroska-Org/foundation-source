@@ -1590,6 +1590,7 @@ int main(int argc, const char *argv[])
 						{
 							if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 							{
+                                /// \todo use EBML_ElementCopy()
 								Block1 = (matroska_block*)EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
 								MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
 								MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
@@ -1619,6 +1620,7 @@ int main(int argc, const char *argv[])
 							}
 							else if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id)
 							{
+                                /// \todo use EBML_ElementCopy()
 								Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
 								Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
 								MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
@@ -1659,6 +1661,7 @@ int main(int argc, const char *argv[])
 								{
 									// This block needs to be split
 									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
+                                    /// \todo use EBML_ElementCopy()
 									Block1 = (matroska_block*)EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
 									MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);
 									MATROSKA_LinkBlockSegmentInfo(Block1,MATROSKA_BlockSegmentInfo(pBlockInfo->Block));
@@ -1692,6 +1695,7 @@ int main(int argc, const char *argv[])
 									assert(((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id);
 									// This block needs to be split
 									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
+                                    /// \todo use EBML_ElementCopy()
 									Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
 									Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
 									MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),1);

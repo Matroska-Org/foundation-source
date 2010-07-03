@@ -26,9 +26,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define MATROSKA_BLOCK_READ_TRACK    0x100
-#define MATROSKA_BLOCK_WRITE_TRACK   0x101
-#define MATROSKA_BLOCK_SEGMENTINFO   0x102
+#define MATROSKA_BLOCK_SEGMENTINFO   0x100
+#define MATROSKA_BLOCK_READ_TRACK    0x101
+#if defined(CONFIG_EBML_WRITING)
+#define MATROSKA_BLOCK_WRITE_TRACK   0x102
+#endif
 
 struct matroska_block
 {
@@ -45,8 +47,9 @@ struct matroska_block
     array SizeList; // int32_t
     array Data; // uint8_t
     array Durations; // timecode_t
-    ebml_element *ReadTrack;
-    ebml_element *WriteTrack;
     ebml_element *SegInfo;
-
+    ebml_element *ReadTrack;
+#if defined(CONFIG_EBML_WRITING)
+    ebml_element *WriteTrack;
+#endif
 };
