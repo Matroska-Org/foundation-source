@@ -35,7 +35,7 @@
 /*!
  * \todo discards tracks that has the same UID
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
- * \todo compute the segment duration based on audio (when it's not set) (remove it in live mode)
+ * \todo compute the segment duration based on audio (when it's not set)
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
  * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?) (optimize mode)
  * \todo compute the track default duration (when it's not set or not optimal) (optimize mode)
@@ -1102,16 +1102,7 @@ int main(int argc, const char *argv[])
         if (RLevel1->Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
-            {
                 RSegmentInfo = RLevel1;
-                if (Live)
-                {
-				    // remove MATROSKA_ContextDuration from Live streams
-				    EbmlHead = EBML_MasterFindFirstElt(RLevel1, &MATROSKA_ContextDuration, 0, 0);
-				    if (EbmlHead)
-					    NodeDelete((node*)EbmlHead);
-                }
-            }
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextTracks.Id)
         {
@@ -1184,6 +1175,14 @@ int main(int argc, const char *argv[])
 		EBML_IntegerSetValue((ebml_integer*)RLevel1,TimeCodeScale);
 		RLevel1 = NULL;
 	}
+    if (Live)
+    {
+	    // remove MATROSKA_ContextDuration from Live streams
+	    EbmlHead = EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextDuration, 0, 0);
+	    if (EbmlHead)
+		    NodeDelete((node*)EbmlHead);
+        EbmlHead = NULL;
+    }
 
     if (!RTrackInfo && ARRAYCOUNT(RClusters,ebml_element*))
     {
