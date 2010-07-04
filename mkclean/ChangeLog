@@ -3,6 +3,7 @@ version 0.4.1:
     - fix a possible data corruption when optimizing blocks
     - add a --quiet option to only output errors
     - keep the discardable flag as-is when reclustering
+    - fix the --timecodescale handling
 
 2010-07-03
 version 0.4.0:
