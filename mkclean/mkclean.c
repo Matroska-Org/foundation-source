@@ -1593,14 +1593,8 @@ int main(int argc, const char *argv[])
 						{
 							if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 							{
-                                /// \todo use EBML_ElementCopy()
-								Block1 = (matroska_block*)EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-								MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),0);
-								MATROSKA_LinkBlockWriteTrack(Block1,MATROSKA_BlockWriteTrack(pBlockInfo->Block));
-								MATROSKA_LinkBlockReadSegmentInfo(Block1,RSegmentInfo,0);
+                                Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
-								MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
-								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 								{
@@ -1625,15 +1619,9 @@ int main(int argc, const char *argv[])
 							}
 							else if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id)
 							{
-                                /// \todo use EBML_ElementCopy()
-								Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
+                                Elt = EBML_ElementCopy(pBlockInfo->Block, NULL);
 								Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
-								MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),0);
-								MATROSKA_LinkBlockWriteTrack(Block1,MATROSKA_BlockWriteTrack(pBlockInfo->Block));
-								MATROSKA_LinkBlockReadSegmentInfo(Block1,RSegmentInfo,0);
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
-								MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
-								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 								{
@@ -1668,14 +1656,8 @@ int main(int argc, const char *argv[])
 								{
 									// This block needs to be split
 									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
-                                    /// \todo use EBML_ElementCopy()
-									Block1 = (matroska_block*)EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock, 1, NULL);
-								    MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),0);
-								    MATROSKA_LinkBlockWriteTrack(Block1,MATROSKA_BlockWriteTrack(pBlockInfo->Block));
-								    MATROSKA_LinkBlockReadSegmentInfo(Block1,RSegmentInfo,0);
+                                    Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
 								    MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
-									MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
-    								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 									for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 									{
@@ -1704,15 +1686,9 @@ int main(int argc, const char *argv[])
 									assert(((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id);
 									// This block needs to be split
 									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
-                                    /// \todo use EBML_ElementCopy()
-									Elt = EBML_ElementCreate(pBlockInfo->Block, &MATROSKA_ContextClusterBlockGroup, 1, NULL);
+                                    Elt = EBML_ElementCopy(pBlockInfo->Block, NULL);
 									Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
-								    MATROSKA_LinkBlockReadTrack(Block1,MATROSKA_BlockReadTrack(pBlockInfo->Block),0);
-								    MATROSKA_LinkBlockWriteTrack(Block1,MATROSKA_BlockWriteTrack(pBlockInfo->Block));
-								    MATROSKA_LinkBlockReadSegmentInfo(Block1,RSegmentInfo,0);
 								    MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
-									MATROSKA_BlockSetKeyframe(Block1,MATROSKA_BlockKeyframe(pBlockInfo->Block));
-    								MATROSKA_BlockSetDiscardable(Block1,MATROSKA_BlockDiscardable(pBlockInfo->Block));
 
 									for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 									{

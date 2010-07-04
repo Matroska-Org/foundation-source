@@ -1809,10 +1809,33 @@ failed:
 }
 #endif
 
-static ebml_element *CopyBlockData(const matroska_block *Element, const void *Cookie)
+static matroska_block *CopyBlockData(const matroska_block *Element, const void *Cookie)
 {
-    assert(Element!=NULL); // not supported yet
-    return NULL;
+    matroska_block *Result = (matroska_block*)INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->Copy(Element,Cookie);
+    if (Result)
+    {
+        Result->TrackNumber = Element->TrackNumber;
+        Result->IsKeyframe = Element->IsKeyframe;
+        Result->IsDiscardable = Element->IsDiscardable;
+        Result->Invisible = Element->Invisible;
+#if 0
+        Result->LocalTimecode = Element->LocalTimecode;
+        Result->LocalTimecodeUsed = Element->LocalTimecodeUsed;
+	    Result->GlobalTimecode = Element->GlobalTimecode;
+        Result->Lacing = Element->Lacing;
+        Result->FirstFrameLocation = Element->FirstFrameLocation;
+        array SizeList = Element->; // int32_t
+        array Data = Element->; // uint8_t
+        array Durations = Element->; // timecode_t
+#endif
+        Node_SET(Result,MATROSKA_BLOCK_READ_TRACK,&Element->ReadTrack);
+        Node_SET(Result,MATROSKA_BLOCK_READ_SEGMENTINFO,&Element->ReadSegInfo);
+#if defined(CONFIG_EBML_WRITING)
+        Node_SET(Result,MATROSKA_BLOCK_WRITE_TRACK,&Element->WriteTrack);
+        Node_SET(Result,MATROSKA_BLOCK_WRITE_SEGMENTINFO,&Element->WriteSegInfo);
+#endif
+    }
+    return Result;
 }
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)

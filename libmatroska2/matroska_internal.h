@@ -48,8 +48,8 @@ struct matroska_block
     array SizeList; // int32_t
     array Data; // uint8_t
     array Durations; // timecode_t
-    ebml_element *ReadSegInfo;
     ebml_element *ReadTrack;
+    ebml_element *ReadSegInfo;
 #if defined(CONFIG_EBML_WRITING)
     ebml_element *WriteTrack;
     ebml_element *WriteSegInfo;
