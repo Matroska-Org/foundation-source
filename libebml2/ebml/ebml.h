@@ -252,7 +252,11 @@ EBML_DLL void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* C
 #define EBML_MasterNext(p)         ((ebml_element*)NodeTree_Next(p))
 #define EBML_ElementParent(p)      ((ebml_element*)NodeTree_Parent(p))
 
+#if !defined(NDEBUG)
+#define EBML_IntegerValue(p)       (assert(((ebml_element*)p)->bValueIsSet), ((ebml_integer*)p)->Value)
+#else
 #define EBML_IntegerValue(p)       ((ebml_integer*)p)->Value
+#endif
 EBML_DLL err_t EBML_IntegerSetValue(ebml_integer *Element, int64_t Value);
 
 EBML_DLL err_t EBML_StringSetValue(ebml_string *Element,const char *Value);
