@@ -1289,7 +1289,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				Elt = NULL;
 			}
 
-			MATROSKA_LinkClusterSegmentInfo((matroska_cluster*)File->CurrentCluster,File->SegmentInfo);
+			MATROSKA_LinkClusterReadSegmentInfo((matroska_cluster*)File->CurrentCluster,File->SegmentInfo,1);
 			File->ClusterContext.Context = &MATROSKA_ContextCluster;
 			if (EBML_ElementIsFiniteSize(File->CurrentCluster))
 				File->ClusterContext.EndPosition = EBML_ElementPositionEnd(File->CurrentCluster);
@@ -1344,7 +1344,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				{
 					EBML_MasterAppend(File->CurrentCluster, Elt);
 					MATROSKA_LinkBlockWithReadTracks((matroska_block*)Elt,File->TrackList,1);
-					MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt,File->SegmentInfo);
+					MATROSKA_LinkBlockReadSegmentInfo((matroska_block*)Elt,File->SegmentInfo,1);
 					File->CurrentBlock = (matroska_block*)Elt;
 				}
 			}
@@ -1369,7 +1369,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 					{
 						EBML_MasterAppend(File->CurrentCluster, Elt);
 						MATROSKA_LinkBlockWithReadTracks((matroska_block*)Elt2,File->TrackList,1);
-						MATROSKA_LinkBlockSegmentInfo((matroska_block*)Elt2,File->SegmentInfo);
+						MATROSKA_LinkBlockReadSegmentInfo((matroska_block*)Elt2,File->SegmentInfo,1);
 						File->CurrentBlock = (matroska_block*)Elt2;
 					}
 				}
