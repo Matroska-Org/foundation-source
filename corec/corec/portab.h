@@ -764,6 +764,9 @@ typedef int_fast32_t filepos_t;
 typedef int systick_t;
 #define INVALID_SYSTICK_T  ((int)-1)
 
-//TODO: change the low level APIs to be safer on windows and other OSes #include "banned.h"
+#if defined(CONFIG_SAFE_C)
+// change the low level APIs to be safer on windows and other OSes
+#include "banned.h"
+#endif /* CONFIG_SAFE_C */
 
 #endif

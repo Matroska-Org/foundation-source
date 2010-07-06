@@ -11,4 +11,7 @@ GROUP corec
   HEADER helper.h
   HEADER memalloc.h
   HEADER portab.h
+  IF CONFIG_SAFE_C
+    HEADER banned.h
+  ENDIF
 }
