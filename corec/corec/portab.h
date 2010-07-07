@@ -219,18 +219,6 @@
 #define IX86
 #endif
 
-#if defined(TARGET_WIN)
-#define CONFIG_MULTITHREAD //todo: put in config.h files...
-#endif
-
-#if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE_SDK)
-#define CONFIG_DYNCODE
-#endif
-
-#if defined(IX86) || defined(IX86_64)
-#define CONFIG_UNALIGNED_ACCESS
-#endif
-
 #if !defined(IS_LITTLE_ENDIAN) && !defined(IS_BIG_ENDIAN)
 #define IS_LITTLE_ENDIAN
 #endif
@@ -750,6 +738,14 @@ ASSERT_DLL void _Assert(const char* Exp, const char* File, int Line);
 #endif
 
 #include "config.h"
+#if !defined(COREMAKE_CONFIG_HELPER)
+#error build Core-C with COREMAKE_CONFIG_HELPER
+#endif
+#include "config_helper.h"
+
+#if defined(TARGET_IPHONE) && !defined(__ARM_NEON__)
+#undef CONFIG_NEON
+#endif
 
 #ifdef CONFIG_FILEPOS_64
 typedef int_fast64_t filepos_t;
