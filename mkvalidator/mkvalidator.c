@@ -33,6 +33,8 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo output an error when the Aspect Ratio is in pixels and is much smaller than the original pixels
+ * \todo verify that Cues and SeekHead point to the a valid matching pointer
  * \todo count the amount of Void data and output a warning if it's bigger than 4 KB
  * \todo warn when Haali's style aspect ratio is found
  * \todo verify the CRC-32 is valid when it exists

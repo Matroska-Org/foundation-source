@@ -836,7 +836,7 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
 
                     if (DisplayW && DisplayH)
                     {
-                        if (EBML_IntegerValue(DisplayH) < 20 && Height > 20) // Haali's kind
+                        if (DisplayH < Height && DisplayW < Width) // Haali's kind
                         {
                             EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(Height,EBML_IntegerValue(DisplayW),EBML_IntegerValue(DisplayH)));
                             EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
