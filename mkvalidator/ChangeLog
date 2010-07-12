@@ -2,6 +2,7 @@
 version 0.1.10:
     - display the 64 bits integers correctly on all platforms
     - output a warning/error when incorrect aspect ratio values are detected
+    - output a warning when there is more than 4 KB of void data
 
 2010-06-24
 version 0.1.9:

@@ -33,8 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo verify that Cues and SeekHead point to the a valid matching pointer
- * \todo count the amount of Void data and output a warning if it's bigger than 4 KB
  * \todo warn when Haali's style aspect ratio is found
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
@@ -165,10 +163,11 @@ static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
     }
 }
 
-static void CheckUnknownElements(ebml_element *Elt)
+static filepos_t CheckUnknownElements(ebml_element *Elt)
 {
 	tchar_t IdStr[32], String[MAXPATH];
 	ebml_element *SubElt;
+	filepos_t VoidAmount = 0;
 	for (SubElt = EBML_MasterChildren(Elt); SubElt; SubElt = EBML_MasterNext(SubElt))
 	{
 		if (Node_IsPartOf(SubElt,EBML_DUMMY_ID))
@@ -177,11 +176,16 @@ static void CheckUnknownElements(ebml_element *Elt)
 			EBML_IdToString(IdStr,TSIZEOF(IdStr),SubElt->Context->Id);
 			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(")"),String,IdStr,SubElt->ElementPosition,SubElt->DataSize);
 		}
+		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
+		{
+			VoidAmount = EBML_ElementFullSize(SubElt,0);
+		}
 		else if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
 		{
-			CheckUnknownElements(SubElt);
+			VoidAmount += CheckUnknownElements(SubElt);
 		}
 	}
+	return VoidAmount;
 }
 
 static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
@@ -721,6 +725,7 @@ int main(int argc, const char *argv[])
     bool_t HasVideo = 0;
 	int DotCount;
     track_info *TI;
+	filepos_t VoidAmount = 0;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -789,7 +794,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-	CheckUnknownElements(EbmlHead);
+	VoidAmount += CheckUnknownElements(EbmlHead);
 
 	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextReadVersion,1,1);
 	if (EBML_IntegerValue(RLevel1) > EBML_MAX_VERSION)
@@ -853,7 +858,7 @@ int main(int argc, const char *argv[])
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
-				CheckUnknownElements(RLevel1);
+				VoidAmount += CheckUnknownElements(RLevel1);
 				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 				Result |= CheckMandatory(RLevel1, MatroskaProfile);
 			}
@@ -883,7 +888,7 @@ int main(int argc, const char *argv[])
 				else
 					Result |= OutputError(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
-				CheckUnknownElements(RLevel1);
+				VoidAmount += CheckUnknownElements(RLevel1);
 				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 				Result |= CheckMandatory(RLevel1, MatroskaProfile);
 			}
@@ -903,7 +908,7 @@ int main(int argc, const char *argv[])
 				{
 					RSegmentInfo = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					CheckUnknownElements(RLevel1);
+					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 
@@ -931,7 +936,7 @@ int main(int argc, const char *argv[])
 				{
 					RTrackInfo = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					CheckUnknownElements(RLevel1);
+					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 
@@ -1003,7 +1008,7 @@ int main(int argc, const char *argv[])
 				{
 					RCues = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					CheckUnknownElements(RLevel1);
+					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 				}
@@ -1030,7 +1035,7 @@ int main(int argc, const char *argv[])
 				{
 					RChapters = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					CheckUnknownElements(RLevel1);
+					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 				}
@@ -1051,7 +1056,7 @@ int main(int argc, const char *argv[])
 				{
 					RTags = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					CheckUnknownElements(RLevel1);
+					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 				}
@@ -1078,7 +1083,7 @@ int main(int argc, const char *argv[])
 				{
 					RAttachments = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					CheckUnknownElements(RLevel1);
+					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 				}
@@ -1096,6 +1101,10 @@ int main(int argc, const char *argv[])
 				tchar_t Id[32];
 				EBML_IdToString(Id,TSIZEOF(Id),RLevel1->Context->Id);
 				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64 T(""),Id,RLevel1->ElementPosition,RLevel1->DataSize);
+			}
+			if (Node_IsPartOf(RLevel1,EBML_VOID_CLASS))
+			{
+				VoidAmount += EBML_ElementFullSize(RLevel1,0);
 			}
 			EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
             NodeDelete((node*)RLevel1);
@@ -1156,6 +1165,9 @@ int main(int argc, const char *argv[])
         if (TI->DataLength==0)
             OutputWarning(0xB8,T("Track #%d is defined but has no frame"),TI->Num);
     }
+
+	if (VoidAmount > 4*1024)
+		OutputWarning(0xD0,T("There are %") TPRId64 T(" bytes of void data\r\n"),VoidAmount);
 
 	if (Result==0)
     {
