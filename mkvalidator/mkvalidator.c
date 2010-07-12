@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo output an error when the Aspect Ratio is in pixels and is much smaller than the original pixels
  * \todo verify that Cues and SeekHead point to the a valid matching pointer
  * \todo count the amount of Void data and output a warning if it's bigger than 4 KB
  * \todo warn when Haali's style aspect ratio is found
@@ -183,6 +182,51 @@ static void CheckUnknownElements(ebml_element *Elt)
 			CheckUnknownElements(SubElt);
 		}
 	}
+}
+
+static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
+{
+	int Result = 0;
+	ebml_element *Elt, *Video, *PixelW, *PixelH;
+	Video = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackVideo,0,0);
+	if (!Video)
+		Result = OutputWarning(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),Track->ElementPosition);
+	// check the DisplayWidth and DisplayHeight are correct
+	else
+	{
+		PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelWidth,1,1);
+		if (!PixelW)
+			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,Track->ElementPosition);
+		PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelHeight,1,1);
+		if (!PixelH)
+			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,Track->ElementPosition);
+
+		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
+		assert(Elt!=NULL);
+		if (EBML_IntegerValue(Elt)==0 && PixelW && PixelH)
+		{
+			// check if the pixel sizes appear valid
+			int64_t DisplayW,DisplayH;
+			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,1,1);
+			if (Elt)
+				DisplayW = EBML_IntegerValue(Elt);
+			else
+				DisplayW = EBML_IntegerValue(PixelW);
+			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,1,1);
+			if (Elt)
+				DisplayH = EBML_IntegerValue(Elt);
+			else
+				DisplayH = EBML_IntegerValue(PixelH);
+			if (DisplayW < EBML_IntegerValue(PixelW) && DisplayH < EBML_IntegerValue(PixelH))
+			{
+				if (ProfileNum==PROFILE_WEBM_V2 || ProfileNum==PROFILE_WEBM_V1)
+					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seems wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
+				else // in Matroska it's tolerated as it's been operating like that for a while
+					Result |= OutputWarning(0xE3,T("The output pixels for Video track #%d seems wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
+			}
+		}
+	}
+	return Result;
 }
 
 static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
@@ -910,20 +954,23 @@ int main(int argc, const char *argv[])
                         TrackCount = 0;
                         while (EbmlHead)
                         {
-                            EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
-                            assert(EbmlDocVer!=NULL);
-                            if (EbmlDocVer)
-                            {
-                                if (EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
-                                    HasVideo = 1;
-                                ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
-                            }
                             EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
                             assert(EbmlDocVer!=NULL);
                             if (EbmlDocVer)
                             {
                                 TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
                                 ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EBML_IntegerValue(EbmlDocVer);
+                            }
+                            EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
+                            assert(EbmlDocVer!=NULL);
+                            if (EbmlDocVer)
+                            {
+                                if (EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
+								{
+									Result |= CheckVideoTrack(EbmlHead, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
+                                    HasVideo = 1;
+								}
+                                ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
                             }
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackCodecID,0,0);
                             EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
