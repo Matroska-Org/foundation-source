@@ -836,10 +836,32 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
 
                     if (DisplayW && DisplayH)
                     {
-                        if (DisplayH < Height && DisplayW < Width) // Haali's kind
+                        if (EBML_IntegerValue(DisplayH) < Height && EBML_IntegerValue(DisplayW) < Width) // Haali's kind
                         {
-                            EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(Height,EBML_IntegerValue(DisplayW),EBML_IntegerValue(DisplayH)));
-                            EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
+							int64_t DW = EBML_IntegerValue(DisplayW);
+							int64_t DH = EBML_IntegerValue(DisplayH);
+							if (DW > DH)
+							{
+								EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(Height,DW,DH));
+								EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
+							}
+							else
+							{
+								EBML_IntegerSetValue((ebml_integer*)DisplayH,Scale64(Width,DH,DW));
+								EBML_IntegerSetValue((ebml_integer*)DisplayW,Width);
+							}
+
+							// check if the AR is respected otherwise force it into a DAR
+							if (EBML_IntegerValue(DisplayW)*DH != EBML_IntegerValue(DisplayH)*DW)
+							{
+								Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 1, 0);
+								if (Elt2)
+								{
+									EBML_IntegerSetValue((ebml_integer*)Elt2,3);
+									EBML_IntegerSetValue((ebml_integer*)DisplayW,DW);
+									EBML_IntegerSetValue((ebml_integer*)DisplayH,DH);
+								}
+							}
                         }
                         if (EBML_IntegerValue(DisplayH) == Height)
                             NodeDelete((node*)DisplayH);
