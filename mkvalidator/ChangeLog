@@ -1,4 +1,4 @@
-2010-06-xx
+2010-07-12
 version 0.1.10:
     - display the 64 bits integers correctly on all platforms
     - output a warning/error when incorrect aspect ratio values are detected
