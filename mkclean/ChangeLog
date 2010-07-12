@@ -1,3 +1,7 @@
+2010-07-xx
+version 0.4.2:
+    - use DAR aspect ratio when pixels are not accurate enough
+
 2010-07-04
 version 0.4.1:
     - fix a possible data corruption when optimizing blocks
