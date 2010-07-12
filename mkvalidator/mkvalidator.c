@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo warn when Haali's style aspect ratio is found
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
