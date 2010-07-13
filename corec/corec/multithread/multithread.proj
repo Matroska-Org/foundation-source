@@ -1,4 +1,4 @@
-GROUP multithread
+GROUP(CONFIG_MULTITHREAD) multithread
 {
   USE corec
   HEADER multithread.h
