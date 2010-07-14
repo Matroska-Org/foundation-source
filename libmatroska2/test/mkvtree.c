@@ -271,7 +271,7 @@ int main(int argc, const char *argv[])
     stream *Input;
     tchar_t Path[MAXPATHFULL];
 
-    if (argc!=2 && argc!=3 || (argc==3 && strcmp(argv[1],"--pos")))
+    if ((argc!=2 && argc!=3) || (argc==3 && strcmp(argv[1],"--pos")))
     {
         fprintf(stderr, "Usage: mkvtree --pos [matroska_file]\r\n");
 		fprintf(stderr, "Options:\r\n");

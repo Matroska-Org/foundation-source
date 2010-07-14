@@ -1,5 +1,3 @@
-%(!ROOTPATH)coremake.mak %(PROJECT_NAME)-%(PROJECT_VERSION)/coremake.mak
-
 # corec
 %(!ROOTPATH)corec %(PROJECT_NAME)-%(PROJECT_VERSION)/corec
 
@@ -24,6 +22,5 @@
 Makefile -
 *.vcproj -
 *.sln -
-*.mak -
 *_project.h -
 *_stdafx.* -
