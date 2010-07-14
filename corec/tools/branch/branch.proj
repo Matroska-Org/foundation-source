@@ -1,0 +1,9 @@
+workspace branch
+{
+  use branch
+}
+
+CON branch
+{
+  SOURCE branch.c
+}
