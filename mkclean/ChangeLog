@@ -1,6 +1,7 @@
 2010-07-xx
 version 0.4.2:
     - use DAR aspect ratio when pixels are not accurate enough
+    - bootstrap.sh should now call the correct coremake config depending on the host platform
 
 2010-07-04
 version 0.4.1:
