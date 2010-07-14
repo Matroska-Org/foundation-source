@@ -16,7 +16,7 @@
 %(!ROOTPATH)%(PROJECT_NAME)/ReadMe.txt %(PROJECT_NAME)-%(PROJECT_VERSION)/ReadMe.txt
 %(!ROOTPATH)root.proj %(PROJECT_NAME)-%(PROJECT_VERSION)/root.proj
 
-%(¯!BASE)bootstrap.sh %(PROJECT_NAME)-%(PROJECT_VERSION)/bootstrap.sh
+%(¯!BASE)configure %(PROJECT_NAME)-%(PROJECT_VERSION)/configure
 
 
 *.br -

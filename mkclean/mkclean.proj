@@ -11,7 +11,7 @@ CON(CONFIG_EBML_WRITING) mkclean
   ENDIF
   SOURCE mkclean.c
   COMPILE src.br
-  COMPILE bootstrap.sh
+  COMPILE configure
   COMPILE pkg.sh
 }
 
