@@ -10,4 +10,4 @@ coremake_param=`corec/tools/coremake/system_output.sh`
 echo "Running ./coremake" $coremake_param
 ./coremake $coremake_param
 
-echo "Now you can run make -C %(PROJECT_NAME)"
+echo "Now you can run make -C %(PROJECT_NAME) or gmake -C %(PROJECT_NAME)"
