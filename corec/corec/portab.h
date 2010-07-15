@@ -157,7 +157,7 @@
 #define ARM
 #endif
 
-#elif defined(__linux__) || defined(__CYGWIN__)
+#elif defined(__linux__) || defined(__CYGWIN__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 
 #define TARGET_LINUX
 
@@ -330,7 +330,7 @@ typedef unsigned char uint_fast8_t;
 typedef signed long long int_fast64_t;
 typedef unsigned long long uint_fast64_t;
 
-#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_PS2SDK) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID)
+#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_PS2SDK) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
 
 #include <inttypes.h>
 
@@ -389,7 +389,7 @@ typedef uint64_t uint_fast64_t;
 
 #endif /* _MSC_VER */
 
-#if !defined(_STDINT_H) && !defined(_STDINT_H_) // could be used elsewhere
+#if !defined(_STDINT_H) && !defined(_STDINT_H_) && !defined(_UINT64_T_DECLARED) // could be used elsewhere
 
 typedef signed long int32_t;
 typedef unsigned long uint32_t;
