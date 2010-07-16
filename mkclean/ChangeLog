@@ -6,6 +6,7 @@ version 0.4.2:
     - avoid crashing with files that have no TrackInfo
     - read and skip custome elements rather than discarding (could result in corruption)
     - avoid a possible output corruption when the Segment size is much smaller than the original
+    - fix the AppWriting string when there was no library in the source file
 
 2010-07-04
 version 0.4.1:

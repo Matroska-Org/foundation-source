@@ -1956,7 +1956,8 @@ int main(int argc, const char *argv[])
 	ExtraSizeDiff = tcslen(String);
     if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
     {
-        tcscat_s(Original,TSIZEOF(Original),T(" + "));
+		if (Original[0])
+			tcscat_s(Original,TSIZEOF(Original),T(" + "));
         tcscat_s(Original,TSIZEOF(Original),String);
     }
     s = Original;
@@ -2152,7 +2153,8 @@ int main(int argc, const char *argv[])
 			}
 			TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->DataSize);
 		}
-		WSegment->SizeLength = (int8_t)EBML_CodedSizeLength(WSegment->DataSize,0,!Live);
+		if (EBML_CodedSizeLength(WSegment->DataSize,0,!Live) > EBML_CodedSizeLength(SegmentSize,0,!Live))
+			WSegment->SizeLength = (int8_t)EBML_CodedSizeLength(WSegment->DataSize,0,!Live);
 		WSegment->DataSize = SegmentSize;
 		Stream_Seek(Output,WSegment->ElementPosition,SEEK_SET);
 		if (EBML_ElementRenderHead(WSegment, Output, 0, NULL)!=ERR_NONE)
