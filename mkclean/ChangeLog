@@ -4,6 +4,7 @@ version 0.4.2:
     - bootstrap.sh should now call the correct coremake config depending on the host platform
     - rename boostrap.sh to configure
     - avoid crashing with files that have no TrackInfo
+    - read and skip custome elements rather than discarding (could result in corruption)
 
 2010-07-04
 version 0.4.1:

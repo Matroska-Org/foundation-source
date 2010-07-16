@@ -1123,38 +1123,38 @@ int main(int argc, const char *argv[])
         ShowProgress(RLevel1,RSegment,1);
         if (RLevel1->Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
                 RSegmentInfo = RLevel1;
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextTracks.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
                 RTrackInfo = RLevel1;
         }
         else if (!Live && RLevel1->Context->Id == MATROSKA_ContextChapters.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
                 RChapters = RLevel1;
         }
         else if (!Live && RLevel1->Context->Id == MATROSKA_ContextTags.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
                 RTags = RLevel1;
         }
         else if (!Live && RLevel1->Context->Id == MATROSKA_ContextCues.Id && KeepCues)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
                 RCues = RLevel1;
         }
         else if (!Live && RLevel1->Context->Id == MATROSKA_ContextAttachments.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
                 RAttachments = RLevel1;
         }
         else if (RLevel1->Context->Id == MATROSKA_ContextCluster.Id)
         {
 			// only partially read the Cluster data (not the data inside the blocks)
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_PARTIAL_DATA)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				// remove MATROSKA_ContextClusterPosition and MATROSKA_ContextClusterPrevSize until supported
