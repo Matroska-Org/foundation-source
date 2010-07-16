@@ -2152,6 +2152,7 @@ int main(int argc, const char *argv[])
 			}
 			TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->DataSize);
 		}
+		WSegment->SizeLength = (int8_t)EBML_CodedSizeLength(WSegment->DataSize,0,!Live);
 		WSegment->DataSize = SegmentSize;
 		Stream_Seek(Output,WSegment->ElementPosition,SEEK_SET);
 		if (EBML_ElementRenderHead(WSegment, Output, 0, NULL)!=ERR_NONE)
@@ -2163,7 +2164,7 @@ int main(int argc, const char *argv[])
 
 		// update the Meta Seek
 		MetaSeekUpdate(WMetaSeek);
-		Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
+		//Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
 		if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekAfter,0)!=ERR_NONE)
 		{
 			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));

@@ -5,6 +5,7 @@ version 0.4.2:
     - rename boostrap.sh to configure
     - avoid crashing with files that have no TrackInfo
     - read and skip custome elements rather than discarding (could result in corruption)
+    - avoid a possible output corruption when the Segment size is much smaller than the original
 
 2010-07-04
 version 0.4.1:
