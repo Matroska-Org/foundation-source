@@ -3,7 +3,7 @@
 GROUP ebml2_group
 {
   PROJECT_NAME  "libebml2"
-  PROJECT_VERSION  0.9.8
+  PROJECT_VERSION  0.9.9
   PROJECT_VENDOR   "Matroska Foundation"
   EXPDEFINE HAS_EBML2
   
