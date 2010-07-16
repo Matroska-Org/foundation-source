@@ -502,7 +502,7 @@ int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * Ou
 }
 
 
-ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummyElt)
+ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pContext, int *UpperLevels, bool_t AllowDummyElt)
 {
 	uint8_t PossibleID_Length = 0;
 	uint8_t PossibleIdNSize[16];
@@ -515,11 +515,14 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
 	int UpperLevel_original = *UpperLevels;
     filepos_t CurrentPos;
     filepos_t StartPos = Stream_Seek(Input,0,SEEK_CUR);
+	ebml_parser_context OrigContext;
+	ebml_parser_context *Context = &OrigContext;
 
 	if (StartPos == INVALID_FILEPOS_T)
 		return NULL;
 
     assert(Context != NULL);
+	OrigContext = *pContext;
 	
     // adjust the Context to allow the StartPos to make sense
     while (Context && Context->EndPosition != INVALID_FILEPOS_T && (StartPos >= Context->EndPosition))
@@ -645,6 +648,8 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Con
 		ReadIndex = SizeIdx - 1;
 		memmove(&PossibleIdNSize[0], &PossibleIdNSize[1], ReadIndex);
 		*UpperLevels = UpperLevel_original;
+		OrigContext = *pContext;
+		Context = &OrigContext;
     } while (Context->EndPosition==INVALID_FILEPOS_T || (Context->EndPosition > CurrentPos - SizeIdx + PossibleID_Length));
 
 	return NULL;
