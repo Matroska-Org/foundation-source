@@ -1213,39 +1213,42 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    Result = CleanTracks(RTrackInfo, DstProfile);
-    if (Result!=0)
-    {
-        TextWrite(StdErr,T("No Tracks left to use!\r\n"));
-        goto exit;
-    }
-    WTrackInfo = EBML_ElementCopy(RTrackInfo, NULL);
-    if (WTrackInfo==NULL)
-    {
-        TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
-        goto exit;
-    }
-
-	// count the max track number
-	for (Elt=EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
+	if (RTrackInfo)
 	{
-		if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
+		Result = CleanTracks(RTrackInfo, DstProfile);
+		if (Result!=0)
+		{
+			TextWrite(StdErr,T("No Tracks left to use!\r\n"));
+			goto exit;
+		}
+		WTrackInfo = EBML_ElementCopy(RTrackInfo, NULL);
+		if (WTrackInfo==NULL)
+		{
+			TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
+			goto exit;
+		}
+
+		// count the max track number
+		for (Elt=EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
+		{
+			if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
+			{
+				Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
+				if ((size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
+					MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
+			}
+		}
+
+		// make sure the lacing flag is set on tracks that use it
+		i = -1;
+		for (Elt = EBML_MasterChildren(WTrackInfo);Elt;Elt=EBML_MasterNext(Elt))
 		{
 			Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
-			if ((size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
-				MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
+			i = max(i,(int)EBML_IntegerValue(Elt2));
 		}
+		ArrayResize(&WTracks,sizeof(bool_t)*(i+1),0);
+		ArrayZero(&WTracks);
 	}
-
-    // make sure the lacing flag is set on tracks that use it
-    i = -1;
-    for (Elt = EBML_MasterChildren(WTrackInfo);Elt;Elt=EBML_MasterNext(Elt))
-    {
-        Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
-        i = max(i,(int)EBML_IntegerValue(Elt2));
-    }
-    ArrayResize(&WTracks,sizeof(bool_t)*(i+1),0);
-    ArrayZero(&WTracks);
 
     // Write the EBMLHead
     EbmlHead = EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
@@ -1404,7 +1407,7 @@ int main(int argc, const char *argv[])
             ClearCommonHeader(ARRAYBEGIN(TrackMaxHeader,array)+i);
     }
 
-	if (Remux)
+	if (Remux && WTrackInfo)
 	{
 		// create WClusters
 		matroska_cluster **ClusterR, *ClusterW;
@@ -1793,26 +1796,29 @@ int main(int argc, const char *argv[])
 		RCues = NULL;
 	}
 
-    // fix/clean the Lacing flag for each track
-    assert(MATROSKA_ContextTrackLacing.DefaultValue==1);
-    for (Elt = EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
-    {
-		Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
-		if (!Elt2) continue;
-        if (ARRAYBEGIN(WTracks,bool_t)[(size_t)EBML_IntegerValue(Elt2)])
-        {
-            // has lacing
-            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackLacing,0,0);
-            if (Elt2)
-                NodeDelete((node*)Elt2);
-        }
-        else
-        {
-            // doesn't have lacing
-            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackLacing,1,0);
-            EBML_IntegerSetValue((ebml_integer*)Elt2,0);
-        }
-    }
+	if (WTrackInfo)
+	{
+		// fix/clean the Lacing flag for each track
+		assert(MATROSKA_ContextTrackLacing.DefaultValue==1);
+		for (Elt = EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
+		{
+			Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackNumber,0,0);
+			if (!Elt2) continue;
+			if (ARRAYBEGIN(WTracks,bool_t)[(size_t)EBML_IntegerValue(Elt2)])
+			{
+				// has lacing
+				Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackLacing,0,0);
+				if (Elt2)
+					NodeDelete((node*)Elt2);
+			}
+			else
+			{
+				// doesn't have lacing
+				Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackLacing,1,0);
+				EBML_IntegerSetValue((ebml_integer*)Elt2,0);
+			}
+		}
+	}
 
     if (Optimize && WTrackInfo)
     {
@@ -1884,7 +1890,7 @@ int main(int argc, const char *argv[])
 				RCues = NULL;
 			}
 		}
-		if (!RCues)
+		if (!RCues && WTrackInfo)
 		{
 			// generate the cues
 			RCues = EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
@@ -1940,8 +1946,8 @@ int main(int argc, const char *argv[])
     //  Compute the Segment Info size
     ReduceSize(WSegmentInfo);
     // change the library names & app name
-    LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
     stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
+    LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
     EBML_StringGet(LibName,Original,TSIZEOF(Original));
     EBML_UniStringSetValue(LibName,String);
 
