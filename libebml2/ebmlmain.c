@@ -115,7 +115,7 @@ CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CLASS, 0,
 
 
 CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_VOID_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
-CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32  = {0xBF, EBML_BINARY_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
+CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32  = {0xBF, EBML_CRC_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
 
 const ebml_semantic EBML_SemanticGlobals[] = {
     {0, 0, &EBML_ContextEbmlVoid},
