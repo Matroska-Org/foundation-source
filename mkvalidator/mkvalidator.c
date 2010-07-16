@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo add an option to check DivX extensions like http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW and http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts created with http://labs.divx.com/node/16053
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
@@ -933,57 +934,54 @@ int main(int argc, const char *argv[])
 					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
 				else
 				{
-					RTrackInfo = RLevel1;
+                    size_t TrackCount;
+
+                    RTrackInfo = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements(RLevel1);
 					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
 					Result |= CheckMandatory(RLevel1, MatroskaProfile);
 
-                    if (Result==0)
+                    EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    TrackCount = 0;
+                    while (EbmlHead)
                     {
-                        size_t TrackCount;
-
-                        EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
-                        TrackCount = 0;
-                        while (EbmlHead)
-                        {
-                            EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
-                            ++TrackCount;
-                        }
-
-                        ArrayResize(&Tracks,TrackCount*sizeof(track_info),256);
-                        ArrayZero(&Tracks);
-
-                        EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
-                        TrackCount = 0;
-                        while (EbmlHead)
-                        {
-                            EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
-                            assert(EbmlDocVer!=NULL);
-                            if (EbmlDocVer)
-                            {
-                                TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
-                                ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EBML_IntegerValue(EbmlDocVer);
-                            }
-                            EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
-                            assert(EbmlDocVer!=NULL);
-                            if (EbmlDocVer)
-                            {
-                                if (EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
-								{
-									Result |= CheckVideoTrack(EbmlHead, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
-                                    HasVideo = 1;
-								}
-                                ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
-                            }
-                            ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackCodecID,0,0);
-                            EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
-                            ++TrackCount;
-                        }
-                        EbmlDocVer = NULL;
-                        EbmlHead = NULL;
+                        EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                        ++TrackCount;
                     }
-				}
+
+                    ArrayResize(&Tracks,TrackCount*sizeof(track_info),256);
+                    ArrayZero(&Tracks);
+
+                    EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    TrackCount = 0;
+                    while (EbmlHead)
+                    {
+                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
+                        assert(EbmlDocVer!=NULL);
+                        if (EbmlDocVer)
+                        {
+                            TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
+                            ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EBML_IntegerValue(EbmlDocVer);
+                        }
+                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
+                        assert(EbmlDocVer!=NULL);
+                        if (EbmlDocVer)
+                        {
+                            if (EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
+							{
+								Result |= CheckVideoTrack(EbmlHead, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
+                                HasVideo = 1;
+							}
+                            ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
+                        }
+                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackCodecID,0,0);
+                        EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                        ++TrackCount;
+                    }
+                    EbmlDocVer = NULL;
+                    EbmlHead = NULL;
+                }
 			}
 			else
 			{
