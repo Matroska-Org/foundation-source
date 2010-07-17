@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo add a --divx option to check DivX extensions like http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW and http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts created with http://labs.divx.com/node/16053
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
@@ -48,6 +47,7 @@ static size_t TrackMax=0;
 static bool_t Warnings = 1;
 static bool_t Live = 0;
 static bool_t Details = 0;
+static bool_t DivX = 0;
 static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
 static timecode_t ClusterTime = INVALID_TIMECODE_T;
 
@@ -125,13 +125,15 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[5] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("webm v1"), T("webm v2") };
+static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("webm v1"), T("webm v2"), T("divx v1"), T("divx v2") };
 	switch (ProfileNum)
 	{
 	case PROFILE_MATROSKA_V1: return Profile[1];
 	case PROFILE_MATROSKA_V2: return Profile[2];
 	case PROFILE_WEBM_V1:     return Profile[3];
 	case PROFILE_WEBM_V2:     return Profile[4];
+	case PROFILE_DIVX_V1:     return Profile[5];
+	case PROFILE_DIVX_V2:     return Profile[6];
 	default:                  return Profile[0];
 	}
 }
@@ -805,18 +807,17 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
         TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
         TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
+        TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
         goto exit;
     }
 
 	for (i=1;i<argc-1;++i)
 	{
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
-		if (tcsisame_ascii(Path,T("--no-warn")))
-			Warnings = 0;
-		else if (tcsisame_ascii(Path,T("--live")))
-			Live = 1;
-		else if (tcsisame_ascii(Path,T("--details")))
-			Details = 1;
+		if (tcsisame_ascii(Path,T("--no-warn"))) Warnings = 0;
+		else if (tcsisame_ascii(Path,T("--live"))) Live = 1;
+		else if (tcsisame_ascii(Path,T("--details"))) Details = 1;
+		else if (tcsisame_ascii(Path,T("--divx"))) DivX = 1;
 		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
 
@@ -879,9 +880,19 @@ int main(int argc, const char *argv[])
 	if (tcscmp(String,T("matroska"))==0)
 	{
 		if (EBML_IntegerValue(EbmlReadDocVer)==2)
-			MatroskaProfile = PROFILE_MATROSKA_V2;
+        {
+            if (DivX)
+    			MatroskaProfile = PROFILE_DIVX_V2;
+            else
+			    MatroskaProfile = PROFILE_MATROSKA_V2;
+        }
 		else if (EBML_IntegerValue(EbmlReadDocVer)==1)
-			MatroskaProfile = PROFILE_MATROSKA_V1;
+        {
+            if (DivX)
+    			MatroskaProfile = PROFILE_DIVX_V1;
+            else
+		    	MatroskaProfile = PROFILE_MATROSKA_V1;
+        }
 		else
 			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EBML_IntegerValue(EbmlDocVer),(int)EBML_IntegerValue(EbmlReadDocVer));
 	}
