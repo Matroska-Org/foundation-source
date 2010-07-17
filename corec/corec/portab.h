@@ -185,7 +185,11 @@
 #endif
 
 #if defined(TARGET_LINUX) || defined(TARGET_ANDROID)
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #define IS_LITTLE_ENDIAN
 #elif __BYTE_ORDER == __BIG_ENDIAN
