@@ -746,7 +746,7 @@ static int TimcodeCmp(const void* Param, const timecode_t *a, const timecode_t *
 	return -1;
 }
 
-static int CleanTracks(ebml_element *Tracks, int Profile)
+static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachments)
 {
     ebml_element *Track, *CurTrack, *Elt, *Elt2, *DisplayW, *DisplayH;
     int TrackType, TrackNum, Width, Height;
@@ -884,6 +884,34 @@ static int CleanTracks(ebml_element *Tracks, int Profile)
                 if (((ebml_float*)Elt2)->Value == ((ebml_float*)DisplayH)->Value)
                     NodeDelete((node*)Elt2);
             }
+        }
+
+        // clean the attachment links
+        Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackAttachmentLink,0,0);
+        while (Elt)
+        {
+            Elt2 = NULL;
+            if (!RAttachments)
+                Elt2 = Elt;
+            else
+            {
+                Elt2 = EBML_MasterFindFirstElt(RAttachments,&MATROSKA_ContextAttachedFile,0,0);
+                while (Elt2)
+                {
+                    DisplayH = EBML_MasterFindFirstElt(Elt2,&MATROSKA_ContextAttachedFileUID,0,0);
+                    if (DisplayH && EBML_IntegerValue(DisplayH)==EBML_IntegerValue(Elt))
+                        break;
+                    Elt2 = EBML_MasterFindNextElt(RAttachments, Elt2,0,0);
+                }
+                if (!Elt2) // the attachment wasn't found, delete Elt
+                    Elt2 = Elt;
+                else
+                    Elt2 = NULL;
+            }
+
+            Elt = EBML_MasterFindNextElt(CurTrack, Elt, 0, 0);
+            if (Elt2)
+                NodeDelete((node*)Elt2);
         }
     }
     
@@ -1215,7 +1243,7 @@ int main(int argc, const char *argv[])
 
 	if (RTrackInfo)
 	{
-		Result = CleanTracks(RTrackInfo, DstProfile);
+		Result = CleanTracks(RTrackInfo, DstProfile, RAttachments);
 		if (Result!=0)
 		{
 			TextWrite(StdErr,T("No Tracks left to use!\r\n"));
