@@ -7,7 +7,7 @@ WORKSPACE ebml
   USE ebmltests
 }
 
-WORKSPACE matroska
+WORKSPACE(CONFIG_MATROSKA2) matroska
 {
   USE matroska2
   USE mkvtests

@@ -233,15 +233,16 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 	return Result;
 }
 
-static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
+static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 {
-	ebml_element *Track, *TrackType, *TrackNum;
+	ebml_element *Track, *TrackType, *TrackNum, *Elt, *Elt2;
 	ebml_string *CodecID;
 	tchar_t CodecName[MAXPATH];
 	int Result = 0;
 	Track = EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
 	while (Track)
 	{
+        // check if the codec is valid for the profile
 		TrackNum = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
 		if (TrackNum)
 		{
@@ -273,8 +274,42 @@ static int CheckCodecs(ebml_element *Tracks, int ProfileNum)
 					}
 				}
 			}
-			Track = EBML_MasterFindNextElt(Tracks, Track, 0, 0);
 		}
+
+        // check if the AttachnentLink values match existing attachments
+		TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackAttachmentLink, 0, 0);
+        while (TrackType)
+        {
+            if (!RAttachments)
+            {
+                if (TrackNum)
+				    Result |= OutputError(0x305,T("Track #%d has attachment links but not attachments in the file"),(int)EBML_IntegerValue(TrackNum));
+                else
+                    Result |= OutputError(0x305,T("Track at %") TPRId64 T(" has attachment links but not attachments in the file"),Track->ElementPosition);
+                break;
+            }
+
+            for (Elt=EBML_MasterChildren(RAttachments);Elt;Elt=EBML_MasterNext(Elt))
+            {
+                if (Elt->Context->Id == MATROSKA_ContextAttachedFile.Id)
+                {
+                    Elt2 = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextAttachedFileUID, 0, 0);
+                    if (Elt2 && EBML_IntegerValue(Elt2) == EBML_IntegerValue(TrackType))
+                        break;
+                }
+            }
+            if (!Elt)
+            {
+                if (TrackNum)
+				    Result |= OutputError(0x306,T("Track #%d attachment link UID 0x%") TPRIx64 T(" not found in attachments"),(int)EBML_IntegerValue(TrackNum),EBML_IntegerValue(TrackType));
+                else
+                    Result |= OutputError(0x306,T("Track at %") TPRId64 T(" attachment link UID 0x%") TPRIx64 T(" not found in attachments"),Track->ElementPosition,EBML_IntegerValue(TrackType));
+            }
+
+            TrackType = EBML_MasterFindNextElt(Track, TrackType, 0, 0);
+        }
+
+		Track = EBML_MasterFindNextElt(Tracks, Track, 0, 0);
 	}
 	return Result;
 }
@@ -1155,7 +1190,7 @@ int main(int argc, const char *argv[])
 
     TextWrite(StdErr,T("."));
 	if (RTrackInfo)
-		CheckCodecs(RTrackInfo, MatroskaProfile);
+		CheckTracks(RTrackInfo, MatroskaProfile);
 
     for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
     {

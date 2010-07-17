@@ -200,6 +200,7 @@ extern const ebml_context MATROSKA_ContextTrackDefaultDuration;
 extern const ebml_context MATROSKA_ContextTrackOverlay;
 extern const ebml_context MATROSKA_ContextTrackCodecPrivate;
 extern const ebml_context MATROSKA_ContextTrackMaxBlockAdditionID;
+extern const ebml_context MATROSKA_ContextTrackAttachmentLink;
 
 extern const ebml_context MATROSKA_ContextTrackEncodings;
 extern const ebml_context MATROSKA_ContextTrackEncoding;
