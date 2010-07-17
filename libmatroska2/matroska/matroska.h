@@ -42,6 +42,8 @@
 #define PROFILE_MATROSKA_V2          2
 #define PROFILE_WEBM_V1              4
 #define PROFILE_WEBM_V2              8
+#define PROFILE_DIVX_V1             16
+#define PROFILE_DIVX_V2             32
 
 #define MATROSKA_VERSION  2
 

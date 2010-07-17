@@ -220,6 +220,16 @@ const ebml_semantic EBML_SemanticClusterSlices[] = {
     {0, 0, NULL ,0} // end of the table
 };
 
+// DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
+const ebml_context MATROSKA_ContextClusterReferenceOffset = {0xC9, EBML_INTEGER_CLASS, 0, 0, "ClusterReferenceOffset", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextClusterReferenceTimeCode = {0xCA, EBML_INTEGER_CLASS, 0, 0, "ClusterReferenceTimeCode", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticClusterReferenceFrame[] = {
+    {1, 1, &MATROSKA_ContextClusterReferenceOffset    ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextClusterReferenceTimeCode  ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+
 const ebml_context MATROSKA_ContextClusterBlock = {0xA1, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterBlock", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockAdditions = {0x75A1, EBML_MASTER_CLASS, 0, 0, "ClusterBlockAdditions", EBML_SemanticClusterBlockAdditions, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterBlockDuration = {0x9B, EBML_INTEGER_CLASS, 0, 0, "ClusterBlockDuration", NULL, EBML_SemanticGlobals, NULL};
@@ -227,15 +237,18 @@ const ebml_context MATROSKA_ContextClusterReferencePriority = {0xFA, EBML_INTEGE
 const ebml_context MATROSKA_ContextClusterReferenceBlock = {0xFB, EBML_SINTEGER_CLASS, 0, 0, "ClusterReferenceBlock", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterCodecState = {0xA4, EBML_BINARY_CLASS, 0, 0, "CodecState", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextClusterSlices = {0x8E, EBML_MASTER_CLASS, 0, 0, "ClusterSlices", EBML_SemanticClusterSlices, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextClusterReferenceFrame = {0xC8, EBML_MASTER_CLASS, 0, 0, "ReferenceFrame", EBML_SemanticClusterReferenceFrame, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticClusterBlockGroup[] = {
     {1, 1, &MATROSKA_ContextClusterBlock             ,0},
     {0, 1, &MATROSKA_ContextClusterBlockDuration     ,0},
     {1, 1, &MATROSKA_ContextClusterReferencePriority ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, &MATROSKA_ContextClusterReferenceBlock    ,0},
-    {0, 1, &MATROSKA_ContextClusterCodecState        ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextClusterCodecState        ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, &MATROSKA_ContextClusterSlices            ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 1, &MATROSKA_ContextClusterBlockAdditions    ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    // DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
+    {0, 1, &MATROSKA_ContextClusterReferenceFrame    ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 
@@ -258,7 +271,7 @@ const ebml_semantic EBML_SemanticCluster[] = {
     {0, 1, &MATROSKA_ContextClusterPosition     ,0},
     {0, 1, &MATROSKA_ContextClusterPrevSize     ,0},
     {0, 0, &MATROSKA_ContextClusterBlockGroup   ,0},
-    {0, 0, &MATROSKA_ContextClusterSimpleBlock  ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {0, 0, &MATROSKA_ContextClusterSimpleBlock  ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {0, 1, &MATROSKA_ContextClusterSilentTracks ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
@@ -294,7 +307,7 @@ const ebml_context MATROSKA_ContextTrackVideoColourSpace = {0x2EB524, EBML_BINAR
 const ebml_context MATROSKA_ContextTrackVideoFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "TrackVideoFrameRate", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackVideoGammaValue = {0x2FB523, EBML_FLOAT_CLASS, 0, 0, "TrackVideoGammaValue", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticTrackVideo[] = {
-    {1, 1, &MATROSKA_ContextTrackVideoInterlaced      ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {1, 1, &MATROSKA_ContextTrackVideoInterlaced      ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {1, 1, &MATROSKA_ContextTrackVideoPixelWidth      ,0},
     {1, 1, &MATROSKA_ContextTrackVideoPixelHeight     ,0},
     {0, 1, &MATROSKA_ContextTrackVideoPixelCropBottom ,0},
@@ -306,9 +319,9 @@ const ebml_semantic EBML_SemanticTrackVideo[] = {
     {0, 1, &MATROSKA_ContextTrackVideoDisplayUnit     ,0},
     {0, 1, &MATROSKA_ContextTrackVideoAspectRatio     ,0},
     {0, 1, &MATROSKA_ContextTrackVideoColourSpace     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 1, &MATROSKA_ContextTrackVideoFrameRate       ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoGammaValue      ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackVideoGammaValue      ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2|PROFILE_DIVX_V1|PROFILE_DIVX_V2},
     {0, 0, NULL ,0} // end of the table
 };
 
@@ -391,12 +404,19 @@ const ebml_context MATROSKA_ContextTrackAudio = {0xE1, EBML_MASTER_CLASS, 0, 0, 
 const ebml_context MATROSKA_ContextTrackEncodings = {0x6D80, EBML_MASTER_CLASS, 0, 0, "TrackEncodings", EBML_SemanticTrackEncodings, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackCodecDecodeAll = {0xAA, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackCodecDecodeAll", NULL, EBML_SemanticGlobals, NULL};
 
+// DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
+const ebml_context MATROSKA_ContextTrickTrackUID = {0xC0, EBML_INTEGER_CLASS, 0, 0, "TrackUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrickTrackSegUID = {0xC1, EBML_BINARY_CLASS, 0, 0, "TrackSegUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrickTrackFlag = {0xC6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackFlag", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrickMasterTrackUID = {0xC7, EBML_INTEGER_CLASS, 0, 0, "MasterTrackUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrickMasterTrackSegUID = {0xC4, EBML_BINARY_CLASS, 0, 0, "MasterTrackSegUID", NULL, EBML_SemanticGlobals, NULL};
+
 const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextTrackNumber             ,0},
     {1, 1, &MATROSKA_ContextTrackUID                ,0},
     {1, 1, &MATROSKA_ContextTrackType               ,0},
     {1, 1, &MATROSKA_ContextTrackCodecID            ,0},
-    {1, 1, &MATROSKA_ContextTrackEnabled            ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {1, 1, &MATROSKA_ContextTrackEnabled            ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {1, 1, &MATROSKA_ContextTrackDefault            ,0},
     {1, 0, &MATROSKA_ContextTrackForced             ,0},
     {0, 1, &MATROSKA_ContextTrackVideo              ,0},
@@ -415,7 +435,13 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 0, &MATROSKA_ContextTrackOverlay            ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 1, &MATROSKA_ContextTrackEncodings          ,0},
     {0, 0, &MATROSKA_ContextTrackTranslate          ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_ContextTrackCodecDecodeAll     ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {1, 1, &MATROSKA_ContextTrackCodecDecodeAll     ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
+    // DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
+    {0, 1, &MATROSKA_ContextTrickTrackUID           ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrickTrackSegUID        ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrickTrackFlag          ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrickMasterTrackUID     ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrickMasterTrackSegUID  ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTrackEntry = {0xAE, EBML_MASTER_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
@@ -429,7 +455,7 @@ const ebml_context MATROSKA_ContextTracks = {0x1654AE6B, EBML_MASTER_CLASS, 0, 0
 // Cues
 const ebml_context MATROSKA_ContextRefTime = {0x96, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
 const ebml_semantic EBML_SemanticCueReference[] = {
-    {1, 1, &MATROSKA_ContextRefTime ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {1, 1, &MATROSKA_ContextRefTime ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextCueTrack = {0xF7, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
@@ -442,8 +468,8 @@ const ebml_semantic EBML_SemanticCueTrackPosition[] = {
     {1, 1, &MATROSKA_ContextCueTrack           ,0},
     {1, 1, &MATROSKA_ContextCueClusterPosition ,0},
     {0, 1, &MATROSKA_ContextCueBlockNumber     ,0},
-    {0, 1, &MATROSKA_ContextCueCodecState      ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
-    {0, 1, &MATROSKA_ContextCueReference       ,PROFILE_MATROSKA_V1|PROFILE_WEBM_V1},
+    {0, 1, &MATROSKA_ContextCueCodecState      ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
+    {0, 1, &MATROSKA_ContextCueReference       ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextCueTrackPositions = {0xB7, EBML_MASTER_CLASS, 0, 0, "CueTrackPosition", EBML_SemanticCueTrackPosition, EBML_SemanticGlobals, NULL};
@@ -468,12 +494,19 @@ const ebml_context MATROSKA_ContextAttachedFileName = {0x466E, EBML_UNISTRING_CL
 const ebml_context MATROSKA_ContextAttachedFileMimeType = {0x4660, EBML_STRING_CLASS, 0, 0, "AttachedFileMimeType", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextAttachedFileData = {0x465C, MATROSKA_BIGBINARY_CLASS, 0, 0, "AttachedFileData", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextAttachedFileUID = {0x46AE, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUID", NULL, EBML_SemanticGlobals, NULL};
+// DivX extensions http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts
+const ebml_context MATROSKA_ContextAttachedFileUsedStartTime = {0x4661, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUsedStartTime", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextAttachedFileUsedEndTime = {0x4662, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUsedEndTime", NULL, EBML_SemanticGlobals, NULL};
+
 const ebml_semantic EBML_SemanticAttachedFile[] = {
-    {1, 1, &MATROSKA_ContextAttachedFileName        ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_ContextAttachedFileMimeType    ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_ContextAttachedFileData        ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 1, &MATROSKA_ContextAttachedFileUID         ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_ContextAttachedFileDescription ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextAttachedFileName          ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextAttachedFileMimeType      ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextAttachedFileData          ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextAttachedFileUID           ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextAttachedFileDescription   ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    // DivX extensions http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts
+    {0, 1, &MATROSKA_ContextAttachedFileUsedStartTime ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextAttachedFileUsedEndTime   ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextAttachedFile = {0x61A7, EBML_MASTER_CLASS, 0, 0, "AttachedFile", EBML_SemanticAttachedFile, EBML_SemanticGlobals, NULL};
