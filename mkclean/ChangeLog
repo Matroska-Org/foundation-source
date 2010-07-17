@@ -7,6 +7,8 @@ version 0.4.2:
     - read and skip custome elements rather than discarding (could result in corruption)
     - avoid a possible output corruption when the Segment size is much smaller than the original
     - fix the AppWriting string when there was no library in the source file
+    - don't keep elements that are not valid for the output profile
+    - check that track attachment links point to valid attachments and remove the invalid ones
 
 2010-07-04
 version 0.4.1:

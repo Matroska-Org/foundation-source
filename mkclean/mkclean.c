@@ -183,12 +183,12 @@ static void ReduceSize(ebml_element *Element)
 
 		for (i=EBML_MasterChildren(Element);i;i=i?EBML_MasterNext(i):NULL)
 		{
-			if (Node_IsPartOf(i,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory(i,0))
+			for (s=Element->Context->Semantic; s->eClass; ++s)
 			{
-				for (s=Element->Context->Semantic; s->eClass; ++s)
+				if (s->eClass->Id == i->Context->Id)
 				{
-					if (s->eClass->Id == i->Context->Id)
-					{
+			        if (Node_IsPartOf(i,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory(i,0))
+			        {
 						// if it's not unique we can remove it
 						if (!s->Unique)
 						{
@@ -200,7 +200,17 @@ static void ReduceSize(ebml_element *Element)
 							i=EBML_MasterChildren(Element);
 							break;
 						}
-					}
+                    }
+                    if ((s->DisabledProfile & DstProfile)!=0)
+                    {
+						tchar_t IdString[MAXPATH];
+						Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
+						TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,i->ElementPosition,GetProfileName(DstProfile));
+						EBML_MasterRemove(Element,i);
+						NodeDelete((node*)i);
+						i=EBML_MasterChildren(Element);
+						break;
+                    }
 				}
 			}
 		}
