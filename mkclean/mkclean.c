@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo add a --divx option to keep DivX extensions
  * \todo discards tracks that has the same UID
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
  * \todo compute the segment duration based on audio (when it's not set)
@@ -123,12 +122,13 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[5] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("unused webm"), T("webm") };
+static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("unused webm"), T("webm"), T("matroska+DivX"), T("unused matroska+DivX") };
 	switch (ProfileNum)
 	{
 	case PROFILE_MATROSKA_V1: return Profile[1];
 	case PROFILE_MATROSKA_V2: return Profile[2];
 	case PROFILE_WEBM_V2:     return Profile[4];
+	case PROFILE_DIVX_V1:     return Profile[5];
 	default:                  return Profile[0];
 	}
 }
@@ -140,6 +140,7 @@ static int GetProfileId(int Profile)
 	case PROFILE_MATROSKA_V1: return 1;
 	case PROFILE_MATROSKA_V2: return 2;
 	case PROFILE_WEBM_V2:     return 4;
+	case PROFILE_DIVX_V1:     return 5;
 	default:                  return 0;
 	}
 }
@@ -346,17 +347,15 @@ static int LinkClusters(array *Clusters, ebml_element *RSegmentInfo, ebml_elemen
     int BlockNum;
 
 	// find out if the Clusters use forbidden features for that DstProfile
-	if (DstProfile == PROFILE_MATROSKA_V1)
+	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_DIVX_V1)
 	{
 		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 		{
 			for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
 			{
 				if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-				{
-					int SrcProfile = DstProfile;
-                    DstProfile=PROFILE_MATROSKA_V2;
-					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(SrcProfile),GetProfileId(DstProfile));
+                {
+					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),GetProfileId(PROFILE_MATROSKA_V2));
 					return -32;
 				}
 			}
@@ -1069,6 +1068,7 @@ int main(int argc, const char *argv[])
 		TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
 		TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
 		TextWrite(StdErr,T("    4: 'webm'\r\n"));
+		TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
 		TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
 		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
 		TextWrite(StdErr,T("  --unsafe      don't output elements that can be used for file recovery (saves more space)\r\n"));
@@ -1093,6 +1093,8 @@ int main(int argc, const char *argv[])
 				DstProfile = PROFILE_MATROSKA_V2;
 			else if (tcsisame_ascii(Path,T("4")))
 				DstProfile = PROFILE_WEBM_V2;
+			else if (tcsisame_ascii(Path,T("5")))
+				DstProfile = PROFILE_DIVX_V1;
 			else
 			{
 		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
