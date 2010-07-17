@@ -33,6 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo add a --divx option to keep DivX extensions
  * \todo discards tracks that has the same UID
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
  * \todo compute the segment duration based on audio (when it's not set)
@@ -746,6 +747,17 @@ static int TimcodeCmp(const void* Param, const timecode_t *a, const timecode_t *
 	return -1;
 }
 
+static int64_t gcd(int64_t a, int64_t b)
+{
+    for (;;)
+    {
+        int64_t c = a % b;
+        if(!c) return b;
+        a = b;
+        b = c;
+    }
+}
+
 static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachments)
 {
     ebml_element *Track, *CurTrack, *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -817,7 +829,6 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                         else
                         {
                             DisplayW = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayWidth,1,0);
-                            EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(EBML_IntegerValue(DisplayH),Width,Height));
                         }
                     }
                     else if (!DisplayH)
@@ -830,38 +841,46 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                         else
                         {
                             DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayHeight,1,0);
-                            EBML_IntegerSetValue((ebml_integer*)DisplayH,Scale64(EBML_IntegerValue(DisplayW),Height,Width));
                         }
                     }
 
                     if (DisplayW && DisplayH)
                     {
-                        if (EBML_IntegerValue(DisplayH) < Height && EBML_IntegerValue(DisplayW) < Width) // Haali's kind
+                        if (EBML_IntegerValue(DisplayH) < Height && EBML_IntegerValue(DisplayW) < Width) // Haali's non-pixel shrinking
                         {
-							int64_t DW = EBML_IntegerValue(DisplayW);
+                            int64_t DW = EBML_IntegerValue(DisplayW);
 							int64_t DH = EBML_IntegerValue(DisplayH);
-							if (DW > DH)
-							{
-								EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(Height,DW,DH));
-								EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
-							}
-							else
-							{
-								EBML_IntegerSetValue((ebml_integer*)DisplayH,Scale64(Width,DH,DW));
-								EBML_IntegerSetValue((ebml_integer*)DisplayW,Width);
-							}
+                            int Serious = gcd(DW,DH)==1; // shrank as much as it was possible
+                            if (8*DW <= Width && 8*DH <= Height)
+                                ++Serious; // shrank too much compared to the original
+                            else if (2*DW >= Width && 2*DH >= Height)
+                                --Serious; // may be intentional
 
-							// check if the AR is respected otherwise force it into a DAR
-							if (EBML_IntegerValue(DisplayW)*DH != EBML_IntegerValue(DisplayH)*DW)
-							{
-								Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 1, 0);
-								if (Elt2)
-								{
-									EBML_IntegerSetValue((ebml_integer*)Elt2,3);
-									EBML_IntegerSetValue((ebml_integer*)DisplayW,DW);
-									EBML_IntegerSetValue((ebml_integer*)DisplayH,DH);
-								}
-							}
+                            if (Serious) // doesn't seem correct as pixels
+                            {
+							    if (DW > DH)
+							    {
+								    EBML_IntegerSetValue((ebml_integer*)DisplayW,Scale64(Height,DW,DH));
+								    EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
+							    }
+							    else
+							    {
+								    EBML_IntegerSetValue((ebml_integer*)DisplayH,Scale64(Width,DH,DW));
+								    EBML_IntegerSetValue((ebml_integer*)DisplayW,Width);
+							    }
+
+							    // check if the AR is respected otherwise force it into a DAR
+							    if (EBML_IntegerValue(DisplayW)*DH != EBML_IntegerValue(DisplayH)*DW)
+							    {
+								    Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 1, 0);
+								    if (Elt2)
+								    {
+									    EBML_IntegerSetValue((ebml_integer*)Elt2,3);
+									    EBML_IntegerSetValue((ebml_integer*)DisplayW,DW);
+									    EBML_IntegerSetValue((ebml_integer*)DisplayH,DH);
+								    }
+							    }
+                            }
                         }
                         if (EBML_IntegerValue(DisplayH) == Height)
                             NodeDelete((node*)DisplayH);

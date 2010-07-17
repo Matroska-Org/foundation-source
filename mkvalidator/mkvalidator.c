@@ -33,7 +33,7 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo add an option to check DivX extensions like http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW and http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts created with http://labs.divx.com/node/16053
+ * \todo add a --divx option to check DivX extensions like http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW and http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts created with http://labs.divx.com/node/16053
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo check that the Segment size matches the size of the data inside
@@ -188,6 +188,17 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 	return VoidAmount;
 }
 
+static int64_t gcd(int64_t a, int64_t b)
+{
+    for (;;)
+    {
+        int64_t c = a % b;
+        if(!c) return b;
+        a = b;
+        b = c;
+    }
+}
+
 static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 {
 	int Result = 0;
@@ -223,10 +234,18 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 				DisplayH = EBML_IntegerValue(PixelH);
 			if (DisplayW < EBML_IntegerValue(PixelW) && DisplayH < EBML_IntegerValue(PixelH))
 			{
-				if (ProfileNum==PROFILE_WEBM_V2 || ProfileNum==PROFILE_WEBM_V1)
-					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seems wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
-				else // in Matroska it's tolerated as it's been operating like that for a while
-					Result |= OutputWarning(0xE3,T("The output pixels for Video track #%d seems wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
+                int Serious = gcd(DisplayW,DisplayH)==1; // the DAR values were reduced as much as possible
+                if (DisplayW*EBML_IntegerValue(PixelH) == DisplayH*EBML_IntegerValue(PixelW))
+                    Serious++; // same aspect ratio as the source
+                if (8*DisplayW <= EBML_IntegerValue(PixelW) && 8*DisplayH <= EBML_IntegerValue(PixelH))
+                    Serious+=2; // too much shrinking compared to the original pixels
+                if (ProfileNum!=PROFILE_WEBM_V2 && ProfileNum!=PROFILE_WEBM_V1)
+                    --Serious; // in Matroska it's tolerated as it's been operating like that for a while
+
+				if (Serious>2)
+					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
+				else if (Serious)
+					Result |= OutputWarning(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
 			}
 		}
 	}
