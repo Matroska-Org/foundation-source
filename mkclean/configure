@@ -3,7 +3,7 @@
 SCRIPT
 %%END
 
-make -s -C corec/tools/coremake -f build.mak
+make -s -C corec/tools/coremake
 mv -f corec/tools/coremake/coremake .
 coremake_param=`corec/tools/coremake/system_output.sh`
 
