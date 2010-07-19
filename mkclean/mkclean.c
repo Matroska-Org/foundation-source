@@ -1145,10 +1145,10 @@ int main(int argc, const char *argv[])
     RContext.Context = &MATROSKA_ContextStream;
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
-    EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
-    if (!EbmlHead)
+    EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
+    if (!EbmlHead || EbmlHead->Context->Id != EBML_ContextHead.Id)
     {
-        TextWrite(StdErr,T("Could not find an EBML head!\r\n"));
+        TextWrite(StdErr,T("EBML head not found! Are you sure it's a matroska/webm file?\r\n"));
         Result = -4;
         goto exit;
     }

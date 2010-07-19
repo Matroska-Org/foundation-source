@@ -2,6 +2,7 @@
 version 0.1.12:
     - fix a crash when the DisplayWidth/DisplayHeight was not written in the file
     - check that the Segment size matches the size of the data inside
+    - reject files that don't have an EBML header
 
 2010-07-17
 version 0.1.11:
