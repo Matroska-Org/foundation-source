@@ -1,6 +1,7 @@
-2010-07-17
+2010-07-19
 version 0.1.12:
     - fix a crash when the DisplayWidth/DisplayHeight was not written in the file
+    - check that the Segment size matches the size of the data inside
 
 2010-07-17
 version 0.1.11:

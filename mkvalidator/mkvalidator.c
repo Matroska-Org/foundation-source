@@ -35,7 +35,6 @@
 /*!
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
- * \todo check that the Segment size matches the size of the data inside
  * \todo optionally show the use of deprecated elements
  */
 
@@ -771,7 +770,7 @@ int main(int argc, const char *argv[])
     stream *Input = NULL;
     tchar_t Path[MAXPATHFULL];
     tchar_t String[MAXLINE];
-    ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
+    ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, **Cluster;
 	ebml_element *EbmlDocVer, *EbmlReadDocVer;
     ebml_string *LibName, *AppName;
     ebml_parser_context RContext;
@@ -914,6 +913,7 @@ int main(int argc, const char *argv[])
 	UpperElement = 0;
 	DotCount = 0;
 //TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
+	Prev = NULL;
     RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
 	{
@@ -1175,7 +1175,7 @@ int main(int argc, const char *argv[])
 		if (!(DotCount % 60))
 			TextWrite(StdErr,T("\r                                                              \r"));
 
-
+		Prev = RLevel1;
 		RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
 	}
 
@@ -1183,6 +1183,12 @@ int main(int argc, const char *argv[])
 	{
 		Result = OutputError(0x40,T("The segment is missing a SegmentInfo"));
 		goto exit;
+	}
+
+	if (Prev)
+	{
+		if (EBML_ElementPositionEnd(RSegment)!=INVALID_FILEPOS_T && EBML_ElementPositionEnd(RSegment)!=EBML_ElementPositionEnd(Prev))
+			Result |= OutputError(0x42,T("The segment's size %") TPRId64 T(" doesn't match the position where it ends %") TPRId64,EBML_ElementPositionEnd(RSegment),EBML_ElementPositionEnd(Prev));
 	}
 
 	if (!RSeekHead)
