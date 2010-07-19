@@ -1,5 +1,5 @@
 2010-07-17
-version 0.1.11:
+version 0.1.12:
     - fix a crash when the DisplayWidth/DisplayHeight was not written in the file
 
 2010-07-17
