@@ -4,6 +4,7 @@ version 0.4.3:
     - reject files that don't have an EBML header
     - add --help and --version CLI options
     - put the timecodescale first in the segment info, put the duration just after
+    - fix the amount of phases displayed
 
 2010-07-17
 version 0.4.2:
