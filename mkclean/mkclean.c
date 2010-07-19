@@ -2101,7 +2101,24 @@ int main(int argc, const char *argv[])
 		Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
         MetaSeekUpdate(WMetaSeek);
         if (WSeekPointTags)
-            NodeTree_SetParent(WSeekPointTags,NULL,NULL); // remove the fake tags pointer
+        {
+            filepos_t SeekPointSize;
+            ebml_element *Void;
+
+            // remove the fake tags pointer and replace by a void of the same size
+            NodeTree_SetParent(WSeekPointTags,NULL,NULL);
+
+            // write a Void element the size of WSeekPointTags
+            SeekPointSize = EBML_ElementFullSize((ebml_element*)WSeekPointTags, 0);
+            Void = EBML_ElementCreate(WSeekPointTags,&EBML_ContextEbmlVoid,1,NULL);
+            EBML_VoidSetSize(Void, SeekPointSize - 1 - EBML_CodedSizeLength(SeekPointSize,0,1));
+            EBML_MasterAppend(WMetaSeek,Void);
+
+            NodeDelete((node*)WSeekPointTags);
+            WSeekPointTags = NULL;
+            NodeDelete((node*)RTags);
+            RTags = NULL;
+        }
 
 		EBML_ElementFullSize(WMetaSeek,0);
 		if (EBML_ElementRender(WMetaSeek,Output,0,0,1,&MetaSeekBefore,0)!=ERR_NONE)
@@ -2111,25 +2128,6 @@ int main(int argc, const char *argv[])
 			goto exit;
 		}
 		SegmentSize += EBML_ElementFullSize(WMetaSeek,0);
-        if (WSeekPointTags)
-        {
-            // write a Void element the size of WSeekPointTags
-            filepos_t SeekPointSize = EBML_ElementFullSize((ebml_element*)WSeekPointTags, 0);
-            ebml_element * Void = EBML_ElementCreate(WSeekPointTags,&EBML_ContextEbmlVoid,1,NULL);
-            EBML_VoidSetSize(Void, SeekPointSize - 1 - EBML_CodedSizeLength(SeekPointSize,0,1));
-	        if (EBML_ElementRender(Void,Output,0,0,1,NULL,0)!=ERR_NONE)
-	        {
-		        TextWrite(StdErr,T("Failed to write the tag placeholder in Seek Head\r\n"));
-		        Result = -24;
-		        goto exit;
-	        }
-            SegmentSize += EBML_ElementFullSize(Void,0);
-            NodeDelete((node*)WSeekPointTags);
-            WSeekPointTags = NULL;
-            NodeDelete((node*)RTags);
-            RTags = NULL;
-            NodeDelete((node*)Void);
-        }
 	}
     else if (!Unsafe)
         SetClusterPrevSize(Clusters);

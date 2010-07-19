@@ -836,6 +836,9 @@ err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
     err_t Err;
     uint8_t IdBuffer[4];
 
+    if (Node_IsPartOf(MetaSeek,EBML_VOID_CLASS))
+        return ERR_NONE;
+
     assert(MetaSeek->Base.Context->Id == MATROSKA_ContextSeek.Id);
     RSegment = EBML_ElementParent(MetaSeek);
     while (RSegment && RSegment->Context->Id != MATROSKA_ContextSegment.Id)

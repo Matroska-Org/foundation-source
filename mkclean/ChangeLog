@@ -1,5 +1,6 @@
-2010-07-xx
+2010-07-19
 version 0.4.3:
+    - fix a bug in the segment size when a placeholder was added for later tag reference
     - reject files that don't have an EBML header
     - add --help and --version CLI options
 
