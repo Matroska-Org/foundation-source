@@ -765,6 +765,8 @@ static int CheckCueEntries(ebml_element *Cues)
 int main(int argc, const char *argv[])
 {
     int Result = 0;
+    int ShowUsage = 0;
+    int ShowVersion = 0;
     parsercontext p;
     textwriter _StdErr;
     stream *Input = NULL;
@@ -798,27 +800,34 @@ int main(int argc, const char *argv[])
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
     assert(StdErr->Stream!=NULL);
 
-    if (argc < 2)
-    {
-        TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
-        Result = OutputError(1,T("Usage: mkvalidator [options] <matroska_src>"));
-		TextWrite(StdErr,T("Options:\r\n"));
-		TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
-        TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
-        TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
-        TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
-        goto exit;
-    }
-
-	for (i=1;i<argc-1;++i)
+	for (i=1;i<argc;++i)
 	{
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
 		if (tcsisame_ascii(Path,T("--no-warn"))) Warnings = 0;
 		else if (tcsisame_ascii(Path,T("--live"))) Live = 1;
 		else if (tcsisame_ascii(Path,T("--details"))) Details = 1;
 		else if (tcsisame_ascii(Path,T("--divx"))) DivX = 1;
-		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
+		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
+        else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
+		else if (i<argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
+
+    if (argc < 2 || ShowVersion)
+    {
+        TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
+        if (argc < 2 || ShowUsage)
+        {
+            Result = OutputError(1,T("Usage: mkvalidator [options] <matroska_src>"));
+		    TextWrite(StdErr,T("Options:\r\n"));
+		    TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
+            TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
+            TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
+            TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
+            TextWrite(StdErr,T("  --version   show the version of mkvalidator\r\n"));
+            TextWrite(StdErr,T("  --help      show this screen\r\n"));
+        }
+        goto exit;
+    }
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);

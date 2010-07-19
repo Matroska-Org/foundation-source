@@ -1,3 +1,7 @@
+2010-07-xx
+version 0.1.13:
+    - add --help and --version CLI options
+
 2010-07-19
 version 0.1.12:
     - fix a crash when the DisplayWidth/DisplayHeight was not written in the file
