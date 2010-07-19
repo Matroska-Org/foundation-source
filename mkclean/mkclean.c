@@ -1274,6 +1274,15 @@ int main(int argc, const char *argv[])
         EbmlHead = NULL;
     }
 
+    // reorder elements in WSegmentInfo
+    Elt2 = EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextTimecodeScale, 0, 0);
+    if (Elt2 && EBML_MasterChildren(WSegmentInfo)!=Elt2)
+        NodeTree_SetParent(Elt2,WSegmentInfo,EBML_MasterChildren(WSegmentInfo));
+    if (!Elt2)
+        Elt2 = EBML_MasterChildren(WSegmentInfo);
+    Elt = EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextDuration, 0, 0);
+    NodeTree_SetParent(Elt,WSegmentInfo,Elt2);
+
     if (!RTrackInfo && ARRAYCOUNT(RClusters,ebml_element*))
     {
         TextWrite(StdErr,T("The source Segment has no Track Info section\r\n"));
