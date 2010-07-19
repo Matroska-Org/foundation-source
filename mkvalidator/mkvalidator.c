@@ -224,12 +224,12 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		{
 			// check if the pixel sizes appear valid
 			int64_t DisplayW,DisplayH;
-			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,1,1);
+			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
 			if (Elt)
 				DisplayW = EBML_IntegerValue(Elt);
 			else
 				DisplayW = EBML_IntegerValue(PixelW);
-			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,1,1);
+			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
 			if (Elt)
 				DisplayH = EBML_IntegerValue(Elt);
 			else
