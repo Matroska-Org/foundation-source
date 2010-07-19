@@ -1028,6 +1028,8 @@ static void ClearCommonHeader(array *TrackHeader)
 int main(int argc, const char *argv[])
 {
     int i,Result = 0;
+    int ShowUsage = 0;
+    int ShowVersion = 0;
     parsercontext p;
     textwriter _StdErr;
     stream *Input = NULL,*Output = NULL;
@@ -1067,28 +1069,7 @@ int main(int argc, const char *argv[])
     memset(StdErr,0,sizeof(_StdErr));
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
 
-    if (argc < 3)
-    {
-        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
-        TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> <matroska_dst>\r\n"));
-		TextWrite(StdErr,T("Options:\r\n"));
-		TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
-		TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));
-		TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
-		TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
-		TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
-		TextWrite(StdErr,T("    4: 'webm'\r\n"));
-		TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
-		TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
-		TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is usually a good value)\r\n"));
-		TextWrite(StdErr,T("  --unsafe      don't output elements that can be used for file recovery (saves more space)\r\n"));
-		TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
-		TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
-        Result = -1;
-        goto exit;
-    }
-
-	for (i=1;i<argc-2;++i)
+	for (i=1;i<argc;++i)
 	{
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
 		if (tcsisame_ascii(Path,T("--keep-cues"))) KeepCues = 1;
@@ -1120,8 +1101,36 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--unsafe"))) Unsafe = 1;
 		else if (tcsisame_ascii(Path,T("--optimize"))) Optimize = 1;
 		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
-		else TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
+		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
+        else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
+		else if (i<argc-2) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
+
+    if (argc < 3 || ShowVersion)
+    {
+        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
+        if (argc < 2 || ShowUsage)
+        {
+            TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> <matroska_dst>\r\n"));
+		    TextWrite(StdErr,T("Options:\r\n"));
+		    TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
+		    TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));
+		    TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
+		    TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
+		    TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
+		    TextWrite(StdErr,T("    4: 'webm'\r\n"));
+		    TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
+		    TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
+		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
+		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
+		    TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
+		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
+            TextWrite(StdErr,T("  --version     show the version of mkvalidator\r\n"));
+            TextWrite(StdErr,T("  --help        show this screen\r\n"));
+        }
+        Result = -1;
+        goto exit;
+    }
 
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-2]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);

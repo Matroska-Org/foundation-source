@@ -1,6 +1,7 @@
 2010-07-xx
 version 0.4.3:
     - reject files that don't have an EBML header
+    - add --help and --version CLI options
 
 2010-07-17
 version 0.4.2:
