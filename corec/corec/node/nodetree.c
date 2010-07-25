@@ -33,15 +33,16 @@ static NOINLINE err_t SetParent(nodetree* p,nodetree* Parent,nodetree* Before)
 {
     err_t Result = ERR_NONE;
 
-    assert(!Before || Before->Parent == Parent);
+    assert(!Before || Before->Parent == Parent); // make sure Before is in the right tree
 
-	if (p->Parent != Parent || p->Next != Before)
+	if (p!=Before && (p->Parent != Parent || p->Next != Before))
     {
 	    if (p->Parent)
             VMT_FUNC(p->Parent,nodetree_vmt)->RemoveChild(p->Parent,p);
 
 	    if (Parent)
             Result = VMT_FUNC(Parent,nodetree_vmt)->AddChild(Parent,p,Before);
+        assert(p->Next != p);
     }
     return Result;
 }
