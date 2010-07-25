@@ -127,6 +127,7 @@ err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataS
     if (!ArrayResize(&Element->Data,DataSize,0))
         return ERR_OUT_OF_MEMORY;
     memcpy(ARRAYBEGIN(Element->Data,void),Data,DataSize);
+    Element->Base.DataSize = DataSize;
     Element->Base.bValueIsSet = 1;
     return ERR_NONE;
 }
