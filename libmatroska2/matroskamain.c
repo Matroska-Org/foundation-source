@@ -1845,7 +1845,7 @@ failed:
 }
 #endif
 
-static matroska_block *CopyBlockData(const matroska_block *Element, const void *Cookie)
+static matroska_block *CopyBlockInfo(const matroska_block *Element, const void *Cookie)
 {
     matroska_block *Result = (matroska_block*)INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->Copy(Element,Cookie);
     if (Result)
@@ -1854,7 +1854,7 @@ static matroska_block *CopyBlockData(const matroska_block *Element, const void *
         Result->IsKeyframe = Element->IsKeyframe;
         Result->IsDiscardable = Element->IsDiscardable;
         Result->Invisible = Element->Invisible;
-#if 0
+#if 0 // computed once blocks are added
         Result->LocalTimecode = Element->LocalTimecode;
         Result->LocalTimecodeUsed = Element->LocalTimecodeUsed;
 	    Result->GlobalTimecode = Element->GlobalTimecode;
@@ -1863,6 +1863,8 @@ static matroska_block *CopyBlockData(const matroska_block *Element, const void *
         array SizeList = Element->; // int32_t
         array Data = Element->; // uint8_t
         array Durations = Element->; // timecode_t
+#else
+        Result->Base.Base.bValueIsSet = 0;
 #endif
         Node_SET(Result,MATROSKA_BLOCK_READ_TRACK,&Element->ReadTrack);
         Node_SET(Result,MATROSKA_BLOCK_READ_SEGMENTINFO,&Element->ReadSegInfo);
@@ -2057,7 +2059,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateBlockSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderBlockData)
 #endif
-META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyBlockData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyBlockInfo)
 META_DATA(TYPE_ARRAY,0,matroska_block,SizeList)
 META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
