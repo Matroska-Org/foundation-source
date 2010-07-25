@@ -1720,7 +1720,7 @@ int main(int argc, const char *argv[])
 							}
 							else if (((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id)
 							{
-                                Elt = EBML_ElementCopy(pBlockInfo->Block, NULL);
+                                Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
 								Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
@@ -1787,7 +1787,7 @@ int main(int argc, const char *argv[])
 									assert(((ebml_element*)pBlockInfo->Block)->Context->Id == MATROSKA_ContextClusterBlock.Id);
 									// This block needs to be split
 									MATROSKA_BlockReadData(pBlockInfo->Block,Input);
-                                    Elt = EBML_ElementCopy(pBlockInfo->Block, NULL);
+                                    Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
 									Block1 = (matroska_block*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextClusterBlock, 0, 0);
 								    MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
