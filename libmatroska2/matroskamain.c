@@ -1326,17 +1326,17 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         switch (Element->Lacing)
         {
         case LACING_NONE:
-            ArrayResize(&Element->Data,(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element) + (Header?(size_t)Header->DataSize:0),0);
+            ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] + (Header?(size_t)Header->DataSize:0),0);
             Buf = ARRAYBEGIN(Element->Data,uint8_t);
             if (Header)
             {
                 memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
                 Buf += (size_t)Header->DataSize;
             }
-            Err = Stream_Read(Input,Buf,(size_t)Element->Base.Base.DataSize - GetBlockHeadSize(Element),&Read);
+            Err = Stream_Read(Input,Buf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
             if (Err != ERR_NONE)
                 goto failed;
-            if (Read != Element->Base.Base.DataSize - GetBlockHeadSize(Element))
+            if (Read != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
             {
                 Err = ERR_READ;
                 goto failed;
@@ -1811,7 +1811,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
             *Rendered += Written;
         free(LaceHead);
     }
-    Node_SET(Element,MATROSKA_BLOCK_READ_TRACK,&Element->WriteTrack); // now use the write track to read the same element
+    Node_SET(Element,MATROSKA_BLOCK_READ_TRACK,&Element->WriteTrack); // now use the write track for consecutive read of the same element
 
     Cursor = ARRAYBEGIN(Element->Data,uint8_t);
     ToWrite = ARRAYCOUNT(Element->Data,uint8_t);

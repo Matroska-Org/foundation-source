@@ -1,6 +1,7 @@
 2010-07-25
 version 0.4.5:
     - fix --remux when BlockGroup was encountered (rather than SimpleBlock)
+    - fix --optimize on video tracks
 
 2010-07-25
 version 0.4.4:
