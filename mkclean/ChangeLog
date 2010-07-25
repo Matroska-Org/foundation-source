@@ -1,3 +1,7 @@
+2010-07-25
+version 0.4.4:
+    - fix a possible infinite loop when only --optimize was used
+
 2010-07-19
 version 0.4.3:
     - fix a bug in the segment size when a placeholder was added for later tag reference

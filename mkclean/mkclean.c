@@ -1253,7 +1253,7 @@ int main(int argc, const char *argv[])
     }
     WSegmentInfo = EBML_ElementCopy(RSegmentInfo, NULL);
 
-	if (TimeCodeScale!=0)
+    if (TimeCodeScale!=0)
 	{
 		RLevel1 = EBML_MasterFindFirstElt(WSegmentInfo,&MATROSKA_ContextTimecodeScale,1,1);
 		if (!RLevel1)
@@ -1281,7 +1281,8 @@ int main(int argc, const char *argv[])
     if (!Elt2)
         Elt2 = EBML_MasterChildren(WSegmentInfo);
     Elt = EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextDuration, 0, 0);
-    NodeTree_SetParent(Elt,WSegmentInfo,Elt2);
+    if (Elt && Elt!=Elt2)
+        NodeTree_SetParent(Elt,WSegmentInfo,Elt2);
 
     if (!RTrackInfo && ARRAYCOUNT(RClusters,ebml_element*))
     {
