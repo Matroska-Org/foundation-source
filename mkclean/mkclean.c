@@ -263,7 +263,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                 {
                     EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
                     Elt2 = EBML_MasterFindFirstElt(*Cluster, &MATROSKA_ContextClusterTimecode, 0, 0);
-                    if (Elt2 && NodeTree_Next(Elt2)!=(nodetree*)Elt)
+                    if (Elt2)
                         NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
                     ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
                 }
@@ -280,8 +280,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                 if (Elt)
                 {
                     EBML_IntegerSetValue((ebml_integer*)Elt, ClusterPos - EBML_ElementPositionData(Segment));
-                    if (Elt2 && NodeTree_Next(Elt2)!=(nodetree*)Elt)
-                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
+                    NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
                     ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
                 }
             }
@@ -950,15 +949,15 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
     for (Track = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackEntry,0,0); Track; Track = EBML_MasterNext(Track))
     {
         Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
-        if (Elt != EBML_MasterChildren(Track))
+        if (Elt)
             NodeTree_SetParent(Elt,Track,EBML_MasterChildren(Track));
 
         Elt2 = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackType,0,0);
-        if (Elt2 != EBML_MasterNext(Elt))
-            NodeTree_SetParent(Elt2,Track,EBML_MasterNext(Elt));
+        assert(Elt2!=NULL);
+        NodeTree_SetParent(Elt2,Track,EBML_MasterNext(Elt));
 
         DisplayW = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecID,0,0);
-        if (DisplayW != EBML_MasterNext(Elt2))
+        if (DisplayW)
             NodeTree_SetParent(DisplayW,Track,EBML_MasterNext(Elt2));
     }
 
@@ -1276,12 +1275,12 @@ int main(int argc, const char *argv[])
 
     // reorder elements in WSegmentInfo
     Elt2 = EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextTimecodeScale, 0, 0);
-    if (Elt2 && EBML_MasterChildren(WSegmentInfo)!=Elt2)
+    if (Elt2)
         NodeTree_SetParent(Elt2,WSegmentInfo,EBML_MasterChildren(WSegmentInfo));
     if (!Elt2)
         Elt2 = EBML_MasterChildren(WSegmentInfo);
     Elt = EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextDuration, 0, 0);
-    if (Elt && Elt!=Elt2)
+    if (Elt)
         NodeTree_SetParent(Elt,WSegmentInfo,Elt2);
 
     if (!RTrackInfo && ARRAYCOUNT(RClusters,ebml_element*))

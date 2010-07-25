@@ -1,6 +1,7 @@
 2010-07-25
 version 0.4.4:
     - fix a possible infinite loop when only --optimize was used
+    - fix a potential timecode issue at the cluster boundaries
 
 2010-07-19
 version 0.4.3:
