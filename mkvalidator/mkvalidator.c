@@ -203,13 +203,14 @@ static int64_t gcd(int64_t a, int64_t b)
 static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 {
 	int Result = 0;
-	ebml_element *Elt, *Video, *PixelW, *PixelH;
+	ebml_element *Unit, *Elt, *Video, *PixelW, *PixelH;
 	Video = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackVideo,0,0);
 	if (!Video)
 		Result = OutputWarning(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),Track->ElementPosition);
 	// check the DisplayWidth and DisplayHeight are correct
 	else
 	{
+		int64_t DisplayW,DisplayH;
 		PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelWidth,1,1);
 		if (!PixelW)
 			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,Track->ElementPosition);
@@ -217,22 +218,22 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		if (!PixelH)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,Track->ElementPosition);
 
-		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
-		assert(Elt!=NULL);
-		if (EBML_IntegerValue(Elt)==0 && PixelW && PixelH)
+		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
+		if (Elt)
+			DisplayW = EBML_IntegerValue(Elt);
+		else
+			DisplayW = EBML_IntegerValue(PixelW);
+		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
+		if (Elt)
+			DisplayH = EBML_IntegerValue(Elt);
+		else
+			DisplayH = EBML_IntegerValue(PixelH);
+
+        Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
+		assert(Unit!=NULL);
+		if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
 		{
 			// check if the pixel sizes appear valid
-			int64_t DisplayW,DisplayH;
-			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
-			if (Elt)
-				DisplayW = EBML_IntegerValue(Elt);
-			else
-				DisplayW = EBML_IntegerValue(PixelW);
-			Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
-			if (Elt)
-				DisplayH = EBML_IntegerValue(Elt);
-			else
-				DisplayH = EBML_IntegerValue(PixelH);
 			if (DisplayW < EBML_IntegerValue(PixelW) && DisplayH < EBML_IntegerValue(PixelH))
 			{
                 int Serious = gcd(DisplayW,DisplayH)==1; // the DAR values were reduced as much as possible
@@ -249,6 +250,36 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 					Result |= OutputWarning(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
 			}
 		}
+
+        if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_DAR)
+        {
+            // crop values should never exist
+            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropTop,0,0);
+            if (Elt)
+                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has top crop at %") TPRId64,TrackNum,Elt->ElementPosition);
+            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropBottom,0,0);
+            if (Elt)
+                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has bottom crop at %") TPRId64,TrackNum,Elt->ElementPosition);
+            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropLeft,0,0);
+            if (Elt)
+                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has left crop at %") TPRId64,TrackNum,Elt->ElementPosition);
+            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropRight,0,0);
+            if (Elt)
+                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has right crop at %") TPRId64,TrackNum,Elt->ElementPosition);
+        }
+        else
+        {
+            // crop values should be less than the extended value
+            PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropTop,1,1);
+            PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropBottom,1,1);
+            if (EBML_IntegerValue(PixelW) + EBML_IntegerValue(PixelH) >= DisplayH)
+                Result |= OutputError(0xE5,T("Video track #%d is cropping too many vertical pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayH, EBML_IntegerValue(PixelW), EBML_IntegerValue(PixelH));
+
+            PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropLeft,1,1);
+            PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropRight,1,1);
+            if (EBML_IntegerValue(PixelW) + EBML_IntegerValue(PixelH) >= DisplayW)
+                Result |= OutputError(0xE6,T("Video track #%d is cropping too many horizontal pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayW, EBML_IntegerValue(PixelW), EBML_IntegerValue(PixelH));
+        }
 	}
 	return Result;
 }

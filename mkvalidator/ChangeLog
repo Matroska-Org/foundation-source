@@ -1,6 +1,7 @@
-2010-07-xx
+2010-08-xx
 version 0.1.13:
     - add --help and --version CLI options
+    - verify that the cropping values are correct
 
 2010-07-19
 version 0.1.12:
