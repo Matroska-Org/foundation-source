@@ -766,6 +766,30 @@ static int64_t gcd(int64_t a, int64_t b)
     }
 }
 
+static void CleanCropValues(ebml_element *Tracks, int64_t Width, int64_t Height)
+{
+    ebml_element *Left,*Right,*Top,*Bottom;
+    Left = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackVideoPixelCropLeft,1,1);
+    Right = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackVideoPixelCropRight,1,1);
+    Top = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackVideoPixelCropTop,1,1);
+    Bottom = EBML_MasterFindFirstElt(Tracks,&MATROSKA_ContextTrackVideoPixelCropBottom,1,1);
+    if (EBML_IntegerValue(Top)+EBML_IntegerValue(Bottom) >= Height || EBML_IntegerValue(Left)+EBML_IntegerValue(Right) >= Width)
+    {
+        // invalid crop, remove the values
+        NodeDelete((node*)Left);
+        NodeDelete((node*)Right);
+        NodeDelete((node*)Top);
+        NodeDelete((node*)Bottom);
+    }
+    else
+    {
+        if (EBML_IntegerValue(Left)==0)   NodeDelete((node*)Left);
+        if (EBML_IntegerValue(Right)==0)  NodeDelete((node*)Right);
+        if (EBML_IntegerValue(Top)==0)    NodeDelete((node*)Top);
+        if (EBML_IntegerValue(Bottom)==0) NodeDelete((node*)Bottom);
+    }
+}
+
 static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachments)
 {
     ebml_element *Track, *CurTrack, *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -825,7 +849,7 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                 Width = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelWidth,0,0));
                 Height = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelHeight,0,0));
                 Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 0, 0);
-                if (!Elt2 || EBML_IntegerValue(Elt2)==0) // pixel AR
+                if (!Elt2 || EBML_IntegerValue(Elt2)==MATROSKA_DISPLAY_UNIT_PIXEL) // pixel AR
                 {
                     if (!DisplayW)
                     {
@@ -883,19 +907,30 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
 								    Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 1, 0);
 								    if (Elt2)
 								    {
-									    EBML_IntegerSetValue((ebml_integer*)Elt2,3);
+									    EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_DISPLAY_UNIT_DAR);
 									    EBML_IntegerSetValue((ebml_integer*)DisplayW,DW);
 									    EBML_IntegerSetValue((ebml_integer*)DisplayH,DH);
 								    }
 							    }
                             }
                         }
-                        if (EBML_IntegerValue(DisplayH) == Height)
+                        if (DisplayH && EBML_IntegerValue(DisplayH) == Height)
+                        {
                             NodeDelete((node*)DisplayH);
-                        if (EBML_IntegerValue(DisplayW) == Width)
+                            DisplayH = NULL;
+                        }
+                        if (DisplayW && EBML_IntegerValue(DisplayW) == Width)
+                        {
                             NodeDelete((node*)DisplayW);
+                            DisplayW = NULL;
+                        }
                     }
                 }
+                Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 1, 1);
+                if (EBML_IntegerValue(Elt2)==MATROSKA_DISPLAY_UNIT_DAR)
+                    CleanCropValues(CurTrack, 0, 0);
+                else
+                    CleanCropValues(CurTrack, DisplayW?EBML_IntegerValue(DisplayW):Width, DisplayH?EBML_IntegerValue(DisplayH):Height);
             }
         }
 

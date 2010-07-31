@@ -1,3 +1,7 @@
+2010-08-xx
+version 0.4.6:
+    - remove bad cropping values
+
 2010-07-25
 version 0.4.5:
     - fix --remux when BlockGroup was encountered (rather than SimpleBlock)
