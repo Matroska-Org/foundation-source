@@ -46,6 +46,7 @@ struct matroska_block
     char Lacing;
     filepos_t FirstFrameLocation;
     array SizeList; // int32_t
+    array SizeListIn; // int32_t
     array Data; // uint8_t
     array Durations; // timecode_t
     ebml_element *ReadTrack;

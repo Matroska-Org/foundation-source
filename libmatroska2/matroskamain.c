@@ -1275,6 +1275,15 @@ err_t MATROSKA_BlockReleaseData(matroska_block *Block)
 {
     ArrayClear(&Block->Data);
     Block->Base.Base.bValueIsSet = 0;
+    if (ARRAYCOUNT(Block->SizeListIn,int32_t))
+    {
+        // recover the size of each lace in SizeList for later reading
+        int32_t *i,*o;
+        assert(ARRAYCOUNT(Block->SizeListIn,int32_t) == ARRAYCOUNT(Block->SizeList,int32_t));
+        for (i=ARRAYBEGIN(Block->SizeListIn,int32_t),o=ARRAYBEGIN(Block->SizeList,int32_t);i!=ARRAYEND(Block->SizeListIn,int32_t);++i,++o)
+            *o = *i;
+        ArrayClear(&Block->SizeListIn);
+    }
     return ERR_NONE;
 }
 
@@ -1355,6 +1364,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 if (!ArrayResize(&TmpBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0))
                     Err = ERR_OUT_OF_MEMORY;
                 InBuf = ARRAYBEGIN(TmpBuf,uint8_t);
+                ArrayCopy(&Element->SizeListIn, &Element->SizeList);
                 Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
                 if (Err==ERR_NONE)
                 {
@@ -1449,6 +1459,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     ArrayClear(&TmpBuf);
                     goto failed;
                 }
+                ArrayCopy(&Element->SizeListIn, &Element->SizeList);
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
                     z_stream stream;
@@ -2351,6 +2362,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderBlockData)
 #endif
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyBlockInfo)
 META_DATA(TYPE_ARRAY,0,matroska_block,SizeList)
+META_DATA(TYPE_ARRAY,0,matroska_block,SizeListIn)
 META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
 META_PARAM(TYPE,MATROSKA_BLOCK_READ_TRACK,TYPE_NODE)
