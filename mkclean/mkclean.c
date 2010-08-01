@@ -1015,6 +1015,33 @@ static void InitCommonHeader(array *TrackHeader)
     TrackHeader->_Begin = TABLE_MARKER;
 }
 
+static bool_t BlockIsCompressible(const matroska_block *Block)
+{
+    ebml_element *Track = MATROSKA_BlockReadTrack(Block);
+    if (Track)
+    {
+        ebml_element *Elt = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackEncodings, 0, 0);
+        if (Elt)
+        {
+            Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+            if (EBML_MasterChildren(Elt))
+            {
+                if (EBML_MasterNext(Elt))
+                    return 1; // we don't support cascased encryption/compression
+
+                Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+                if (!Elt)
+                    return 1; // we don't support encryption
+
+                Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+                if (EBML_IntegerValue(Elt)==MATROSKA_BLOCK_COMPR_ZLIB)
+                    return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream *Input)
 {
     size_t Frame,FrameCount,EqualData;
@@ -1024,6 +1051,10 @@ static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream
         return;
     if (MATROSKA_BlockReadData(Block,Input)!=ERR_NONE)
         return;
+
+    if (BlockIsCompressible(Block))
+        return;
+
     FrameCount = MATROSKA_BlockGetFrameCount(Block);
     Frame = 0;
     if (FrameCount && TrackHeader->_Begin == TABLE_MARKER)

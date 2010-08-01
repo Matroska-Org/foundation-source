@@ -1,6 +1,7 @@
 2010-08-xx
 version 0.4.6:
     - remove bad cropping values
+    - don't try to compress headers of track with zlib encryption
 
 2010-07-25
 version 0.4.5:

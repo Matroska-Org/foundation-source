@@ -373,7 +373,7 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
 
             if (Unique)
             {
-		        j = ARRAYBEGIN(*p,uint_fast32_t);;
+		        j = ARRAYBEGIN(*p,uint_fast32_t);
 		        for (i=j+1; i!=End; ++i)
 		        {
 			        if (Cmp(CmpParam,i,j) != 0)
