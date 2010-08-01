@@ -47,7 +47,7 @@
  * \todo support the japanese translation
  *
  * less important:
- * \todo support zlib compression (optimize mode for a set of codecs)
+ * \todo force zlib compression for a set of codecs ?
  * \todo (optionally) change the Segment UID (when key parts are altered/added)
  * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm') (loose mode)
  * \todo support for updating/writing the CRC32
