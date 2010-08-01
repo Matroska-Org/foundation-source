@@ -1316,41 +1316,41 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     ebml_element *Elt, *Header = NULL;
     uint8_t *InBuf;
 
-    // find out if compressed headers are used
-    assert(Element->ReadTrack!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->ReadTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
-    if (Elt)
-    {
-        Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
-        if (EBML_MasterChildren(Elt))
-        {
-            if (EBML_MasterNext(Elt))
-                return ERR_NOT_SUPPORTED; // TODO support cascaded compression/encryption
-
-            Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
-            if (!Elt)
-                return ERR_NOT_SUPPORTED; // TODO: support encryption
-
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
-#if defined(CONFIG_ZLIB)
-            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
-#else
-            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
-#endif
-                return ERR_INVALID_DATA;
-
-            if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
-        }
-    }
-
-#if !defined(CONFIG_ZLIB)
-    if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
-        return ERR_NOT_SUPPORTED;
-#endif
-
     if (!Element->Base.Base.bValueIsSet)
     {
+        // find out if compressed headers are used
+        assert(Element->ReadTrack!=NULL);
+        Elt = EBML_MasterFindFirstElt(Element->ReadTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
+        if (Elt)
+        {
+            Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+            if (EBML_MasterChildren(Elt))
+            {
+                if (EBML_MasterNext(Elt))
+                    return ERR_NOT_SUPPORTED; // TODO support cascaded compression/encryption
+
+                Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+                if (!Elt)
+                    return ERR_NOT_SUPPORTED; // TODO: support encryption
+
+                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB)
+                if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#else
+                if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+#endif
+                    return ERR_INVALID_DATA;
+
+                if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                    Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+            }
+        }
+
+#if !defined(CONFIG_ZLIB)
+        if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+            return ERR_NOT_SUPPORTED;
+#endif
+
         Stream_Seek(Input,Element->FirstFrameLocation,SEEK_SET);
         switch (Element->Lacing)
         {
@@ -2018,7 +2018,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     {
         uint8_t *LaceHead = malloc(1 + ARRAYCOUNT(Element->SizeList,int32_t)*4);
         size_t i,LaceSize = 1;
-        int32_t DataSize;
+        int32_t DataSize, PrevSize;
         if (!LaceHead)
         {
             Err = ERR_OUT_OF_MEMORY;
@@ -2031,8 +2031,9 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
             LaceSize += EBML_CodedValueLength(DataSize,EBML_CodedSizeLength(DataSize,0,1),LaceHead+LaceSize, 1);
             for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
-                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header) - DataSize;
-                LaceSize += EBML_CodedValueLengthSigned(DataSize,EBML_CodedSizeLengthSigned(DataSize,0),LaceHead+LaceSize);
+                PrevSize = DataSize;
+                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header);
+                LaceSize += EBML_CodedValueLengthSigned(DataSize-PrevSize,EBML_CodedSizeLengthSigned(DataSize-PrevSize,0),LaceHead+LaceSize);
             }
         }
         else if (Element->Lacing == LACING_XIPH)
