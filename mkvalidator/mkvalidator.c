@@ -33,6 +33,8 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
+ * \todo verify that items with a limited set of values don't use other values
  * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo optionally show the use of deprecated elements

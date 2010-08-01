@@ -1305,7 +1305,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     size_t NumFrame;
     err_t Err = ERR_NONE;
     ebml_element *Elt, *Header = NULL;
-    uint8_t *Buf;
+    uint8_t *InBuf;
 
     // find out if compressed headers are used
     assert(Element->ReadTrack!=NULL);
@@ -1354,8 +1354,8 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 ArrayInit(&TmpBuf);
                 if (!ArrayResize(&TmpBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0))
                     Err = ERR_OUT_OF_MEMORY;
-                Buf = ARRAYBEGIN(TmpBuf,uint8_t);
-                Err = Stream_Read(Input,Buf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
+                InBuf = ARRAYBEGIN(TmpBuf,uint8_t);
+                Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
                 if (Err==ERR_NONE)
                 {
                     if (Read!=(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
@@ -1372,7 +1372,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                         else
                         {
                             size_t Count = 0;
-                            stream.next_in = Buf;
+                            stream.next_in = InBuf;
                             stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
                             stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
                             do {
@@ -1402,13 +1402,13 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 #endif
             {
                 ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] + (Header?(size_t)Header->DataSize:0),0);
-                Buf = ARRAYBEGIN(Element->Data,uint8_t);
+                InBuf = ARRAYBEGIN(Element->Data,uint8_t);
                 if (Header)
                 {
-                    memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
-                    Buf += (size_t)Header->DataSize;
+                    memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
+                    InBuf += (size_t)Header->DataSize;
                 }
-                Err = Stream_Read(Input,Buf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
+                Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
                 if (Err != ERR_NONE)
                     goto failed;
                 if (Read != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
@@ -1431,14 +1431,17 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 // zlib handling, read the buffer in temp memory
                 // get the ouput size, adjust the Element->SizeList value, write in Element->Data
                 array TmpBuf;
+                int32_t FrameSize;
+                size_t OutSize = 0;
+
                 ArrayInit(&TmpBuf);
                 if (!ArrayResize(&TmpBuf,BufSize,0))
                 {
                     Err = ERR_OUT_OF_MEMORY;
                     goto failed;
                 }
-                Buf = ARRAYBEGIN(TmpBuf,uint8_t);
-                Err = Stream_Read(Input,Buf,BufSize,&Read);
+                InBuf = ARRAYBEGIN(TmpBuf,uint8_t);
+                Err = Stream_Read(Input,InBuf,BufSize,&Read);
                 if (Err != ERR_NONE || Read!=BufSize)
                 {
                     if (Err==ERR_NONE)
@@ -1457,30 +1460,31 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     else
                     {
                         size_t Count;
-                        stream.next_in = Buf;
-                        stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-                        stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
+                        stream.next_in = InBuf;
+                        stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                        stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + OutSize;
                         do {
                             Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
-                            stream.avail_out = 1024;
-                            if (!ArrayResize(&Element->Data, Count + stream.avail_out, 0))
+                            if (!ArrayResize(&Element->Data, Count + 1024, 0))
                             {
                                 Res = Z_MEM_ERROR;
                                 break;
                             }
+                            stream.avail_out = ARRAYCOUNT(Element->Data,uint8_t) - Count;
                             stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
                             Res = inflate(&stream, Z_NO_FLUSH);
                             if (Res!=Z_STREAM_END && Res!=Z_OK)
                                 break;
                         } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
-                        ArrayResize(&Element->Data, stream.total_out, 0);
                         ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = stream.total_out;
+                        OutSize += stream.total_out;
                         inflateEnd(&stream);
                         if (Res != Z_STREAM_END)
                             Err = ERR_INVALID_DATA;
                     }
-                    Buf += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                    InBuf += FrameSize;
                 }
+                ArrayResize(&Element->Data, OutSize, 0); // shrink the buffer
                 ArrayClear(&TmpBuf);
             }
             else
@@ -1494,18 +1498,18 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 }
                 else
                 {
-                    Buf = ARRAYBEGIN(Element->Data,uint8_t);
+                    InBuf = ARRAYBEGIN(Element->Data,uint8_t);
                     for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                     {
-                        memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
-                        Buf += (size_t)Header->DataSize;
+                        memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
+                        InBuf += (size_t)Header->DataSize;
                         Read = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] - (int32_t)Header->DataSize;
                         BufSize = Read;
-                        assert(Buf + Read <= ARRAYEND(Element->Data,uint8_t));
-                        Err = Stream_Read(Input,Buf,BufSize,&Read);
+                        assert(InBuf + Read <= ARRAYEND(Element->Data,uint8_t));
+                        Err = Stream_Read(Input,InBuf,BufSize,&Read);
                         if (Err != ERR_NONE || Read!=BufSize)
                             goto failed;
-                        Buf += Read;
+                        InBuf += Read;
                     }
                 }
             }
@@ -1780,7 +1784,7 @@ static err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t
     deflateInit(&stream, 9);
     do {
         Count = stream.next_out - ARRAYBEGIN(TmpBuf,uint8_t);
-        stream.avail_out = CursorSize;
+        stream.avail_out = CursorSize; // add some bytes to the output
         if (!ArrayResize(&TmpBuf,stream.avail_out + Count,0))
         {
             ArrayClear(&TmpBuf);
@@ -1827,6 +1831,7 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
             --Frame;
         }
         OutSize = *Size;
+        assert(Element->Base.Base.bValueIsSet);
 #if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
         if (!Element->Base.Base.bValueIsSet || CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
 #else
