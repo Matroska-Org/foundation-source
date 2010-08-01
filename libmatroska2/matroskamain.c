@@ -27,6 +27,9 @@
  */
 #include "matroska/matroska.h"
 #include "matroska_internal.h"
+#if defined(CONFIG_ZLIB)
+#include "zlib.h"
+#endif
 #if defined(MATROSKA_LIBRARY)
 #include "matroska2_project.h"
 #endif
@@ -642,7 +645,7 @@ struct matroska_seekpoint
     ebml_element *Link;
 };
 
-static err_t AdjustBlockSizes(matroska_block *Block)
+static err_t CheckCompression(matroska_block *Block)
 {
     ebml_element *Elt, *Header;
     assert(Block->ReadTrack!=NULL);
@@ -662,16 +665,23 @@ static err_t AdjustBlockSizes(matroska_block *Block)
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 0, 0);
-            if (!Header || EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
-                return ERR_INVALID_DATA; // TODO: support more than header stripping
+            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB)
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#else
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+#endif
+                return ERR_INVALID_DATA;
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
-            if (Header)
+            if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
             {
-                uint32_t *i;
-        		for (i=ARRAYBEGIN(Block->SizeList,uint32_t);i!=ARRAYEND(Block->SizeList,uint32_t);++i)
-                    *i += (uint32_t)Header->DataSize;
+                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+                if (Header)
+                {
+                    uint32_t *i;
+        		    for (i=ARRAYBEGIN(Block->SizeList,uint32_t);i!=ARRAYEND(Block->SizeList,uint32_t);++i)
+                        *i += (uint32_t)Header->DataSize;
+                }
             }
         }
     }
@@ -697,7 +707,7 @@ err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_element *Trac
 #endif
             if (WasLinked)
                 return ERR_NONE;
-            return AdjustBlockSizes(Block);
+            return CheckCompression(Block);
         }
     }
     return ERR_INVALID_DATA;
@@ -721,7 +731,7 @@ err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_element *Track, bo
 #endif
         if (WasLinked)
             return ERR_NONE;
-        return AdjustBlockSizes(Block);
+        return CheckCompression(Block);
     }
     return ERR_INVALID_DATA;
 }
@@ -742,7 +752,7 @@ err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_element *Tra
             Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
             if (WasLinked)
                 return ERR_NONE;
-            return AdjustBlockSizes(Block);
+            return CheckCompression(Block);
         }
     }
     return ERR_INVALID_DATA;
@@ -762,7 +772,7 @@ err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_element *Track)
         Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
         if (WasLinked)
             return ERR_NONE;
-        return AdjustBlockSizes(Block);
+        return CheckCompression(Block);
     }
     return ERR_INVALID_DATA;
 }
@@ -1306,19 +1316,29 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
-                return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
+                return ERR_NOT_SUPPORTED; // TODO support cascaded compression/encryption
 
             Elt = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
             if (!Elt)
-                return ERR_INVALID_DATA; // TODO: support encryption
+                return ERR_NOT_SUPPORTED; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 0, 0);
-            if (!Header || EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
-                return ERR_INVALID_DATA; // TODO: support more than header stripping
+            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB)
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#else
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+#endif
+                return ERR_INVALID_DATA;
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+            if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
         }
     }
+
+#if !defined(CONFIG_ZLIB)
+    if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+        return ERR_NOT_SUPPORTED;
+#endif
 
     if (!Element->Base.Base.bValueIsSet)
     {
@@ -1326,20 +1346,76 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         switch (Element->Lacing)
         {
         case LACING_NONE:
-            ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] + (Header?(size_t)Header->DataSize:0),0);
-            Buf = ARRAYBEGIN(Element->Data,uint8_t);
-            if (Header)
+#if defined(CONFIG_ZLIB)
+            if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
             {
-                memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
-                Buf += (size_t)Header->DataSize;
+                // zlib handling, read the buffer in temp memory
+                array TmpBuf;
+                ArrayInit(&TmpBuf);
+                if (!ArrayResize(&TmpBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0))
+                    Err = ERR_OUT_OF_MEMORY;
+                Buf = ARRAYBEGIN(TmpBuf,uint8_t);
+                Err = Stream_Read(Input,Buf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
+                if (Err==ERR_NONE)
+                {
+                    if (Read!=(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
+                        Err = ERR_READ;
+                    else
+                    {
+                        // get the ouput size, adjust the Element->SizeList value, write in Element->Data
+                        z_stream stream;
+                        int Res;
+                        memset(&stream,0,sizeof(stream));
+                        Res = inflateInit(&stream);
+                        if (Res != Z_OK)
+                            Err = ERR_INVALID_DATA;
+                        else
+                        {
+                            size_t Count = 0;
+                            stream.next_in = Buf;
+                            stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
+                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
+                            do {
+                                Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                stream.avail_out = 1024;
+                                if (!ArrayResize(&Element->Data, Count + stream.avail_out, 0))
+                                {
+                                    Res = Z_MEM_ERROR;
+                                    break;
+                                }
+                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                Res = inflate(&stream, Z_NO_FLUSH);
+                                if (Res!=Z_STREAM_END && Res!=Z_OK)
+                                    break;
+                            } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
+                            ArrayResize(&Element->Data, stream.total_out, 0);
+                            ARRAYBEGIN(Element->SizeList,int32_t)[0] = stream.total_out;
+                            inflateEnd(&stream);
+                            if (Res != Z_STREAM_END)
+                                Err = ERR_INVALID_DATA;
+                        }
+                    }
+                }
+                ArrayClear(&TmpBuf);
             }
-            Err = Stream_Read(Input,Buf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
-            if (Err != ERR_NONE)
-                goto failed;
-            if (Read != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
+            else
+#endif
             {
-                Err = ERR_READ;
-                goto failed;
+                ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] + (Header?(size_t)Header->DataSize:0),0);
+                Buf = ARRAYBEGIN(Element->Data,uint8_t);
+                if (Header)
+                {
+                    memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
+                    Buf += (size_t)Header->DataSize;
+                }
+                Err = Stream_Read(Input,Buf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
+                if (Err != ERR_NONE)
+                    goto failed;
+                if (Read != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
+                {
+                    Err = ERR_READ;
+                    goto failed;
+                }
             }
             break;
         case LACING_EBML:
@@ -1349,26 +1425,88 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             BufSize = 0;
             for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 BufSize += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-            ArrayResize(&Element->Data,BufSize,0);
-            if (!Header)
+#if defined(CONFIG_ZLIB)
+            if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
             {
-                //assert(BufSize + Element->FirstFrameLocation == Element->Base.Base.DataSize);
-                Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),BufSize,&BufSize);
+                // zlib handling, read the buffer in temp memory
+                // get the ouput size, adjust the Element->SizeList value, write in Element->Data
+                array TmpBuf;
+                ArrayInit(&TmpBuf);
+                if (!ArrayResize(&TmpBuf,BufSize,0))
+                {
+                    Err = ERR_OUT_OF_MEMORY;
+                    goto failed;
+                }
+                Buf = ARRAYBEGIN(TmpBuf,uint8_t);
+                Err = Stream_Read(Input,Buf,BufSize,&Read);
+                if (Err != ERR_NONE || Read!=BufSize)
+                {
+                    if (Err==ERR_NONE)
+                        Err = ERR_READ;
+                    ArrayClear(&TmpBuf);
+                    goto failed;
+                }
+                for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
+                {
+                    z_stream stream;
+                    int Res;
+                    memset(&stream,0,sizeof(stream));
+                    Res = inflateInit(&stream);
+                    if (Res != Z_OK)
+                        Err = ERR_INVALID_DATA;
+                    else
+                    {
+                        size_t Count;
+                        stream.next_in = Buf;
+                        stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                        stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
+                        do {
+                            Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                            stream.avail_out = 1024;
+                            if (!ArrayResize(&Element->Data, Count + stream.avail_out, 0))
+                            {
+                                Res = Z_MEM_ERROR;
+                                break;
+                            }
+                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                            Res = inflate(&stream, Z_NO_FLUSH);
+                            if (Res!=Z_STREAM_END && Res!=Z_OK)
+                                break;
+                        } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
+                        ArrayResize(&Element->Data, stream.total_out, 0);
+                        ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = stream.total_out;
+                        inflateEnd(&stream);
+                        if (Res != Z_STREAM_END)
+                            Err = ERR_INVALID_DATA;
+                    }
+                    Buf += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                }
+                ArrayClear(&TmpBuf);
             }
             else
+#endif
             {
-                Buf = ARRAYBEGIN(Element->Data,uint8_t);
-                for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
+                ArrayResize(&Element->Data,BufSize,0);
+                if (!Header)
                 {
-                    memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
-                    Buf += (size_t)Header->DataSize;
-                    Read = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] - (int32_t)Header->DataSize;
-                    BufSize = Read;
-                    assert(Buf + Read <= ARRAYEND(Element->Data,uint8_t));
-                    Err = Stream_Read(Input,Buf,BufSize,&Read);
-                    if (Err != ERR_NONE || Read!=BufSize)
-                        goto failed;
-                    Buf += Read;
+                    //assert(BufSize + Element->FirstFrameLocation == Element->Base.Base.DataSize);
+                    Err = Stream_Read(Input,ARRAYBEGIN(Element->Data,uint8_t),BufSize,&BufSize);
+                }
+                else
+                {
+                    Buf = ARRAYBEGIN(Element->Data,uint8_t);
+                    for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
+                    {
+                        memcpy(Buf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
+                        Buf += (size_t)Header->DataSize;
+                        Read = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] - (int32_t)Header->DataSize;
+                        BufSize = Read;
+                        assert(Buf + Read <= ARRAYEND(Element->Data,uint8_t));
+                        Err = Stream_Read(Input,Buf,BufSize,&Read);
+                        if (Err != ERR_NONE || Read!=BufSize)
+                            goto failed;
+                        Buf += Read;
+                    }
                 }
             }
             if (Err != ERR_NONE)
@@ -1624,6 +1762,82 @@ err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Fra
     return ERR_NONE;
 }
 
+#if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
+static err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+{
+    err_t Err = ERR_NONE;
+    z_stream stream;
+    size_t Count;
+    array TmpBuf;
+    int Res;
+
+    ArrayInit(&TmpBuf);
+    memset(&stream,0,sizeof(stream));
+    stream.next_in = (Bytef*)Cursor;
+    stream.avail_in = CursorSize;
+    Count = 0;
+    stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t);
+    deflateInit(&stream, 9);
+    do {
+        Count = stream.next_out - ARRAYBEGIN(TmpBuf,uint8_t);
+        stream.avail_out = CursorSize;
+        if (!ArrayResize(&TmpBuf,stream.avail_out + Count,0))
+        {
+            ArrayClear(&TmpBuf);
+            Err = ERR_OUT_OF_MEMORY;
+            break;
+        }
+        stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t) + Count;
+        Res = deflate(&stream, Z_FINISH);
+    } while (stream.avail_out==0 && Res!=Z_STREAM_END);
+
+    if (OutBuf && OutSize)
+    {
+        // TODO: write directly in the output buffer
+        memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), min(*OutSize, stream.total_out));
+        *OutSize = stream.total_out;
+    }
+    else if (OutSize)
+        *OutSize = stream.total_out;
+    ArrayClear(&TmpBuf);
+
+    deflateEnd(&stream);
+
+    return Err;
+}
+#endif
+
+static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header)
+{
+    if (Frame >= ARRAYCOUNT(Element->SizeList,int32_t))
+        return 0;
+
+    if (!Header)
+        return ARRAYBEGIN(Element->SizeList,int32_t)[Frame];
+    if (Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+    {
+        // handle zlib
+        size_t OutSize;
+        const int32_t *Size = ARRAYBEGIN(Element->SizeList,int32_t);
+        const uint8_t *Data = ARRAYBEGIN(Element->Data,uint8_t);
+        while (Frame)
+        {
+            Data += *Size;
+            ++Size;
+            --Frame;
+        }
+        OutSize = *Size;
+#if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
+        if (!Element->Base.Base.bValueIsSet || CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
+#else
+        if (!Element->Base.Base.bValueIsSet)
+#endif
+            return *Size; // we can't tell the final size without decoding the data
+        return OutSize;
+    }
+    return ARRAYBEGIN(Element->SizeList,int32_t)[Frame] - Header->DataSize; // header stripping
+}
+
 #if defined(CONFIG_EBML_WRITING)
 static char GetBestLacingType(const matroska_block *Element)
 {
@@ -1659,18 +1873,23 @@ static char GetBestLacingType(const matroska_block *Element)
             if (!Elt)
                 return 0; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 0, 0);
-            if (!Header || EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB)
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#else
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+#endif
                 return 0; // TODO: support more than header stripping
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+            if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
         }
     }
 
     XiphLacingSize = 0;
     for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
     {
-        DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i] - (Header?(int32_t)Header->DataSize:0);
+        DataSize = (int32_t)GetBlockFrameSize(Element, i, Header);
         while (DataSize >= 0xFF)
         {
             XiphLacingSize++;
@@ -1679,10 +1898,10 @@ static char GetBestLacingType(const matroska_block *Element)
         XiphLacingSize++;
     }
 
-    EbmlLacingSize = EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?(int32_t)Header->DataSize:0),0,1);
+    EbmlLacingSize = EBML_CodedSizeLength(GetBlockFrameSize(Element, 0, Header),0,1);
     for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
     {
-        DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1] - (Header?(int32_t)Header->DataSize:0);
+        DataSize = (int32_t)GetBlockFrameSize(Element, i, Header) - DataSize;
         EbmlLacingSize += EBML_CodedSizeLengthSigned(DataSize,0);
     }
 
@@ -1756,15 +1975,29 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 0, 0);
-            if (!Header || EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB)
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#else
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+#endif
                 return ERR_INVALID_DATA; // TODO: support more than header stripping
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+            if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
         }
     }
 
-    assert(Element->Lacing != LACING_AUTO); // TODO: the rest is not supported yet
+#if !defined(CONFIG_ZLIB)
+    if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+    {
+        Err = ERR_NOT_SUPPORTED;
+        goto failed;
+    }
+#endif
+
+    if (Element->Lacing == LACING_AUTO)
+        Element->Lacing = GetBestLacingType(Element);
     if (Element->Lacing != LACING_NONE)
     {
         uint8_t *LaceHead = malloc(1 + ARRAYCOUNT(Element->SizeList,int32_t)*4);
@@ -1772,17 +2005,17 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         int32_t DataSize;
         if (!LaceHead)
         {
-            Err = ERR_OUT_OF_MEMORY;;
+            Err = ERR_OUT_OF_MEMORY;
             goto failed;
         }
-        LaceHead[0] = (ARRAYCOUNT(Element->SizeList,int32_t)-1) & 0xFF;
+        LaceHead[0] = (ARRAYCOUNT(Element->SizeList,int32_t)-1) & 0xFF; // number of elements in the lace
         if (Element->Lacing == LACING_EBML)
         {
-            DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[0] -(Header?(int32_t)Header->DataSize:0);
+            DataSize = (int32_t)GetBlockFrameSize(Element, 0, Header);
             LaceSize += EBML_CodedValueLength(DataSize,EBML_CodedSizeLength(DataSize,0,1),LaceHead+LaceSize, 1);
             for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
-                DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1];
+                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header) - DataSize;
                 LaceSize += EBML_CodedValueLengthSigned(DataSize,EBML_CodedSizeLengthSigned(DataSize,0),LaceHead+LaceSize);
             }
         }
@@ -1790,7 +2023,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         {
             for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
-                DataSize = ARRAYBEGIN(Element->SizeList,int32_t)[i]-(Header?(int32_t)Header->DataSize:0);
+                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header);
                 while (DataSize >= 0xFF)
                 {
                     LaceHead[LaceSize++] = 0xFF;
@@ -1817,20 +2050,57 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     ToWrite = ARRAYCOUNT(Element->Data,uint8_t);
     if (Header)
     {
-        for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
+        if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
         {
-            assert(memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize)==0);
-            if (memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize)!=0)
+#if defined(CONFIG_ZLIB)
+            uint8_t *OutBuf;
+            array TmpBuf;
+            ArrayInit(&TmpBuf);
+            for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
             {
-                Err = ERR_INVALID_DATA;
-                goto failed;
+                if (!ArrayResize(&TmpBuf,*i + 100,0))
+                {
+                    ArrayClear(&TmpBuf);
+                    Err = ERR_OUT_OF_MEMORY;
+                    break;
+                }
+                OutBuf = ARRAYBEGIN(TmpBuf,uint8_t);
+                ToWrite = ARRAYCOUNT(TmpBuf,uint8_t);
+                if (CompressFrameZLib(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
+                {
+                    ArrayClear(&TmpBuf);
+                    Err = ERR_OUT_OF_MEMORY;
+                    break;
+                }
+
+                Err = Stream_Write(Output,OutBuf,ToWrite,&Written);
+                ArrayClear(&TmpBuf);
+                if (Rendered)
+                    *Rendered += Written;
+                Cursor += *i;
+                if (Err!=ERR_NONE)
+                    break;
             }
-            Cursor += Header->DataSize;
-            ToWrite = *i - (size_t)Header->DataSize;
-            Err = Stream_Write(Output,Cursor,ToWrite,&Written);
-            if (Rendered)
-                *Rendered += Written;
-            Cursor += Written;
+#endif
+        }
+        else
+        {
+            // header compression
+            for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
+            {
+                assert(memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize)==0);
+                if (memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize)!=0)
+                {
+                    Err = ERR_INVALID_DATA;
+                    goto failed;
+                }
+                Cursor += Header->DataSize;
+                ToWrite = *i - (size_t)Header->DataSize;
+                Err = Stream_Write(Output,Cursor,ToWrite,&Written);
+                if (Rendered)
+                    *Rendered += Written;
+                Cursor += Written;
+            }
         }
     }
     else
@@ -1898,11 +2168,16 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 0, 0);
-            if (!Header || EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB)
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#else
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+#endif
                 return ERR_INVALID_DATA; // TODO: support more than header stripping
 
-            Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+            if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                Header = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
         }
     }
 #else
@@ -1912,25 +2187,35 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
     if (Element->Lacing == LACING_NONE)
     {
         assert(ARRAYCOUNT(Element->SizeList,int32_t) == 1);
-        Element->Base.Base.DataSize = GetBlockHeadSize(Element) + ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?Header->DataSize:0);
+        Element->Base.Base.DataSize = GetBlockHeadSize(Element) + GetBlockFrameSize(Element,0,Header);
     }
     else if (Element->Lacing == LACING_EBML)
     {
         size_t i;
+        filepos_t PrevSize, Size;
         filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
-        Result += ARRAYBEGIN(Element->SizeList,int32_t)[0] + EBML_CodedSizeLength(ARRAYBEGIN(Element->SizeList,int32_t)[0],0,1) - (Header?Header->DataSize:0);
+        Size = GetBlockFrameSize(Element,0,Header);
+        Result += EBML_CodedSizeLength(Size,0,1) + Size;
         for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
-            Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] + EBML_CodedSizeLengthSigned(ARRAYBEGIN(Element->SizeList,int32_t)[i] - ARRAYBEGIN(Element->SizeList,int32_t)[i-1],0) - (Header?Header->DataSize:0);
-        Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] - (Header?Header->DataSize:0);
+        {
+            PrevSize = Size;
+            Size = GetBlockFrameSize(Element,i,Header);
+            Result += Size + EBML_CodedSizeLengthSigned(Size - PrevSize,0);
+        }
+        Result += GetBlockFrameSize(Element,i,Header);
         Element->Base.Base.DataSize = Result;
     }
     else if (Element->Lacing == LACING_XIPH)
     {
         size_t i;
+        filepos_t Size;
         filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
         for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
-            Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] + (ARRAYBEGIN(Element->SizeList,int32_t)[i] / 0xFF + 1) - (Header?Header->DataSize:0);
-        Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] - (Header?Header->DataSize:0);
+        {
+            Size = GetBlockFrameSize(Element,i,Header);
+            Result += (Size / 0xFF + 1) + Size;
+        }
+        Result += GetBlockFrameSize(Element,i,Header);
         Element->Base.Base.DataSize = Result;
     }
     else if (Element->Lacing == LACING_FIXED)
@@ -1938,7 +2223,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
         size_t i;
         filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
         for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t);++i)
-            Result += ARRAYBEGIN(Element->SizeList,int32_t)[i] - (Header?Header->DataSize:0);
+            Result += GetBlockFrameSize(Element,i,Header);
         Element->Base.Base.DataSize = Result;
     }
 #ifdef TODO
