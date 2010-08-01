@@ -1,8 +1,9 @@
-2010-08-xx
+2010-08-01
 version 0.4.6:
     - remove bad cropping values
-    - don't try to strip headers of track with zlib compression or encryption
     - fix some potential issues when EBML lacing and header stripping was combined
+    - support zlib compressed input and output tracks
+    - don't try to strip headers of track with zlib compression or encryption
 
 2010-07-25
 version 0.4.5:
