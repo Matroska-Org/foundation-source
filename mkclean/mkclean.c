@@ -1147,7 +1147,7 @@ int main(int argc, const char *argv[])
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0, ClusterSize;
-	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0, ClustersNeedRead = 0;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
     int InputPathIndex = 2;
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
@@ -1202,6 +1202,7 @@ int main(int argc, const char *argv[])
 		}
 		else if (tcsisame_ascii(Path,T("--unsafe"))) Unsafe = 1;
 		else if (tcsisame_ascii(Path,T("--optimize"))) Optimize = 1;
+		else if (tcsisame_ascii(Path,T("--no-optimize"))) UnOptimize = 1;
 		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
 		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
@@ -1232,6 +1233,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
 		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
 		    TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
+		    TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
 		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
             TextWrite(StdErr,T("  --version     show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help        show this screen\r\n"));
@@ -1572,7 +1574,7 @@ int main(int argc, const char *argv[])
 	if (Result!=0)
 		goto exit;
 
-    if (Optimize)
+    if (Optimize && !UnOptimize)
     {
         int16_t BlockTrack;
         ebml_element *Block, *GBlock;
@@ -2027,7 +2029,13 @@ int main(int argc, const char *argv[])
 				    EBML_IntegerSetValue((ebml_integer*)Elt2,0);
 			    }
 
-                if (Optimize)
+                if (UnOptimize)
+                {
+                    // remove the previous track compression
+                    Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
+                    NodeDelete((node*)Elt2);
+                }
+                else if (Optimize)
                 {
                     Elt = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackCodecID,1,0);
                     EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
@@ -2202,6 +2210,8 @@ int main(int argc, const char *argv[])
 		tcscat_s(String,TSIZEOF(String),T("o"));
 	if (Live)
 		tcscat_s(String,TSIZEOF(String),T("l"));
+	if (UnOptimize)
+		tcscat_s(String,TSIZEOF(String),T("u"));
 	if (s[0])
 		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
     EBML_UniStringSetValue(AppName,String);

@@ -1,6 +1,8 @@
 2010-08-02
 version 0.5.0:
     - prepend the output filename with "clean." if no output filename is specified
+    - fix a bug when header compression was used but not lacing
+    - add a --no-optimize option to forbid track compression
 
 2010-08-01
 version 0.4.6:

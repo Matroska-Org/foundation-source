@@ -15,7 +15,6 @@ CON(CONFIG_EBML_WRITING) mkclean
   COMPILE pkg.sh
 }
 
-
 WORKSPACE mkclean
 {
   USE mkclean
