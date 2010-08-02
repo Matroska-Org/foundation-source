@@ -892,11 +892,12 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                         if (EBML_IntegerValue(DisplayH)==Height)
                         {
                             NodeDelete((node*)DisplayH);
-                            DisplayH = NULL;
+                            DisplayH = NULL; // we don't the display values, they are the same as the pixel ones
                         }
                         else
                         {
                             DisplayW = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayWidth,1,0);
+                            EBML_IntegerSetValue(DisplayW,Width);
                         }
                     }
                     else if (!DisplayH)
@@ -904,11 +905,12 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                         if (EBML_IntegerValue(DisplayW)==Width)
                         {
                             NodeDelete((node*)DisplayW);
-                            DisplayW = NULL;
+                            DisplayW = NULL; // we don't the display values, they are the same as the pixel ones
                         }
                         else
                         {
                             DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayHeight,1,0);
+                            EBML_IntegerSetValue(DisplayH,Height);
                         }
                     }
 
