@@ -1352,6 +1352,8 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 #endif
 
         Stream_Seek(Input,Element->FirstFrameLocation,SEEK_SET);
+        if (Header)
+            ArrayCopy(&Element->SizeListIn, &Element->SizeList);
         switch (Element->Lacing)
         {
         case LACING_NONE:
@@ -1364,7 +1366,6 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 if (!ArrayResize(&TmpBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0))
                     Err = ERR_OUT_OF_MEMORY;
                 InBuf = ARRAYBEGIN(TmpBuf,uint8_t);
-                ArrayCopy(&Element->SizeListIn, &Element->SizeList);
                 Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
                 if (Err==ERR_NONE)
                 {
@@ -1411,17 +1412,17 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             else
 #endif
             {
-                ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] + (Header?(size_t)Header->DataSize:0),0);
+                ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0);
                 InBuf = ARRAYBEGIN(Element->Data,uint8_t);
                 if (Header)
                 {
                     memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
                     InBuf += (size_t)Header->DataSize;
                 }
-                Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],&Read);
+                Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?Header->DataSize:0),&Read);
                 if (Err != ERR_NONE)
                     goto failed;
-                if (Read != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
+                if (Read + (Header?Header->DataSize:0) != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
                 {
                     Err = ERR_READ;
                     goto failed;
@@ -1459,7 +1460,6 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     ArrayClear(&TmpBuf);
                     goto failed;
                 }
-                ArrayCopy(&Element->SizeListIn, &Element->SizeList);
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
                     z_stream stream;
@@ -2064,7 +2064,6 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     Node_SET(Element,MATROSKA_BLOCK_READ_TRACK,&Element->WriteTrack); // now use the write track for consecutive read of the same element
 
     Cursor = ARRAYBEGIN(Element->Data,uint8_t);
-    ToWrite = ARRAYCOUNT(Element->Data,uint8_t);
     if (Header)
     {
         if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
@@ -2122,6 +2121,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     }
     else
     {
+        ToWrite = ARRAYCOUNT(Element->Data,uint8_t);
         Err = Stream_Write(Output,Cursor,ToWrite,&Written);
         if (Rendered)
             *Rendered += Written;
