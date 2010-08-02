@@ -47,7 +47,6 @@
  * \todo support the japanese translation
  *
  * less important:
- * \todo force zlib compression for a set of codecs ?
  * \todo (optionally) change the Segment UID (when key parts are altered/added)
  * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm') (loose mode)
  * \todo support for updating/writing the CRC32
@@ -1149,6 +1148,7 @@ int main(int argc, const char *argv[])
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos, SegmentSize = 0, ClusterSize;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0, ClustersNeedRead = 0;
+    int InputPathIndex = 2;
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
     array TrackMaxHeader; // array of uint8_t (max common header)
@@ -1207,8 +1207,14 @@ int main(int argc, const char *argv[])
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
 		else if (i<argc-2) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
+    
+    if (argc > 1)
+    {
+        if (argv[argc-1][0]!='-' || argv[argc-1][1]!='-')
+            InputPathIndex = 1;
+    }
 
-    if (argc < 3 || ShowVersion)
+    if (argc < (1+InputPathIndex) || ShowVersion)
     {
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
@@ -1234,7 +1240,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-2]);
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-InputPathIndex]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
@@ -1243,7 +1249,24 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+    if (InputPathIndex==1)
+    {
+        tchar_t Ext[MAXDATA];
+        SplitPath(Path,Original,TSIZEOF(Original),String,TSIZEOF(String),Ext,TSIZEOF(Ext));
+        if (!Original[0])
+            Path[0] = 0;
+        else
+        {
+            tcscpy_s(Path,TSIZEOF(Path),Original);
+            AddPathDelimiter(Path,TSIZEOF(Path));
+        }
+        if (Ext[0])
+            stcatprintf_s(Path,TSIZEOF(Path),T("clean.%s.%s"),String,Ext);
+        else
+            stcatprintf_s(Path,TSIZEOF(Path),T("clean.%s"),String);
+    }
+    else
+        Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
     Output = StreamOpen(&p,Path,SFLAG_WRONLY|SFLAG_CREATE);
     if (!Output)
     {
@@ -1980,6 +2003,7 @@ int main(int argc, const char *argv[])
 	{
         array *HeaderData;
         size_t TrackNum;
+        tchar_t CodecID[MAXDATA];
 		// fix/clean the Lacing flag for each track
 		assert(MATROSKA_ContextTrackLacing.DefaultValue==1);
 		for (RLevel1 = EBML_MasterChildren(WTrackInfo); RLevel1; RLevel1=EBML_MasterNext(RLevel1))
@@ -2005,9 +2029,11 @@ int main(int argc, const char *argv[])
 
                 if (Optimize)
                 {
-                    HeaderData = ARRAYBEGIN(TrackMaxHeader,array)+TrackNum;
-                    if (ARRAYCOUNT(*HeaderData,uint8_t))
+                    Elt = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackCodecID,1,0);
+                    EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
+                    if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN")))
                     {
+                        // force zlib compression
                         // remove the previous compression and the new optimized one
                         Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
                         NodeDelete((node*)Elt2);
@@ -2015,9 +2041,24 @@ int main(int argc, const char *argv[])
                         Elt2 = EBML_MasterFindFirstElt(Elt2,&MATROSKA_ContextTrackEncoding,1,1);
                         Elt =  EBML_MasterFindFirstElt(Elt2,&MATROSKA_ContextTrackEncodingCompression,1,1);
                         Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackEncodingCompressionAlgo,1,1);
-                        EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_BLOCK_COMPR_HEADER);
-                        Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackEncodingCompressionSetting,1,1);
-                        EBML_BinarySetData((ebml_binary*)Elt2,ARRAYBEGIN(*HeaderData,uint8_t),ARRAYCOUNT(*HeaderData,uint8_t));
+                        EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_BLOCK_COMPR_ZLIB);
+                    }
+                    else
+                    {
+                        HeaderData = ARRAYBEGIN(TrackMaxHeader,array)+TrackNum;
+                        if (ARRAYCOUNT(*HeaderData,uint8_t))
+                        {
+                            // remove the previous compression and the new optimized one
+                            Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
+                            NodeDelete((node*)Elt2);
+                            Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,1,1);
+                            Elt2 = EBML_MasterFindFirstElt(Elt2,&MATROSKA_ContextTrackEncoding,1,1);
+                            Elt =  EBML_MasterFindFirstElt(Elt2,&MATROSKA_ContextTrackEncodingCompression,1,1);
+                            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackEncodingCompressionAlgo,1,1);
+                            EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_BLOCK_COMPR_HEADER);
+                            Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackEncodingCompressionSetting,1,1);
+                            EBML_BinarySetData((ebml_binary*)Elt2,ARRAYBEGIN(*HeaderData,uint8_t),ARRAYCOUNT(*HeaderData,uint8_t));
+                        }
                     }
                 }
 

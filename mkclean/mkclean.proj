@@ -3,7 +3,7 @@
 CON(CONFIG_EBML_WRITING) mkclean
 {
   PROJECT_NAME "mkclean"
-  PROJECT_VERSION  0.4.6
+  PROJECT_VERSION  0.5.0
   PROJECT_VENDOR   "Matroska Foundation"
   USE matroska2
   IF !CONFIG_EBML_UNICODE

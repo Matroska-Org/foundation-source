@@ -1,9 +1,14 @@
+2010-08-02
+version 0.5.0:
+    - prepend the output filename with "clean." if no output filename is specified
+
 2010-08-01
 version 0.4.6:
     - remove bad cropping values
     - fix some potential issues when EBML lacing and header stripping was combined
     - support zlib compressed input and output tracks
     - don't try to strip headers of track with zlib compression or encryption
+    - force zlib compression for a set of codecs (S_USF, S_VOBSUB, S_HDMV/PGS, B_VOBBTN) in --optimize mode
 
 2010-07-25
 version 0.4.5:
