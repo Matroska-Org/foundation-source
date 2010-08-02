@@ -1171,6 +1171,10 @@ int main(int argc, const char *argv[])
     memset(StdErr,0,sizeof(_StdErr));
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
 
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[0]);
+    SplitPath(Path,NULL,0,String,TSIZEOF(String),NULL,0);
+    UnOptimize = tcsisame_ascii(String,T("mkWDclean"));
+
 	for (i=1;i<argc;++i)
 	{
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);

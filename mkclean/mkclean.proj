@@ -1,6 +1,6 @@
 #include "*/*.proj"
 
-CON(CONFIG_EBML_WRITING) mkclean
+GROUP mkclean_base
 {
   PROJECT_NAME "mkclean"
   PROJECT_VERSION  0.5.0
@@ -15,9 +15,21 @@ CON(CONFIG_EBML_WRITING) mkclean
   COMPILE pkg.sh
 }
 
+CON(CONFIG_EBML_WRITING) mkclean
+{
+   USE mkclean_base
+}
+
+CON(CONFIG_EBML_WRITING) mkWDclean
+{
+   USE mkclean_base
+}
+
+
 WORKSPACE mkclean
 {
   USE mkclean
+  USE mkWDclean
 }
 
 LIB tremor
