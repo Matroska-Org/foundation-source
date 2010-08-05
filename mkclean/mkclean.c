@@ -1248,7 +1248,7 @@ int main(int argc, const char *argv[])
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
-            TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> <matroska_dst>\r\n"));
+            TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> [matroska_dst]\r\n"));
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
 		    TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));

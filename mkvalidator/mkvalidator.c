@@ -212,7 +212,7 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 	// check the DisplayWidth and DisplayHeight are correct
 	else
 	{
-		int64_t DisplayW,DisplayH;
+		int64_t DisplayW = 0,DisplayH = 0;
 		PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelWidth,1,1);
 		if (!PixelW)
 			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,Track->ElementPosition);
@@ -220,15 +220,23 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		if (!PixelH)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,Track->ElementPosition);
 
+        Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
+		assert(Unit!=NULL);
+
 		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
 		if (Elt)
 			DisplayW = EBML_IntegerValue(Elt);
-		else
+		else if (EBML_IntegerValue(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
+			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,Track->ElementPosition);
+        else if (PixelW)
 			DisplayW = EBML_IntegerValue(PixelW);
+
 		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
 		if (Elt)
 			DisplayH = EBML_IntegerValue(Elt);
-		else
+		else if (EBML_IntegerValue(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
+			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel height"),TrackNum,Track->ElementPosition);
+		else if (PixelH)
 			DisplayH = EBML_IntegerValue(PixelH);
 
 		if (DisplayH==0)
@@ -236,8 +244,6 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		if (DisplayW==0)
 			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,Track->ElementPosition);
 
-        Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
-		assert(Unit!=NULL);
 		if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
 		{
 			// check if the pixel sizes appear valid

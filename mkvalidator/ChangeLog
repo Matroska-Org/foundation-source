@@ -2,6 +2,10 @@
 version 0.1.13:
     - add --help and --version CLI options
     - verify that the cropping values are correct
+    - verify that display values of 0 are not used
+    - check that the codec IDs are uppercase
+    - check that codec IDs are in the format (A|V|S|B)_xxx
+    - a display value can't be implied if it's not in pixels
 
 2010-07-19
 version 0.1.12:
