@@ -295,7 +295,7 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 {
 	ebml_element *Track, *TrackType, *TrackNum, *Elt, *Elt2;
 	ebml_string *CodecID;
-	tchar_t CodecName[MAXPATH];
+	tchar_t CodecName[MAXPATH],String[MAXPATH];
 	int Result = 0;
 	Track = EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
 	while (Track)
@@ -308,7 +308,7 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 			CodecID = (ebml_string*)EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackCodecID, 1, 1);
 			if (!CodecID)
 				Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(int)EBML_IntegerValue(TrackNum));
-			if (!TrackType)
+			else if (!TrackType)
 				Result |= OutputError(0x301,T("Track #%d has no type defined"),(int)EBML_IntegerValue(TrackNum));
 			else
 			{
@@ -319,6 +319,10 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 					if (CodecID)
 					{
 						EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
+						tcscpy_s(String,TSIZEOF(String),CodecName);
+						if (tcscmp(tcsupr(String),CodecName)!=0)
+							Result |= OutputWarning(0x307,T("Track #%d codec %s should be uppercase"),(int)EBML_IntegerValue(TrackNum),CodecName);
+
 						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
 						{
 							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
