@@ -232,9 +232,9 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 			DisplayH = EBML_IntegerValue(PixelH);
 
 		if (DisplayH==0)
-			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null height"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display height"),TrackNum,Track->ElementPosition);
 		if (DisplayW==0)
-			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null width"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,Track->ElementPosition);
 
         Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
 		assert(Unit!=NULL);
@@ -312,19 +312,19 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 				Result |= OutputError(0x301,T("Track #%d has no type defined"),(int)EBML_IntegerValue(TrackNum));
 			else
 			{
+				EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
+				tcscpy_s(String,TSIZEOF(String),CodecName);
+				if (tcscmp(tcsupr(String),CodecName)!=0)
+					Result |= OutputWarning(0x307,T("Track #%d codec '%s' should be uppercase"),(int)EBML_IntegerValue(TrackNum),CodecName);
+				if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
+					Result |= OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EBML_IntegerValue(TrackNum),String);
+
 				if (ProfileNum==PROFILE_WEBM_V1 || ProfileNum==PROFILE_WEBM_V2)
 				{
 					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(int)EBML_IntegerValue(TrackNum),(int)EBML_IntegerValue(TrackType),GetProfileName(ProfileNum));
 					if (CodecID)
 					{
-						EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
-						tcscpy_s(String,TSIZEOF(String),CodecName);
-						if (tcscmp(tcsupr(String),CodecName)!=0)
-							Result |= OutputWarning(0x307,T("Track #%d codec %s should be uppercase"),(int)EBML_IntegerValue(TrackNum),CodecName);
-						if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
-							Result |= OutputWarning(0x308,T("Track #%d codec %s doesn't appear to be valid"),(int)EBML_IntegerValue(TrackNum),String);
-
 						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
 						{
 							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
