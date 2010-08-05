@@ -1,5 +1,5 @@
-2010-08-xx
-version 0.1.13:
+2010-08-05
+version 0.2.0:
     - add --help and --version CLI options
     - verify that the cropping values are correct
     - verify that display values of 0 are not used
