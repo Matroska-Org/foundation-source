@@ -231,6 +231,11 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		else
 			DisplayH = EBML_IntegerValue(PixelH);
 
+		if (DisplayH==0)
+			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null height"),TrackNum,Track->ElementPosition);
+		if (DisplayW==0)
+			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null width"),TrackNum,Track->ElementPosition);
+
         Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
 		assert(Unit!=NULL);
 		if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
@@ -329,7 +334,7 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 			}
 		}
 
-        // check if the AttachnentLink values match existing attachments
+        // check if the AttachmentLink values match existing attachments
 		TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackAttachmentLink, 0, 0);
         while (TrackType)
         {
