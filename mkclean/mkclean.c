@@ -878,12 +878,19 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
         Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackVideo,0,0);
         if (Elt)
         {
+            Width = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelWidth,0,0));
+            Height = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelHeight,0,0));
+	        if (Width==0 || Height==0)
+	        {
+		        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid pixel dimensions %dx%d!\r\n"), TrackNum,CurTrack->ElementPosition,Width,Height);
+		        NodeDelete((node*)CurTrack);
+		        continue;
+	        }
+
             DisplayW = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
             DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
             if (DisplayW || DisplayH)
             {
-                Width = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelWidth,0,0));
-                Height = (int)EBML_IntegerValue(EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoPixelHeight,0,0));
                 Elt2 = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayUnit, 0, 0);
                 if (!Elt2 || EBML_IntegerValue(Elt2)==MATROSKA_DISPLAY_UNIT_PIXEL) // pixel AR
                 {
@@ -897,8 +904,14 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                         else
                         {
                             DisplayW = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayWidth,1,0);
-                            EBML_IntegerSetValue(DisplayW,Width);
+                            EBML_IntegerSetValue((ebml_integer*)DisplayW,Width);
                         }
+                    }
+                    else if (EBML_IntegerValue(DisplayW)==0)
+                    {
+		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display width %") TPRId64 T("!\r\n"), TrackNum,CurTrack->ElementPosition,EBML_IntegerValue(DisplayW));
+		                NodeDelete((node*)CurTrack);
+		                continue;
                     }
                     else if (!DisplayH)
                     {
@@ -910,8 +923,14 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
                         else
                         {
                             DisplayH = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackVideoDisplayHeight,1,0);
-                            EBML_IntegerSetValue(DisplayH,Height);
+                            EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
                         }
+                    }
+                    else if (EBML_IntegerValue(DisplayH)==0)
+                    {
+		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T("!\r\n"), TrackNum,CurTrack->ElementPosition,EBML_IntegerValue(DisplayH));
+		                NodeDelete((node*)CurTrack);
+		                continue;
                     }
 
                     if (DisplayW && DisplayH)

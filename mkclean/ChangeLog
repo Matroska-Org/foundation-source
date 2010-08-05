@@ -1,3 +1,7 @@
+2010-08-xx
+version 0.5.2:
+    - don't allow source video tracks with 0 pixel values
+
 2010-08-02
 version 0.5.1:
     - fix an issue when fixing aspect ratio that only had one value (width or height) set
