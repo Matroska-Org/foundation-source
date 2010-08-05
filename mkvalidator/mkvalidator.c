@@ -322,6 +322,8 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
 						tcscpy_s(String,TSIZEOF(String),CodecName);
 						if (tcscmp(tcsupr(String),CodecName)!=0)
 							Result |= OutputWarning(0x307,T("Track #%d codec %s should be uppercase"),(int)EBML_IntegerValue(TrackNum),CodecName);
+						if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
+							Result |= OutputWarning(0x308,T("Track #%d codec %s doesn't appear to be valid"),(int)EBML_IntegerValue(TrackNum),String);
 
 						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
 						{
