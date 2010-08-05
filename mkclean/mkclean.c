@@ -1238,8 +1238,9 @@ int main(int argc, const char *argv[])
     
     if (argc > 1)
     {
-        if (argv[argc-1][0]!='-' || argv[argc-1][1]!='-')
-            InputPathIndex = 1;
+        if (argc==2 || (argv[argc-2][0]=='-' && argv[argc-2][1]=='-'))
+            if (argv[argc-1][0]!='-' || argv[argc-1][1]!='-')
+                InputPathIndex = 1;
     }
 
     if (argc < (1+InputPathIndex) || ShowVersion)
