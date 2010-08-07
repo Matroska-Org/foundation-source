@@ -449,8 +449,27 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
 };
 const ebml_context MATROSKA_ContextTrackEntry = {0xAE, EBML_MASTER_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
 
+const ebml_context MATROSKA_ContextTrackDependencyUID = {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackDependencyUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackDependencyStereoPos = {0xE9, EBML_INTEGER_CLASS, 0, 0, "TrackDependencyStereoPos", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticTrackDependencyItem[] = {
+    {1, 1, &MATROSKA_ContextTrackDependencyUID ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackDependencyStereoPos ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextTrackDependencyItem = {0xE4, EBML_MASTER_CLASS, 0, 0, "TrackDependencyItem", EBML_SemanticTrackDependencyItem, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackDependencyType = {0xE3, EBML_INTEGER_CLASS, 0, 0, "TrackDependencyType", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticTrackDependency[] = {
+    {1, 1, &MATROSKA_ContextTrackDependencyType ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 0, &MATROSKA_ContextTrackDependencyItem ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextTrackDependency = {0xE2, EBML_MASTER_CLASS, 0, 0, "TrackDependency", EBML_SemanticTrackDependency, EBML_SemanticGlobals, NULL};
+
 const ebml_semantic EBML_SemanticTracks[] = {
-    {1, 0, &MATROSKA_ContextTrackEntry ,0},
+    {1, 0, &MATROSKA_ContextTrackEntry      ,0},
+    {0, 0, &MATROSKA_ContextTrackDependency ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTracks = {0x1654AE6B, EBML_MASTER_CLASS, 0, 0, "Tracks", EBML_SemanticTracks, EBML_SemanticGlobals, NULL};

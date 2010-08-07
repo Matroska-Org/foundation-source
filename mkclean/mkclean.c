@@ -34,9 +34,9 @@
 
 /*!
  * \todo discards tracks that has the same UID
+ * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
  * \todo compute the segment duration based on audio (when it's not set)
- * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
  * \todo remuxing: repack audio frames using lacing (no longer than the matching video frame ?) (optimize mode)
  * \todo compute the track default duration (when it's not set or not optimal) (optimize mode)
  * \todo add a batch mode to treat more than one file at once
