@@ -588,7 +588,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                     SrcProfile = PROFILE_WEBM_V2;
                 else
                 {
-                    TextPrintf(StdErr,T("EBML DocType %s not supported\r\n"),EBML_IntegerValue(SubElement));
+                    TextPrintf(StdErr,T("EBML DocType '%s' not supported\r\n"),String);
                     break;
                 }
             }
@@ -867,7 +867,7 @@ static int CleanTracks(ebml_element *Tracks, int Profile, ebml_element *RAttachm
 			TrackType = (int)EBML_IntegerValue(Elt);
 			Elt = EBML_MasterFindFirstElt(CurTrack,&MATROSKA_ContextTrackCodecID,0,0);
 			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
-			if (!(TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS"))))
+			if (!(TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))))
 			{
 				TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(Profile),TrackNum);
 				NodeDelete((node*)CurTrack);
@@ -1167,7 +1167,7 @@ int main(int argc, const char *argv[])
     ebml_parser_context RSegmentContext;
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
-    filepos_t NextPos, SegmentSize = 0, ClusterSize;
+    filepos_t NextPos = 0, SegmentSize = 0, ClusterSize;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
     int InputPathIndex = 2;
 	int64_t TimeCodeScale = 0;
@@ -1196,7 +1196,7 @@ int main(int argc, const char *argv[])
     SplitPath(Path,NULL,0,String,TSIZEOF(String),NULL,0);
     UnOptimize = tcsisame_ascii(String,T("mkWDclean"));
     if (UnOptimize)
-        TextPrintf(StdErr,T("Running special mkWDclean mode, please fix your player instead of valid Matroska files\r\n"),Path);
+        TextPrintf(StdErr,T("Running special mkWDclean mode, please fix your player instead of valid Matroska files\r\n"));
 
 	for (i=1;i<argc;++i)
 	{
