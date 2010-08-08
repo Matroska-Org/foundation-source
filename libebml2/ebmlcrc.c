@@ -53,7 +53,25 @@ static err_t ReadData(ebml_crc *Element, stream *Input, const ebml_parser_contex
     return Result;
 }
 
+static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
+{
+    ebml_crc *Result = (ebml_crc*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    if (Result)
+    {
+        Result->CRC = Element->CRC;
+        Result->Base.bValueIsSet = Element->Base.bValueIsSet;
+        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
+        Result->Base.DataSize = Element->Base.DataSize;
+        Result->Base.ElementPosition = Element->Base.ElementPosition;
+        Result->Base.SizeLength = Element->Base.SizeLength;
+        Result->Base.SizePosition = Element->Base.SizePosition;
+    }
+    return Result;
+}
+
 META_START(EBMLCRC_Class,EBML_CRC_CLASS)
+META_CLASS(SIZE,sizeof(ebml_crc))
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_END(EBML_ELEMENT_CLASS)
