@@ -1,8 +1,9 @@
-2010-08-xx
+2010-08-08
 version 0.5.2:
     - fix the use of <input> <output> file use in the command line
     - don't allow source video tracks with 0 pixel values
     - fix a bug/crash when moving a whole Block to the next Cluster
+    - fix a crash when handling files with CRC (like AviMux GUI files)
 
 2010-08-02
 version 0.5.1:
