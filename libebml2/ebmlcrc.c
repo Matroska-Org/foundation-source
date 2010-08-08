@@ -27,11 +27,33 @@
  */
 #include "ebml/ebml.h"
 
+typedef struct ebml_crc ebml_crc; 
+
+struct ebml_crc
+{
+    ebml_element Base;
+    uint32_t CRC;
+};
+
 static bool_t ValidateSize(const ebml_element *p)
 {
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 4);
 }
 
+static err_t ReadData(ebml_crc *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+{
+    err_t Result;
+    uint32_t CRCbuffer;
+    Result = Stream_Read(Input,&CRCbuffer,4,NULL);
+    if (Result == ERR_NONE)
+    {
+        Element->CRC = LOAD32BE(&CRCbuffer);
+        Element->Base.bValueIsSet = 1;
+    }
+    return Result;
+}
+
 META_START(EBMLCRC_Class,EBML_CRC_CLASS)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_END(EBML_ELEMENT_CLASS)
