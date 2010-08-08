@@ -1472,7 +1472,7 @@ int main(int argc, const char *argv[])
 			if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
 			{
 				Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackNumber,0,0);
-				if ((size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
+				if (Elt2 && (size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
 					MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
 			}
 		}
@@ -1482,7 +1482,8 @@ int main(int argc, const char *argv[])
 		for (Elt = EBML_MasterChildren(WTrackInfo);Elt;Elt=EBML_MasterNext(Elt))
 		{
 			Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackNumber,0,0);
-			i = max(i,(int)EBML_IntegerValue(Elt2));
+            if (Elt2)
+			    i = max(i,(int)EBML_IntegerValue(Elt2));
 		}
 		ArrayResize(&WTracks,sizeof(track_info)*(i+1),0);
 		ArrayZero(&WTracks);
@@ -1735,10 +1736,10 @@ int main(int argc, const char *argv[])
 						{
 							NodeDelete((node*)Elt);
 							--Frame;
+        					Exit = 0;
 							break;
 						}
 					}
-					Exit = 0;
 				}
 			}
 			if (Exit)
