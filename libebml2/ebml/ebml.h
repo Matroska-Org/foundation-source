@@ -152,6 +152,12 @@ typedef struct ebml_element_vmt
 #define EBML_ElementCmp(p,e)               VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
 #define EBML_ElementCopy(p,c)              VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
 
+typedef struct ebml_master
+{
+    ebml_element Base;
+
+} ebml_master;
+
 typedef struct ebml_string
 {
     ebml_element Base;
@@ -235,19 +241,19 @@ EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, boo
 #endif
 
 // type specific routines
-EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault);
-EBML_DLL err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append);
-EBML_DLL err_t EBML_MasterRemove(ebml_element *Element, ebml_element *Remove);
-EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault);
-EBML_DLL ebml_element *EBML_MasterAddElt(ebml_element *Element, const ebml_context *Context, bool_t SetDefault);
-EBML_DLL size_t EBML_MasterCount(const ebml_element *Element);
-EBML_DLL void EBML_MasterClear(ebml_element *Element); // clear the list (the children and not freed)
-EBML_DLL void EBML_MasterErase(ebml_element *Element);
-EBML_DLL void EBML_MasterMandatory(ebml_element *Element, bool_t SetDefault); // add the mandatory elements
-EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_element *Element, bool_t SetDefault);
-EBML_DLL void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* CmpParam);
+EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault);
+EBML_DLL err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append);
+EBML_DLL err_t EBML_MasterRemove(ebml_master *Element, ebml_element *Remove);
+EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault);
+EBML_DLL ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault);
+EBML_DLL size_t EBML_MasterCount(const ebml_master *Element);
+EBML_DLL void EBML_MasterClear(ebml_master *Element); // clear the list (the children and not freed)
+EBML_DLL void EBML_MasterErase(ebml_master *Element);
+EBML_DLL void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault); // add the mandatory elements
+EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t SetDefault);
+EBML_DLL void EBML_MasterSort(ebml_master *Element, arraycmp Cmp, const void* CmpParam);
 #define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
-#define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_element*)e,c,0,0)
+#define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_master*)e,c,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))
 #define EBML_MasterNext(p)         ((ebml_element*)NodeTree_Next(p))
 #define EBML_ElementParent(p)      ((ebml_element*)NodeTree_Parent(p))

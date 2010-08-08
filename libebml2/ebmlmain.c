@@ -226,7 +226,7 @@ ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool
     return Result;
 }
 
-static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8_t IdLength, const ebml_context *Context, ebml_element *Parent)
+static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8_t IdLength, const ebml_context *Context, ebml_master *Parent)
 {
     ebml_element *Result;
     assert(Context!=NULL);

@@ -41,7 +41,7 @@
  */
 
 static textwriter *StdErr = NULL;
-static ebml_element *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
+static ebml_master *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL, *RSeekHead = NULL, *RSeekHead2 = NULL;
 static array RClusters;
 static array Tracks;
 static size_t TrackMax=0;
@@ -202,23 +202,24 @@ static int64_t gcd(int64_t a, int64_t b)
     }
 }
 
-static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
+static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 {
 	int Result = 0;
-	ebml_element *Unit, *Elt, *Video, *PixelW, *PixelH;
-	Video = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackVideo,0,0);
+	ebml_element *Unit, *Elt, *PixelW, *PixelH;
+	ebml_master *Video;
+	Video = (ebml_master*)EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackVideo,0,0);
 	if (!Video)
-		Result = OutputWarning(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),Track->ElementPosition);
+		Result = OutputWarning(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),Track->Base.ElementPosition);
 	// check the DisplayWidth and DisplayHeight are correct
 	else
 	{
 		int64_t DisplayW = 0,DisplayH = 0;
 		PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelWidth,1,1);
 		if (!PixelW)
-			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,Track->Base.ElementPosition);
 		PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelHeight,1,1);
 		if (!PixelH)
-			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,Track->Base.ElementPosition);
 
         Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayUnit,1,1);
 		assert(Unit!=NULL);
@@ -227,7 +228,7 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		if (Elt)
 			DisplayW = EBML_IntegerValue(Elt);
 		else if (EBML_IntegerValue(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
-			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,Track->Base.ElementPosition);
         else if (PixelW)
 			DisplayW = EBML_IntegerValue(PixelW);
 
@@ -235,14 +236,14 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 		if (Elt)
 			DisplayH = EBML_IntegerValue(Elt);
 		else if (EBML_IntegerValue(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
-			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel height"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel height"),TrackNum,Track->Base.ElementPosition);
 		else if (PixelH)
 			DisplayH = EBML_IntegerValue(PixelH);
 
 		if (DisplayH==0)
-			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display height"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display height"),TrackNum,Track->Base.ElementPosition);
 		if (DisplayW==0)
-			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,Track->ElementPosition);
+			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,Track->Base.ElementPosition);
 
 		if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
 		{
@@ -297,13 +298,14 @@ static int CheckVideoTrack(ebml_element *Track, int TrackNum, int ProfileNum)
 	return Result;
 }
 
-static int CheckTracks(ebml_element *Tracks, int ProfileNum)
+static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 {
-	ebml_element *Track, *TrackType, *TrackNum, *Elt, *Elt2;
+	ebml_master *Track;
+	ebml_element *TrackType, *TrackNum, *Elt, *Elt2;
 	ebml_string *CodecID;
 	tchar_t CodecName[MAXPATH],String[MAXPATH];
 	int Result = 0;
-	Track = EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
+	Track = (ebml_master*)EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
 	while (Track)
 	{
         // check if the codec is valid for the profile
@@ -355,7 +357,7 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
                 if (TrackNum)
 				    Result |= OutputError(0x305,T("Track #%d has attachment links but not attachments in the file"),(int)EBML_IntegerValue(TrackNum));
                 else
-                    Result |= OutputError(0x305,T("Track at %") TPRId64 T(" has attachment links but not attachments in the file"),Track->ElementPosition);
+                    Result |= OutputError(0x305,T("Track at %") TPRId64 T(" has attachment links but not attachments in the file"),Track->Base.ElementPosition);
                 break;
             }
 
@@ -363,7 +365,7 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
             {
                 if (Elt->Context->Id == MATROSKA_ContextAttachedFile.Id)
                 {
-                    Elt2 = EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextAttachedFileUID, 0, 0);
+                    Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextAttachedFileUID, 0, 0);
                     if (Elt2 && EBML_IntegerValue(Elt2) == EBML_IntegerValue(TrackType))
                         break;
                 }
@@ -373,13 +375,13 @@ static int CheckTracks(ebml_element *Tracks, int ProfileNum)
                 if (TrackNum)
 				    Result |= OutputError(0x306,T("Track #%d attachment link UID 0x%") TPRIx64 T(" not found in attachments"),(int)EBML_IntegerValue(TrackNum),EBML_IntegerValue(TrackType));
                 else
-                    Result |= OutputError(0x306,T("Track at %") TPRId64 T(" attachment link UID 0x%") TPRIx64 T(" not found in attachments"),Track->ElementPosition,EBML_IntegerValue(TrackType));
+                    Result |= OutputError(0x306,T("Track at %") TPRId64 T(" attachment link UID 0x%") TPRIx64 T(" not found in attachments"),Track->Base.ElementPosition,EBML_IntegerValue(TrackType));
             }
 
             TrackType = EBML_MasterFindNextElt(Track, TrackType, 0, 0);
         }
 
-		Track = EBML_MasterFindNextElt(Tracks, Track, 0, 0);
+		Track = (ebml_master*)EBML_MasterFindNextElt(Tracks, (ebml_element*)Track, 0, 0);
 	}
 	return Result;
 }
@@ -436,7 +438,7 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 				Node_FromStr(Elt,Missing,TSIZEOF(Missing),i->eClass->ElementName);
 				Result |= OutputError(0x200,T("Missing element %s in %s at %") TPRId64 T(""),Missing,String,Elt->ElementPosition);
 			}
-            if ((i->DisabledProfile & ProfileMask)==0 && i->Unique && (SubElt=EBML_MasterFindChild(Elt,i->eClass)) && EBML_MasterFindNextElt(Elt,SubElt,0,0))
+            if ((i->DisabledProfile & ProfileMask)==0 && i->Unique && (SubElt=EBML_MasterFindChild((ebml_master*)Elt,i->eClass)) && EBML_MasterFindNextElt((ebml_master*)Elt,SubElt,0,0))
             {
 				Node_FromStr(Elt,Missing,TSIZEOF(Missing),i->eClass->ElementName);
 				Result |= OutputError(0x202,T("Unique element %s in %s at %") TPRId64 T(" found more than once"),Missing,String,Elt->ElementPosition);
@@ -453,7 +455,7 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 	return Result;
 }
 
-static int CheckSeekHead(ebml_element *SeekHead)
+static int CheckSeekHead(ebml_master *SeekHead)
 {
 	int Result = 0;
 	ebml_element *RLevel1 = EBML_MasterFindFirstElt(SeekHead, &MATROSKA_ContextSeek, 0, 0);
@@ -473,53 +475,53 @@ static int CheckSeekHead(ebml_element *SeekHead)
 		{
 			if (!RSegmentInfo)
 				Result |= OutputError(0x62,T("The SeekPoint at %") TPRId64 T(" references an unknown SegmentInfo at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
-			else if (RSegmentInfo->ElementPosition != Pos)
-				Result |= OutputError(0x63,T("The SeekPoint at %") TPRId64 T(" references a SegmentInfo at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RSegmentInfo->ElementPosition);
+			else if (RSegmentInfo->Base.ElementPosition != Pos)
+				Result |= OutputError(0x63,T("The SeekPoint at %") TPRId64 T(" references a SegmentInfo at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RSegmentInfo->Base.ElementPosition);
             BSegmentInfo = 1;
 		}
 		else if (SeekId == MATROSKA_ContextTracks.Id)
 		{
 			if (!RTrackInfo)
 				Result |= OutputError(0x64,T("The SeekPoint at %") TPRId64 T(" references an unknown TrackInfo at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
-			else if (RTrackInfo->ElementPosition != Pos)
-				Result |= OutputError(0x65,T("The SeekPoint at %") TPRId64 T(" references a TrackInfo at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RTrackInfo->ElementPosition);
+			else if (RTrackInfo->Base.ElementPosition != Pos)
+				Result |= OutputError(0x65,T("The SeekPoint at %") TPRId64 T(" references a TrackInfo at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RTrackInfo->Base.ElementPosition);
             BTrackInfo = 1;
 		}
 		else if (SeekId == MATROSKA_ContextCues.Id)
 		{
 			if (!RCues)
 				Result |= OutputError(0x66,T("The SeekPoint at %") TPRId64 T(" references an unknown Cues at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
-			else if (RCues->ElementPosition != Pos)
-				Result |= OutputError(0x67,T("The SeekPoint at %") TPRId64 T(" references a Cues at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RCues->ElementPosition);
+			else if (RCues->Base.ElementPosition != Pos)
+				Result |= OutputError(0x67,T("The SeekPoint at %") TPRId64 T(" references a Cues at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RCues->Base.ElementPosition);
             BCues = 1;
 		}
 		else if (SeekId == MATROSKA_ContextTags.Id)
 		{
 			if (!RTags)
 				Result |= OutputError(0x68,T("The SeekPoint at %") TPRId64 T(" references an unknown Tags at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
-			else if (RTags->ElementPosition != Pos)
-				Result |= OutputError(0x69,T("The SeekPoint at %") TPRId64 T(" references a Tags at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RTags->ElementPosition);
+			else if (RTags->Base.ElementPosition != Pos)
+				Result |= OutputError(0x69,T("The SeekPoint at %") TPRId64 T(" references a Tags at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RTags->Base.ElementPosition);
             BTags = 1;
 		}
 		else if (SeekId == MATROSKA_ContextChapters.Id)
 		{
 			if (!RChapters)
 				Result |= OutputError(0x6A,T("The SeekPoint at %") TPRId64 T(" references an unknown Chapters at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
-			else if (RChapters->ElementPosition != Pos)
-				Result |= OutputError(0x6B,T("The SeekPoint at %") TPRId64 T(" references a Chapters at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RChapters->ElementPosition);
+			else if (RChapters->Base.ElementPosition != Pos)
+				Result |= OutputError(0x6B,T("The SeekPoint at %") TPRId64 T(" references a Chapters at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RChapters->Base.ElementPosition);
             BChapters = 1;
 		}
 		else if (SeekId == MATROSKA_ContextAttachments.Id)
 		{
 			if (!RAttachments)
 				Result |= OutputError(0x6C,T("The SeekPoint at %") TPRId64 T(" references an unknown Attachments at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
-			else if (RAttachments->ElementPosition != Pos)
-				Result |= OutputError(0x6D,T("The SeekPoint at %") TPRId64 T(" references a Attachments at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RAttachments->ElementPosition);
+			else if (RAttachments->Base.ElementPosition != Pos)
+				Result |= OutputError(0x6D,T("The SeekPoint at %") TPRId64 T(" references a Attachments at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),RLevel1->ElementPosition,Pos,RAttachments->Base.ElementPosition);
             BAttachments = 1;
 		}
 		else if (SeekId == MATROSKA_ContextSeekHead.Id)
 		{
-			if (SeekHead->ElementPosition == Pos)
+			if (SeekHead->Base.ElementPosition == Pos)
 				Result |= OutputError(0x6E,T("The SeekPoint at %") TPRId64 T(" references references its own SeekHead"),RLevel1->ElementPosition);
 			else if (SeekHead == RSeekHead)
             {
@@ -527,7 +529,7 @@ static int CheckSeekHead(ebml_element *SeekHead)
 				    Result |= OutputError(0x6F,T("The SeekPoint at %") TPRId64 T(" references an unknown secondary SeekHead at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
                 BSecondSeek = 1;
             }
-			else if (SeekHead == RSeekHead2 && Pos!=RSeekHead->ElementPosition)
+			else if (SeekHead == RSeekHead2 && Pos!=RSeekHead->Base.ElementPosition)
 			    Result |= OutputError(0x70,T("The SeekPoint at %") TPRId64 T(" references an unknown extra SeekHead at %") TPRId64 T(""),RLevel1->ElementPosition,Pos);
 		}
 		else if (SeekId == MATROSKA_ContextCluster.Id)
@@ -574,7 +576,8 @@ static void LinkClusterBlocks()
 
 static bool_t TrackIsLaced(int16_t TrackNum)
 {
-    ebml_element *TrackData, *Track = EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
+    ebml_element *TrackData;
+    ebml_master *Track = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
     while (Track)
     {
         TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
@@ -583,14 +586,15 @@ static bool_t TrackIsLaced(int16_t TrackNum)
             TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackLacing, 1, 1);
             return EBML_IntegerValue(TrackData) != 0;
         }
-        Track = EBML_MasterFindNextElt(RTrackInfo, Track, 0, 0);
+        Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
     }
     return 1;
 }
 
 static bool_t TrackIsVideo(int16_t TrackNum)
 {
-    ebml_element *TrackData, *Track = EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
+    ebml_element *TrackData;
+    ebml_master *Track = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
     while (Track)
     {
         TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
@@ -599,7 +603,7 @@ static bool_t TrackIsVideo(int16_t TrackNum)
             TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
             return EBML_IntegerValue(TrackData) == TRACK_TYPE_VIDEO;
         }
-        Track = EBML_MasterFindNextElt(RTrackInfo, Track, 0, 0);
+        Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
     }
     return 0;
 }
@@ -607,13 +611,13 @@ static bool_t TrackIsVideo(int16_t TrackNum)
 static int CheckVideoStart()
 {
 	int Result = 0;
-	ebml_element **Cluster;
+	ebml_master **Cluster;
     ebml_element *Block, *GBlock;
     int16_t BlockNum;
     timecode_t ClusterTimecode;
     array TrackKeyframe;
 
-	for (Cluster=ARRAYBEGIN(RClusters,ebml_element*);Cluster!=ARRAYEND(RClusters,ebml_element*);++Cluster)
+	for (Cluster=ARRAYBEGIN(RClusters,ebml_master*);Cluster!=ARRAYEND(RClusters,ebml_master*);++Cluster)
     {
         ArrayInit(&TrackKeyframe);
         ArrayResize(&TrackKeyframe,sizeof(bool_t)*(TrackMax+1),256);
@@ -621,9 +625,9 @@ static int CheckVideoStart()
 
         ClusterTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)*Cluster);
         if (ClusterTimecode==INVALID_TIMECODE_T)
-            Result |= OutputError(0xC1,T("The Cluster at %") TPRId64 T(" has no timecode"),(*Cluster)->ElementPosition);
+            Result |= OutputError(0xC1,T("The Cluster at %") TPRId64 T(" has no timecode"),(*Cluster)->Base.ElementPosition);
         else if (ClusterTime!=INVALID_TIMECODE_T && ClusterTime >= ClusterTimecode)
-            Result |= OutputError(0xC2,T("The timecode of the Cluster at %") TPRId64 T(" is not incrementing"),(*Cluster)->ElementPosition);
+            Result |= OutputError(0xC2,T("The timecode of the Cluster at %") TPRId64 T(" is not incrementing"),(*Cluster)->Base.ElementPosition);
         ClusterTime = ClusterTimecode;
 
 	    for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
@@ -639,7 +643,7 @@ static int CheckVideoStart()
                             ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                         else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
                         {
-                            OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,(*Cluster)->ElementPosition);
+                            OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,(*Cluster)->Base.ElementPosition);
                             ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                         }
 					    break;
@@ -653,7 +657,7 @@ static int CheckVideoStart()
                     ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                 else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
                 {
-                    OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,(*Cluster)->ElementPosition);
+                    OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,(*Cluster)->Base.ElementPosition);
                     ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                 }
 		    }
@@ -671,7 +675,7 @@ static int CheckPosSize(const ebml_element *RSegment)
 
 	for (Cluster=ARRAYBEGIN(RClusters,ebml_element*);Cluster!=ARRAYEND(RClusters,ebml_element*);++Cluster)
     {
-        Elt = EBML_MasterFindFirstElt(*Cluster,&MATROSKA_ContextClusterPrevSize,0,0);
+        Elt = EBML_MasterFindFirstElt((ebml_master*)*Cluster,&MATROSKA_ContextClusterPrevSize,0,0);
         if (Elt)
         {
             if (PrevCluster==NULL)
@@ -679,7 +683,7 @@ static int CheckPosSize(const ebml_element *RSegment)
             else if (EBML_IntegerValue(Elt) != (*Cluster)->ElementPosition - PrevCluster->ElementPosition)
                 Result |= OutputError(0xA1,T("The Cluster PrevSize %") TPRId64 T(" at %") TPRId64 T(" should be %") TPRId64 T(""),EBML_IntegerValue(Elt),Elt->ElementPosition,((*Cluster)->ElementPosition - PrevCluster->ElementPosition));
         }
-        Elt = EBML_MasterFindFirstElt(*Cluster,&MATROSKA_ContextClusterPosition,0,0);
+        Elt = EBML_MasterFindFirstElt((ebml_master*)*Cluster,&MATROSKA_ContextClusterPosition,0,0);
         if (Elt)
         {
             if (EBML_IntegerValue(Elt) != (*Cluster)->ElementPosition - EBML_ElementPositionData(RSegment))
@@ -771,7 +775,7 @@ static int CheckLacingKeyframe()
 	return Result;
 }
 
-static int CheckCueEntries(ebml_element *Cues)
+static int CheckCueEntries(ebml_master *Cues)
 {
 	int Result = 0;
 	timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
@@ -822,7 +826,7 @@ int main(int argc, const char *argv[])
     stream *Input = NULL;
     tchar_t Path[MAXPATHFULL];
     tchar_t String[MAXLINE];
-    ebml_element *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, **Cluster;
+    ebml_master *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, **Cluster;
 	ebml_element *EbmlDocVer, *EbmlReadDocVer;
     ebml_string *LibName, *AppName;
     ebml_parser_context RContext;
@@ -892,8 +896,8 @@ int main(int argc, const char *argv[])
     RContext.Context = &MATROSKA_ContextStream;
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
-    EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
-	if (!EbmlHead || EbmlHead->Context->Id != EBML_ContextHead.Id)
+    EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
+	if (!EbmlHead || EbmlHead->Base.Context->Id != EBML_ContextHead.Id)
     {
         Result = OutputError(3,T("EBML head not found! Are you sure it's a matroska/webm file?"));
         goto exit;
@@ -907,21 +911,21 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-	VoidAmount += CheckUnknownElements(EbmlHead);
+	VoidAmount += CheckUnknownElements((ebml_element*)EbmlHead);
 
-	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextReadVersion,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextReadVersion,1,1);
 	if (EBML_IntegerValue(RLevel1) > EBML_MAX_VERSION)
 		OutputError(5,T("The EBML read version is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
 
-	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxIdLength,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxIdLength,1,1);
 	if (EBML_IntegerValue(RLevel1) > EBML_MAX_ID)
 		OutputError(6,T("The EBML max ID length is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
 
-	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxSizeLength,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxSizeLength,1,1);
 	if (EBML_IntegerValue(RLevel1) > EBML_MAX_SIZE)
 		OutputError(7,T("The EBML max size length is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
 
-	RLevel1 = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocType,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocType,1,1);
     EBML_StringGet((ebml_string*)RLevel1,String,TSIZEOF(String));
     if (tcscmp(String,T("matroska"))!=0 && tcscmp(String,T("webm"))!=0)
 	{
@@ -965,39 +969,39 @@ int main(int argc, const char *argv[])
     TextWrite(StdErr,T("."));
 
 	// find the segment
-	RSegment = EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
+	RSegment = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
     RSegmentContext.Context = &MATROSKA_ContextSegment;
-    RSegmentContext.EndPosition = EBML_ElementPositionEnd(RSegment);
+    RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
     RSegmentContext.UpContext = &RContext;
 	UpperElement = 0;
 	DotCount = 0;
 //TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
 	Prev = NULL;
-    RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
+    RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
 	{
-        if (RLevel1->Context->Id == MATROSKA_ContextCluster.Id)
+        if (RLevel1->Base.Context->Id == MATROSKA_ContextCluster.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
-				VoidAmount += CheckUnknownElements(RLevel1);
-				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-				Result |= CheckMandatory(RLevel1, MatroskaProfile);
+				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 			}
 			else
 			{
-				Result = OutputError(0x180,T("Failed to read the Cluster at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x180,T("Failed to read the Cluster at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
         }
-        else if (RLevel1->Context->Id == MATROSKA_ContextSeekHead.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextSeekHead.Id)
         {
             if (Live)
             {
-                Result |= OutputError(0x170,T("The live stream has a SeekHead at %") TPRId64 T(""),RLevel1->ElementPosition);
-			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                Result |= OutputError(0x170,T("The live stream has a SeekHead at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
+			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
@@ -1006,78 +1010,78 @@ int main(int argc, const char *argv[])
 					RSeekHead = RLevel1;
 				else if (!RSeekHead2)
                 {
-					OutputWarning(0x103,T("Unnecessary secondary SeekHead was found at %") TPRId64 T(""),RLevel1->ElementPosition);
+					OutputWarning(0x103,T("Unnecessary secondary SeekHead was found at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
 					RSeekHead2 = RLevel1;
                 }
 				else
-					Result |= OutputError(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
-				VoidAmount += CheckUnknownElements(RLevel1);
-				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-				Result |= CheckMandatory(RLevel1, MatroskaProfile);
+				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 			}
 			else
 			{
-				Result = OutputError(0x100,T("Failed to read the SeekHead at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x100,T("Failed to read the SeekHead at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
-        else if (RLevel1->Context->Id == MATROSKA_ContextSegmentInfo.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RSegmentInfo != NULL)
-					Result |= OutputError(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				else
 				{
 					RSegmentInfo = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					VoidAmount += CheckUnknownElements(RLevel1);
-					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 
                     if (Live)
                     {
-                        EbmlHead = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextDuration,0,0);
+                        EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextDuration,0,0);
                         if (EbmlHead)
-                            Result |= OutputError(0x112,T("The live Segment has a duration set at %") TPRId64 T(""),EbmlHead->ElementPosition);
+                            Result |= OutputError(0x112,T("The live Segment has a duration set at %") TPRId64 T(""),EbmlHead->Base.ElementPosition);
                     }
                 }
 			}
 			else
 			{
-				Result = OutputError(0x111,T("Failed to read the SegmentInfo at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x111,T("Failed to read the SegmentInfo at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
-        else if (RLevel1->Context->Id == MATROSKA_ContextTracks.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextTracks.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RTrackInfo != NULL)
-					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				else
 				{
                     size_t TrackCount;
 
                     RTrackInfo = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					VoidAmount += CheckUnknownElements(RLevel1);
-					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 
-                    EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
                     TrackCount = 0;
                     while (EbmlHead)
                     {
-                        EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                        EbmlHead = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo,(ebml_element*)EbmlHead,0,0);
                         ++TrackCount;
                     }
 
                     ArrayResize(&Tracks,TrackCount*sizeof(track_info),256);
                     ArrayZero(&Tracks);
 
-                    EbmlHead = EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
                     TrackCount = 0;
                     while (EbmlHead)
                     {
@@ -1100,7 +1104,7 @@ int main(int argc, const char *argv[])
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
                         }
                         ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackCodecID,0,0);
-                        EbmlHead = EBML_MasterFindNextElt(RTrackInfo,EbmlHead,0,0);
+                        EbmlHead = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo,(ebml_element*)EbmlHead,0,0);
                         ++TrackCount;
                     }
                     EbmlDocVer = NULL;
@@ -1109,109 +1113,109 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x121,T("Failed to read the TrackInfo at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x121,T("Failed to read the TrackInfo at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
-        else if (RLevel1->Context->Id == MATROSKA_ContextCues.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextCues.Id)
         {
             if (Live)
             {
-                Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64 T(""),RLevel1->ElementPosition);
-			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
+			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RCues != NULL)
-					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				else
 				{
 					RCues = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					VoidAmount += CheckUnknownElements(RLevel1);
-					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
 			{
-				Result = OutputError(0x131,T("Failed to read the Cues at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x131,T("Failed to read the Cues at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
-        else if (RLevel1->Context->Id == MATROSKA_ContextChapters.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextChapters.Id)
         {
             if (Live)
             {
-                Result |= OutputError(0x172,T("The live stream has Chapters at %") TPRId64 T(""),RLevel1->ElementPosition);
-			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                Result |= OutputError(0x172,T("The live stream has Chapters at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
+			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RChapters != NULL)
-					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				else
 				{
 					RChapters = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					VoidAmount += CheckUnknownElements(RLevel1);
-					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
 			{
-				Result = OutputError(0x141,T("Failed to read the Chapters at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x141,T("Failed to read the Chapters at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
-        else if (RLevel1->Context->Id == MATROSKA_ContextTags.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextTags.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RTags != NULL)
-					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				else
 				{
 					RTags = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					VoidAmount += CheckUnknownElements(RLevel1);
-					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
 			{
-				Result = OutputError(0x151,T("Failed to read the Tags at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x151,T("Failed to read the Tags at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
-        else if (RLevel1->Context->Id == MATROSKA_ContextAttachments.Id)
+        else if (RLevel1->Base.Context->Id == MATROSKA_ContextAttachments.Id)
         {
             if (Live)
             {
-                Result |= OutputError(0x173,T("The live stream has a Attachments at %") TPRId64 T(""),RLevel1->ElementPosition);
-			    EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+                Result |= OutputError(0x173,T("The live stream has a Attachments at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
+			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
 			{
 				if (RAttachments != NULL)
-					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->ElementPosition,RLevel1->DataSize);
+					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				else
 				{
 					RAttachments = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
-					VoidAmount += CheckUnknownElements(RLevel1);
-					Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-					Result |= CheckMandatory(RLevel1, MatroskaProfile);
+					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
+					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
+					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
 			{
-				Result = OutputError(0x161,T("Failed to read the Attachments at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->ElementPosition,RLevel1->DataSize);
+				Result = OutputError(0x161,T("Failed to read the Attachments at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
 		}
@@ -1220,14 +1224,14 @@ int main(int argc, const char *argv[])
 			if (Node_IsPartOf(RLevel1,EBML_DUMMY_ID))
 			{
 				tchar_t Id[32];
-				EBML_IdToString(Id,TSIZEOF(Id),RLevel1->Context->Id);
-				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64 T(""),Id,RLevel1->ElementPosition,RLevel1->DataSize);
+				EBML_IdToString(Id,TSIZEOF(Id),RLevel1->Base.Context->Id);
+				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64 T(""),Id,RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 			}
 			if (Node_IsPartOf(RLevel1,EBML_VOID_CLASS))
 			{
-				VoidAmount += EBML_ElementFullSize(RLevel1,0);
+				VoidAmount += EBML_ElementFullSize((ebml_element*)RLevel1,0);
 			}
-			EBML_ElementSkipData(RLevel1, Input, &RSegmentContext, NULL, 1);
+			EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
             NodeDelete((node*)RLevel1);
 		}
         TextWrite(StdErr,T(".")); ++DotCount;
@@ -1235,7 +1239,7 @@ int main(int argc, const char *argv[])
 			TextWrite(StdErr,T("\r                                                              \r"));
 
 		Prev = RLevel1;
-		RLevel1 = EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
+		RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
 	}
 
 	if (!RSegmentInfo)
@@ -1246,8 +1250,8 @@ int main(int argc, const char *argv[])
 
 	if (Prev)
 	{
-		if (EBML_ElementPositionEnd(RSegment)!=INVALID_FILEPOS_T && EBML_ElementPositionEnd(RSegment)!=EBML_ElementPositionEnd(Prev))
-			Result |= OutputError(0x42,T("The segment's size %") TPRId64 T(" doesn't match the position where it ends %") TPRId64,EBML_ElementPositionEnd(RSegment),EBML_ElementPositionEnd(Prev));
+		if (EBML_ElementPositionEnd((ebml_element*)RSegment)!=INVALID_FILEPOS_T && EBML_ElementPositionEnd((ebml_element*)RSegment)!=EBML_ElementPositionEnd((ebml_element*)Prev))
+			Result |= OutputError(0x42,T("The segment's size %") TPRId64 T(" doesn't match the position where it ends %") TPRId64,EBML_ElementPositionEnd((ebml_element*)RSegment),EBML_ElementPositionEnd((ebml_element*)Prev));
 	}
 
 	if (!RSeekHead)
@@ -1268,7 +1272,7 @@ int main(int argc, const char *argv[])
         if (HasVideo)
             Result |= CheckVideoStart();
         Result |= CheckLacingKeyframe();
-        Result |= CheckPosSize(RSegment);
+        Result |= CheckPosSize((ebml_element*)RSegment);
 		if (!RCues)
         {
             if (!Live)
@@ -1334,7 +1338,7 @@ exit:
 		TextPrintf(StdErr,T("\r\tfile created with %s\r\n"),App);
 	}
 
-    for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)
+    for (Cluster = ARRAYBEGIN(RClusters,ebml_master*);Cluster != ARRAYEND(RClusters,ebml_master*); ++Cluster)
         NodeDelete((node*)*Cluster);
     ArrayClear(&RClusters);
     if (RAttachments)

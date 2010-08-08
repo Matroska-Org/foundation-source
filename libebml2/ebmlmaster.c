@@ -27,7 +27,7 @@
  */
 #include "ebml/ebml.h"
 
-ebml_element *EBML_MasterAddElt(ebml_element *Element, const ebml_context *Context, bool_t SetDefault)
+ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)
 {
     ebml_element *i;
     i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
@@ -40,7 +40,7 @@ ebml_element *EBML_MasterAddElt(ebml_element *Element, const ebml_context *Conte
     return i;
 }
 
-ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault)
+ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault)
 {
     ebml_element *i;
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
@@ -55,7 +55,7 @@ ebml_element *EBML_MasterFindFirstElt(ebml_element *Element, const ebml_context 
     return i;
 }
 
-ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault)
+ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault)
 {
     ebml_element *i;
     if (!Current)
@@ -73,23 +73,23 @@ ebml_element *EBML_MasterFindNextElt(ebml_element *Element, const ebml_element *
     return i;
 }
 
-err_t EBML_MasterAppend(ebml_element *Element, ebml_element *Append)
+err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append)
 {
     err_t Result;
 	assert(Node_IsPartOf(Element,EBML_MASTER_CLASS));
     Result = NodeTree_SetParent(Append,Element,NULL);
     if (Result==ERR_NONE)
-        Element->bValueIsSet = 1;
+        Element->Base.bValueIsSet = 1;
     return Result;
 }
 
-err_t EBML_MasterRemove(ebml_element *Element, ebml_element *Append)
+err_t EBML_MasterRemove(ebml_master *Element, ebml_element *Append)
 {
     err_t Result = NodeTree_SetParent(Append,NULL,NULL);
     return Result;
 }
 
-size_t EBML_MasterCount(const ebml_element *Element)
+size_t EBML_MasterCount(const ebml_master *Element)
 {
     size_t Result = 0;
     ebml_element *i;
@@ -105,7 +105,7 @@ static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebm
     return 0;
 }
 
-void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* CmpParam)
+void EBML_MasterSort(ebml_master *Element, arraycmp Cmp, const void* CmpParam)
 {
     array Elts;
     ebml_element *i,**j;
@@ -128,7 +128,7 @@ void EBML_MasterSort(ebml_element *Element, arraycmp Cmp, const void* CmpParam)
     ArrayClear(&Elts);
 }
 
-void EBML_MasterClear(ebml_element *Element)
+void EBML_MasterClear(ebml_master *Element)
 {
     ebml_element *i = EBML_MasterChildren(Element);
     while (i)
@@ -138,10 +138,10 @@ void EBML_MasterClear(ebml_element *Element)
     }
 }
 
-void EBML_MasterErase(ebml_element *Element)
+void EBML_MasterErase(ebml_master *Element)
 {
-	while (Element->Base.Children)
-    	NodeTree_DetachAndRelease(Element->Base.Children);
+	while (Element->Base.Base.Children)
+    	NodeTree_DetachAndRelease(Element->Base.Base.Children);
 }
 
 static bool_t IsDefaultValue(const ebml_element *Element)
@@ -150,10 +150,10 @@ static bool_t IsDefaultValue(const ebml_element *Element)
     return 0;
 }
 
-static bool_t CheckMandatory(const ebml_element *Element, bool_t bWithDefault)
+static bool_t CheckMandatory(const ebml_master *Element, bool_t bWithDefault)
 {
     const ebml_semantic *i;
-    for (i=Element->Context->Semantic;i->eClass;++i)
+    for (i=Element->Base.Context->Semantic;i->eClass;++i)
     {
         if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass) && (bWithDefault || !i->eClass->HasDefault))
             return 0;
@@ -161,7 +161,7 @@ static bool_t CheckMandatory(const ebml_element *Element, bool_t bWithDefault)
     return 1;
 }
 
-bool_t EBML_MasterCheckMandatory(const ebml_element *Element, bool_t bWithDefault)
+bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault)
 {
 	ebml_element *Child;
 	if (!CheckMandatory(Element, bWithDefault))
@@ -169,13 +169,13 @@ bool_t EBML_MasterCheckMandatory(const ebml_element *Element, bool_t bWithDefaul
 
 	for (Child = EBML_MasterChildren(Element); Child; Child = EBML_MasterNext(Child))
 	{
-		if (Node_IsPartOf(Child,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory(Child, bWithDefault))
+		if (Node_IsPartOf(Child,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory((ebml_master*)Child, bWithDefault))
 			return 0;
 	}
     return 1;
 }
 
-filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
 {
     ebml_element *i;
 
@@ -185,7 +185,7 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRe
 		return INVALID_FILEPOS_T;
 
 	if (!bForceRender) {
-		assert(CheckMandatory(Element, bWithDefault));
+		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
     }
 
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
@@ -205,45 +205,45 @@ filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRe
 	return Element->DataSize;
 }
 
-void EBML_MasterMandatory(ebml_element *Element, bool_t SetDefault)
+void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault)
 {
     const ebml_semantic *i;
-    for (i=Element->Context->Semantic;i->eClass;++i)
+    for (i=Element->Base.Context->Semantic;i->eClass;++i)
     {
         if (i->Mandatory && i->Unique)
             EBML_MasterFindFirstElt(Element,i->eClass,1,SetDefault);
     }
 }
 
-static void PostCreate(ebml_element *Element)
+static void PostCreate(ebml_master *Element)
 {
     INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
 	EBML_MasterMandatory(Element,1); // TODO: should it force the default value ?
 }
 
-static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
     int UpperEltFound = 0;
     ebml_element *SubElement;
 
     // remove all existing elements, including the mandatory ones...
     NodeTree_Clear((nodetree*)Element);
-    Element->bValueIsSet = 0;
+    Element->Base.bValueIsSet = 0;
 
 	// read blocks and discard the ones we don't care about
-	if (Element->DataSize > 0 || !EBML_ElementIsFiniteSize(Element)) {
+	if (Element->Base.DataSize > 0 || !EBML_ElementIsFiniteSize((ebml_element*)Element)) {
         ebml_parser_context Context;
         filepos_t MaxSizeToRead;
 
-        if (Stream_Seek(Input,EBML_ElementPositionData(Element),SEEK_SET)==INVALID_FILEPOS_T)
+        if (Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET)==INVALID_FILEPOS_T)
             return ERR_END_OF_FILE;
 
-        MaxSizeToRead = Element->DataSize;
+        MaxSizeToRead = Element->Base.DataSize;
         Context.UpContext = ParserContext;
-        Context.Context = Element->Context;
-        Context.EndPosition = EBML_ElementPositionEnd(Element);
+        Context.Context = Element->Base.Context;
+        Context.EndPosition = EBML_ElementPositionEnd((ebml_element*)Element);
         SubElement = EBML_FindNextElement(Input,&Context,&UpperEltFound,AllowDummyElt);
-		while (SubElement && UpperEltFound<=0 && (!EBML_ElementIsFiniteSize(Element) || EBML_ElementPositionEnd(SubElement) <= EBML_ElementPositionEnd(Element)))
+		while (SubElement && UpperEltFound<=0 && (!EBML_ElementIsFiniteSize((ebml_element*)Element) || EBML_ElementPositionEnd(SubElement) <= EBML_ElementPositionEnd((ebml_element*)Element)))
         {
 			if (!AllowDummyElt && EBML_ElementIsDummy(SubElement)) {
                 // TODO: this should never happen
@@ -265,11 +265,11 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
                 }
 			}
             if (SubElement)
-			    MaxSizeToRead = EBML_ElementPositionEnd(Element) - EBML_ElementPositionEnd(SubElement); // even if it's the default value
+			    MaxSizeToRead = EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement); // even if it's the default value
 
 			if (UpperEltFound > 0) {
 				UpperEltFound--;
-				if (UpperEltFound > 0 || (EBML_ElementIsFiniteSize(Element) && MaxSizeToRead <= 0))
+				if (UpperEltFound > 0 || (EBML_ElementIsFiniteSize((ebml_element*)Element) && MaxSizeToRead <= 0))
 					goto processCrc;
 				continue;
 			} 
@@ -280,7 +280,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
 					goto processCrc;
 			}
 
-			if (EBML_ElementIsFiniteSize(Element) && MaxSizeToRead <= 0) {
+			if (EBML_ElementIsFiniteSize((ebml_element*)Element) && MaxSizeToRead <= 0) {
 				goto processCrc;// this level is finished
 			}
 			
@@ -299,7 +299,7 @@ processCrc:
 		}
 	}
 #endif
-    Element->bValueIsSet = 1;
+    Element->Base.bValueIsSet = 1;
     if (UpperEltFound>0) // move back to the upper element beginning so that the next loop can find it
     {
         assert(SubElement!=NULL);
@@ -321,7 +321,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
     *Rendered = 0;
 
 	if (!bForceRender) {
-		assert(CheckMandatory(Element, bWithDefault));
+		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
 	}
 
 #ifdef TODO
@@ -355,19 +355,20 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 }
 #endif
 
-static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
+static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
 {
     ebml_element *i, *Elt;
-    ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,Cookie);
+    ebml_master *Result = (ebml_master*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
     if (Result)
     {
         EBML_MasterErase(Result); // delete the children elements created by default
-        Result->bValueIsSet = Element->bValueIsSet;
-        Result->bDefaultIsSet = Element->bDefaultIsSet;
-        Result->DataSize = Element->DataSize;
-        Result->ElementPosition = Element->ElementPosition;
-        Result->SizeLength = Element->SizeLength;
-        Result->SizePosition = Element->SizePosition;
+        Result->Base.bValueIsSet = Element->Base.bValueIsSet;
+        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
+        Result->Base.DataSize = Element->Base.DataSize;
+        Result->Base.ElementPosition = Element->Base.ElementPosition;
+        Result->Base.SizeLength = Element->Base.SizeLength;
+        Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->bChecksumUsed = Element->bChecksumUsed;
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
         {
             Elt = EBML_ElementCopy(i,Cookie);
@@ -379,10 +380,11 @@ static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
             }
         }
     }
-    return Result;
+    return (ebml_element*)Result;
 }
 
 META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
+META_CLASS(SIZE,sizeof(ebml_master))
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)

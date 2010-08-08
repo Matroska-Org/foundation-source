@@ -68,7 +68,8 @@ static const int A_DTS_freq[16] = {
 
 err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
 {
-    ebml_element *Track=NULL, *Elt;
+    ebml_master *Track=NULL;
+    ebml_element *Elt;
     tchar_t CodecID[MAXPATH];
     err_t Err;
     bool_t ReadData;
@@ -203,7 +204,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                         Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackAudio,0,0);
                         if (Elt)
                         {
-                            Elt = EBML_MasterFindFirstElt(Elt,&MATROSKA_ContextTrackAudioSamplingFreq,0,0);
+                            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackAudioSamplingFreq,0,0);
                             if (Elt)
                             {
                                 ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
