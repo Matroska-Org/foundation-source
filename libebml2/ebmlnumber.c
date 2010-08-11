@@ -27,7 +27,7 @@
  */
 #include "ebml/ebml.h"
 
-static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     err_t Result;
     char Buffer[8];
@@ -61,7 +61,7 @@ failed:
     return Result;
 }
 
-static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     err_t Result;
     char Buffer[8];
@@ -202,7 +202,7 @@ static bool_t ValidateSizeFloat(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 8 || p->DataSize == 4);
 }
 
-static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     uint8_t Value[8];
     err_t Result;

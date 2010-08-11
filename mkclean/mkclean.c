@@ -536,7 +536,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     {
         if (SubElement->Context->Id == EBML_ContextReadVersion.Id)
         {
-            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA)!=ERR_NONE)
+            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
@@ -549,7 +549,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         }
         else if (SubElement->Context->Id == EBML_ContextMaxIdLength.Id)
         {
-            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA)!=ERR_NONE)
+            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
@@ -562,7 +562,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         }
         else if (SubElement->Context->Id == EBML_ContextMaxSizeLength.Id)
         {
-            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA)!=ERR_NONE)
+            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
@@ -575,7 +575,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         }
         else if (SubElement->Context->Id == EBML_ContextDocType.Id)
         {
-            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA)!=ERR_NONE)
+            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
@@ -596,7 +596,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         }
         else if (SubElement->Context->Id == EBML_ContextDocTypeReadVersion.Id)
         {
-            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA)!=ERR_NONE)
+            if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
                 TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
@@ -1351,38 +1351,38 @@ int main(int argc, const char *argv[])
         ShowProgress((ebml_element*)RLevel1,(ebml_element*)RSegment,1,Unsafe?3:2);
         if (RLevel1->Base.Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RSegmentInfo = RLevel1;
         }
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextTracks.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RTrackInfo = RLevel1;
         }
         else if (!Live && RLevel1->Base.Context->Id == MATROSKA_ContextChapters.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RChapters = RLevel1;
         }
         else if (!Live && RLevel1->Base.Context->Id == MATROSKA_ContextTags.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RTags = RLevel1;
         }
         else if (!Live && RLevel1->Base.Context->Id == MATROSKA_ContextCues.Id && KeepCues)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RCues = RLevel1;
         }
         else if (!Live && RLevel1->Base.Context->Id == MATROSKA_ContextAttachments.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RAttachments = RLevel1;
         }
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextCluster.Id)
         {
 			// only partially read the Cluster data (not the data inside the blocks)
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_PARTIAL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_PARTIAL_DATA,0)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				// remove MATROSKA_ContextClusterPosition and MATROSKA_ContextClusterPrevSize until supported

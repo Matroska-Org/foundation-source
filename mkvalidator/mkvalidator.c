@@ -905,7 +905,7 @@ int main(int argc, const char *argv[])
 
     TextWrite(StdErr,T("."));
 
-	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA, 1)!=ERR_NONE)
     {
         Result = OutputError(4,T("Could not read the EBML head"));
         goto exit;
@@ -982,7 +982,7 @@ int main(int argc, const char *argv[])
 	{
         if (RLevel1->Base.Context->Id == MATROSKA_ContextCluster.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA,4)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
@@ -1004,7 +1004,7 @@ int main(int argc, const char *argv[])
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
 			{
 				if (!RSeekHead)
 					RSeekHead = RLevel1;
@@ -1028,7 +1028,7 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextSegmentInfo.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
 			{
 				if (RSegmentInfo != NULL)
 					Result |= OutputError(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1056,7 +1056,7 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextTracks.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,2)==ERR_NONE)
 			{
 				if (RTrackInfo != NULL)
 					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1125,7 +1125,7 @@ int main(int argc, const char *argv[])
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
 			{
 				if (RCues != NULL)
 					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1152,7 +1152,7 @@ int main(int argc, const char *argv[])
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RChapters != NULL)
 					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1173,7 +1173,7 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextTags.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RTags != NULL)
 					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1200,7 +1200,7 @@ int main(int argc, const char *argv[])
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,2)==ERR_NONE)
 			{
 				if (RAttachments != NULL)
 					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);

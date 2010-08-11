@@ -1594,14 +1594,14 @@ static err_t SetBlockGroupParent(ebml_master *Element, void* Parent, void* Befor
 	return Result;
 }
 
-static err_t ReadBigBinaryData(ebml_binary *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadBigBinaryData(ebml_binary *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     if (Scope == SCOPE_PARTIAL_DATA)
     {
         EBML_ElementSkipData((ebml_element*)Element,Input,ParserContext,NULL,AllowDummyElt);
         return ERR_NONE;
     }
-    return INHERITED(Element,ebml_element_vmt,MATROSKA_BIGBINARY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope);
+    return INHERITED(Element,ebml_element_vmt,MATROSKA_BIGBINARY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope, DepthCheckCRC);
 }
 
 static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)

@@ -35,12 +35,14 @@ struct ebml_crc
     uint32_t CRC;
 };
 
+const uint32_t CRC32_NEGL = 0xffffffffL;
+
 static bool_t ValidateSize(const ebml_element *p)
 {
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 4);
 }
 
-static err_t ReadData(ebml_crc *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadData(ebml_crc *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     err_t Result;
     uint32_t CRCbuffer;
@@ -69,9 +71,21 @@ static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
     return Result;
 }
 
+static err_t Create(ebml_crc *Element)
+{
+    Element->CRC = CRC32_NEGL;
+    return ERR_NONE;
+}
+
 META_START(EBMLCRC_Class,EBML_CRC_CLASS)
 META_CLASS(SIZE,sizeof(ebml_crc))
+META_CLASS(CREATE,Create)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_END(EBML_ELEMENT_CLASS)
+
+bool_t EBML_CRCMatches(ebml_element *CRC, const uint8_t *Buf, size_t Size)
+{
+    return 1;
+}

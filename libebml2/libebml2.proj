@@ -3,7 +3,7 @@
 GROUP ebml2_group
 {
   PROJECT_NAME  "libebml2"
-  PROJECT_VERSION  0.9.11
+  PROJECT_VERSION  0.10.0
   PROJECT_VENDOR   "Matroska Foundation"
   EXPDEFINE HAS_EBML2
   
@@ -35,6 +35,7 @@ GROUP ebml2_group
   SOURCE ebmlcrc.c     {class EBMLCRC_Class}
   SOURCE ebmldate.c    {class EBMLDate_Class}
   SOURCE ebmlvoid.c    {class EBMLVoid_Class}
+  HEADER ebmlcrc.h
 }
 
 DLL ebml2

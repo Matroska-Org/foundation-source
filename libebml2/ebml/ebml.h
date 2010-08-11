@@ -129,7 +129,7 @@ typedef struct ebml_element_vmt
 {
     nodetree_vmt Base;
     bool_t (*ValidateSize)(const void*);
-    err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope);
+    err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
 #if defined(CONFIG_EBML_WRITING)
     err_t (*RenderData)(void*, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered);
 #endif
@@ -145,7 +145,7 @@ typedef struct ebml_element_vmt
 } ebml_element_vmt;
 
 #define EBML_ElementValidateSize(p)        VMT_FUNC(p,ebml_element_vmt)->ValidateSize(p)
-#define EBML_ElementReadData(p,s,c,d,e)    VMT_FUNC(p,ebml_element_vmt)->ReadData(p,s,c,d,e)
+#define EBML_ElementReadData(p,i,c,d,s,r)  VMT_FUNC(p,ebml_element_vmt)->ReadData(p,i,c,d,s,r)
 #define EBML_ElementRenderData(p,s,f,k,r)  VMT_FUNC(p,ebml_element_vmt)->RenderData(p,s,f,k,r)
 #define EBML_ElementIsDefaultValue(p)      VMT_FUNC(p,ebml_element_vmt)->IsDefaultValue(p)
 #define EBML_ElementUpdateSize(p,k,f)      VMT_FUNC(p,ebml_element_vmt)->UpdateSize(p,k,f)
@@ -155,6 +155,7 @@ typedef struct ebml_element_vmt
 typedef struct ebml_master
 {
     ebml_element Base;
+    int CheckSumStatus; // 0: not set, 1: requested/invalid, 2: verified
 
 } ebml_master;
 
@@ -252,6 +253,8 @@ EBML_DLL void EBML_MasterErase(ebml_master *Element);
 EBML_DLL void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault); // add the mandatory elements
 EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t SetDefault);
 EBML_DLL void EBML_MasterSort(ebml_master *Element, arraycmp Cmp, const void* CmpParam);
+EBML_DLL void EBML_MasterUseChecksum(ebml_master *Element, bool_t Use);
+EBML_DLL bool_t EBML_MasterIsChecksumValid(const ebml_master *Element);
 #define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
 #define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_master*)e,c,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))

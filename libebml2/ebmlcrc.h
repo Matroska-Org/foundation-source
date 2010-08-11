@@ -26,33 +26,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define MATROSKA_BLOCK_READ_TRACK        0x180
-#define MATROSKA_BLOCK_READ_SEGMENTINFO  0x181
-#if defined(CONFIG_EBML_WRITING)
-#define MATROSKA_BLOCK_WRITE_TRACK       0x182
-#define MATROSKA_BLOCK_WRITE_SEGMENTINFO 0x183
-#endif
+#ifndef __LIBEBML_CRC_H
+#define __LIBEBML_CRC_H
 
-struct matroska_block
-{
-    ebml_binary Base;
-    uint16_t TrackNumber;
-    int16_t LocalTimecode;
-    bool_t LocalTimecodeUsed;
-	timecode_t GlobalTimecode;
-    bool_t IsKeyframe;
-    bool_t IsDiscardable;
-    bool_t Invisible;
-    char Lacing;
-    filepos_t FirstFrameLocation;
-    array SizeList; // int32_t
-    array SizeListIn; // int32_t
-    array Data; // uint8_t
-    array Durations; // timecode_t
-    ebml_master *ReadTrack;
-    ebml_master *ReadSegInfo;
-#if defined(CONFIG_EBML_WRITING)
-    ebml_master *WriteTrack;
-    ebml_master *WriteSegInfo;
-#endif
-};
+extern bool_t EBML_CRCMatches(ebml_element *CRC, const uint8_t *Buf, size_t Size);
+
+#endif /* __LIBEBML_CRC_H */
