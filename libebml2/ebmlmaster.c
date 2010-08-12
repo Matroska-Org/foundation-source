@@ -226,7 +226,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 {
     int UpperEltFound = 0;
     bool_t bFirst = 1;
-    ebml_element *SubElement;
+    ebml_element *SubElement, *CRCElement = NULL;
     stream *ReadStream = Input;
     array CrcBuffer;
 
@@ -256,38 +256,42 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 			}
             else
             {
-                if (bFirst && DepthCheckCRC && Scope!=SCOPE_NO_DATA && SubElement->Context->Id==EBML_ContextEbmlCrc32.Id)
+                if (EBML_ElementReadData(SubElement,ReadStream,&Context,AllowDummyElt, Scope, DepthCheckCRC?DepthCheckCRC-1:0)==ERR_NONE)
                 {
-                    if (EBML_ElementIsFiniteSize((ebml_element*)Element))
+                    if (bFirst && DepthCheckCRC && Scope!=SCOPE_NO_DATA && SubElement->Context->Id==EBML_ContextEbmlCrc32.Id && CRCElement==NULL)
                     {
-                        // read the rest of the element in memory to avoid reading it a second time later
-                        ArrayInit(&CrcBuffer);
-                        if (ArrayResize(&CrcBuffer, (size_t)(EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement)), 0))
+                        if (EBML_ElementIsFiniteSize((ebml_element*)Element))
                         {
-                            ReadStream = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
-                            if (ReadStream==NULL)
+                            // read the rest of the element in memory to avoid reading it a second time later
+                            ArrayInit(&CrcBuffer);
+                            if (ArrayResize(&CrcBuffer, (size_t)(EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement)), 0))
                             {
-                                ReadStream=Input; // revert back to normal reading
-                                ArrayClear(&CrcBuffer);
-                            }
-                            else
-                            {
-                                Node_Set(ReadStream, MEMSTREAM_DATA, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t));
-                                Stream_Seek(Input,EBML_ElementPositionEnd(SubElement),SEEK_SET);
-                                if (Stream_Read(Input, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t), NULL)!=ERR_NONE)
+                                ReadStream = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
+                                if (ReadStream==NULL)
                                 {
                                     ReadStream=Input; // revert back to normal reading
                                     ArrayClear(&CrcBuffer);
                                 }
+                                else
+                                {
+                                    filepos_t Offset = EBML_ElementPositionEnd(SubElement);
+                                    Node_Set(ReadStream, MEMSTREAM_DATA, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t));
+                                    Node_SET(ReadStream, MEMSTREAM_OFFSET, &Offset);
+                                    Stream_Seek(Input,EBML_ElementPositionEnd(SubElement),SEEK_SET);
+                                    if (Stream_Read(Input, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t), NULL)!=ERR_NONE)
+                                    {
+                                        ReadStream=Input; // revert back to normal reading
+                                        ArrayClear(&CrcBuffer);
+                                    }
+                                }
                             }
+                            CRCElement = SubElement;
                         }
+                        bFirst = 0;
                     }
-                    bFirst = 0;
-                }
-                if (EBML_ElementReadData(SubElement,ReadStream,&Context,AllowDummyElt, Scope, DepthCheckCRC?DepthCheckCRC-1:0)==ERR_NONE)
-                {
-                    EBML_MasterAppend(Element,SubElement);
-				    // just in case
+                    if (CRCElement != SubElement)
+                        EBML_MasterAppend(Element,SubElement);
+			        // just in case
                     EBML_ElementSkipData(SubElement,ReadStream,&Context,NULL,AllowDummyElt);
                 }
                 else
@@ -322,7 +326,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 processCrc:
     if (ReadStream!=Input)
     {
-        Element->CheckSumStatus = EBML_CRCMatches(SubElement, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t))?2:1;
+        Element->CheckSumStatus = EBML_CRCMatches(CRCElement, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t))?2:1;
         StreamClose(ReadStream);
         ArrayClear(&CrcBuffer);
     }
