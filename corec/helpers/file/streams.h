@@ -114,6 +114,7 @@ typedef struct memstream
 	stream Base;
 	size_t Pos;
 	size_t Size;
+    filepos_t VirtualOffset;
 	const uint8_t* Ptr;
 
 } memstream;
@@ -195,6 +196,7 @@ typedef struct stream_vmt
 #define MEMSTREAM_CLASS		FOURCC('M','E','M','S')
 #define MEMSTREAM_DATA		0x100
 #define MEMSTREAM_PTR		0x101
+#define MEMSTREAM_OFFSET    0x102
 
 //---------------------------------------------------------------------------
 

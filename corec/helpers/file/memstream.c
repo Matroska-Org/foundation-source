@@ -50,31 +50,31 @@ static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
 	return Err;
 }
 
-static filepos_t MemSeek(memstream* p,filepos_t Pos,int SeekMode)
+static filepos_t MemSeek(memstream* p,filepos_t VirtualPos,int SeekMode)
 {
 	switch (SeekMode)
 	{
 	default:
 	case SEEK_SET: break;
-	case SEEK_CUR: Pos += p->Pos; break;
-	case SEEK_END: Pos += p->Size; break;
+	case SEEK_CUR: VirtualPos += p->Pos + p->VirtualOffset; break;
+	case SEEK_END: VirtualPos += p->Size + p->VirtualOffset; break;
 	}
 
     // TODO: these safety checks should return an error
-	if (Pos<0)
+	if (VirtualPos<0)
     {
-        assert(Pos>=0);
-		Pos=0;
+        assert(VirtualPos>=0);
+		VirtualPos=0;
     }
 
-    if (Pos>(filepos_t)p->Size)
+    if (VirtualPos>(filepos_t)p->Size + p->VirtualOffset)
     {
-        assert(Pos<=(filepos_t)p->Size);
-        Pos=p->Size;
+        assert(VirtualPos<=(filepos_t)p->Size);
+        VirtualPos=p->Size + p->VirtualOffset;
     }
 
-    p->Pos = (size_t)Pos;
-	return Pos;
+    p->Pos = (size_t)(VirtualPos - p->VirtualOffset);
+	return VirtualPos;
 }
 
 static err_t MemLength(memstream* p, dataid UNUSED_PARAM(Id), filepos_t* Data, size_t UNUSED_PARAM(Size))
@@ -97,5 +97,6 @@ META_VMT(TYPE_FUNC,stream_vmt,Read,MemRead)
 META_VMT(TYPE_FUNC,stream_vmt,Seek,MemSeek)
 META_PARAM(GET,STREAM_LENGTH,MemLength)
 META_PARAM(SET,MEMSTREAM_DATA,MemData)
+META_DATA(TYPE_FILEPOS,MEMSTREAM_OFFSET,memstream,VirtualOffset)
 META_DATA_RDONLY(TYPE_PTR,MEMSTREAM_PTR,memstream,Ptr)
 META_END(STREAM_CLASS)
