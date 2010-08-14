@@ -83,6 +83,7 @@ typedef struct ebml_context ebml_context;
 typedef struct ebml_parser_context ebml_parser_context;
 typedef struct ebml_semantic ebml_semantic;
 typedef struct ebml_element ebml_element;
+typedef struct ebml_crc ebml_crc;
 
 struct ebml_semantic
 {
@@ -253,7 +254,7 @@ EBML_DLL void EBML_MasterErase(ebml_master *Element);
 EBML_DLL void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault); // add the mandatory elements
 EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t SetDefault);
 EBML_DLL void EBML_MasterSort(ebml_master *Element, arraycmp Cmp, const void* CmpParam);
-EBML_DLL void EBML_MasterUseChecksum(ebml_master *Element, bool_t Use);
+EBML_DLL bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use);
 EBML_DLL bool_t EBML_MasterIsChecksumValid(const ebml_master *Element);
 #define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
 #define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_master*)e,c,0,0)

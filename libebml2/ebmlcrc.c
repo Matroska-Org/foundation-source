@@ -27,8 +27,6 @@
  */
 #include "ebml/ebml.h"
 
-typedef struct ebml_crc ebml_crc; 
-
 struct ebml_crc
 {
     ebml_element Base;
@@ -174,6 +172,20 @@ static err_t ReadData(ebml_crc *Element, stream *Input, const ebml_parser_contex
     return Result;
 }
 
+#if defined(CONFIG_EBML_WRITING)
+static err_t RenderData(ebml_crc *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+{
+    err_t Result;
+    size_t Written = 0;
+    uint8_t Buf[4];
+    STORE32LE(Buf,Element->CRC);
+    Result = Stream_Write(Output, Buf, 4, &Written);
+    if (Rendered)
+        *Rendered = Written;
+    return Result;
+}
+#endif
+
 static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
 {
     ebml_crc *Result = (ebml_crc*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
@@ -190,6 +202,17 @@ static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
     return Result;
 }
 
+static bool_t IsDefaultValue(const ebml_element *Element)
+{
+    return 0; // CRC has no default value
+}
+
+static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
+{
+    Element->DataSize = 4;
+    return 4;
+}
+
 static err_t Create(ebml_crc *Element)
 {
     Element->CRC = CRC32_NEGL;
@@ -202,11 +225,19 @@ META_CLASS(CREATE,Create)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
+META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+#if defined(CONFIG_EBML_WRITING)
+META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
+#endif
 META_END(EBML_ELEMENT_CLASS)
 
 bool_t EBML_CRCMatches(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
 {
     uint32_t testCRC = CRC32_NEGL;
+
+    assert(CRC->Base.bValueIsSet);
+
 /* TODO: needed for non aligned memory ?
 	for(; !aligned(Buf) && Size > 0; Size--)
 		testCRC = m_tab[CRC32_INDEX(testCRC) ^ *Buf++] ^ CRC32_SHIFTED(testCRC);
@@ -228,4 +259,27 @@ bool_t EBML_CRCMatches(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
 	testCRC ^= CRC32_NEGL;
 
     return (CRC->CRC == testCRC);
+}
+
+void EBML_CRCAddBuffer(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
+{
+	while (Size >= 4)
+	{
+		CRC->CRC ^= *(const uint32_t *)Buf;
+		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
+		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
+		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
+		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
+		Size -= 4;
+		Buf += 4;
+	}
+
+	while (Size--)
+		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC) ^ *Buf++] ^ CRC32_SHIFTED(CRC->CRC);
+}
+
+void EBML_CRCFinalize(ebml_crc *CRC)
+{
+	CRC->CRC ^= CRC32_NEGL;
+    CRC->Base.bValueIsSet = 1;
 }

@@ -176,18 +176,21 @@ bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault
     return 1;
 }
 
-static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateSize(ebml_master *Element, bool_t bWithDefault, bool_t bForceRender)
 {
     ebml_element *i;
 
-	Element->DataSize = 0;
+	Element->Base.DataSize = 0;
 
-	if (!EBML_ElementIsFiniteSize(Element))
+	if (!EBML_ElementIsFiniteSize((ebml_element*)Element))
 		return INVALID_FILEPOS_T;
 
 	if (!bForceRender) {
 		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
     }
+
+    if (Element->CheckSumStatus)
+        Element->Base.DataSize += 6;
 
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
     {
@@ -196,14 +199,14 @@ static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t b
         EBML_ElementUpdateSize(i,bWithDefault,bForceRender);
         if (i->DataSize == INVALID_FILEPOS_T)
             return INVALID_FILEPOS_T;
-        Element->DataSize += EBML_ElementFullSize(i,bWithDefault);
+        Element->Base.DataSize += EBML_ElementFullSize(i,bWithDefault);
     }
 #ifdef TODO
 	if (bChecksumUsed) {
 		Element->DataSize += EBML_ElementFullSize(Element->Checksum,bWithDefault);
 	}
 #endif
-	return Element->DataSize;
+	return Element->Base.DataSize;
 }
 
 void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault)
@@ -226,7 +229,8 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 {
     int UpperEltFound = 0;
     bool_t bFirst = 1;
-    ebml_element *SubElement, *CRCElement = NULL;
+    ebml_element *SubElement;
+    ebml_crc *CRCElement = NULL;
     stream *ReadStream = Input;
     array CrcBuffer;
 
@@ -286,11 +290,11 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                                     }
                                 }
                             }
-                            CRCElement = SubElement;
+                            CRCElement = (ebml_crc*)SubElement;
                         }
                         bFirst = 0;
                     }
-                    if (CRCElement != SubElement)
+                    if (CRCElement != (ebml_crc*)SubElement)
                         EBML_MasterAppend(Element,SubElement);
 			        // just in case
                     EBML_ElementSkipData(SubElement,ReadStream,&Context,NULL,AllowDummyElt);
@@ -341,9 +345,19 @@ processCrc:
     return ERR_NONE;
 }
 
-void EBML_MasterUseChecksum(ebml_master *Element, bool_t Use)
+bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use)
 {
-    Element->CheckSumStatus = 1;
+    if (Use && Element->CheckSumStatus==0)
+    {
+        Element->CheckSumStatus = 1;
+        return 1;
+    }
+    if (!Use && Element->CheckSumStatus)
+    {
+        Element->CheckSumStatus = 0;
+        return 1;
+    }
+    return 0;
 }
 
 bool_t EBML_MasterIsChecksumValid(const ebml_master *Element)
@@ -352,11 +366,26 @@ bool_t EBML_MasterIsChecksumValid(const ebml_master *Element)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
 {
     ebml_element *i;
-    filepos_t _Rendered;
     filepos_t ItemRendered;
+    err_t Err = ERR_NONE;
+    for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+    {
+		if (!bWithDefault && EBML_ElementIsDefaultValue(i))
+			continue;
+		Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered,0);
+        if (Err!=ERR_NONE)
+            return Err;
+        *Rendered += ItemRendered;
+	}
+    return Err;
+}
+
+static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+{
+    filepos_t _Rendered;
     err_t Err = ERR_NONE;
 
     if (!Rendered)
@@ -367,32 +396,48 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRend
 		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
 	}
 
-#ifdef TODO
-	if (!Element->bChecksumUsed) { // old school
-#endif
-        for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+	if (!Element->CheckSumStatus)
+        Err = InternalRender(Element, Output, bForceRender, bWithDefault, Rendered);
+	else
+    {
+        // render to memory, compute the CRC, write the CRC and then the virtual data
+        array TmpBuf;
+        ArrayInit(&TmpBuf);
+        if (!ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - 6, 0))
+            Err = ERR_OUT_OF_MEMORY;
+        else
         {
-			if (!bWithDefault && EBML_ElementIsDefaultValue(i))
-				continue;
-			Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered,0);
-            if (Err!=ERR_NONE)
-                return Err;
-            *Rendered += ItemRendered;
-		}
-#ifdef TODO
-	} else { // new school: render in memory and compute the CRC
-		MemIOCallback TmpBuf(DataSize - 6);
-		for (Index = 0; Index < ElementList.size(); Index++) {
-			if (!bWithDefault && (ElementList[Index])->IsDefaultValue())
-				continue;
-			(ElementList[Index])->Render(TmpBuf, bWithDefault, false ,bForceRender);
-		}
-		Checksum.FillCRC32(TmpBuf.GetDataBuffer(), TmpBuf.GetDataBufferSize());
-		Result += Checksum.Render(output, true, false ,bForceRender);
-		output.writeFully(TmpBuf.GetDataBuffer(), TmpBuf.GetDataBufferSize());
-		Result += TmpBuf.GetDataBufferSize();
+            stream *VOutput = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
+            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, &EBML_ContextEbmlCrc32, 0, NULL);
+            if (!VOutput || !CrcElt)
+                Err = ERR_OUT_OF_MEMORY;
+            else
+            {
+                filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR);
+                Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
+                Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
+                Err = InternalRender(Element, VOutput, bForceRender, bWithDefault, Rendered);
+                assert(Err!=ERR_NONE || *Rendered == ARRAYCOUNT(TmpBuf,uint8_t));
+                if (Err==ERR_NONE)
+                {
+                    filepos_t CrcSize;
+                    EBML_CRCAddBuffer(CrcElt, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
+                    EBML_CRCFinalize(CrcElt);
+                    Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize, 0);
+                    if (Err==ERR_NONE)
+                    {
+                        size_t Written;
+                        Err = Stream_Write(Output, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t), &Written);
+                        assert(Err!=ERR_NONE || Written == *Rendered);
+                        *Rendered = Written + CrcSize;
+                    }
+                }
+                NodeDelete((node*)CrcElt);
+                StreamClose(VOutput);
+            }
+        }
+        ArrayClear(&TmpBuf);
 	}
-#endif
 
 	return Err;
 }
