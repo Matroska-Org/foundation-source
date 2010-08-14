@@ -1,6 +1,6 @@
 2010-08-xx
 version 0.2.1:
-    - skip CRC elements for now
+    - check if the CRC-32 is valid
 
 2010-08-05
 version 0.2.0:

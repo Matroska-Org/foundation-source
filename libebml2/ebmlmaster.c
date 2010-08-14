@@ -266,6 +266,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                             ArrayInit(&CrcBuffer);
                             if (ArrayResize(&CrcBuffer, (size_t)(EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement)), 0))
                             {
+                                // TODO: only create a MEMSTREAM if the source stream is not one already
                                 ReadStream = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
                                 if (ReadStream==NULL)
                                 {

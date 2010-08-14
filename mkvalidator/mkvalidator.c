@@ -35,7 +35,6 @@
 /*!
  * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
  * \todo verify that items with a limited set of values don't use other values
- * \todo verify the CRC-32 is valid when it exists
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo optionally show the use of deprecated elements
  */
@@ -395,6 +394,8 @@ static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 	Node_FromStr(Elt,String,TSIZEOF(String),Elt->Context->ElementName);
 	if (Node_IsPartOf(Elt,EBML_MASTER_CLASS))
 	{
+        if (!EBML_MasterIsChecksumValid((ebml_master*)Elt))
+            Result |= OutputError(0x203,T("Invalid checksum for element '%s' at %") TPRId64,String,Elt->ElementPosition);
 		for (SubElt = EBML_MasterChildren(Elt); SubElt; SubElt = EBML_MasterNext(SubElt))
 		{
 			if (!Node_IsPartOf(SubElt,EBML_DUMMY_ID))
