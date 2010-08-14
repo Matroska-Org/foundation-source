@@ -1276,7 +1276,7 @@ int main(int argc, const char *argv[])
         Result |= CheckPosSize((ebml_element*)RSegment);
 		if (!RCues)
         {
-            if (!Live)
+            if (!Live && ARRAYCOUNT(RClusters,ebml_element*)>1)
 			    OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
         }
 		else

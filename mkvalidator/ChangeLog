@@ -1,6 +1,7 @@
-2010-08-xx
+2010-08-14
 version 0.2.1:
     - check if the CRC-32 is valid
+    - don't complain about a missing Cue if there is only one Cluster
 
 2010-08-05
 version 0.2.0:
