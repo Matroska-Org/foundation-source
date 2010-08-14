@@ -233,6 +233,8 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
     ebml_crc *CRCElement = NULL;
     stream *ReadStream = Input;
     array CrcBuffer;
+    uint8_t *CRCData = NULL;
+    size_t CRCDataSize;
 
     // remove all existing elements, including the mandatory ones...
     NodeTree_Clear((nodetree*)Element);
@@ -266,27 +268,41 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                     {
                         if (EBML_ElementIsFiniteSize((ebml_element*)Element))
                         {
-                            // read the rest of the element in memory to avoid reading it a second time later
-                            ArrayInit(&CrcBuffer);
-                            if (ArrayResize(&CrcBuffer, (size_t)(EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement)), 0))
+                            if (Node_IsPartOf(Input, MEMSTREAM_CLASS))
                             {
-                                // TODO: only create a MEMSTREAM if the source stream is not one already
-                                ReadStream = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
-                                if (ReadStream==NULL)
+                                filepos_t DataPos = Stream_Seek(Input,EBML_ElementPositionEnd(SubElement),SEEK_SET);
+                                filepos_t OffSet;
+                                Node_GET(Input,MEMSTREAM_OFFSET,&OffSet);
+                                Node_GET(Input,MEMSTREAM_PTR,&CRCData);
+                                CRCData += (DataPos - OffSet);
+                                CRCDataSize = Element->Base.DataSize - EBML_ElementFullSize(SubElement,0);
+                                Stream_Read(Input, CRCData, CRCDataSize, NULL);
+                            }
+                            else
+                            {
+                                // read the rest of the element in memory to avoid reading it a second time later
+                                ArrayInit(&CrcBuffer);
+                                if (ArrayResize(&CrcBuffer, (size_t)(EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement)), 0))
                                 {
-                                    ReadStream=Input; // revert back to normal reading
-                                    ArrayClear(&CrcBuffer);
-                                }
-                                else
-                                {
-                                    filepos_t Offset = EBML_ElementPositionEnd(SubElement);
-                                    Node_Set(ReadStream, MEMSTREAM_DATA, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t));
-                                    Node_SET(ReadStream, MEMSTREAM_OFFSET, &Offset);
-                                    Stream_Seek(Input,EBML_ElementPositionEnd(SubElement),SEEK_SET);
-                                    if (Stream_Read(Input, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t), NULL)!=ERR_NONE)
+                                    CRCData = ARRAYBEGIN(CrcBuffer,uint8_t);
+                                    CRCDataSize = ARRAYCOUNT(CrcBuffer,uint8_t);
+                                    ReadStream = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
+                                    if (ReadStream==NULL)
                                     {
                                         ReadStream=Input; // revert back to normal reading
                                         ArrayClear(&CrcBuffer);
+                                    }
+                                    else
+                                    {
+                                        filepos_t Offset = EBML_ElementPositionEnd(SubElement);
+                                        Node_Set(ReadStream, MEMSTREAM_DATA, CRCData, CRCDataSize);
+                                        Node_SET(ReadStream, MEMSTREAM_OFFSET, &Offset);
+                                        Stream_Seek(Input,EBML_ElementPositionEnd(SubElement),SEEK_SET);
+                                        if (Stream_Read(Input, CRCData, CRCDataSize, NULL)!=ERR_NONE)
+                                        {
+                                            ReadStream=Input; // revert back to normal reading
+                                            ArrayClear(&CrcBuffer);
+                                        }
                                     }
                                 }
                             }
@@ -329,11 +345,14 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 		}
 	}
 processCrc:
-    if (ReadStream!=Input)
+    if (CRCData!=NULL)
     {
-        Element->CheckSumStatus = EBML_CRCMatches(CRCElement, ARRAYBEGIN(CrcBuffer,uint8_t), ARRAYCOUNT(CrcBuffer,uint8_t))?2:1;
-        StreamClose(ReadStream);
-        ArrayClear(&CrcBuffer);
+        Element->CheckSumStatus = EBML_CRCMatches(CRCElement, CRCData, CRCDataSize)?2:1;
+        if (CRCData == ARRAYBEGIN(CrcBuffer,uint8_t))
+        {
+            StreamClose(ReadStream);
+            ArrayClear(&CrcBuffer);
+        }
     }
 
     Element->Base.bValueIsSet = 1;
@@ -402,38 +421,65 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceRende
     {
         // render to memory, compute the CRC, write the CRC and then the virtual data
         array TmpBuf;
+        bool_t IsMemory = Node_IsPartOf(Output,MEMSTREAM_CLASS);
         ArrayInit(&TmpBuf);
-        if (!ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - 6, 0))
+        if (!IsMemory && !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - 6, 0))
             Err = ERR_OUT_OF_MEMORY;
         else
         {
-            stream *VOutput = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
             ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, &EBML_ContextEbmlCrc32, 0, NULL);
-            if (!VOutput || !CrcElt)
+            if (!CrcElt)
                 Err = ERR_OUT_OF_MEMORY;
             else
             {
-                filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR);
-                Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
-                Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
-                Err = InternalRender(Element, VOutput, bForceRender, bWithDefault, Rendered);
-                assert(Err!=ERR_NONE || *Rendered == ARRAYCOUNT(TmpBuf,uint8_t));
-                if (Err==ERR_NONE)
+                if (!IsMemory)
                 {
-                    filepos_t CrcSize;
-                    EBML_CRCAddBuffer(CrcElt, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
-                    EBML_CRCFinalize(CrcElt);
-                    Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize, 0);
+                    stream *VOutput = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
+                    if (!VOutput)
+                        Err = ERR_OUT_OF_MEMORY;
+                    else
+                    {
+                        filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR);
+                        Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
+                        Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
+                        Err = InternalRender(Element, VOutput, bForceRender, bWithDefault, Rendered);
+                        assert(Err!=ERR_NONE || *Rendered == ARRAYCOUNT(TmpBuf,uint8_t));
+                        if (Err==ERR_NONE)
+                        {
+                            filepos_t CrcSize;
+                            EBML_CRCAddBuffer(CrcElt, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
+                            EBML_CRCFinalize(CrcElt);
+                            Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize, 0);
+                            if (Err==ERR_NONE)
+                            {
+                                size_t Written;
+                                Err = Stream_Write(Output, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t), &Written);
+                                assert(Err!=ERR_NONE || Written == *Rendered);
+                                *Rendered = Written + CrcSize;
+                            }
+                        }
+                        StreamClose(VOutput);
+                    }
+                }
+                else
+                {
+                    filepos_t VirtualPos = Stream_Seek(Output,6,SEEK_CUR); // pass the CRC for now
+                    Err = InternalRender(Element, Output, bForceRender, bWithDefault, Rendered);
                     if (Err==ERR_NONE)
                     {
-                        size_t Written;
-                        Err = Stream_Write(Output, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t), &Written);
-                        assert(Err!=ERR_NONE || Written == *Rendered);
-                        *Rendered = Written + CrcSize;
+                        filepos_t CrcSize;
+                        uint8_t *Data;
+                        Node_GET(Output,MEMSTREAM_OFFSET,&CrcSize);
+                        Node_GET(Output,MEMSTREAM_PTR,&Data);
+                        EBML_CRCAddBuffer(CrcElt, Data + (VirtualPos - CrcSize), (size_t)Element->Base.DataSize-6);
+                        EBML_CRCFinalize(CrcElt);
+                        Stream_Seek(Output,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET);
+                        Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize, 0);
+                        *Rendered = *Rendered + CrcSize;
+                        Stream_Seek(Output,EBML_ElementPositionEnd((ebml_element*)Element),SEEK_SET);
                     }
                 }
                 NodeDelete((node*)CrcElt);
-                StreamClose(VOutput);
             }
         }
         ArrayClear(&TmpBuf);

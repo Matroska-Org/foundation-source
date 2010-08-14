@@ -210,7 +210,7 @@ static bool_t IsDefaultValue(const ebml_element *Element)
 static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
 {
     Element->DataSize = 4;
-    return 4;
+    return Element->DataSize;
 }
 
 static err_t Create(ebml_crc *Element)
