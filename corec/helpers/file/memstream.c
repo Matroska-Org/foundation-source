@@ -50,6 +50,17 @@ static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
 	return Err;
 }
 
+static err_t MemWrite(memstream* p, const void* Data, size_t Size, size_t* Written)
+{
+    *Written = 0;
+    if (Size + p->Pos > p->Size)
+        return ERR_INVALID_PARAM;
+    memcpy(p->Ptr + p->Pos, Data, Size);
+    p->Pos += Size;
+    *Written = Size;
+    return ERR_NONE;
+}
+
 static filepos_t MemSeek(memstream* p,filepos_t VirtualPos,int SeekMode)
 {
 	switch (SeekMode)
@@ -94,6 +105,7 @@ static err_t MemData(memstream* p, dataid UNUSED_PARAM(Id), const void* Data, si
 META_START(MemStream_Class,MEMSTREAM_CLASS)
 META_CLASS(SIZE,sizeof(memstream))
 META_VMT(TYPE_FUNC,stream_vmt,Read,MemRead)
+META_VMT(TYPE_FUNC,stream_vmt,Write,MemWrite)
 META_VMT(TYPE_FUNC,stream_vmt,Seek,MemSeek)
 META_PARAM(GET,STREAM_LENGTH,MemLength)
 META_PARAM(SET,MEMSTREAM_DATA,MemData)
