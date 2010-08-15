@@ -1,3 +1,7 @@
+2010-08-xx
+version 0.5.3:
+    - write CRC-32 elements on key parts for better file safety (not in unsafe mode)
+
 2010-08-08
 version 0.5.2:
     - fix the use of <input> <output> file use in the command line

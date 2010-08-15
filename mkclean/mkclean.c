@@ -33,6 +33,8 @@
 #include "matroska/matroska.h"
 
 /*!
+ * \todo don't write a Cue if there is only one Cluster
+ * \todo write the CRC-32 on Clusters too (make it faster in libebml2)
  * \todo discards tracks that has the same UID
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
  * \todo error when an unknown codec (for the profile) is found (option to turn into a warning) (loose mode)
@@ -49,7 +51,6 @@
  * less important:
  * \todo (optionally) change the Segment UID (when key parts are altered/added)
  * \todo force keeping some forbidden elements in a profile (chapters/tags in 'webm') (loose mode)
- * \todo support for updating/writing the CRC32
  * \todo add an option to cut short a file with a start/end
  * \todo allow creating/replacing Tags
  * \todo allow creating/replacing Chapters
@@ -156,6 +157,7 @@ static int SrcProfile = 0, DstProfile = 0;
 static textwriter *StdErr = NULL;
 static size_t ExtraSizeDiff = 0;
 static bool_t Quiet = 0;
+static bool_t Unsafe = 0;
 
 static void ReduceSize(ebml_element *Element)
 {
@@ -165,6 +167,9 @@ static void ReduceSize(ebml_element *Element)
         ebml_element *i, *j;
 		const ebml_semantic *s;
 		EBML_MasterMandatory((ebml_master*)Element,1);
+
+        if (Unsafe)
+            EBML_MasterUseChecksum((ebml_master*)Element,0);
 
         for (i=EBML_MasterChildren(Element);i;i=j)
 		{
@@ -1173,7 +1178,7 @@ int main(int argc, const char *argv[])
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos = 0, SegmentSize = 0, ClusterSize;
-	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Unsafe = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
     int InputPathIndex = 2;
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
@@ -1412,6 +1417,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
     WSegmentInfo = (ebml_master*)EBML_ElementCopy(RSegmentInfo, NULL);
+    EBML_MasterUseChecksum(WSegmentInfo,!Unsafe);
 
     if (TimeCodeScale!=0)
 	{
@@ -1465,12 +1471,14 @@ int main(int argc, const char *argv[])
 			TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
 			goto exit;
 		}
+        EBML_MasterUseChecksum(WTrackInfo,!Unsafe);
 
 		// count the max track number
 		for (Elt=EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
 		{
 			if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
 			{
+                EBML_MasterUseChecksum((ebml_master*)Elt,!Unsafe);
 				Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackNumber,0,0);
 				if (Elt2 && (size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
 					MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
@@ -1493,6 +1501,7 @@ int main(int argc, const char *argv[])
     EbmlHead = (ebml_master*)EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
         goto exit;
+    EBML_MasterUseChecksum(EbmlHead,!Unsafe);
     NodeTree_Clear((nodetree*)EbmlHead); // remove the default values
     // DocType
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
@@ -1547,10 +1556,12 @@ int main(int argc, const char *argv[])
 	{
 		//  Prepare the Meta Seek
 		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,&MATROSKA_ContextSeekHead,0);
+        EBML_MasterUseChecksum(WMetaSeek,!Unsafe);
 		WMetaSeek->Base.ElementPosition = Stream_Seek(Output,0,SEEK_CUR); // keep the position for when we need to write it
 		NextPos = 100; // dumy position of the SeekHead end
 		// segment info
 		WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+        EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 		WSegmentInfo->Base.ElementPosition = NextPos;
 		NextPos += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0);
 		MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)WSegmentInfo);
@@ -1558,6 +1569,7 @@ int main(int argc, const char *argv[])
 		if (WTrackInfo)
 		{
 			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+            EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 			WTrackInfo->Base.ElementPosition = NextPos;
 			NextPos += EBML_ElementFullSize((ebml_element*)WTrackInfo,0);
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)WTrackInfo);
@@ -1570,6 +1582,7 @@ int main(int argc, const char *argv[])
 		if (RChapters)
 		{
 			ReduceSize((ebml_element*)RChapters);
+            EBML_MasterUseChecksum(RChapters,!Unsafe);
 			if (!EBML_MasterCheckMandatory(RChapters,0))
 			{
 				TextWrite(StdErr,T("The Chapters section is missing mandatory elements, skipping\r\n"));
@@ -1579,6 +1592,7 @@ int main(int argc, const char *argv[])
 			else
 			{
 				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+                EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 				RChapters->Base.ElementPosition = NextPos;
 				NextPos += EBML_ElementFullSize((ebml_element*)RChapters,0);
 				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RChapters);
@@ -1588,6 +1602,7 @@ int main(int argc, const char *argv[])
 		if (RTags)
 		{
 			ReduceSize((ebml_element*)RTags);
+            EBML_MasterUseChecksum(RTags,!Unsafe);
 			if (!EBML_MasterCheckMandatory(RTags,0))
 			{
 				TextWrite(StdErr,T("The Tags section is missing mandatory elements, skipping\r\n"));
@@ -1597,6 +1612,7 @@ int main(int argc, const char *argv[])
 			else
 			{
 				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+                EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 				RTags->Base.ElementPosition = NextPos;
 				NextPos += EBML_ElementFullSize((ebml_element*)RTags,0);
 				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RTags);
@@ -2123,6 +2139,7 @@ int main(int argc, const char *argv[])
     // use the output track settings for each block
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
     {
+        //EBML_MasterUseChecksum((ebml_master*)*Cluster,!Unsafe);
         for (Elt = EBML_MasterChildren(*Cluster);Elt;Elt=(ebml_element*)RLevel1)
         {
             RLevel1 = (ebml_master*)EBML_MasterNext((ebml_master*)Elt);
@@ -2163,11 +2180,14 @@ int main(int argc, const char *argv[])
 				NodeDelete((node*)RCues);
 				RCues = NULL;
 			}
+            else if (EBML_MasterUseChecksum(RCues,!Unsafe))
+                EBML_ElementUpdateSize(RCues,0,0);
 		}
 		if (!RCues && WTrackInfo)
 		{
 			// generate the cues
 			RCues = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
+            EBML_MasterUseChecksum(RCues,!Unsafe);
 			if (!Quiet) TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
 			CuesCreated = GenerateCueEntries(RCues,Clusters,WTrackInfo,WSegmentInfo,(ebml_element*)RSegment);
 			if (!CuesCreated)
@@ -2176,9 +2196,11 @@ int main(int argc, const char *argv[])
 				RCues = NULL;
 			}
 		}
+
 		if (RCues)
 		{
 			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+            EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 			RCues->Base.ElementPosition = NextPos;
 			NextPos += EBML_ElementFullSize((ebml_element*)RCues,0);
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RCues);
@@ -2187,6 +2209,7 @@ int main(int argc, const char *argv[])
 		if (RAttachments)
 		{
 			ReduceSize((ebml_element*)RAttachments);
+            EBML_MasterUseChecksum(RAttachments,!Unsafe);
 			if (!EBML_MasterCheckMandatory(RAttachments,0))
 			{
 				TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
@@ -2196,6 +2219,7 @@ int main(int argc, const char *argv[])
 			else
 			{
 				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+                EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 				RAttachments->Base.ElementPosition = EBML_ElementPositionEnd((ebml_element*)RSegment) - EBML_ElementFullSize((ebml_element*)RAttachments,0); // virutally position the attachment at the end of the segment
 				NextPos += EBML_ElementFullSize((ebml_element*)RAttachments,0);
 				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RAttachments);
@@ -2208,6 +2232,7 @@ int main(int argc, const char *argv[])
             RTags = (ebml_master*)EBML_ElementCreate(WMetaSeek,&MATROSKA_ContextTags,1,NULL);
             RTags->Base.ElementPosition = RSegment->Base.DataSize;
 			WSeekPointTags = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+            EBML_MasterUseChecksum((ebml_master*)WSeekPointTags,!Unsafe);
             MATROSKA_LinkMetaSeekElement(WSeekPointTags,(ebml_element*)RTags);
         }
 
