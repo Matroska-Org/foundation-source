@@ -37,6 +37,7 @@
  * \todo verify that items with a limited set of values don't use other values
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
  * \todo optionally show the use of deprecated elements
+ * \todo support concatenated segments
  */
 
 static textwriter *StdErr = NULL;
@@ -909,6 +910,11 @@ int main(int argc, const char *argv[])
 	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA, 1)!=ERR_NONE)
     {
         Result = OutputError(4,T("Could not read the EBML head"));
+        goto exit;
+    }
+    if (!EBML_MasterIsChecksumValid(EbmlHead))
+    {
+        Result = OutputError(12,T("The EBML header is damaged (invalid CheckSum)"));
         goto exit;
     }
 
