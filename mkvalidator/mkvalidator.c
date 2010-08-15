@@ -1004,8 +1004,9 @@ int main(int argc, const char *argv[])
                 Result |= OutputError(0x170,T("The live stream has a SeekHead at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
+                RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,2)==ERR_NONE)
 			{
 				if (!RSeekHead)
 					RSeekHead = RLevel1;
@@ -1057,7 +1058,7 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextTracks.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,2)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,4)==ERR_NONE)
 			{
 				if (RTrackInfo != NULL)
 					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1125,8 +1126,9 @@ int main(int argc, const char *argv[])
                 Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
+                RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RCues != NULL)
 					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1152,8 +1154,9 @@ int main(int argc, const char *argv[])
                 Result |= OutputError(0x172,T("The live stream has Chapters at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
+                RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,16)==ERR_NONE)
 			{
 				if (RChapters != NULL)
 					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1174,7 +1177,7 @@ int main(int argc, const char *argv[])
 		}
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextTags.Id)
         {
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,4)==ERR_NONE)
 			{
 				if (RTags != NULL)
 					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1200,8 +1203,9 @@ int main(int argc, const char *argv[])
                 Result |= OutputError(0x173,T("The live stream has a Attachments at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
 			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
+                RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,2)==ERR_NONE)
+            else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RAttachments != NULL)
 					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
@@ -1234,6 +1238,7 @@ int main(int argc, const char *argv[])
 			}
 			EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
             NodeDelete((node*)RLevel1);
+            RLevel1 = NULL;
 		}
         TextWrite(StdErr,T(".")); ++DotCount;
 		if (!(DotCount % 60))

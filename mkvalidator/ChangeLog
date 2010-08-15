@@ -1,3 +1,7 @@
+2010-08-15
+version 0.2.2:
+    - fix a potential crash when the last level1 encountered wasn't a legal
+
 2010-08-14
 version 0.2.1:
     - check if the CRC-32 is valid
