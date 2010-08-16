@@ -439,7 +439,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceRende
                         Err = ERR_OUT_OF_MEMORY;
                     else
                     {
-                        filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR);
+                        filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR) + 6;
                         Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
                         Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
                         Err = InternalRender(Element, VOutput, bForceRender, bWithDefault, Rendered);

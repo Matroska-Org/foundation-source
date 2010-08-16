@@ -281,5 +281,6 @@ void EBML_CRCAddBuffer(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
 void EBML_CRCFinalize(ebml_crc *CRC)
 {
 	CRC->CRC ^= CRC32_NEGL;
+    CRC->Base.DataSize = 4;
     CRC->Base.bValueIsSet = 1;
 }
