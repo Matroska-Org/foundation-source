@@ -33,7 +33,6 @@
 #include "matroska/matroska.h"
 
 /*!
- * \todo don't write a Cue if there is only one Cluster
  * \todo write the CRC-32 on Clusters too (make it faster in libebml2)
  * \todo discards tracks that has the same UID
  * \todo remuxing: turn a BlockGroup into a SimpleBlock in v2 profiles and when it makes sense (duration = default track duration) (optimize mode)
@@ -2168,10 +2167,15 @@ int main(int argc, const char *argv[])
 	    //EBML_ElementUpdateSize(*Cluster, 0, 0);
     }
 
-    // cues
 	if (!Live)
 	{
-		if (RCues)
+    // cues
+        if (ARRAYCOUNT(*Clusters,ebml_element*) < 2)
+        {
+            NodeDelete(RCues);
+            RCues = NULL;
+        }
+		else if (RCues)
 		{
 			ReduceSize((ebml_element*)RCues);
 			if (!EBML_MasterCheckMandatory(RCues,0))
@@ -2183,7 +2187,7 @@ int main(int argc, const char *argv[])
             else if (EBML_MasterUseChecksum(RCues,!Unsafe))
                 EBML_ElementUpdateSize(RCues,0,0);
 		}
-		if (!RCues && WTrackInfo)
+		if (!RCues && WTrackInfo && ARRAYCOUNT(*Clusters,ebml_element*) >= 2)
 		{
 			// generate the cues
 			RCues = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
@@ -2205,6 +2209,7 @@ int main(int argc, const char *argv[])
 			NextPos += EBML_ElementFullSize((ebml_element*)RCues,0);
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RCues);
 		}
+
 		// attachements
 		if (RAttachments)
 		{

@@ -1,6 +1,7 @@
-2010-08-xx
+2010-08-16
 version 0.5.3:
     - write CRC-32 elements on key parts for better file safety (not in unsafe mode)
+    - don't write a Cue if there is only one Cluster
 
 2010-08-08
 version 0.5.2:
