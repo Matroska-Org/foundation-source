@@ -1291,8 +1291,10 @@ static size_t GetBlockHeadSize(const matroska_block *Element)
         return 5;
 }
 
-err_t MATROSKA_BlockReleaseData(matroska_block *Block)
+err_t MATROSKA_BlockReleaseData(matroska_block *Block, bool_t NotRead)
 {
+    if (!NotRead && Block->GlobalTimecode==INVALID_TIMECODE_T)
+        return ERR_NONE;
     ArrayClear(&Block->Data);
     Block->Base.Base.bValueIsSet = 0;
     if (ARRAYCOUNT(Block->SizeListIn,int32_t))
