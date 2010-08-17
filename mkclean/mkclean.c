@@ -268,13 +268,13 @@ static err_t UnReadClusterData(ebml_master *Cluster)
             {
                 if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
                 {
-                    Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock);
+                    Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock,0);
                     break;
                 }
             }
         }
         else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-            Result = MATROSKA_BlockReleaseData((matroska_block*)Block);
+            Result = MATROSKA_BlockReleaseData((matroska_block*)Block,0);
     }
     return Result;
 }
@@ -1146,7 +1146,7 @@ static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream
         if (ARRAYCOUNT(*TrackHeader,uint8_t)==0)
             break;
     }
-    MATROSKA_BlockReleaseData(Block);
+    MATROSKA_BlockReleaseData(Block,0);
 }
 
 static void ClearCommonHeader(array *TrackHeader)
@@ -2000,7 +2000,7 @@ int main(int argc, const char *argv[])
 									    goto exit;
 								    }
 							    }
-                                MATROSKA_BlockReleaseData(pBlockInfo->Block);
+                                MATROSKA_BlockReleaseData(pBlockInfo->Block,1);
                             }
 						}
 
@@ -2172,7 +2172,7 @@ int main(int argc, const char *argv[])
     // cues
         if (ARRAYCOUNT(*Clusters,ebml_element*) < 2)
         {
-            NodeDelete(RCues);
+            NodeDelete((node*)RCues);
             RCues = NULL;
         }
 		else if (RCues)

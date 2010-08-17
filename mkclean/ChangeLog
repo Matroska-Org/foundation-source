@@ -1,3 +1,7 @@
+2010-08-17
+version 0.5.4:
+    - fix a potential use of free'd memory when using the --optimize mode with --remux
+
 2010-08-16
 version 0.5.3:
     - write CRC-32 elements on key parts for better file safety (not in unsafe mode)
