@@ -879,6 +879,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *RAttachmen
 			{
 				TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(Profile),TrackNum);
 				NodeDelete((node*)CurTrack);
+                continue;
 			}
 		}
 
@@ -2510,6 +2511,9 @@ exit:
         StreamClose(Input);
     if (Output)
         StreamClose(Output);
+
+    if (Result<0)
+        FileErase(&p,Path,1,0);
 
     // EBML & Matroska ending
     MATROSKA_Done((nodecontext*)&p);

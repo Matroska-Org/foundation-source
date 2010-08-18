@@ -2,6 +2,7 @@
 version 0.5.5:
     - fix a timecode bug when --timecodescale was specified on input
     - fix command line errors when --doctype x was used as the last param
+    - delete the output file in case the output file didn't finish correctly
 
 2010-08-17
 version 0.5.4:
