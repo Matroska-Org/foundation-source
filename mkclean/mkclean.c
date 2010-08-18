@@ -1825,8 +1825,8 @@ int main(int argc, const char *argv[])
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterReadSegmentInfo(ClusterW, RSegmentInfo, 1);
-			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster ?
 			MATROSKA_LinkClusterWriteSegmentInfo(ClusterW, WSegmentInfo);
+			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster ?
 
 			if ((Tst+1)==ARRAYEND(KeyFrameTimecodes, timecode_t))
 				MasterEnd = INVALID_TIMECODE_T;
