@@ -1,3 +1,7 @@
+2010-08-xx
+version 0.5.5:
+    - fix command line errors when --doctype x was used as the last param
+
 2010-08-17
 version 0.5.4:
     - fix a potential use of free'd memory when using the --optimize mode with --remux

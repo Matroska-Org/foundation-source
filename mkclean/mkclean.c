@@ -1178,7 +1178,7 @@ int main(int argc, const char *argv[])
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos = 0, SegmentSize = 0, ClusterSize;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
-    int InputPathIndex = 2;
+    int InputPathIndex;
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
     array TrackMaxHeader; // array of uint8_t (max common header)
@@ -1210,10 +1210,10 @@ int main(int argc, const char *argv[])
 	for (i=1;i<argc;++i)
 	{
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
-		if (tcsisame_ascii(Path,T("--keep-cues"))) KeepCues = 1;
-		else if (tcsisame_ascii(Path,T("--remux"))) Remux = 1;
-		else if (tcsisame_ascii(Path,T("--live"))) Live = 1;
-		else if (tcsisame_ascii(Path,T("--doctype")) && i+1<argc-2)
+		if (tcsisame_ascii(Path,T("--keep-cues"))) { KeepCues = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--remux"))) { Remux = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--live"))) { Live = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--doctype")) && i+1<argc-1)
 		{
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 			if (tcsisame_ascii(Path,T("1")))
@@ -1230,28 +1230,23 @@ int main(int argc, const char *argv[])
 				Result = -8;
 				goto exit;
 			}
+			InputPathIndex = i+1;
 		}
-		else if (tcsisame_ascii(Path,T("--timecodescale")) && i+1<argc-2)
+		else if (tcsisame_ascii(Path,T("--timecodescale")) && i+1<argc-1)
 		{
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 			TimeCodeScale = StringToInt(Path,0);
+			InputPathIndex = i+1;
 		}
-		else if (tcsisame_ascii(Path,T("--unsafe"))) Unsafe = 1;
-		else if (tcsisame_ascii(Path,T("--optimize"))) Optimize = 1;
-		else if (tcsisame_ascii(Path,T("--no-optimize"))) UnOptimize = 1;
-		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
-		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
-        else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
+		else if (tcsisame_ascii(Path,T("--unsafe"))) { Unsafe = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--optimize"))) { Optimize = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--no-optimize"))) { UnOptimize = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--quiet"))) { Quiet = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--version"))) { ShowVersion = 1; InputPathIndex = i+1; }
+        else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; InputPathIndex = i+1; }
 		else if (i<argc-2) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
     
-    if (argc > 1)
-    {
-        if (argc==2 || (argv[argc-2][0]=='-' && argv[argc-2][1]=='-'))
-            if (argv[argc-1][0]!='-' || argv[argc-1][1]!='-')
-                InputPathIndex = 1;
-    }
-
     if (argc < (1+InputPathIndex) || ShowVersion)
     {
         TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
@@ -1279,7 +1274,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-InputPathIndex]);
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
@@ -1288,7 +1283,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    if (InputPathIndex==1)
+    if (InputPathIndex==argc-1)
     {
         tchar_t Ext[MAXDATA];
         SplitPath(Path,Original,TSIZEOF(Original),String,TSIZEOF(String),Ext,TSIZEOF(Ext));
