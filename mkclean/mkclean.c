@@ -529,7 +529,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
 {
     ebml_parser_context SubContext;
     ebml_element *SubElement;
-    int UpperElement;
+    int UpperElement=0;
     tchar_t String[MAXLINE];
 
     SubContext.UpContext = Parser;
@@ -1340,6 +1340,8 @@ int main(int argc, const char *argv[])
     NodeDelete((node*)EbmlHead);
     EbmlHead = NULL;
 
+    RContext.EndPosition = EBML_ElementPositionEnd(RSegment); // avoid reading too far some dummy/void elements for this segment
+
     // locate the Segment Info, Track Info, Chapters, Tags, Attachments, Cues Clusters*
     RSegmentContext.Context = &MATROSKA_ContextSegment;
     RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
@@ -1382,7 +1384,7 @@ int main(int argc, const char *argv[])
         else if (RLevel1->Base.Context->Id == MATROSKA_ContextCluster.Id)
         {
 			// only partially read the Cluster data (not the data inside the blocks)
-            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_PARTIAL_DATA,0)==ERR_NONE)
+            if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,!Remux,SCOPE_PARTIAL_DATA,0)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				// remove MATROSKA_ContextClusterPosition and MATROSKA_ContextClusterPrevSize until supported
@@ -1393,6 +1395,7 @@ int main(int argc, const char *argv[])
 				if (EbmlHead)
 					NodeDelete((node*)EbmlHead);
 				EbmlHead = NULL;
+                EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
 			}
         }
         else
@@ -2513,7 +2516,7 @@ exit:
         StreamClose(Output);
 
     if (Result<0)
-        FileErase(&p,Path,1,0);
+        FileErase((nodecontext*)&p,Path,1,0);
 
     // EBML & Matroska ending
     MATROSKA_Done((nodecontext*)&p);
