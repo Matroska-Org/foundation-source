@@ -980,6 +980,9 @@ int main(int argc, const char *argv[])
     RSegmentContext.Context = &MATROSKA_ContextSegment;
     RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
     RSegmentContext.UpContext = &RContext;
+
+    RContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
+
 	UpperElement = 0;
 	DotCount = 0;
 //TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
@@ -996,6 +999,7 @@ int main(int argc, const char *argv[])
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
 				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
+                EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
 			}
 			else
 			{
