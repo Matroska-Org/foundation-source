@@ -100,6 +100,7 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 			}
 			
 			if (Result != NULL) {
+                Stream_Seek(Input, Result->ElementPosition, SEEK_SET);
 #ifdef TODO
 				unsigned int EltIndex;
 				// data known in this Master's context
