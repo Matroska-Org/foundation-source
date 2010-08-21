@@ -4,6 +4,7 @@ version 0.5.5:
     - improve the recovery of damaged files
     - fix command line errors when --doctype x was used as the last param
     - delete the output file in case the output file didn't finish correctly
+    - add a timecode offset to files created with --live as live streams usually don't start at 0
 
 2010-08-17
 version 0.5.4:

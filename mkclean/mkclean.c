@@ -427,10 +427,11 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master *Tracks, int DstProfile, array *WTracks)
+static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master *Tracks, int DstProfile, array *WTracks, timecode_t Offset)
 {
     matroska_cluster **Cluster;
 	ebml_element *Block, *GBlock, *BlockTrack, *Type;
+    ebml_integer *Time;
     int BlockNum;
 
 	// find out if the Clusters use forbidden features for that DstProfile
@@ -452,6 +453,12 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 	{
+        if (Offset != INVALID_TIMECODE_T)
+        {
+            Time = (ebml_integer*)EBML_MasterFindFirstElt((ebml_master*)*Cluster, &MATROSKA_ContextClusterTimecode, 1, 1);
+            if (Time)
+                EBML_IntegerSetValue(Time, Offset + EBML_IntegerValue(Time));
+        }
 		MATROSKA_LinkClusterBlocks(*Cluster, RSegmentInfo, Tracks, 0);
 		ReduceSize((ebml_element*)*Cluster);
 	}
@@ -1341,7 +1348,7 @@ int main(int argc, const char *argv[])
     NodeDelete((node*)EbmlHead);
     EbmlHead = NULL;
 
-    RContext.EndPosition = EBML_ElementPositionEnd(RSegment); // avoid reading too far some dummy/void elements for this segment
+    RContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment); // avoid reading too far some dummy/void elements for this segment
 
     // locate the Segment Info, Track Info, Chapters, Tags, Attachments, Cues Clusters*
     RSegmentContext.Context = &MATROSKA_ContextSegment;
@@ -1619,7 +1626,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile, &WTracks);
+    Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile, &WTracks, Live?12345:INVALID_TIMECODE_T);
 	if (Result!=0)
 		goto exit;
 
