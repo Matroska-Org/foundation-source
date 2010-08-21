@@ -246,7 +246,7 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 
     Result = EBML_ElementRenderData(Element, Output, bForceRender, bWithDefault, &WrittenSize);
 #if !defined(NDEBUG)
-    if (SupposedSize != (0-1)) assert(WrittenSize == SupposedSize);
+    if (SupposedSize != INVALID_FILEPOS_T) assert(WrittenSize == SupposedSize);
 #endif
     *Rendered += WrittenSize;
 
