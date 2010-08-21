@@ -1164,6 +1164,13 @@ static void ClearCommonHeader(array *TrackHeader)
         TrackHeader->_Begin = NULL;
 }
 
+static void WriteJunk(stream *Output, size_t Amount)
+{
+	char Val = 0x0A;
+	while (Amount--)
+		Stream_Write(Output,&Val,1,NULL);
+}
+
 int main(int argc, const char *argv[])
 {
     int i,Result = 0;
@@ -1624,6 +1631,11 @@ int main(int argc, const char *argv[])
 				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RTags);
 			}
 		}
+	}
+	else
+	{
+		WriteJunk(Output,134);
+		NextPos += 134;
 	}
 
     Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile, &WTracks, Live?12345:INVALID_TIMECODE_T);
