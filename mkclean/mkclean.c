@@ -280,7 +280,7 @@ static err_t UnReadClusterData(ebml_master *Cluster)
     return Result;
 }
 
-static void SetClusterPrevSize(array *Clusters, stream *Input)
+static void SetClusterPrevSize(array *Clusters, stream *Input, bool_t Live)
 {
     ebml_master **Cluster;
     ebml_element *Elt, *Elt2;
@@ -304,7 +304,8 @@ static void SetClusterPrevSize(array *Clusters, stream *Input)
                 ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
                 EBML_ElementUpdateSize(*Cluster,0,1);
             }
-        }
+        } else EBML_ElementUpdateSize(*Cluster,0,1);
+        EBML_ElementSetInfiniteSize((ebml_element*)*Cluster,Live);
         ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
 
         if (Input!=NULL)
@@ -2387,7 +2388,7 @@ int main(int argc, const char *argv[])
 		SegmentSize += EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
 	}
     else if (!Unsafe)
-        SetClusterPrevSize(Clusters, ClustersNeedRead?Input:NULL);
+        SetClusterPrevSize(Clusters, ClustersNeedRead?Input:NULL, Live);
 
     if (EBML_ElementRender((ebml_element*)WSegmentInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
     {
@@ -2442,7 +2443,6 @@ int main(int argc, const char *argv[])
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
     {
         ShowProgress((ebml_element*)*Cluster,(ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
-        EBML_ElementSetInfiniteSize((ebml_element*)*Cluster,Live);
         WriteCluster(*Cluster,Output,Input, Live, ClusterSize);
         if (!Unsafe)
             ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);

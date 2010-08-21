@@ -6,6 +6,7 @@ version 0.5.5:
     - delete the output file in case the output file didn't finish correctly
     - add a timecode offset to files created with --live as live streams usually don't start at 0
     - write some junk before the first cluster in --live mode, like a dumb server would do
+    - fix the PrevSize computing in the --live mode
 
 2010-08-17
 version 0.5.4:
