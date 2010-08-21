@@ -641,7 +641,9 @@ static int CheckVideoStart()
 				    if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
 				    {
                         BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
-                        if (MATROSKA_BlockKeyframe((matroska_block*)GBlock))
+						if (BlockNum > ARRAYCOUNT(TrackKeyframe,bool_t))
+							OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64,(int)BlockNum,(*Cluster)->Base.ElementPosition);
+                        else if (MATROSKA_BlockKeyframe((matroska_block*)GBlock))
                             ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                         else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
                         {
@@ -655,7 +657,9 @@ static int CheckVideoStart()
 		    else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
 		    {
                 BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
-                if (MATROSKA_BlockKeyframe((matroska_block*)Block))
+				if (BlockNum > ARRAYCOUNT(TrackKeyframe,bool_t))
+                    OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64,(int)BlockNum,(*Cluster)->Base.ElementPosition);
+                else if (MATROSKA_BlockKeyframe((matroska_block*)Block))
                     ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                 else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
                 {

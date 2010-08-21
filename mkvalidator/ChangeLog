@@ -3,6 +3,7 @@ version 0.2.2:
     - better error reporting for damaged files
     - fix a potential crash when the last level1 encountered wasn't a legal element
     - check the CRC-32 in the EBML head too
+    - don't crash when a Block with an invalid ID is found
 
 2010-08-14
 version 0.2.1:
