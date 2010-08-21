@@ -182,8 +182,8 @@ static filepos_t UpdateSize(ebml_master *Element, bool_t bWithDefault, bool_t bF
 
 	Element->Base.DataSize = 0;
 
-	if (!EBML_ElementIsFiniteSize((ebml_element*)Element))
-		return INVALID_FILEPOS_T;
+	//if (!EBML_ElementIsFiniteSize((ebml_element*)Element))
+	//	return INVALID_FILEPOS_T;
 
 	if (!bForceRender) {
 		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
