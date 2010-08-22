@@ -1,4 +1,4 @@
-2010-08-xx
+2010-08-22
 version 0.5.5:
     - fix a timecode bug when --timecodescale was specified on input
     - improve the recovery of damaged files
