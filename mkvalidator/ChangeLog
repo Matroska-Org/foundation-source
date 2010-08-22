@@ -1,4 +1,4 @@
-2010-08-xx
+2010-08-22
 version 0.2.2:
     - better error reporting for damaged files
     - fix a potential crash when the last level1 encountered wasn't a legal element
