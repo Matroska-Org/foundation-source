@@ -1411,7 +1411,9 @@ int main(int argc, const char *argv[])
 				if (EbmlHead)
 					NodeDelete((node*)EbmlHead);
 				EbmlHead = NULL;
-                EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+                RLevel1 = (ebml_master*)EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+                if (RLevel1 != NULL)
+                    continue;
 			}
         }
         else
