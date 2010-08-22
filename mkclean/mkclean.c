@@ -1558,7 +1558,13 @@ int main(int argc, const char *argv[])
 	if (Live)
 		EBML_ElementSetInfiniteSize((ebml_element*)WSegment,1);
 	else
-		WSegment->Base.DataSize = RSegment->Base.DataSize; // temporary value
+    {
+        // temporary value
+        if (EBML_ElementIsFiniteSize(RSegment))
+		    WSegment->Base.DataSize = RSegment->Base.DataSize;
+        else
+            WSegment->Base.SizeLength = EBML_MAX_SIZE;
+    }
     if (EBML_ElementRenderHead((ebml_element*)WSegment,Output,0,NULL)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the (temporary) Segment head\r\n"));
@@ -2189,7 +2195,7 @@ int main(int argc, const char *argv[])
 
 	if (!Live)
 	{
-    // cues
+        // cues
         if (ARRAYCOUNT(*Clusters,ebml_element*) < 2)
         {
             NodeDelete((node*)RCues);
@@ -2466,7 +2472,7 @@ int main(int argc, const char *argv[])
     // update the WSegment size
 	if (!Live)
 	{
-		if (SegmentSize - ExtraSizeDiff > WSegment->Base.DataSize)
+		if (WSegment->Base.DataSize!=INVALID_FILEPOS_T && SegmentSize - ExtraSizeDiff > WSegment->Base.DataSize)
 		{
 			if (EBML_CodedSizeLength(SegmentSize,WSegment->Base.SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->Base.SizeLength,0))
 			{
