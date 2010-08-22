@@ -832,7 +832,7 @@ int main(int argc, const char *argv[])
     stream *Input = NULL;
     tchar_t Path[MAXPATHFULL];
     tchar_t String[MAXLINE];
-    ebml_master *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, **Cluster;
+    ebml_master *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, *RLevelX, **Cluster;
 	ebml_element *EbmlDocVer, *EbmlReadDocVer;
     ebml_string *LibName, *AppName;
     ebml_parser_context RContext;
@@ -994,6 +994,7 @@ int main(int argc, const char *argv[])
     RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
 	{
+        RLevelX = NULL;
         if (RLevel1->Base.Context->Id == MATROSKA_ContextCluster.Id)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,0,SCOPE_PARTIAL_DATA,4)==ERR_NONE)
@@ -1003,7 +1004,7 @@ int main(int argc, const char *argv[])
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
 				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
-                EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+                RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
 			}
 			else
 			{
@@ -1016,7 +1017,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x170,T("The live stream has a SeekHead at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
-			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+			    RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
             }
@@ -1138,7 +1139,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
-			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+			    RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
             }
@@ -1166,7 +1167,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x172,T("The live stream has Chapters at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
-			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+			    RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
             }
@@ -1215,7 +1216,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x173,T("The live stream has a Attachments at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
-			    EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+			    RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
             }
@@ -1250,7 +1251,7 @@ int main(int argc, const char *argv[])
 			{
 				VoidAmount += EBML_ElementFullSize((ebml_element*)RLevel1,0);
 			}
-			EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+			RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
             NodeDelete((node*)RLevel1);
             RLevel1 = NULL;
 		}
@@ -1259,7 +1260,10 @@ int main(int argc, const char *argv[])
 			TextWrite(StdErr,T("\r                                                              \r"));
 
 		Prev = RLevel1;
-		RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
+        if (RLevelX)
+            RLevel1 = RLevelX;
+        else
+		    RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
 	}
 
 	if (!RSegmentInfo)
