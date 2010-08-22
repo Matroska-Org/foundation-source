@@ -90,45 +90,10 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 		Stream_Seek(Input, EBML_ElementPositionEnd(p), SEEK_SET);
 	} else {
 		// read elements until an upper element is found
-		bool_t bEndFound = 0;
-		while (!bEndFound && Result == NULL) {
-			if (TestReadElt == NULL) {
-				int bUpperElement = 0; // trick to call FindNextID correctly
-				Result = EBML_FindNextElement(Input, Context, &bUpperElement, AllowDummyElt);
-			} else {
-				Result = TestReadElt;
-			}
-			
-			if (Result != NULL) {
-                Stream_Seek(Input, Result->ElementPosition, SEEK_SET);
-#ifdef TODO
-				unsigned int EltIndex;
-				// data known in this Master's context
-				for (EltIndex = 0; EltIndex < Context.DataSize; EltIndex++) {
-					if (EbmlId(*Result) == Context.MyTable[EltIndex].GetCallbacks.GlobalId) {
-						// skip the data with its own context
-						Result = Result->SkipData(DataStream, Context.MyTable[EltIndex].GetCallbacks.Context, NULL);
-						break; // let's go to the next ID
-					}
-				}
-
-				if (EltIndex >= Context.DataSize) {
-					if (Context.UpTable != NULL) {
-						Result = SkipData(DataStream, *Context.UpTable, Result);
-					} else {
-						assert(Context.GetGlobalContext != NULL);
-						if (Context != Context.GetGlobalContext()) {
-							Result = SkipData(DataStream, Context.GetGlobalContext(), Result);
-						} else {
-							bEndFound = 1;
-						}
-					}
-				}
-#endif
-			} else {
-				bEndFound = 1;
-			}
-		}
+		int bUpperElement = 0; // trick to call FindNextID correctly
+		Result = EBML_FindNextElement(Input, Context, &bUpperElement, AllowDummyElt);
+		if (Result != NULL)
+            Stream_Seek(Input, EBML_ElementPositionData(Result), SEEK_SET);
 	}
 	return Result;
 }
