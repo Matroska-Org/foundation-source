@@ -1434,7 +1434,11 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             else
 #endif
             {
-                ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0);
+                if (!ArrayResize(&Element->Data,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0],0))
+                {
+                    Err = ERR_OUT_OF_MEMORY;
+                    goto failed;
+                }
                 InBuf = ARRAYBEGIN(Element->Data,uint8_t);
                 if (Header)
                 {
@@ -1523,7 +1527,11 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             else
 #endif
             {
-                ArrayResize(&Element->Data,BufSize,0);
+                if (!ArrayResize(&Element->Data,BufSize,0))
+                {
+                    Err = ERR_OUT_OF_MEMORY;
+                    goto failed;
+                }
                 if (!Header)
                 {
                     //assert(BufSize + Element->FirstFrameLocation == Element->Base.Base.DataSize);
