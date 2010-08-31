@@ -269,13 +269,13 @@ static err_t UnReadClusterData(ebml_master *Cluster)
             {
                 if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
                 {
-                    Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock,0);
+                    Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock,1);
                     break;
                 }
             }
         }
         else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-            Result = MATROSKA_BlockReleaseData((matroska_block*)Block,0);
+            Result = MATROSKA_BlockReleaseData((matroska_block*)Block,1);
     }
     return Result;
 }

@@ -1,3 +1,7 @@
+2010-08-xx
+version 0.5.6:
+    - fix a major memory leak that could result in unexpected errors with large file
+
 2010-08-22
 version 0.5.5:
     - fix a timecode bug when --timecodescale was specified on input
