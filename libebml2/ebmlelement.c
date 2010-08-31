@@ -195,6 +195,10 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 
     assert(Element->bValueIsSet || (bWithDefault && Element->bDefaultIsSet)); // an element is been rendered without a value set !!!
 		                 // it may be a mandatory element without a default value
+
+    if (!(Element->bValueIsSet || (bWithDefault && Element->bDefaultIsSet)))
+		return ERR_INVALID_DATA;
+
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return ERR_INVALID_DATA;
 
