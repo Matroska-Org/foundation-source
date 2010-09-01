@@ -257,7 +257,7 @@ static err_t ReadClusterData(ebml_master *Cluster, stream *Input)
     return Result;
 }
 
-static err_t UnReadClusterData(ebml_master *Cluster)
+static err_t UnReadClusterData(ebml_master *Cluster, bool_t IncludingNotRead)
 {
     err_t Result = ERR_NONE;
     ebml_element *Block, *GBlock;
@@ -269,13 +269,13 @@ static err_t UnReadClusterData(ebml_master *Cluster)
             {
                 if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
                 {
-                    Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock,1);
+                    Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock,IncludingNotRead);
                     break;
                 }
             }
         }
         else if (Block->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
-            Result = MATROSKA_BlockReleaseData((matroska_block*)Block,1);
+            Result = MATROSKA_BlockReleaseData((matroska_block*)Block,IncludingNotRead);
     }
     return Result;
 }
@@ -309,7 +309,7 @@ static void SetClusterPrevSize(array *Clusters, stream *Input, bool_t Live)
         ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
 
         if (Input!=NULL)
-            UnReadClusterData(*Cluster);
+            UnReadClusterData(*Cluster, 0);
     }
 }
 
@@ -365,7 +365,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
         ClusterPos += ClusterSize;
 
         if (Input!=NULL)
-            UnReadClusterData(*Cluster);
+            UnReadClusterData(*Cluster, 0);
     }
 
     // reevaluate the size needed for the Cues
@@ -642,7 +642,7 @@ static void WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, bo
 
     EBML_ElementRender((ebml_element*)Cluster,Output,0,0,1,NULL,0);
 
-    UnReadClusterData(Cluster);
+    UnReadClusterData(Cluster, 1);
 
     if (!Live && Cluster->Base.ElementPosition != IntendedPosition)
         TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), Cluster->Base.ElementPosition,IntendedPosition);
@@ -1156,7 +1156,7 @@ static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream
         if (ARRAYCOUNT(*TrackHeader,uint8_t)==0)
             break;
     }
-    MATROSKA_BlockReleaseData(Block,0);
+    MATROSKA_BlockReleaseData(Block,1);
 }
 
 static void ClearCommonHeader(array *TrackHeader)
@@ -2028,7 +2028,7 @@ int main(int argc, const char *argv[])
 									    goto exit;
 								    }
 							    }
-                                MATROSKA_BlockReleaseData(pBlockInfo->Block,1);
+                                MATROSKA_BlockReleaseData(pBlockInfo->Block,0);
                             }
 						}
 
