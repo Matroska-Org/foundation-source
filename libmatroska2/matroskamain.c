@@ -414,6 +414,35 @@ const ebml_context MATROSKA_ContextTrickTrackFlag = {0xC6, EBML_INTEGER_CLASS, 1
 const ebml_context MATROSKA_ContextTrickMasterTrackUID = {0xC7, EBML_INTEGER_CLASS, 0, 0, "MasterTrackUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrickMasterTrackSegUID = {0xC4, EBML_BINARY_CLASS, 0, 0, "MasterTrackSegUID", NULL, EBML_SemanticGlobals, NULL};
 
+
+const ebml_context MATROSKA_ContextTrackPlaneLeftUID       = {0xE4, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneLeftUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackPlaneRightUID      = {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneRightUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackPlaneBackgroundUID = {0xE6, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneBackgroundUID", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticTrackCombinePlanes[] = {
+    {0, 0, &MATROSKA_ContextTrackPlaneLeftUID       ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, &MATROSKA_ContextTrackPlaneRightUID      ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, &MATROSKA_ContextTrackPlaneBackgroundUID ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+
+const ebml_context MATROSKA_ContextTrackJoinUID = {0xED, EBML_INTEGER_CLASS, 0, 0, "TrackJoinUID", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticTrackJoinBlocks[] = {
+    {1, 0, &MATROSKA_ContextTrackJoinUID ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+
+const ebml_context MATROSKA_ContextTrackCombinePlanes = {0xE3, EBML_MASTER_CLASS, 0, 0, "TrackCombinePlanes", EBML_SemanticTrackCombinePlanes, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackJoinBlocks    = {0xE9, EBML_MASTER_CLASS, 0, 0, "TrackJoinBlocks", EBML_SemanticTrackJoinBlocks, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticTrackOperation[] = {
+    {0, 1, &MATROSKA_ContextTrackCombinePlanes ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackJoinBlocks    ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextTrackOperation = {0xE2, EBML_MASTER_CLASS, 0, 0, "TrackOperation", EBML_SemanticTrackOperation, EBML_SemanticGlobals, NULL};
+
 const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextTrackNumber             ,0},
     {1, 1, &MATROSKA_ContextTrackUID                ,0},
@@ -439,6 +468,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 1, &MATROSKA_ContextTrackEncodings          ,0},
     {0, 0, &MATROSKA_ContextTrackTranslate          ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {1, 1, &MATROSKA_ContextTrackCodecDecodeAll     ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
+    {0, 1, &MATROSKA_ContextTrackOperation          ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     // DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
     {0, 1, &MATROSKA_ContextTrickTrackUID           ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 1, &MATROSKA_ContextTrickTrackSegUID        ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
@@ -449,27 +479,8 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
 };
 const ebml_context MATROSKA_ContextTrackEntry = {0xAE, EBML_MASTER_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
 
-const ebml_context MATROSKA_ContextTrackDependencyUID = {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackDependencyUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackDependencyStereoPos = {0xE9, EBML_INTEGER_CLASS, 0, 0, "TrackDependencyStereoPos", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackDependencyItem[] = {
-    {1, 1, &MATROSKA_ContextTrackDependencyUID ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_ContextTrackDependencyStereoPos ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTrackDependencyItem = {0xE4, EBML_MASTER_CLASS, 0, 0, "TrackDependencyItem", EBML_SemanticTrackDependencyItem, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackDependencyType = {0xE3, EBML_INTEGER_CLASS, 0, 0, "TrackDependencyType", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackDependency[] = {
-    {1, 1, &MATROSKA_ContextTrackDependencyType ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {1, 0, &MATROSKA_ContextTrackDependencyItem ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTrackDependency = {0xE2, EBML_MASTER_CLASS, 0, 0, "TrackDependency", EBML_SemanticTrackDependency, EBML_SemanticGlobals, NULL};
-
 const ebml_semantic EBML_SemanticTracks[] = {
     {1, 0, &MATROSKA_ContextTrackEntry      ,0},
-    {0, 0, &MATROSKA_ContextTrackDependency ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTracks = {0x1654AE6B, EBML_MASTER_CLASS, 0, 0, "Tracks", EBML_SemanticTracks, EBML_SemanticGlobals, NULL};
