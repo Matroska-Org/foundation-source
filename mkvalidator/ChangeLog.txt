@@ -1,3 +1,7 @@
+2010-09-02
+version 0.2.3:
+    - fix the UNIX source package
+
 2010-08-22
 version 0.2.2:
     - better error reporting for damaged files
