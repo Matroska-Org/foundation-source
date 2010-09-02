@@ -1,6 +1,7 @@
-2010-08-xx
+2010-09-02
 version 0.5.6:
     - fix a major memory leak that could result in unexpected errors with large file
+    - fix the UNIX source package
 
 2010-08-22
 version 0.5.5:
