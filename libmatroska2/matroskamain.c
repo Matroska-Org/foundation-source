@@ -415,14 +415,19 @@ const ebml_context MATROSKA_ContextTrickMasterTrackUID = {0xC7, EBML_INTEGER_CLA
 const ebml_context MATROSKA_ContextTrickMasterTrackSegUID = {0xC4, EBML_BINARY_CLASS, 0, 0, "MasterTrackSegUID", NULL, EBML_SemanticGlobals, NULL};
 
 
-const ebml_context MATROSKA_ContextTrackPlaneLeftUID       = {0xE4, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneLeftUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackPlaneRightUID      = {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneRightUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackPlaneBackgroundUID = {0xE6, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneBackgroundUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackPlaneUID  = {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackPlaneType = {0xE6, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneType", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticTrackPlane[] = {
+    {1, 1, &MATROSKA_ContextTrackPlaneUID  ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 1, &MATROSKA_ContextTrackPlaneType ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 0, NULL ,0} // end of the table
+};
+
+const ebml_context MATROSKA_ContextTrackPlane = {0xE4, EBML_MASTER_CLASS, 0, 0, "TrackPlane", EBML_SemanticTrackPlane, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTrackCombinePlanes[] = {
-    {0, 0, &MATROSKA_ContextTrackPlaneLeftUID       ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 0, &MATROSKA_ContextTrackPlaneRightUID      ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 0, &MATROSKA_ContextTrackPlaneBackgroundUID ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {1, 0, &MATROSKA_ContextTrackPlane ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
 
