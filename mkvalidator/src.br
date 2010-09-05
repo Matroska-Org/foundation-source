@@ -17,6 +17,7 @@
 %(¯!BASE)configure %(PROJECT_NAME)-%(PROJECT_VERSION)/configure
 
 
+%(!ROOTPATH)corec/tools/coremake/coremake -
 *.br -
 *.vs -
 Makefile -
