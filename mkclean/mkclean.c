@@ -1433,7 +1433,8 @@ int main(int argc, const char *argv[])
         goto exit;
     }
     WSegmentInfo = (ebml_master*)EBML_ElementCopy(RSegmentInfo, NULL);
-    EBML_MasterUseChecksum(WSegmentInfo,!Unsafe);
+    if (EBML_MasterUseChecksum(WSegmentInfo,!Unsafe))
+        EBML_ElementUpdateSize(WSegmentInfo, 0, 0);
 
     if (TimeCodeScale!=0)
 	{
@@ -1487,14 +1488,16 @@ int main(int argc, const char *argv[])
 			TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
 			goto exit;
 		}
-        EBML_MasterUseChecksum(WTrackInfo,!Unsafe);
+        if (EBML_MasterUseChecksum(WTrackInfo,!Unsafe))
+            EBML_ElementUpdateSize(WTrackInfo, 0, 0);
 
 		// count the max track number
 		for (Elt=EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
 		{
 			if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
 			{
-                EBML_MasterUseChecksum((ebml_master*)Elt,!Unsafe);
+                if (EBML_MasterUseChecksum((ebml_master*)Elt,!Unsafe))
+                    EBML_ElementUpdateSize((ebml_master*)Elt, 0, 0);
 				Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackNumber,0,0);
 				if (Elt2 && (size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
 					MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
@@ -1517,7 +1520,8 @@ int main(int argc, const char *argv[])
     EbmlHead = (ebml_master*)EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
         goto exit;
-    EBML_MasterUseChecksum(EbmlHead,!Unsafe);
+    if (EBML_MasterUseChecksum(EbmlHead,!Unsafe))
+        EBML_ElementUpdateSize(EbmlHead, 0, 0);
     NodeTree_Clear((nodetree*)EbmlHead); // remove the default values
     // DocType
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
@@ -1604,7 +1608,8 @@ int main(int argc, const char *argv[])
 		if (RChapters)
 		{
 			ReduceSize((ebml_element*)RChapters);
-            EBML_MasterUseChecksum(RChapters,!Unsafe);
+            if (EBML_MasterUseChecksum(RChapters,!Unsafe))
+                EBML_ElementUpdateSize(RChapters, 0, 0);
 			if (!EBML_MasterCheckMandatory(RChapters,0))
 			{
 				TextWrite(StdErr,T("The Chapters section is missing mandatory elements, skipping\r\n"));
@@ -1624,7 +1629,8 @@ int main(int argc, const char *argv[])
 		if (RTags)
 		{
 			ReduceSize((ebml_element*)RTags);
-            EBML_MasterUseChecksum(RTags,!Unsafe);
+            if (EBML_MasterUseChecksum(RTags,!Unsafe))
+                EBML_ElementUpdateSize(RTags, 0, 0);
 			if (!EBML_MasterCheckMandatory(RTags,0))
 			{
 				TextWrite(StdErr,T("The Tags section is missing mandatory elements, skipping\r\n"));
@@ -2242,7 +2248,8 @@ int main(int argc, const char *argv[])
 		if (RAttachments)
 		{
 			ReduceSize((ebml_element*)RAttachments);
-            EBML_MasterUseChecksum(RAttachments,!Unsafe);
+            if (EBML_MasterUseChecksum(RAttachments,!Unsafe))
+                EBML_ElementUpdateSize(RAttachments, 0, 0);
 			if (!EBML_MasterCheckMandatory(RAttachments,0))
 			{
 				TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
