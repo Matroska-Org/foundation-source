@@ -640,7 +640,7 @@ static void WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, bo
 
     ReadClusterData(Cluster, Input);
 
-    EBML_ElementRender((ebml_element*)Cluster,Output,0,0,1,NULL,0);
+    EBML_ElementRender((ebml_element*)Cluster,Output,0,0,1,NULL);
 
     UnReadClusterData(Cluster, 1);
 
@@ -1433,8 +1433,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
     WSegmentInfo = (ebml_master*)EBML_ElementCopy(RSegmentInfo, NULL);
-    if (EBML_MasterUseChecksum(WSegmentInfo,!Unsafe))
-        EBML_ElementUpdateSize(WSegmentInfo, 0, 0);
+    EBML_MasterUseChecksum(WSegmentInfo,!Unsafe);
 
     if (TimeCodeScale!=0)
 	{
@@ -1488,16 +1487,14 @@ int main(int argc, const char *argv[])
 			TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
 			goto exit;
 		}
-        if (EBML_MasterUseChecksum(WTrackInfo,!Unsafe))
-            EBML_ElementUpdateSize(WTrackInfo, 0, 0);
+        EBML_MasterUseChecksum(WTrackInfo,!Unsafe);
 
 		// count the max track number
 		for (Elt=EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
 		{
 			if (Elt->Context->Id && MATROSKA_ContextTrackEntry.Id)
 			{
-                if (EBML_MasterUseChecksum((ebml_master*)Elt,!Unsafe))
-                    EBML_ElementUpdateSize((ebml_master*)Elt, 0, 0);
+                EBML_MasterUseChecksum((ebml_master*)Elt,!Unsafe);
 				Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackNumber,0,0);
 				if (Elt2 && (size_t)EBML_IntegerValue(Elt2) > MaxTrackNum)
 					MaxTrackNum = (size_t)EBML_IntegerValue(Elt2);
@@ -1520,8 +1517,7 @@ int main(int argc, const char *argv[])
     EbmlHead = (ebml_master*)EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
     if (!EbmlHead)
         goto exit;
-    if (EBML_MasterUseChecksum(EbmlHead,!Unsafe))
-        EBML_ElementUpdateSize(EbmlHead, 0, 0);
+    EBML_MasterUseChecksum(EbmlHead,!Unsafe);
     NodeTree_Clear((nodetree*)EbmlHead); // remove the default values
     // DocType
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
@@ -1553,7 +1549,7 @@ int main(int argc, const char *argv[])
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     EBML_IntegerSetValue((ebml_integer*)RLevel1, DocVersion);
 
-    if (EBML_ElementRender((ebml_element*)EbmlHead,Output,1,0,1,NULL,1)!=ERR_NONE)
+    if (EBML_ElementRender((ebml_element*)EbmlHead,Output,1,0,1,NULL)!=ERR_NONE)
         goto exit;
     NodeDelete((node*)EbmlHead);
     EbmlHead = NULL;
@@ -2394,7 +2390,7 @@ int main(int argc, const char *argv[])
         }
 
 		EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
-		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekBefore,0)!=ERR_NONE)
+		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekBefore)!=ERR_NONE)
 		{
 			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
 			Result = -22;
@@ -2405,7 +2401,7 @@ int main(int argc, const char *argv[])
     else if (!Unsafe)
         SetClusterPrevSize(Clusters, ClustersNeedRead?Input:NULL, Live);
 
-    if (EBML_ElementRender((ebml_element*)WSegmentInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
+    if (EBML_ElementRender((ebml_element*)WSegmentInfo,Output,0,0,1,NULL)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
         Result = -11;
@@ -2414,7 +2410,7 @@ int main(int argc, const char *argv[])
     SegmentSize += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0);
     if (WTrackInfo)
     {
-        if (EBML_ElementRender((ebml_element*)WTrackInfo,Output,0,0,1,NULL,0)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)WTrackInfo,Output,0,0,1,NULL)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Track Info\r\n"));
             Result = -12;
@@ -2424,7 +2420,7 @@ int main(int argc, const char *argv[])
     }
     if (!Live && RChapters)
     {
-        if (EBML_ElementRender((ebml_element*)RChapters,Output,0,0,1,NULL,0)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RChapters,Output,0,0,1,NULL)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Chapters\r\n"));
             Result = -13;
@@ -2434,7 +2430,7 @@ int main(int argc, const char *argv[])
     }
     if (!Live && RTags)
     {
-        if (EBML_ElementRender((ebml_element*)RTags,Output,0,0,1,NULL,0)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RTags,Output,0,0,1,NULL)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Tags\r\n"));
             Result = -14;
@@ -2444,7 +2440,7 @@ int main(int argc, const char *argv[])
     }
     if (!Live && RCues)
     {
-        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,NULL,0)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,NULL)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Cues\r\n"));
             Result = -15;
@@ -2469,7 +2465,7 @@ int main(int argc, const char *argv[])
     if (!Live && RAttachments)
     {
         ReduceSize((ebml_element*)RAttachments);
-        if (EBML_ElementRender((ebml_element*)RAttachments,Output,0,0,1,NULL,0)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RAttachments,Output,0,0,1,NULL)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Attachments\r\n"));
             Result = -17;
@@ -2505,7 +2501,7 @@ int main(int argc, const char *argv[])
 		// update the Meta Seek
 		MetaSeekUpdate(WMetaSeek);
 		//Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
-		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekAfter,0)!=ERR_NONE)
+		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
 		{
 			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
 			Result = -22;
