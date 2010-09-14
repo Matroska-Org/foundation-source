@@ -39,9 +39,34 @@ static void PostCreate(ebml_element *Element)
     Element->SizePosition = INVALID_FILEPOS_T;
 }
 
+static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
+{
+    if (!Element->bNeedDataSizeUpdate)
+        return 0;
+    if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
+        return 0;
+    return 1;
+}
+
+static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
+{
+	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
+		return 0;
+
+	if (Element->DefaultSize > Element->DataSize)
+		Element->DataSize = Element->DefaultSize;
+
+    Element->bNeedDataSizeUpdate = 0;
+#if !defined(NDEBUG)
+    assert(!EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault));
+#endif
+    return Element->DataSize;
+}
+
 static err_t Create(ebml_element *Element)
 {
     Element->DataSize = INVALID_FILEPOS_T;
+    Element->bNeedDataSizeUpdate = 1;
     return ERR_NONE;
 }
 
@@ -52,6 +77,8 @@ META_CLASS(FLAGS,CFLAG_ABSTRACT)
 META_CLASS(CREATE,Create)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,NeedsDataSizeUpdate,NeedsDataSizeUpdate)
 
 META_PARAM(TYPE,EBML_ELEMENT_INFINITESIZE,TYPE_BOOLEAN)
 META_DYNAMIC(TYPE_BOOLEAN,EBML_ELEMENT_INFINITESIZE)
@@ -181,7 +208,7 @@ fourcc_t EBML_BufferToID(const uint8_t *Buffer)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered, bool_t UpdateSize)
+err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered)
 {
     err_t Result;
     filepos_t _Rendered,WrittenSize;
@@ -203,11 +230,14 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 		return ERR_INVALID_DATA;
 
 #if !defined(NDEBUG)
-	SupposedSize = 
+    if (Element->bNeedDataSizeUpdate)
+	    SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
+    else
+        SupposedSize = Element->DataSize;
 #else
-    if (UpdateSize)
-#endif
+    if (Element->bNeedDataSizeUpdate)
 	    EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
+#endif
 	Result = EBML_ElementRenderHead(Element, Output, bKeepPosition, &WrittenSize);
     *Rendered += WrittenSize;
     if (Result != ERR_NONE)

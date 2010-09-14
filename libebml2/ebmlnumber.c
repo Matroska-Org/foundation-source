@@ -268,67 +268,52 @@ static bool_t IsDefaultValueFloat(const ebml_float *Element)
 
 static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bWithDefault && IsDefaultValueInt(Element))
-		return 0;
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
+    {
+	    if (Element->Value <= 0x7F && Element->Value >= (-0x80)) {
+		    Element->Base.DataSize = 1;
+	    } else if (Element->Value <= 0x7FFF && Element->Value >= (-0x8000)) {
+		    Element->Base.DataSize = 2;
+	    } else if (Element->Value <= 0x7FFFFF && Element->Value >= (-0x800000)) {
+		    Element->Base.DataSize = 3;
+	    } else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= (int64_t)(-0x80000000)) {
+		    Element->Base.DataSize = 4;
+	    } else if (Element->Value <= 0x7FFFFFFFFF && Element->Value >= (-0x8000000000)) {
+		    Element->Base.DataSize = 5;
+	    } else if (Element->Value <= 0x7FFFFFFFFFFF && Element->Value >= (-0x800000000000)) {
+		    Element->Base.DataSize = 6;
+	    } else if (Element->Value <= 0x7FFFFFFFFFFFFF && Element->Value >= (-0x80000000000000)) {
+		    Element->Base.DataSize = 7;
+	    } else
+		    Element->Base.DataSize = 8;
+    }
 
-	if (Element->Value <= 0x7F && Element->Value >= (-0x80)) {
-		Element->Base.DataSize = 1;
-	} else if (Element->Value <= 0x7FFF && Element->Value >= (-0x8000)) {
-		Element->Base.DataSize = 2;
-	} else if (Element->Value <= 0x7FFFFF && Element->Value >= (-0x800000)) {
-		Element->Base.DataSize = 3;
-	} else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= (int64_t)(-0x80000000)) {
-		Element->Base.DataSize = 4;
-	} else if (Element->Value <= 0x7FFFFFFFFF && Element->Value >= (-0x8000000000)) {
-		Element->Base.DataSize = 5;
-	} else if (Element->Value <= 0x7FFFFFFFFFFF && Element->Value >= (-0x800000000000)) {
-		Element->Base.DataSize = 6;
-	} else if (Element->Value <= 0x7FFFFFFFFFFFFF && Element->Value >= (-0x80000000000000)) {
-		Element->Base.DataSize = 7;
-	} else
-		Element->Base.DataSize = 8;
-
-	if (Element->Base.DefaultSize > Element->Base.DataSize) {
-		Element->Base.DataSize = Element->Base.DefaultSize;
-	}
-
-	return Element->Base.DataSize;
+	return INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
 static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bWithDefault && IsDefaultValueInt(Element))
-		return 0;
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
+    {
+	    if ((uint64_t)Element->Value <= 0xFF) {
+		    Element->Base.DataSize = 1;
+	    } else if ((uint64_t)Element->Value <= 0xFFFF) {
+		    Element->Base.DataSize = 2;
+	    } else if ((uint64_t)Element->Value <= 0xFFFFFF) {
+		    Element->Base.DataSize = 3;
+	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFF) {
+		    Element->Base.DataSize = 4;
+	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFF) {
+		    Element->Base.DataSize = 5;
+	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFF) {
+		    Element->Base.DataSize = 6;
+	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFFFF) {
+		    Element->Base.DataSize = 7;
+	    } else
+		    Element->Base.DataSize = 8;
+    }
 
-	if ((uint64_t)Element->Value <= 0xFF) {
-		Element->Base.DataSize = 1;
-	} else if ((uint64_t)Element->Value <= 0xFFFF) {
-		Element->Base.DataSize = 2;
-	} else if ((uint64_t)Element->Value <= 0xFFFFFF) {
-		Element->Base.DataSize = 3;
-	} else if ((uint64_t)Element->Value <= 0xFFFFFFFF) {
-		Element->Base.DataSize = 4;
-	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFF) {
-		Element->Base.DataSize = 5;
-	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFF) {
-		Element->Base.DataSize = 6;
-	} else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFFFF) {
-		Element->Base.DataSize = 7;
-	} else
-		Element->Base.DataSize = 8;
-
-	if (Element->Base.DefaultSize > Element->Base.DataSize) {
-		Element->Base.DataSize = Element->Base.DefaultSize;
-	}
-
-	return Element->Base.DataSize;
-}
-
-static filepos_t UpdateSizeFloat(ebml_float *Element, bool_t bWithDefault, bool_t bForceRender)
-{
-	if (!bWithDefault && IsDefaultValueFloat(Element))
-		return 0;
-    return Element->Base.DataSize;
+	return INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
 static void PostCreateInt(ebml_element *Element)
@@ -370,6 +355,7 @@ static ebml_integer *CopyInt(const ebml_integer *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
     }
     return Result;
 }
@@ -386,6 +372,7 @@ static ebml_float *CopyFloat(const ebml_float *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
     }
     return Result;
 }
@@ -398,7 +385,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataInt)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataInt)
 #endif
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeInt)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateSizeInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
@@ -411,7 +398,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataSignedInt)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataSignedInt)
 #endif
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeSignedInt)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateSizeSignedInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateSignedInt)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyInt)
 META_END_CONTINUE(EBML_ELEMENT_CLASS)
@@ -425,7 +412,6 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValueFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadDataFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreateFloat)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSizeFloat)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataFloat)
 #endif
@@ -436,5 +422,6 @@ err_t EBML_IntegerSetValue(ebml_integer *Element, int64_t Value)
 {
     Element->Value = Value;
     Element->Base.bValueIsSet = 1;
+    Element->Base.bNeedDataSizeUpdate = 1;
     return ERR_NONE;
 }

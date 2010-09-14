@@ -46,6 +46,7 @@ err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
     Element->Buffer = strdup(Value);
     Element->Base.bValueIsSet = 1;
     Element->Base.DataSize = strlen(Element->Buffer);
+    Element->Base.bNeedDataSizeUpdate = 0;
     return ERR_NONE;
 }
 
@@ -160,18 +161,20 @@ static void Delete(ebml_string *p)
         free((char*)p->Buffer);
 }
 
-static filepos_t UpdateSize(ebml_string *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateDataSize(ebml_string *Element, bool_t bWithDefault, bool_t bForceRender)
 {
-	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
-		return 0;
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
+        Element->Base.DataSize = strlen(Element->Buffer);
 
-	Element->Base.DataSize = strlen(Element->Buffer);
+	return INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
+}
 
-	if (Element->Base.DefaultSize > Element->Base.DataSize) {
-		Element->Base.DataSize = Element->Base.DefaultSize;
-	}
+static filepos_t UpdateDataSizeUni(ebml_string *Element, bool_t bWithDefault, bool_t bForceRender)
+{
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
+        Element->Base.DataSize = strlen(Element->Buffer);
 
-	return Element->Base.DataSize;
+	return INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
 static bool_t IsDefaultValue(const ebml_string *Element)
@@ -211,6 +214,7 @@ static ebml_string *Copy(const ebml_string *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
     }
     return Result;
 }
@@ -220,7 +224,7 @@ META_CLASS(SIZE,sizeof(ebml_string))
 META_CLASS(DELETE,Delete)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
@@ -233,7 +237,7 @@ META_CLASS(SIZE,sizeof(ebml_string))
 META_CLASS(DELETE,Delete)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSizeUni)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif

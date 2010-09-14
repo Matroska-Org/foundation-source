@@ -80,7 +80,10 @@ err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append)
 	assert(Node_IsPartOf(Element,EBML_MASTER_CLASS));
     Result = NodeTree_SetParent(Append,Element,NULL);
     if (Result==ERR_NONE)
+    {
+        Element->Base.bNeedDataSizeUpdate = 1;
         Element->Base.bValueIsSet = 1;
+    }
     return Result;
 }
 
@@ -176,37 +179,55 @@ bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault
     return 1;
 }
 
-static filepos_t UpdateSize(ebml_master *Element, bool_t bWithDefault, bool_t bForceRender)
+static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
 {
     ebml_element *i;
-
-	Element->Base.DataSize = 0;
-
-	//if (!EBML_ElementIsFiniteSize((ebml_element*)Element))
-	//	return INVALID_FILEPOS_T;
-
-	if (!bForceRender) {
-		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
-    }
-
-    if (Element->CheckSumStatus)
-        Element->Base.DataSize += 6;
+    if (INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->NeedsDataSizeUpdate(Element, bWithDefault))
+        return 1;
 
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
     {
-        if (!bWithDefault && EBML_ElementIsDefaultValue(i))
-            continue;
-        EBML_ElementUpdateSize(i,bWithDefault,bForceRender);
-        if (i->DataSize == INVALID_FILEPOS_T)
-            return INVALID_FILEPOS_T;
-        Element->Base.DataSize += EBML_ElementFullSize(i,bWithDefault);
+        if (EBML_ElementNeedsDataSizeUpdate(i,bWithDefault))
+            return 1;
     }
+    return 0;
+}
+
+static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_t bForceRender)
+{
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
+    {
+        ebml_element *i;
+
+	    Element->Base.DataSize = 0;
+
+	    //if (!EBML_ElementIsFiniteSize((ebml_element*)Element))
+	    //	return INVALID_FILEPOS_T;
+
+	    if (!bForceRender) {
+		    assert(CheckMandatory((ebml_master*)Element, bWithDefault));
+        }
+
+        if (Element->CheckSumStatus)
+            Element->Base.DataSize += 6;
+
+        for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
+        {
+            if (!bWithDefault && EBML_ElementIsDefaultValue(i))
+                continue;
+            EBML_ElementUpdateSize(i,bWithDefault,bForceRender);
+            if (i->DataSize == INVALID_FILEPOS_T)
+                return INVALID_FILEPOS_T;
+            Element->Base.DataSize += EBML_ElementFullSize(i,bWithDefault);
+        }
 #ifdef TODO
-	if (bChecksumUsed) {
-		Element->DataSize += EBML_ElementFullSize(Element->Checksum,bWithDefault);
-	}
+	    if (bChecksumUsed) {
+		    Element->DataSize += EBML_ElementFullSize(Element->Checksum,bWithDefault);
+	    }
 #endif
-	return Element->Base.DataSize;
+    }
+
+    return INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
 void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault)
@@ -368,11 +389,13 @@ bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use)
 {
     if (Use && Element->CheckSumStatus==0)
     {
+        Element->Base.bNeedDataSizeUpdate = 1;
         Element->CheckSumStatus = 1;
         return 1;
     }
     if (!Use && Element->CheckSumStatus)
     {
+        Element->Base.bNeedDataSizeUpdate = 1;
         Element->CheckSumStatus = 0;
         return 1;
     }
@@ -394,7 +417,7 @@ static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceR
     {
 		if (!bWithDefault && EBML_ElementIsDefaultValue(i))
 			continue;
-		Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered,0);
+		Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceRender, &ItemRendered);
         if (Err!=ERR_NONE)
             return Err;
         *Rendered += ItemRendered;
@@ -449,7 +472,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceRende
                             filepos_t CrcSize;
                             EBML_CRCAddBuffer(CrcElt, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
                             EBML_CRCFinalize(CrcElt);
-                            Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize, 0);
+                            Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize);
                             if (Err==ERR_NONE)
                             {
                                 size_t Written;
@@ -474,7 +497,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceRende
                         EBML_CRCAddBuffer(CrcElt, Data + (VirtualPos - CrcSize), (size_t)Element->Base.DataSize-6);
                         EBML_CRCFinalize(CrcElt);
                         Stream_Seek(Output,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET);
-                        Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize, 0);
+                        Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceRender, &CrcSize);
                         *Rendered = *Rendered + CrcSize;
                         Stream_Seek(Output,EBML_ElementPositionEnd((ebml_element*)Element),SEEK_SET);
                     }
@@ -502,6 +525,7 @@ static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
         Result->CheckSumStatus = Element->CheckSumStatus;
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
         {
@@ -521,7 +545,8 @@ META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
 META_CLASS(SIZE,sizeof(ebml_master))
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,NeedsDataSizeUpdate,NeedsDataSizeUpdate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 #if defined(CONFIG_EBML_WRITING)

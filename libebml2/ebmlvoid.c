@@ -32,11 +32,6 @@ static bool_t IsDefaultValue(const ebml_element *Element)
     return 0;
 }
 
-static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
-{
-    return Element->DataSize;
-}
-
 static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
 	EBML_ElementSkipData(Element,Input,ParserContext,NULL,AllowDummyElt);
@@ -73,13 +68,13 @@ static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
         Result->ElementPosition = Element->ElementPosition;
         Result->SizeLength = Element->SizeLength;
         Result->SizePosition = Element->SizePosition;
+        Result->bNeedDataSizeUpdate = Element->bNeedDataSizeUpdate;
     }
     return Result;
 }
 
 META_START(EBMLVoid_Class,EBML_VOID_CLASS)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
@@ -93,6 +88,7 @@ void EBML_VoidSetSize(ebml_element *Void, filepos_t DataSize)
     assert(Node_IsPartOf(Void,EBML_VOID_CLASS));
     Void->DataSize = DataSize;
     Void->bValueIsSet = 1;
+    Void->bNeedDataSizeUpdate = 0;
 }
 
 filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault)
@@ -111,7 +107,7 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
 	CurrentPosition = Stream_Seek(Output,0,SEEK_CUR);
 
     Stream_Seek(Output,Void->ElementPosition,SEEK_SET);
-    EBML_ElementRender(ReplacedWith,Output,bWithDefault,0,1,NULL,0);
+    EBML_ElementRender(ReplacedWith,Output,bWithDefault,0,1,NULL);
 
     if (EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1) > 1)
     {

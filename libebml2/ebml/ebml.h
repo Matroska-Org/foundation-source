@@ -116,14 +116,15 @@ struct ebml_parser_context
 struct ebml_element
 {
     nodetree Base;
-    bool_t bValueIsSet;
-    bool_t bDefaultIsSet;
     filepos_t DataSize; // size of the data inside the element
-    int8_t SizeLength;
     filepos_t ElementPosition;
     filepos_t SizePosition; // TODO: is this needed since we have the ElementPosition and SizeLength ?
     const ebml_context *Context;
     int DefaultSize;
+    int8_t SizeLength;
+    boolmem_t bValueIsSet;
+    boolmem_t bDefaultIsSet;
+    boolmem_t bNeedDataSizeUpdate;
 };
 
 typedef struct ebml_element_vmt
@@ -136,7 +137,8 @@ typedef struct ebml_element_vmt
 #endif
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);
-    filepos_t (*UpdateSize)(void*, bool_t bWithDefault, bool_t bForceRender);
+    filepos_t (*UpdateDataSize)(void*, bool_t bWithDefault, bool_t bForceRender);
+    bool_t (*NeedsDataSizeUpdate)(const void*, bool_t bWithDefault);
     int (*Cmp)(const void*, const void*);
     ebml_element *(*Copy)(const void*, const void *Cookie);
     
@@ -145,13 +147,14 @@ typedef struct ebml_element_vmt
 
 } ebml_element_vmt;
 
-#define EBML_ElementValidateSize(p)        VMT_FUNC(p,ebml_element_vmt)->ValidateSize(p)
-#define EBML_ElementReadData(p,i,c,d,s,r)  VMT_FUNC(p,ebml_element_vmt)->ReadData(p,i,c,d,s,r)
-#define EBML_ElementRenderData(p,s,f,k,r)  VMT_FUNC(p,ebml_element_vmt)->RenderData(p,s,f,k,r)
-#define EBML_ElementIsDefaultValue(p)      VMT_FUNC(p,ebml_element_vmt)->IsDefaultValue(p)
-#define EBML_ElementUpdateSize(p,k,f)      VMT_FUNC(p,ebml_element_vmt)->UpdateSize(p,k,f)
-#define EBML_ElementCmp(p,e)               VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
-#define EBML_ElementCopy(p,c)              VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
+#define EBML_ElementValidateSize(p)          VMT_FUNC(p,ebml_element_vmt)->ValidateSize(p)
+#define EBML_ElementReadData(p,i,c,d,s,r)    VMT_FUNC(p,ebml_element_vmt)->ReadData(p,i,c,d,s,r)
+#define EBML_ElementRenderData(p,s,f,k,r)    VMT_FUNC(p,ebml_element_vmt)->RenderData(p,s,f,k,r)
+#define EBML_ElementIsDefaultValue(p)        VMT_FUNC(p,ebml_element_vmt)->IsDefaultValue(p)
+#define EBML_ElementUpdateSize(p,k,f)        VMT_FUNC(p,ebml_element_vmt)->UpdateDataSize(p,k,f)
+#define EBML_ElementNeedsDataSizeUpdate(p,d) VMT_FUNC(p,ebml_element_vmt)->NeedsDataSizeUpdate(p,d)
+#define EBML_ElementCmp(p,e)                 VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
+#define EBML_ElementCopy(p,c)                VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
 
 typedef struct ebml_master
 {
@@ -237,8 +240,8 @@ static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-// TODO: replace the list of bools by flags
-EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered, bool_t UpdateSize);
+// TODO: replace the list of bools by flags ?
+EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
 EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 

@@ -86,6 +86,7 @@ static void PostCreate(ebml_date *Element)
 {
     INHERITED(Element,ebml_element_vmt,EBML_DATE_CLASS)->PostCreate(Element);
     Element->Base.DefaultSize = 8;
+    Element->Base.bNeedDataSizeUpdate = 0;
 }
 
 META_START(EBMLDate_Class,EBML_DATE_CLASS)

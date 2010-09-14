@@ -198,6 +198,7 @@ static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
     }
     return Result;
 }
@@ -207,15 +208,11 @@ static bool_t IsDefaultValue(const ebml_element *Element)
     return 0; // CRC has no default value
 }
 
-static filepos_t UpdateSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
-{
-    Element->DataSize = 4;
-    return Element->DataSize;
-}
-
 static err_t Create(ebml_crc *Element)
 {
     Element->CRC = CRC32_NEGL;
+    Element->Base.bNeedDataSizeUpdate = 0;
+    Element->Base.DataSize = 4;
     return ERR_NONE;
 }
 
@@ -226,7 +223,6 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif

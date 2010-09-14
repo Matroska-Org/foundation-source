@@ -76,15 +76,11 @@ static bool_t IsDefaultValue(const ebml_binary *Element)
     return 0; // TODO: a default binary value needs a size too (use a structure to set the value in the structure)
 }
 
-static filepos_t UpdateSize(ebml_binary *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateDataSize(ebml_binary *Element, bool_t bWithDefault, bool_t bForceRender)
 {
 	Element->Base.DataSize = ARRAYCOUNT(Element->Data,uint8_t);
 
-	if (Element->Base.DefaultSize > Element->Base.DataSize) {
-		Element->Base.DataSize = Element->Base.DefaultSize;
-	}
-
-	return Element->Base.DataSize;
+	return INHERITED(Element,ebml_element_vmt,EBML_BINARY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
 static bool_t ValidateSize(const ebml_element *p)
@@ -104,6 +100,7 @@ static ebml_binary *Copy(const ebml_binary *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
     }
     return Result;
 }
@@ -115,7 +112,7 @@ META_DATA(TYPE_ARRAY,0,ebml_binary,Data)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
-META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateSize,UpdateSize)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
@@ -128,6 +125,7 @@ err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, size_t DataS
         return ERR_OUT_OF_MEMORY;
     memcpy(ARRAYBEGIN(Element->Data,void),Data,DataSize);
     Element->Base.DataSize = DataSize;
+    Element->Base.bNeedDataSizeUpdate = 0;
     Element->Base.bValueIsSet = 1;
     return ERR_NONE;
 }
