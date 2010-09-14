@@ -480,7 +480,7 @@ filepos_t EbmlElement::GetElementPosition() const
 filepos_t EbmlElement::Render(IOCallback & output, bool bWithDefault, bool bKeepPosition, bool bForceRender)
 {
     filepos_t Rendered = INVALID_FILEPOS_T;
-    if (EBML_ElementRender(Node, output.GetStream(), bWithDefault, bKeepPosition, bForceRender, &Rendered, 1)!=ERR_NONE)
+    if (EBML_ElementRender(Node, output.GetStream(), bWithDefault, bKeepPosition, bForceRender, &Rendered)!=ERR_NONE)
         return INVALID_FILEPOS_T;
     return Rendered;
 }
