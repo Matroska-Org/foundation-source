@@ -1562,7 +1562,7 @@ int main(int argc, const char *argv[])
 	else
     {
         // temporary value
-        if (EBML_ElementIsFiniteSize(RSegment))
+        if (EBML_ElementIsFiniteSize((ebml_element*)RSegment))
 		    WSegment->Base.DataSize = RSegment->Base.DataSize;
         else
             WSegment->Base.SizeLength = EBML_MAX_SIZE;
