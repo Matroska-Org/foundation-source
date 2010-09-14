@@ -2256,7 +2256,7 @@ int main(int argc, const char *argv[])
 			{
 				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
                 EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
-				RAttachments->Base.ElementPosition = EBML_ElementPositionEnd((ebml_element*)RSegment) - EBML_ElementFullSize((ebml_element*)RAttachments,0); // virutally position the attachment at the end of the segment
+				RAttachments->Base.ElementPosition = NextPos;
 				NextPos += EBML_ElementFullSize((ebml_element*)RAttachments,0);
 				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RAttachments);
 			}
@@ -2266,7 +2266,7 @@ int main(int argc, const char *argv[])
         {
             // create a fake Tags element to have its position prepared in the SeekHead
             RTags = (ebml_master*)EBML_ElementCreate(WMetaSeek,&MATROSKA_ContextTags,1,NULL);
-            RTags->Base.ElementPosition = RSegment->Base.DataSize;
+            RTags->Base.ElementPosition = NextPos;
 			WSeekPointTags = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
             EBML_MasterUseChecksum((ebml_master*)WSeekPointTags,!Unsafe);
             MATROSKA_LinkMetaSeekElement(WSeekPointTags,(ebml_element*)RTags);
@@ -2343,6 +2343,15 @@ int main(int argc, const char *argv[])
 			EBML_ElementUpdateSize(RChapters,0,0);
 			RChapters->Base.ElementPosition = NextPos;
 			NextPos += EBML_ElementFullSize((ebml_element*)RChapters,0);
+		}
+
+		//  Compute the Attachments size
+		if (RAttachments)
+		{
+			ReduceSize((ebml_element*)RAttachments);
+			EBML_ElementUpdateSize(RAttachments,0,0);
+			RAttachments->Base.ElementPosition = NextPos;
+			NextPos += EBML_ElementFullSize((ebml_element*)RAttachments,0);
 		}
 
 		//  Compute the Tags size
@@ -2449,18 +2458,6 @@ int main(int argc, const char *argv[])
         SegmentSize += EBML_ElementFullSize((ebml_element*)RCues,0);
     }
 
-    //  Write the Clusters
-    ClusterSize = INVALID_FILEPOS_T;
-    for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
-    {
-        ShowProgress((ebml_element*)*Cluster,(ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
-        WriteCluster(*Cluster,Output,Input, Live, ClusterSize);
-        if (!Unsafe)
-            ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
-        SegmentSize += EBML_ElementFullSize((ebml_element*)*Cluster,0);
-    }
-    EndProgress((ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
-
     //  Write the Attachments
     if (!Live && RAttachments)
     {
@@ -2473,6 +2470,18 @@ int main(int argc, const char *argv[])
         }
         SegmentSize += EBML_ElementFullSize((ebml_element*)RAttachments,0);
     }
+
+    //  Write the Clusters
+    ClusterSize = INVALID_FILEPOS_T;
+    for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
+    {
+        ShowProgress((ebml_element*)*Cluster,(ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
+        WriteCluster(*Cluster,Output,Input, Live, ClusterSize);
+        if (!Unsafe)
+            ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
+        SegmentSize += EBML_ElementFullSize((ebml_element*)*Cluster,0);
+    }
+    EndProgress((ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
 
     // update the WSegment size
 	if (!Live)

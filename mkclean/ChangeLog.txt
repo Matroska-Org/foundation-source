@@ -1,6 +1,7 @@
 2010-09-14
 version 0.5.7:
     - fix a problem with attachments in safe mode (--unsafe not set)
+    - put the attachments at the front as it usually makes more sense (fonts or cover art)
 
 2010-09-02
 version 0.5.6:
