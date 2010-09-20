@@ -30,6 +30,12 @@
 #if defined(CONFIG_ZLIB)
 #include "zlib.h"
 #endif
+#if defined(CONFIG_BZLIB)
+#include <bzlib.h>
+#endif
+#if defined(CONFIG_LZO1X)
+#include "minilzo.h"
+#endif
 #if defined(MATROSKA_LIBRARY)
 #include "matroska2_project.h"
 #endif
@@ -700,8 +706,17 @@ static err_t CheckCompression(matroska_block *Block)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
             Header = (ebml_master*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
+            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
-            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#endif
+#if defined(CONFIG_LZO1X)
+                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
+#endif
+#if defined(CONFIG_BZLIB)
+                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
+#endif
 #else
             if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
@@ -1372,8 +1387,17 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     return ERR_NOT_SUPPORTED; // TODO: support encryption
 
                 Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
+                if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
-                if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+#endif
+#if defined(CONFIG_LZO1X)
+                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
+#endif
+#if defined(CONFIG_BZLIB)
+                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
+#endif
 #else
                 if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
@@ -1384,7 +1408,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             }
         }
 
-#if !defined(CONFIG_ZLIB)
+#if !defined(CONFIG_ZLIB) && !defined(CONFIG_LZO1X) && !defined(CONFIG_BZLIB)
         if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
             return ERR_NOT_SUPPORTED;
 #endif
@@ -1395,7 +1419,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         switch (Element->Lacing)
         {
         case LACING_NONE:
-#if defined(CONFIG_ZLIB)
+#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
             if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
             {
                 // zlib handling, read the buffer in temp memory
@@ -1411,38 +1435,113 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                         Err = ERR_READ;
                     else
                     {
-                        // get the ouput size, adjust the Element->SizeList value, write in Element->Data
-                        z_stream stream;
-                        int Res;
-                        memset(&stream,0,sizeof(stream));
-                        Res = inflateInit(&stream);
-                        if (Res != Z_OK)
-                            Err = ERR_INVALID_DATA;
-                        else
+#if defined(CONFIG_ZLIB)
+                        if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_ZLIB)
                         {
-                            size_t Count = 0;
-                            stream.next_in = InBuf;
-                            stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
-                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
-                            do {
-                                Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
-                                stream.avail_out = 1024;
-                                if (!ArrayResize(&Element->Data, Count + stream.avail_out, 0))
-                                {
-                                    Res = Z_MEM_ERROR;
-                                    break;
-                                }
-                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
-                                Res = inflate(&stream, Z_NO_FLUSH);
-                                if (Res!=Z_STREAM_END && Res!=Z_OK)
-                                    break;
-                            } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
-                            ArrayResize(&Element->Data, stream.total_out, 0);
-                            ARRAYBEGIN(Element->SizeList,int32_t)[0] = stream.total_out;
-                            inflateEnd(&stream);
-                            if (Res != Z_STREAM_END)
+                            // get the ouput size, adjust the Element->SizeList value, write in Element->Data
+                            z_stream stream;
+                            int Res;
+                            memset(&stream,0,sizeof(stream));
+                            Res = inflateInit(&stream);
+                            if (Res != Z_OK)
                                 Err = ERR_INVALID_DATA;
+                            else
+                            {
+                                size_t Count = 0;
+                                stream.next_in = InBuf;
+                                stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
+                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
+                                do {
+                                    Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                    stream.avail_out = 1024;
+                                    if (!ArrayResize(&Element->Data, Count + stream.avail_out, 0))
+                                    {
+                                        Res = Z_MEM_ERROR;
+                                        break;
+                                    }
+                                    stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                    Res = inflate(&stream, Z_NO_FLUSH);
+                                    if (Res!=Z_STREAM_END && Res!=Z_OK)
+                                        break;
+                                } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
+                                ArrayResize(&Element->Data, stream.total_out, 0);
+                                ARRAYBEGIN(Element->SizeList,int32_t)[0] = stream.total_out;
+                                inflateEnd(&stream);
+                                if (Res != Z_STREAM_END)
+                                    Err = ERR_INVALID_DATA;
+                            }
                         }
+#endif
+#if defined(CONFIG_LZO1X)
+                        if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_LZO1X)
+                        {
+                            if (lzo_init() != LZO_E_OK)
+                                Err = ERR_INVALID_DATA;
+                            else
+                            {
+                                lzo_uint outSize = ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2;
+                                if (!ArrayResize(&Element->Data, outSize, 0))
+                                    Err = ERR_OUT_OF_MEMORY;
+                                else
+                                {
+                                    if (lzo1x_decompress_safe(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[0], ARRAYBEGIN(Element->Data,uint8_t), &outSize, NULL) != LZO_E_OK)
+                                        Err = ERR_INVALID_DATA;
+                                    else
+                                    {
+                                        ARRAYBEGIN(Element->SizeList,int32_t)[0] = outSize;
+                                        ArrayResize(&Element->Data,outSize,0);
+                                        EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
+                                    }
+                                }
+                            }
+                        }
+#endif
+#if defined(CONFIG_BZLIB)
+                        if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_BZLIB)
+                        {
+                            unsigned int outSize = ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2;
+                            bz_stream strm;
+                            int Res;
+
+                            if (!ArrayResize(&Element->Data, outSize, 0))
+                                Err = ERR_OUT_OF_MEMORY;
+                            else
+                            {
+                               strm.bzalloc = NULL;
+                               strm.bzfree = NULL;
+                               strm.opaque = NULL;
+                               if (BZ2_bzDecompressInit (&strm, 0, 1) != BZ_OK)
+                                   Err = ERR_INVALID_DATA;
+                               else
+                               {
+                                    size_t Count = 0;
+                                    strm.next_in = InBuf;
+                                    strm.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
+                                    strm.next_out = ARRAYBEGIN(Element->Data,uint8_t);
+                                    strm.avail_out = 0;
+
+                                    do {
+                                        Count = strm.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                        strm.avail_out = 1024;
+                                        if (!ArrayResize(&Element->Data, Count + strm.avail_out, 0))
+                                        {
+                                            Res = BZ_MEM_ERROR;
+                                            break;
+                                        }
+                                        strm.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                        Res = BZ2_bzDecompress(&strm);
+                                        if (Res!=BZ_STREAM_END && Res!=BZ_OK)
+                                            break;
+                                    } while (Res!=BZ_STREAM_END && strm.avail_in && !strm.avail_out);
+                                    ArrayResize(&Element->Data, strm.total_out_lo32, 0);
+                                    ARRAYBEGIN(Element->SizeList,int32_t)[0] = strm.total_out_lo32;
+                                    BZ2_bzDecompressEnd(&strm);
+                                    if (Res != BZ_STREAM_END)
+                                        Err = ERR_INVALID_DATA;
+                                }
+                            }
+                        }
+#endif
                     }
                 }
                 ArrayClear(&TmpBuf);
@@ -1478,7 +1577,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             BufSize = 0;
             for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 BufSize += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-#if defined(CONFIG_ZLIB)
+#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
             if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
             {
                 // zlib handling, read the buffer in temp memory
@@ -1504,37 +1603,105 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 }
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
-                    z_stream stream;
-                    int Res;
-                    memset(&stream,0,sizeof(stream));
-                    Res = inflateInit(&stream);
-                    if (Res != Z_OK)
-                        Err = ERR_INVALID_DATA;
-                    else
+#if defined(CONFIG_ZLIB)
+                    if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_ZLIB)
                     {
-                        size_t Count;
-                        stream.next_in = InBuf;
-                        stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-                        stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + OutSize;
-                        do {
-                            Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
-                            if (!ArrayResize(&Element->Data, Count + 1024, 0))
-                            {
-                                Res = Z_MEM_ERROR;
-                                break;
-                            }
-                            stream.avail_out = ARRAYCOUNT(Element->Data,uint8_t) - Count;
-                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
-                            Res = inflate(&stream, Z_NO_FLUSH);
-                            if (Res!=Z_STREAM_END && Res!=Z_OK)
-                                break;
-                        } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
-                        ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = stream.total_out;
-                        OutSize += stream.total_out;
-                        inflateEnd(&stream);
-                        if (Res != Z_STREAM_END)
+                        z_stream stream;
+                        int Res;
+                        memset(&stream,0,sizeof(stream));
+                        Res = inflateInit(&stream);
+                        if (Res != Z_OK)
                             Err = ERR_INVALID_DATA;
+                        else
+                        {
+                            size_t Count;
+                            stream.next_in = InBuf;
+                            stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + OutSize;
+                            do {
+                                Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                if (!ArrayResize(&Element->Data, Count + 1024, 0))
+                                {
+                                    Res = Z_MEM_ERROR;
+                                    break;
+                                }
+                                stream.avail_out = ARRAYCOUNT(Element->Data,uint8_t) - Count;
+                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                Res = inflate(&stream, Z_NO_FLUSH);
+                                if (Res!=Z_STREAM_END && Res!=Z_OK)
+                                    break;
+                            } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
+                            ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = stream.total_out;
+                            OutSize += stream.total_out;
+                            inflateEnd(&stream);
+                            if (Res != Z_STREAM_END)
+                                Err = ERR_INVALID_DATA;
+                        }
                     }
+#endif
+#if defined(CONFIG_LZO1X)
+                    if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_LZO1X)
+                    {
+                        if (lzo_init() != LZO_E_OK)
+                            Err = ERR_INVALID_DATA;
+                        else
+                        {
+                            lzo_uint outSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] << 2;
+                            FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                            if (!ArrayResize(&Element->Data, OutSize + outSize, 0))
+                                Err = ERR_OUT_OF_MEMORY;
+                            else
+                            {
+                                if (lzo1x_decompress_safe(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame], ARRAYBEGIN(Element->Data,uint8_t) + OutSize, &outSize, NULL) != LZO_E_OK)
+                                    Err = ERR_INVALID_DATA;
+                                else
+                                {
+                                    OutSize += outSize;
+                                    ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = outSize;
+                                    ArrayResize(&Element->Data,OutSize,0);
+                                    EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
+                                }
+                            }
+                        }
+                    }
+#endif
+#if defined(CONFIG_BZLIB)
+                    if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_BZLIB)
+                    {
+                        bz_stream stream;
+                        int Res;
+                        memset(&stream,0,sizeof(stream));
+                        Res = BZ2_bzDecompressInit (&stream, 0, 1);
+                        if (Res != BZ_OK)
+                            Err = ERR_INVALID_DATA;
+                        else
+                        {
+                            size_t Count;
+                            stream.next_in = InBuf;
+                            stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + OutSize;
+                            do {
+                                Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                if (!ArrayResize(&Element->Data, Count + 1024, 0))
+                                {
+                                    Res = BZ_MEM_ERROR;
+                                    break;
+                                }
+                                stream.avail_out = ARRAYCOUNT(Element->Data,uint8_t) - Count;
+                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                Res = BZ2_bzDecompress(&stream);
+                                if (Res!=BZ_STREAM_END && Res!=BZ_OK)
+                                    break;
+                            } while (Res!=BZ_STREAM_END && stream.avail_in && !stream.avail_out);
+                            ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = stream.total_out_lo32;
+                            OutSize += stream.total_out_lo32;
+                            BZ2_bzDecompressEnd(&stream);
+                            if (Res != BZ_STREAM_END)
+                                Err = ERR_INVALID_DATA;
+                            EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to BZ2 supported, so force it to ZLIB later
+                        }
+                    }
+#endif
                     InBuf += FrameSize;
                 }
                 ArrayResize(&Element->Data, OutSize, 0); // shrink the buffer

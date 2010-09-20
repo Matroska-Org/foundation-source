@@ -1,0 +1,14 @@
+LIB(CONFIG_BZLIB) bzlib
+{
+  EXPINCLUDE .
+  SOURCE bzlib.c
+  SOURCE crctable.c
+  SOURCE decompress.c
+  SOURCE compress.c
+  SOURCE randtable.c
+  SOURCE huffman.c
+  SOURCE blocksort.c
+  
+  HEADER bzlib.h
+  HEADER bzlib_private.h
+}

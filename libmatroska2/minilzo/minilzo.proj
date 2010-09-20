@@ -1,0 +1,15 @@
+IF CONFIG_LZO1X
+LIB minilzo
+{
+  EXPINCLUDE .
+  SOURCE minilzo.c
+  HEADER minilzo.h
+  HEADER lzoconf.h
+  HEADER lzodefs.h
+}
+
+CON testmini
+{
+  SOURCE testmini.c
+}
+ENDIF
