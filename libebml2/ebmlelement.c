@@ -230,12 +230,12 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 		return ERR_INVALID_DATA;
 
 #if !defined(NDEBUG)
-    if (Element->bNeedDataSizeUpdate)
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
 	    SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
     else
         SupposedSize = Element->DataSize;
 #else
-    if (Element->bNeedDataSizeUpdate)
+    if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
 	    EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
 #endif
 	Result = EBML_ElementRenderHead(Element, Output, bKeepPosition, &WrittenSize);
