@@ -1490,7 +1490,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                                     {
                                         ARRAYBEGIN(Element->SizeList,int32_t)[0] = outSize;
                                         ArrayResize(&Element->Data,outSize,0);
-                                        EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
+                                        //EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
                                     }
                                 }
                             }
@@ -1659,7 +1659,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                                     OutSize += outSize;
                                     ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = outSize;
                                     ArrayResize(&Element->Data,OutSize,0);
-                                    EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
+                                    //EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
                                 }
                             }
                         }
@@ -1698,7 +1698,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                             BZ2_bzDecompressEnd(&stream);
                             if (Res != BZ_STREAM_END)
                                 Err = ERR_INVALID_DATA;
-                            EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to BZ2 supported, so force it to ZLIB later
+                            //EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to BZ2 supported, so force it to ZLIB later
                         }
                     }
 #endif
@@ -2211,7 +2211,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
 #else
             if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
-                return ERR_INVALID_DATA; // TODO: support more than header stripping
+                return ERR_NOT_SUPPORTED;
 
             if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
                 Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
