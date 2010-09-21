@@ -360,7 +360,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                 }
             }
         }
-        EBML_ElementUpdateSize(*Cluster,0,0);
+		EBML_ElementUpdateSize(*Cluster,0,0);
         ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
         ClusterPos += ClusterSize;
 
@@ -2114,6 +2114,8 @@ int main(int argc, const char *argv[])
                 {
                     // remove the previous track compression
                     Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
+					if (Elt2!=NULL)
+						ClustersNeedRead = 1;
                     NodeDelete((node*)Elt2);
                 }
                 else if (Optimize)
@@ -2125,6 +2127,8 @@ int main(int argc, const char *argv[])
                         // force zlib compression
                         // remove the previous compression and the new optimized one
                         Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
+						if (Elt2!=NULL)
+							ClustersNeedRead = 1;
                         NodeDelete((node*)Elt2);
                         Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,1,1);
                         Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextTrackEncoding,1,1);
@@ -2139,6 +2143,8 @@ int main(int argc, const char *argv[])
                         {
                             // remove the previous compression and the new optimized one
                             Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
+							if (Elt2!=NULL)
+								ClustersNeedRead = 1;
                             NodeDelete((node*)Elt2);
                             Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,1,1);
                             Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextTrackEncoding,1,1);
@@ -2165,6 +2171,7 @@ int main(int argc, const char *argv[])
 								ebml_element *Algo = (ebml_element*)EBML_MasterFindFirstElt(TmpElt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
 								if (Algo && EBML_IntegerValue(Algo)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Algo)!=MATROSKA_BLOCK_COMPR_ZLIB)
 								{
+									ClustersNeedRead = 1;
 									NodeDelete((node*)Elt2);
 									Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,1,1);
 									Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextTrackEncoding,1,1);

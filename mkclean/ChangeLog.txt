@@ -1,3 +1,8 @@
+2010-09-21
+version 0.5.8:
+    - fix a size update issue with the new "smarter" system
+    - support bz2 and lzo1x track compression (transformed to zlib by default)
+
 2010-09-14
 version 0.5.7:
     - fix a problem with attachments in safe mode (--unsafe not set)
