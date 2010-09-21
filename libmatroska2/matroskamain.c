@@ -685,6 +685,12 @@ struct matroska_seekpoint
     ebml_element *Link;
 };
 
+static err_t BlockTrackChanged(matroska_block *Block)
+{
+	Block->Base.Base.bNeedDataSizeUpdate = 1;
+	return ERR_NONE;
+}
+
 static err_t CheckCompression(matroska_block *Block)
 {
     ebml_master *Elt, *Header;
@@ -1514,20 +1520,20 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                                else
                                {
                                     size_t Count = 0;
-                                    strm.next_in = InBuf;
+                                    strm.next_in = (char*)InBuf;
                                     strm.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
-                                    strm.next_out = ARRAYBEGIN(Element->Data,uint8_t);
+                                    strm.next_out = ARRAYBEGIN(Element->Data,char);
                                     strm.avail_out = 0;
 
                                     do {
-                                        Count = strm.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                        Count = strm.next_out - ARRAYBEGIN(Element->Data,char);
                                         strm.avail_out = 1024;
                                         if (!ArrayResize(&Element->Data, Count + strm.avail_out, 0))
                                         {
                                             Res = BZ_MEM_ERROR;
                                             break;
                                         }
-                                        strm.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                        strm.next_out = ARRAYBEGIN(Element->Data,char) + Count;
                                         Res = BZ2_bzDecompress(&strm);
                                         if (Res!=BZ_STREAM_END && Res!=BZ_OK)
                                             break;
@@ -1675,18 +1681,18 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                         else
                         {
                             size_t Count;
-                            stream.next_in = InBuf;
+                            stream.next_in = (char*)InBuf;
                             stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + OutSize;
+                            stream.next_out = ARRAYBEGIN(Element->Data,char) + OutSize;
                             do {
-                                Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
+                                Count = stream.next_out - ARRAYBEGIN(Element->Data,char);
                                 if (!ArrayResize(&Element->Data, Count + 1024, 0))
                                 {
                                     Res = BZ_MEM_ERROR;
                                     break;
                                 }
                                 stream.avail_out = ARRAYCOUNT(Element->Data,uint8_t) - Count;
-                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
+                                stream.next_out = ARRAYBEGIN(Element->Data,char) + Count;
                                 Res = BZ2_bzDecompress(&stream);
                                 if (Res!=BZ_STREAM_END && Res!=BZ_OK)
                                     break;
@@ -1744,6 +1750,12 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         }
         Element->Base.Base.bValueIsSet = 1;
     }
+
+#if defined(CONFIG_EBML_WRITING)
+	if (Element->ReadTrack != Element->WriteTrack || Element->ReadSegInfo != Element->WriteSegInfo)
+		// TODO: only if the track compression/timecode scale is different
+		Element->Base.Base.bNeedDataSizeUpdate = 1;
+#endif
 
 failed:
     return Err;
@@ -2208,7 +2220,10 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
 #else
             if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
-                return ERR_NOT_SUPPORTED;
+			{
+				Err = ERR_NOT_SUPPORTED;
+				goto failed;
+			}
 
             if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
                 Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
@@ -2582,14 +2597,14 @@ META_DATA(TYPE_ARRAY,0,matroska_block,SizeListIn)
 META_DATA(TYPE_ARRAY,0,matroska_block,Data)
 META_DATA(TYPE_ARRAY,0,matroska_block,Durations)
 META_PARAM(TYPE,MATROSKA_BLOCK_READ_TRACK,TYPE_NODE)
-META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_READ_TRACK,matroska_block,ReadTrack)
+META_DATA_UPDATE_CMP(TYPE_NODE_REF,MATROSKA_BLOCK_READ_TRACK,matroska_block,ReadTrack,BlockTrackChanged)
 META_PARAM(TYPE,MATROSKA_BLOCK_READ_SEGMENTINFO,TYPE_NODE)
-META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_READ_SEGMENTINFO,matroska_block,ReadSegInfo)
+META_DATA_UPDATE_CMP(TYPE_NODE_REF,MATROSKA_BLOCK_READ_SEGMENTINFO,matroska_block,ReadSegInfo,BlockTrackChanged)
 #if defined(CONFIG_EBML_WRITING)
 META_PARAM(TYPE,MATROSKA_BLOCK_WRITE_TRACK,TYPE_NODE)
-META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_WRITE_TRACK,matroska_block,WriteTrack)
+META_DATA_UPDATE_CMP(TYPE_NODE_REF,MATROSKA_BLOCK_WRITE_TRACK,matroska_block,WriteTrack,BlockTrackChanged)
 META_PARAM(TYPE,MATROSKA_BLOCK_WRITE_SEGMENTINFO,TYPE_NODE)
-META_DATA(TYPE_NODE_REF,MATROSKA_BLOCK_WRITE_SEGMENTINFO,matroska_block,WriteSegInfo)
+META_DATA_UPDATE_CMP(TYPE_NODE_REF,MATROSKA_BLOCK_WRITE_SEGMENTINFO,matroska_block,WriteSegInfo,BlockTrackChanged)
 #endif
 META_END_CONTINUE(EBML_BINARY_CLASS)
 
