@@ -1490,7 +1490,6 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                                     {
                                         ARRAYBEGIN(Element->SizeList,int32_t)[0] = outSize;
                                         ArrayResize(&Element->Data,outSize,0);
-                                        //EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
                                     }
                                 }
                             }
@@ -1659,7 +1658,6 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                                     OutSize += outSize;
                                     ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = outSize;
                                     ArrayResize(&Element->Data,OutSize,0);
-                                    //EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to LZO1X supported, so force it to ZLIB later
                                 }
                             }
                         }
@@ -1698,7 +1696,6 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                             BZ2_bzDecompressEnd(&stream);
                             if (Res != BZ_STREAM_END)
                                 Err = ERR_INVALID_DATA;
-                            //EBML_IntegerSetValue(Header,MATROSKA_BLOCK_COMPR_ZLIB); // no writing to BZ2 supported, so force it to ZLIB later
                         }
                     }
 #endif

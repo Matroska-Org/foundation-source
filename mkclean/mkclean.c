@@ -2150,6 +2150,32 @@ int main(int argc, const char *argv[])
                         }
                     }
                 }
+				else
+				{
+					// turn bz2/lzo into zlib
+					Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
+					if (Elt2!=NULL)
+					{
+						ebml_master *TmpElt = (ebml_master*)EBML_MasterFindFirstElt((ebml_master*)Elt2, &MATROSKA_ContextTrackEncoding, 1, 1);
+						if (EBML_MasterChildren(TmpElt))
+						{
+							TmpElt = (ebml_master*)EBML_MasterFindFirstElt(TmpElt, &MATROSKA_ContextTrackEncodingCompression, 1, 1);
+							if (EBML_MasterChildren(TmpElt))
+							{
+								ebml_element *Algo = (ebml_element*)EBML_MasterFindFirstElt(TmpElt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+								if (Algo && EBML_IntegerValue(Algo)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Algo)!=MATROSKA_BLOCK_COMPR_ZLIB)
+								{
+									NodeDelete((node*)Elt2);
+									Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,1,1);
+									Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextTrackEncoding,1,1);
+									Elt =  EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextTrackEncodingCompression,1,1);
+									Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackEncodingCompressionAlgo,1,1);
+									EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_BLOCK_COMPR_ZLIB);
+								}
+							}
+						}
+					}
+				}
 
                 Elt = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextTrackEncodings,0,0);
                 if (Elt)
