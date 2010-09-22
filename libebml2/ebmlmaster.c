@@ -199,8 +199,6 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
     {
         ebml_element *i;
 
-	    Element->Base.DataSize = 0;
-
 	    //if (!EBML_ElementIsFiniteSize((ebml_element*)Element))
 	    //	return INVALID_FILEPOS_T;
 
@@ -209,7 +207,9 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
         }
 
         if (Element->CheckSumStatus)
-            Element->Base.DataSize += 6;
+            Element->Base.DataSize = 6;
+        else
+    	    Element->Base.DataSize = 0;
 
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
         {
