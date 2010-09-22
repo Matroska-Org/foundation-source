@@ -360,7 +360,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                 }
             }
         }
-		EBML_ElementUpdateSize(*Cluster,0,0);
+        EBML_ElementUpdateSize(*Cluster,0,0);
         ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
         ClusterPos += ClusterSize;
 
@@ -1576,16 +1576,20 @@ int main(int argc, const char *argv[])
 
 	if (!Live)
 	{
-		//  Prepare the Meta Seek
+		//  Prepare the Meta Seek with average values
 		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,&MATROSKA_ContextSeekHead,0);
         EBML_MasterUseChecksum(WMetaSeek,!Unsafe);
 		WMetaSeek->Base.ElementPosition = Stream_Seek(Output,0,SEEK_CUR); // keep the position for when we need to write it
-		NextPos = 100; // dumy position of the SeekHead end
+        NextPos = 38 + 4* (Unsafe ? 17 : 23); // dumy position of the Segment Info start
+        if (RAttachments)
+            NextPos += Unsafe ? 18 : 24;
+        if (RChapters)
+            NextPos += Unsafe ? 17 : 23;
 		// segment info
 		WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
         EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 		WSegmentInfo->Base.ElementPosition = NextPos;
-		NextPos += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0);
+		NextPos += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0) + 60; // 60 for the extra string we add
 		MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)WSegmentInfo);
 		// track info
 		if (WTrackInfo)
@@ -1593,6 +1597,7 @@ int main(int argc, const char *argv[])
 			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
             EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 			WTrackInfo->Base.ElementPosition = NextPos;
+            EBML_ElementUpdateSize(WTrackInfo, 0, 0);
 			NextPos += EBML_ElementFullSize((ebml_element*)WTrackInfo,0);
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)WTrackInfo);
 		}
@@ -2273,7 +2278,7 @@ int main(int argc, const char *argv[])
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RCues);
 		}
 
-		// attachements
+		// attachments
 		if (RAttachments)
 		{
 			ReduceSize((ebml_element*)RAttachments);
@@ -2402,7 +2407,6 @@ int main(int argc, const char *argv[])
 		if (WTrackInfo && RCues)
 		{
             OptimizeCues(RCues,Clusters,WSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated, !Unsafe, ClustersNeedRead?Input:NULL);
-			EBML_ElementUpdateSize(RCues,0,0);
 			RCues->Base.ElementPosition = NextPos;
 			NextPos += EBML_ElementFullSize((ebml_element*)RCues,0);
 		}
