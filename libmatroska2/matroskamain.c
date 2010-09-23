@@ -1251,6 +1251,8 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
         Elt = EBML_ElementParent(Elt);
     if (!Elt)
         return ERR_INVALID_DATA;
+
+    assert(Elt->ElementPosition != INVALID_FILEPOS_T);
     
     EBML_IntegerSetValue((ebml_integer*)PosInCluster, Elt->ElementPosition - EBML_ElementPositionData(Segment));
 
@@ -2604,21 +2606,21 @@ static int CmpAttachedFile(const ebml_master* a,const ebml_master* b)
 
 	// cover.jpg comes first
 	if (CoverA && !SmallCoverA)
-		return 1;
-	if (CoverB && !SmallCoverB)
 		return -1;
+	if (CoverB && !SmallCoverB)
+		return 1;
 	if (CoverA == CoverB || LandCoverA == LandCoverB)
-		return SmallCoverB - SmallCoverA;
+		return SmallCoverA - SmallCoverB;
 	if (CoverA || LandCoverA)
 	{
 		if (CoverB)
-			return -1;
-		return 1;
+			return 1;
+		return -1;
 	}
 
 	if (CoverA)
-		return 1;
-	return -1;
+		return -1;
+	return 1;
 }
 
 matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode)
