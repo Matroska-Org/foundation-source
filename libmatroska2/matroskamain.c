@@ -47,6 +47,7 @@
 #define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
 #define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
 #define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
+#define MATROSKA_ATTACHMENT_CLASS FOURCC('M','K','A','T')
 
 // Seek Header
 const ebml_context MATROSKA_ContextSeekId = {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_SemanticGlobals, NULL};
@@ -553,7 +554,7 @@ const ebml_semantic EBML_SemanticAttachedFile[] = {
     {0, 1, &MATROSKA_ContextAttachedFileUsedEndTime   ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, NULL ,0} // end of the table
 };
-const ebml_context MATROSKA_ContextAttachedFile = {0x61A7, EBML_MASTER_CLASS, 0, 0, "AttachedFile", EBML_SemanticAttachedFile, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextAttachedFile = {0x61A7, MATROSKA_ATTACHMENT_CLASS, 0, 0, "AttachedFile", EBML_SemanticAttachedFile, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticAttachments[] = {
     {1, 0, &MATROSKA_ContextAttachedFile ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
@@ -1168,6 +1169,12 @@ void MATROSKA_CuesSort(ebml_master *Cues)
     EBML_MasterSort(Cues,NULL,NULL);
 }
 
+void MATROSKA_AttachmentSort(ebml_master *Attachments)
+{
+    assert(Attachments->Base.Context->Id == MATROSKA_ContextAttachments.Id);
+    EBML_MasterSort(Attachments,NULL,NULL);
+}
+
 timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_master *SegmentInfo)
 {
     ebml_element *TimecodeScale = NULL;
@@ -1565,7 +1572,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
                     InBuf += (size_t)Header->DataSize;
                 }
-                Err = Stream_Read(Input,InBuf,(size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?Header->DataSize:0),&Read);
+                Err = Stream_Read(Input,InBuf,(size_t)(ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?Header->DataSize:0)),&Read);
                 if (Err != ERR_NONE)
                     goto failed;
                 if (Read + (Header?Header->DataSize:0) != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
@@ -2525,6 +2532,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
 
 static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)
 {
+	// returns a > b
     timecode_t TA = MATROSKA_CueTimecode(a);
     timecode_t TB = MATROSKA_CueTimecode(b);
     int NA,NB;
@@ -2539,6 +2547,78 @@ static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)
     if (NB > NA)
         return -1;
     return 0;
+}
+
+static int CmpAttachedFile(const ebml_master* a,const ebml_master* b)
+{
+	// returns a > b
+	// sort cover art names according to http://www.matroska.org/technical/cover_art/index.html
+	tchar_t FilenameA[MAXPATH];
+	tchar_t FilenameB[MAXPATH];
+	bool_t CoverA=0,CoverB=0;
+	bool_t LandCoverA=0,LandCoverB=0;
+	bool_t SmallCoverA=0,SmallCoverB=0;
+	ebml_element *NameA = EBML_MasterFindChild(a,&MATROSKA_ContextAttachedFileName);
+	ebml_element *NameB = EBML_MasterFindChild(b,&MATROSKA_ContextAttachedFileName);
+
+	if (NameB==NULL)
+		return -1;
+	if (NameA==NULL)
+		return 1;
+	
+	EBML_StringGet((ebml_string*)NameA,FilenameA,TSIZEOF(FilenameA));
+	EBML_StringGet((ebml_string*)NameB,FilenameB,TSIZEOF(FilenameB));
+
+	if (tcsisame_ascii(FilenameA, T("cover.jpg")) || tcsisame_ascii(FilenameA, T("cover.png")))
+		CoverA = 1;
+	else if (tcsisame_ascii(FilenameA, T("cover_land.jpg")) || tcsisame_ascii(FilenameA, T("cover_land.png")))
+		LandCoverA = 1;
+	else if (tcsisame_ascii(FilenameA, T("small_cover.jpg")) || tcsisame_ascii(FilenameA, T("small_cover.png")))
+	{
+		CoverA = 1;
+		SmallCoverA = 1;
+	}
+	else if (tcsisame_ascii(FilenameA, T("small_cover_land.jpg")) || tcsisame_ascii(FilenameA, T("small_cover_land.png")))
+	{
+		LandCoverA = 1;
+		SmallCoverA = 1;
+	}
+
+	if (tcsisame_ascii(FilenameB, T("cover.jpg")) || tcsisame_ascii(FilenameB, T("cover.png")))
+		CoverB = 1;
+	else if (tcsisame_ascii(FilenameB, T("cover_land.jpg")) || tcsisame_ascii(FilenameB, T("cover_land.png")))
+		LandCoverB = 1;
+	else if (tcsisame_ascii(FilenameB, T("small_cover.jpg")) || tcsisame_ascii(FilenameB, T("small_cover.png")))
+	{
+		CoverB = 1;
+		SmallCoverB = 1;
+	}
+	else if (tcsisame_ascii(FilenameB, T("small_cover_land.jpg")) || tcsisame_ascii(FilenameB, T("small_cover_land.png")))
+	{
+		LandCoverB = 1;
+		SmallCoverB = 1;
+	}
+
+	if (!CoverA && !CoverB && !LandCoverA && !LandCoverB)
+		return tcscmp(FilenameA,FilenameB);
+
+	// cover.jpg comes first
+	if (CoverA && !SmallCoverA)
+		return 1;
+	if (CoverB && !SmallCoverB)
+		return -1;
+	if (CoverA == CoverB || LandCoverA == LandCoverB)
+		return SmallCoverB - SmallCoverA;
+	if (CoverA || LandCoverA)
+	{
+		if (CoverB)
+			return -1;
+		return 1;
+	}
+
+	if (CoverA)
+		return 1;
+	return -1;
 }
 
 matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode)
@@ -2642,4 +2722,8 @@ META_END_CONTINUE(EBML_MASTER_CLASS)
 
 META_START_CONTINUE(MATROSKA_SEGMENTUID_CLASS)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ValidateSize,ValidateSizeSegUID)
-META_END(EBML_BINARY_CLASS)
+META_END_CONTINUE(EBML_BINARY_CLASS)
+
+META_START_CONTINUE(MATROSKA_ATTACHMENT_CLASS)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Cmp,CmpAttachedFile)
+META_END(EBML_MASTER_CLASS)
