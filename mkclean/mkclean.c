@@ -1574,13 +1574,56 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+    //  Compute the Segment Info size
+    ReduceSize((ebml_element*)WSegmentInfo);
+    // change the library names & app name
+    stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
+    LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
+    EBML_StringGet(LibName,Original,TSIZEOF(Original));
+    EBML_UniStringSetValue(LibName,String);
+
+    AppName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
+    EBML_StringGet(AppName,String,TSIZEOF(String));
+	ExtraSizeDiff = tcslen(String);
+    if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
+    {
+		if (Original[0])
+			tcscat_s(Original,TSIZEOF(Original),T(" + "));
+        tcscat_s(Original,TSIZEOF(Original),String);
+    }
+    s = Original;
+    if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
+        s += 14;
+	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
+	if (Remux ||Live || Optimize)
+		tcscat_s(String,TSIZEOF(String),T(" "));
+	if (Remux)
+		tcscat_s(String,TSIZEOF(String),T("r"));
+	if (Optimize)
+		tcscat_s(String,TSIZEOF(String),T("o"));
+	if (Live)
+		tcscat_s(String,TSIZEOF(String),T("l"));
+	if (UnOptimize)
+		tcscat_s(String,TSIZEOF(String),T("u"));
+	if (s[0])
+		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
+    EBML_UniStringSetValue(AppName,String);
+	ExtraSizeDiff = tcslen(String) - ExtraSizeDiff + 2;
+
+	if (Remux || !EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
+	{
+		RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 1, 1);
+		EBML_DateSetDateTime((ebml_date*)RLevel1, GetTimeDate());
+		RLevel1 = NULL;
+	}
+
 	if (!Live)
 	{
 		//  Prepare the Meta Seek with average values
 		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,&MATROSKA_ContextSeekHead,0);
         EBML_MasterUseChecksum(WMetaSeek,!Unsafe);
 		WMetaSeek->Base.ElementPosition = Stream_Seek(Output,0,SEEK_CUR); // keep the position for when we need to write it
-        NextPos = 38 + 4* (Unsafe ? 17 : 23); // dumy position of the Segment Info start
+        NextPos = 38 + 4* (Unsafe ? 17 : 23); // raw estimation of the SeekHead size
         if (RAttachments)
             NextPos += Unsafe ? 18 : 24;
         if (RChapters)
@@ -1605,6 +1648,7 @@ int main(int argc, const char *argv[])
 		{
 			TextWrite(StdErr,T("Warning: the source Segment has no Track Info section (can be a chapter file)\r\n"));
 		}
+
 		// chapters
 		if (RChapters)
 		{
@@ -1626,6 +1670,29 @@ int main(int argc, const char *argv[])
 				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RChapters);
 			}
 		}
+
+		// attachments
+		if (RAttachments)
+		{
+			ReduceSize((ebml_element*)RAttachments);
+            if (EBML_MasterUseChecksum(RAttachments,!Unsafe))
+                EBML_ElementUpdateSize(RAttachments, 0, 0);
+			if (!EBML_MasterCheckMandatory(RAttachments,0))
+			{
+				TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
+				NodeDelete((node*)RAttachments);
+				RAttachments = NULL;
+			}
+			else
+			{
+				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+                EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
+				RAttachments->Base.ElementPosition = NextPos;
+				NextPos += EBML_ElementFullSize((ebml_element*)RAttachments,0);
+				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RAttachments);
+			}
+		}
+
 		// tags
 		if (RTags)
 		{
@@ -2278,28 +2345,6 @@ int main(int argc, const char *argv[])
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RCues);
 		}
 
-		// attachments
-		if (RAttachments)
-		{
-			ReduceSize((ebml_element*)RAttachments);
-            if (EBML_MasterUseChecksum(RAttachments,!Unsafe))
-                EBML_ElementUpdateSize(RAttachments, 0, 0);
-			if (!EBML_MasterCheckMandatory(RAttachments,0))
-			{
-				TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
-				NodeDelete((node*)RAttachments);
-				RAttachments = NULL;
-			}
-			else
-			{
-				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-                EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
-				RAttachments->Base.ElementPosition = NextPos;
-				NextPos += EBML_ElementFullSize((ebml_element*)RAttachments,0);
-				MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RAttachments);
-			}
-		}
-
         if (!RTags)
         {
             // create a fake Tags element to have its position prepared in the SeekHead
@@ -2314,49 +2359,6 @@ int main(int argc, const char *argv[])
 		MetaSeekUpdate(WMetaSeek);
 		MetaSeekBefore = EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
 		NextPos = WMetaSeek->Base.ElementPosition + EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
-	}
-
-    //  Compute the Segment Info size
-    ReduceSize((ebml_element*)WSegmentInfo);
-    // change the library names & app name
-    stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
-    LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
-    EBML_StringGet(LibName,Original,TSIZEOF(Original));
-    EBML_UniStringSetValue(LibName,String);
-
-    AppName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
-    EBML_StringGet(AppName,String,TSIZEOF(String));
-	ExtraSizeDiff = tcslen(String);
-    if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
-    {
-		if (Original[0])
-			tcscat_s(Original,TSIZEOF(Original),T(" + "));
-        tcscat_s(Original,TSIZEOF(Original),String);
-    }
-    s = Original;
-    if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
-        s += 14;
-	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
-	if (Remux ||Live || Optimize)
-		tcscat_s(String,TSIZEOF(String),T(" "));
-	if (Remux)
-		tcscat_s(String,TSIZEOF(String),T("r"));
-	if (Optimize)
-		tcscat_s(String,TSIZEOF(String),T("o"));
-	if (Live)
-		tcscat_s(String,TSIZEOF(String),T("l"));
-	if (UnOptimize)
-		tcscat_s(String,TSIZEOF(String),T("u"));
-	if (s[0])
-		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
-    EBML_UniStringSetValue(AppName,String);
-	ExtraSizeDiff = tcslen(String) - ExtraSizeDiff + 2;
-
-	if (Remux || !EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
-	{
-		RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 1, 1);
-		EBML_DateSetDateTime((ebml_date*)RLevel1, GetTimeDate());
-		RLevel1 = NULL;
 	}
 
     EBML_ElementUpdateSize(WSegmentInfo,0,0);
@@ -2442,70 +2444,71 @@ int main(int argc, const char *argv[])
 			Result = -22;
 			goto exit;
 		}
-		SegmentSize += EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
+		SegmentSize += MetaSeekBefore;
 	}
     else if (!Unsafe)
         SetClusterPrevSize(Clusters, ClustersNeedRead?Input:NULL, Live);
 
-    if (EBML_ElementRender((ebml_element*)WSegmentInfo,Output,0,0,1,NULL)!=ERR_NONE)
+    if (EBML_ElementRender((ebml_element*)WSegmentInfo,Output,0,0,1,&ClusterSize)!=ERR_NONE)
     {
         TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
         Result = -11;
         goto exit;
     }
-    SegmentSize += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0);
+	SegmentSize += ClusterSize;
     if (WTrackInfo)
     {
-        if (EBML_ElementRender((ebml_element*)WTrackInfo,Output,0,0,1,NULL)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)WTrackInfo,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Track Info\r\n"));
             Result = -12;
             goto exit;
         }
-        SegmentSize += EBML_ElementFullSize((ebml_element*)WTrackInfo,0);
+        SegmentSize += ClusterSize;
     }
     if (!Live && RChapters)
     {
-        if (EBML_ElementRender((ebml_element*)RChapters,Output,0,0,1,NULL)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RChapters,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Chapters\r\n"));
             Result = -13;
             goto exit;
         }
-        SegmentSize += EBML_ElementFullSize((ebml_element*)RChapters,0);
-    }
-    if (!Live && RTags)
-    {
-        if (EBML_ElementRender((ebml_element*)RTags,Output,0,0,1,NULL)!=ERR_NONE)
-        {
-            TextWrite(StdErr,T("Failed to write the Tags\r\n"));
-            Result = -14;
-            goto exit;
-        }
-        SegmentSize += EBML_ElementFullSize((ebml_element*)RTags,0);
-    }
-    if (!Live && RCues)
-    {
-        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,NULL)!=ERR_NONE)
-        {
-            TextWrite(StdErr,T("Failed to write the Cues\r\n"));
-            Result = -15;
-            goto exit;
-        }
-        SegmentSize += EBML_ElementFullSize((ebml_element*)RCues,0);
+        SegmentSize += ClusterSize;
     }
 
     //  Write the Attachments
     if (!Live && RAttachments)
     {
         ReduceSize((ebml_element*)RAttachments);
-        if (EBML_ElementRender((ebml_element*)RAttachments,Output,0,0,1,NULL)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RAttachments,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Attachments\r\n"));
             Result = -17;
             goto exit;
         }
-        SegmentSize += EBML_ElementFullSize((ebml_element*)RAttachments,0);
+        SegmentSize += ClusterSize;
+    }
+
+    if (!Live && RTags)
+    {
+        if (EBML_ElementRender((ebml_element*)RTags,Output,0,0,1,&ClusterSize)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Tags\r\n"));
+            Result = -14;
+            goto exit;
+        }
+        SegmentSize += ClusterSize;
+    }
+    if (!Live && RCues)
+    {
+        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&ClusterSize)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Cues\r\n"));
+            Result = -15;
+            goto exit;
+        }
+        SegmentSize += ClusterSize;
     }
 
     //  Write the Clusters
