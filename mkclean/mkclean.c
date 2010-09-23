@@ -1772,7 +1772,7 @@ int main(int argc, const char *argv[])
 	    ebml_element *Block, *GBlock;
 		ebml_master *Track;
         matroska_block *Block1;
-		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEnd, BlockEnd, MainBlockEnd;
+		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEndTimecode, BlockEnd, MainBlockEnd;
 		size_t MainTrack, BlockTrack;
         size_t Frame, *pTrackOrder;
 		bool_t Deleted;
@@ -1938,9 +1938,9 @@ int main(int argc, const char *argv[])
 			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster ?
 
 			if ((Tst+1)==ARRAYEND(KeyFrameTimecodes, timecode_t))
-				MasterEnd = INVALID_TIMECODE_T;
+				MasterEndTimecode = INVALID_TIMECODE_T;
 			else
-				MasterEnd = *(Tst+1);
+				MasterEndTimecode = *(Tst+1);
 
 			while (!ReachedNextCluster && ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] != ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
 			{
@@ -1952,6 +1952,9 @@ int main(int argc, const char *argv[])
 					pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] + 1;
 					MainBlockEnd = pBlockInfo->DecodeTime;
 				}
+
+                if (((ebml_element*)ClusterW)->ElementPosition == INVALID_FILEPOS_T)
+                    ((ebml_element*)ClusterW)->ElementPosition = ((ebml_element*)pBlockInfo->Block)->ElementPosition; // fake average value
 
 				for (pTrackOrder=ARRAYBEGIN(TrackOrder,size_t);pTrackOrder!=ARRAYEND(TrackOrder,size_t);++pTrackOrder)
 				{
@@ -1980,7 +1983,7 @@ int main(int argc, const char *argv[])
 
 								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 								{
-									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
 										break;
 									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2007,7 +2010,7 @@ int main(int argc, const char *argv[])
 
 								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 								{
-									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
 										break;
 									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2028,7 +2031,7 @@ int main(int argc, const char *argv[])
 							}
 						}
 
-						if (BlockEnd>=MasterEnd && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
+						if (BlockEnd>=MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
 						{
 							// relacing
                             if (MATROSKA_BlockReadData(pBlockInfo->Block,Input)==ERR_NONE)
@@ -2044,7 +2047,7 @@ int main(int argc, const char *argv[])
 
 									    for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 									    {
-										    if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+										    if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
 											    break;
 										    MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 										    MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2074,7 +2077,7 @@ int main(int argc, const char *argv[])
 
 									    for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
 									    {
-										    if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEnd)
+										    if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
 											    break;
 										    MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
 										    MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2137,7 +2140,7 @@ int main(int argc, const char *argv[])
 
 						if (*pTrackOrder==MainTrack)
 						{
-							if (MainBlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEnd)
+							if (MainBlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEndTimecode)
 								ReachedNextCluster = 1;
 							break;
 						}
@@ -2360,7 +2363,7 @@ int main(int argc, const char *argv[])
 		// first estimation of the MetaSeek size
 		MetaSeekUpdate(WMetaSeek);
 		MetaSeekBefore = EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
-		NextPos = WMetaSeek->Base.ElementPosition + EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
+        NextPos = EBML_ElementPositionData((ebml_element*)WSegment) + EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
 	}
 
     EBML_ElementUpdateSize(WSegmentInfo,0,0);
