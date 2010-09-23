@@ -842,7 +842,7 @@ static void CleanCropValues(ebml_master *Track, int64_t Width, int64_t Height)
     }
 }
 
-static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *RAttachments)
+static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachments)
 {
     ebml_master *Track, *CurTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -1028,17 +1028,17 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *RAttachmen
         while (Elt)
         {
             Elt2 = NULL;
-            if (!RAttachments)
+            if (!Attachments)
                 Elt2 = Elt;
             else
             {
-                Elt2 = EBML_MasterFindFirstElt(RAttachments,&MATROSKA_ContextAttachedFile,0,0);
+                Elt2 = EBML_MasterFindFirstElt(Attachments,&MATROSKA_ContextAttachedFile,0,0);
                 while (Elt2)
                 {
                     DisplayH = EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextAttachedFileUID,0,0);
                     if (DisplayH && EBML_IntegerValue(DisplayH)==EBML_IntegerValue(Elt))
                         break;
-                    Elt2 = EBML_MasterFindNextElt(RAttachments, Elt2,0,0);
+                    Elt2 = EBML_MasterFindNextElt(Attachments, Elt2,0,0);
                 }
                 if (!Elt2) // the attachment wasn't found, delete Elt
                     Elt2 = Elt;
@@ -1223,6 +1223,7 @@ int main(int argc, const char *argv[])
     UnOptimize = tcsisame_ascii(String,T("mkWDclean"));
     if (UnOptimize)
         TextPrintf(StdErr,T("Running special mkWDclean mode, please fix your player instead of valid Matroska files\r\n"));
+	Path[0] = 0;
 
 	for (i=1;i<argc;++i)
 	{
@@ -1674,6 +1675,7 @@ int main(int argc, const char *argv[])
 		// attachments
 		if (RAttachments)
 		{
+			MATROSKA_AttachmentSort(RAttachments);
 			ReduceSize((ebml_element*)RAttachments);
             if (EBML_MasterUseChecksum(RAttachments,!Unsafe))
                 EBML_ElementUpdateSize(RAttachments, 0, 0);
@@ -2595,7 +2597,7 @@ exit:
     if (Output)
         StreamClose(Output);
 
-    if (Result<0)
+    if (Result<0 && Path[0])
         FileErase((nodecontext*)&p,Path,1,0);
 
     // EBML & Matroska ending
