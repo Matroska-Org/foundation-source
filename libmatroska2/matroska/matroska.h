@@ -105,8 +105,9 @@ EBML_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Seg
 EBML_DLL double MATROSKA_TrackTimecodeScale(const ebml_master *Track);
 EBML_DLL timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_master *SegmentInfo);
 EBML_DLL void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode);
-EBML_DLL err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t Relative);
+EBML_DLL err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t ClusterTimecode);
 EBML_DLL timecode_t MATROSKA_ClusterTimecode(matroska_cluster *Cluster);
+EBML_DLL timecode_t MATROSKA_ClusterTimecodeScale(matroska_cluster *Cluster, bool_t Read);
 EBML_DLL timecode_t MATROSKA_BlockTimecode(matroska_block *Block);
 EBML_DLL timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue);
 EBML_DLL filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue);
@@ -145,7 +146,7 @@ EBML_DLL timecode_t MATROSKA_BlockGetFrameEnd(const matroska_block *Block, size_
 EBML_DLL size_t MATROSKA_BlockGetLength(const matroska_block *Block, size_t FrameNum);
 
 EBML_DLL err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame, bool_t WithData);
-EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t Relative);
+EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t ClusterTimecode);
 
 
 EBML_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);

@@ -1044,13 +1044,30 @@ void MATROSKA_ClusterSort(matroska_cluster *Cluster)
 
 void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 {
-	ebml_element *TimecodeElt;
+	ebml_element *TimecodeElt, *Elt, *GBlock;
     assert(Cluster->Base.Base.Context->Id == MATROSKA_ContextCluster.Id);
     Cluster->GlobalTimecode = Timecode;
     TimecodeElt = EBML_MasterFindFirstElt((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode,1,1);
 #if defined(CONFIG_EBML_WRITING)
 	assert(Cluster->WriteSegInfo);
 	EBML_IntegerSetValue((ebml_integer*)TimecodeElt, Scale64(Timecode,1,MATROSKA_SegmentInfoTimecodeScale(Cluster->WriteSegInfo)));
+    // update all the blocks LocalTimecode
+    for (Elt = EBML_MasterChildren(Cluster); Elt; Elt = EBML_MasterNext(Elt))
+    {
+        if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+        {
+            for (GBlock = EBML_MasterChildren(Elt);GBlock;GBlock=EBML_MasterNext(GBlock))
+            {
+                if (GBlock->Context->Id == MATROSKA_ContextClusterBlock.Id)
+                {
+                    MATROSKA_BlockSetTimecode((matroska_block*)GBlock, MATROSKA_BlockTimecode((matroska_block*)GBlock), Timecode);
+                    break;
+                }
+            }
+        }
+        else if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+            MATROSKA_BlockSetTimecode((matroska_block*)Elt, MATROSKA_BlockTimecode((matroska_block*)Elt), Timecode);
+    }
 #else
 	assert(Cluster->ReadSegInfo);
 	EBML_IntegerSetValue((ebml_integer*)TimecodeElt, Scale64(Timecode,1,MATROSKA_SegmentInfoTimecodeScale(Cluster->ReadSegInfo)));
@@ -1069,15 +1086,24 @@ timecode_t MATROSKA_ClusterTimecode(matroska_cluster *Cluster)
     return Cluster->GlobalTimecode;
 }
 
-err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t Relative)
+timecode_t MATROSKA_ClusterTimecodeScale(matroska_cluster *Cluster, bool_t Read)
+{
+#if defined(CONFIG_EBML_WRITING)
+    if (!Read)
+        return MATROSKA_SegmentInfoTimecodeScale(Cluster->WriteSegInfo);
+#endif
+    return MATROSKA_SegmentInfoTimecodeScale(Cluster->ReadSegInfo);
+}
+
+err_t MATROSKA_BlockSetTimecode(matroska_block *Block, timecode_t Timecode, timecode_t ClusterTimecode)
 {
 	int64_t InternalTimecode;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     assert(Timecode!=INVALID_TIMECODE_T);
 #if defined(CONFIG_EBML_WRITING)
-	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->WriteSegInfo) * MATROSKA_TrackTimecodeScale(Block->WriteTrack)));
+	InternalTimecode = Scale64(Timecode - ClusterTimecode,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->WriteSegInfo) * MATROSKA_TrackTimecodeScale(Block->WriteTrack)));
 #else
-	InternalTimecode = Scale64(Timecode - Relative,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->ReadSegInfo) * MATROSKA_TrackTimecodeScale(Block->ReadTrack)));
+	InternalTimecode = Scale64(Timecode - ClusterTimecode,1,(int64_t)(MATROSKA_SegmentInfoTimecodeScale(Block->ReadSegInfo) * MATROSKA_TrackTimecodeScale(Block->ReadTrack)));
 #endif
 	if (InternalTimecode > 32767 || InternalTimecode < -32768)
 		return ERR_INVALID_DATA;
@@ -1223,17 +1249,17 @@ filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue)
 
 err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
 {
-    ebml_element *TimeCode, *Elt, *PosInCluster, *TrackNum;
+    ebml_element *TimecodeElt, *Elt, *PosInCluster, *TrackNum;
     assert(Cue->Base.Base.Context->Id == MATROSKA_ContextCuePoint.Id);
     assert(Cue->Block);
     assert(Cue->SegInfo);
     assert(Segment); // we need the segment location
 	EBML_MasterErase((ebml_master*)Cue);
 	EBML_MasterMandatory((ebml_master*)Cue,1);
-    TimeCode = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTime,1,1);
-    if (!TimeCode)
+    TimecodeElt = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTime,1,1);
+    if (!TimecodeElt)
         return ERR_OUT_OF_MEMORY;
-    EBML_IntegerSetValue((ebml_integer*)TimeCode, Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo)));
+    EBML_IntegerSetValue((ebml_integer*)TimecodeElt, Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo)));
 
     Elt = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions,1,1);
     if (!Elt)
@@ -1996,10 +2022,10 @@ err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matro
     return ERR_NONE;
 }
 
-err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t Relative)
+err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t ClusterTimecode)
 {
     if (!Block->Base.Base.bValueIsSet && Frame->Timecode!=INVALID_TIMECODE_T)
-        MATROSKA_BlockSetTimecode(Block,Frame->Timecode,Relative);
+        MATROSKA_BlockSetTimecode(Block,Frame->Timecode,ClusterTimecode);
     ArrayAppend(&Block->Data,Frame->Data,Frame->Size,0);
     ArrayAppend(&Block->Durations,&Frame->Duration,sizeof(Frame->Duration),0);
     ArrayAppend(&Block->SizeList,&Frame->Size,sizeof(Frame->Size),0);
