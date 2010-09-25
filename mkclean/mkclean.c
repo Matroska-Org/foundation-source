@@ -313,10 +313,19 @@ static void SetClusterPrevSize(array *Clusters, stream *Input, bool_t Live)
     }
 }
 
+static void UpdateCues(ebml_master *Cues, ebml_master *Segment)
+{
+    ebml_master *Cue;
+
+    // reevaluate the size needed for the Cues
+    for (Cue=(ebml_master*)EBML_MasterChildren(Cues);Cue;Cue=(ebml_master*)EBML_MasterNext(Cue))
+        MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, (ebml_element*)Segment);
+}
+
 static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_master *Cues, ebml_master *Segment, bool_t SafeClusters, stream *Input)
 {
     ebml_element *Elt, *Elt2;
-    ebml_master **Cluster, *Cue;
+    ebml_master **Cluster;
     filepos_t OriginalSize = Cues->Base.DataSize;
     filepos_t ClusterPos = ClusterStart + EBML_ElementFullSize((ebml_element*)Cues,0);
     filepos_t ClusterSize = INVALID_FILEPOS_T;
@@ -368,9 +377,8 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
             UnReadClusterData(*Cluster, 0);
     }
 
-    // reevaluate the size needed for the Cues
-    for (Cue=(ebml_master*)EBML_MasterChildren(Cues);Cue;Cue=(ebml_master*)EBML_MasterNext(Cue))
-        MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, (ebml_element*)Segment);
+    UpdateCues(Cues, Segment);
+
     ClusterPos = EBML_ElementUpdateSize(Cues,0,0);
     if (ClusterPos != OriginalSize)
         SettleClustersWithCues(Clusters,ClusterStart,Cues,Segment, SafeClusters, Input);
@@ -633,12 +641,25 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     return NULL;
 }
 
-static void WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, bool_t Live, filepos_t PrevSize)
+static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, bool_t Live, filepos_t PrevSize, timecode_t *PrevTimecode)
 {
     filepos_t IntendedPosition = Cluster->Base.ElementPosition;
     ebml_element *Elt;
+    bool_t CuesChanged = 0;
 
     ReadClusterData(Cluster, Input);
+
+    if (*PrevTimecode != INVALID_TIMECODE_T)
+    {
+        timecode_t OrigTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster);
+        if (*PrevTimecode >= OrigTimecode)
+        {
+            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timecode %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), Cluster->Base.ElementPosition,*PrevTimecode,OrigTimecode);
+            MATROSKA_ClusterSetTimecode((matroska_cluster*)Cluster, *PrevTimecode + MATROSKA_ClusterTimecodeScale((matroska_cluster*)Cluster, 0));
+            CuesChanged = 1;
+        }
+    }
+    *PrevTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster);
 
     EBML_ElementRender((ebml_element*)Cluster,Output,0,0,1,NULL);
 
@@ -652,6 +673,7 @@ static void WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, bo
         if (Elt && PrevSize!=EBML_IntegerValue(Elt))
             TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), Cluster->Base.ElementPosition,EBML_IntegerValue(Elt),PrevSize);
     }
+    return CuesChanged;
 }
 
 static void MetaSeekUpdate(ebml_master *SeekHead)
@@ -1193,7 +1215,9 @@ int main(int argc, const char *argv[])
     ebml_parser_context RSegmentContext;
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
-    filepos_t NextPos = 0, SegmentSize = 0, ClusterSize;
+    filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize;
+    timecode_t PrevTimecode;
+    bool_t CuesChanged;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
     int InputPathIndex = 1;
 	int64_t TimeCodeScale = 0;
@@ -2507,26 +2531,51 @@ int main(int argc, const char *argv[])
     }
     if (!Live && RCues)
     {
-        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&ClusterSize)!=ERR_NONE)
+        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&CuesSize)!=ERR_NONE)
         {
             TextWrite(StdErr,T("Failed to write the Cues\r\n"));
             Result = -15;
             goto exit;
         }
-        SegmentSize += ClusterSize;
+        SegmentSize += CuesSize;
     }
 
     //  Write the Clusters
     ClusterSize = INVALID_FILEPOS_T;
+    PrevTimecode = INVALID_TIMECODE_T;
+    CuesChanged = 0;
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
     {
         ShowProgress((ebml_element*)*Cluster,(ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
-        WriteCluster(*Cluster,Output,Input, Live, ClusterSize);
+        CuesChanged = WriteCluster(*Cluster,Output,Input, Live, ClusterSize, &PrevTimecode) || CuesChanged;
         if (!Unsafe)
             ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
         SegmentSize += EBML_ElementFullSize((ebml_element*)*Cluster,0);
     }
     EndProgress((ebml_element*)RSegment,Unsafe?3:2,Unsafe?3:2);
+
+    if (CuesChanged && !Live && RCues)
+    {
+        filepos_t PosBefore = Stream_Seek(Output,0,SEEK_CUR);
+        Stream_Seek(Output,RCues->Base.ElementPosition,SEEK_SET);
+
+        UpdateCues(RCues, WSegment);
+
+        if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&ClusterSize)!=ERR_NONE)
+        {
+            TextWrite(StdErr,T("Failed to write the Cues\r\n"));
+            Result = -16;
+            goto exit;
+        }
+        assert(ClusterSize == CuesSize);
+        if (ClusterSize != CuesSize)
+        {
+            TextWrite(StdErr,T("The Cues size changed after a Cluster timecode was altered!\r\n"));
+            Result = -18;
+            goto exit;
+        }
+        Stream_Seek(Output,PosBefore,SEEK_SET);
+    }
 
     // update the WSegment size
 	if (!Live)
