@@ -1218,7 +1218,7 @@ int main(int argc, const char *argv[])
     filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize;
     timecode_t PrevTimecode;
     bool_t CuesChanged;
-	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Live = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
     int InputPathIndex = 1;
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
@@ -1282,6 +1282,7 @@ int main(int argc, const char *argv[])
 		}
 		else if (tcsisame_ascii(Path,T("--unsafe"))) { Unsafe = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--optimize"))) { Optimize = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--regression"))) { Regression = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--no-optimize"))) { UnOptimize = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--quiet"))) { Quiet = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--version"))) { ShowVersion = 1; InputPathIndex = i+1; }
@@ -1308,6 +1309,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
 		    TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
 		    TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
+		    TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
 		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
             TextWrite(StdErr,T("  --version     show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help        show this screen\r\n"));
@@ -1605,7 +1607,10 @@ int main(int argc, const char *argv[])
     stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
     LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
     EBML_StringGet(LibName,Original,TSIZEOF(Original));
-    EBML_UniStringSetValue(LibName,String);
+    if (Regression)
+        EBML_UniStringSetValue(LibName,T("libebml2 + libmatroska2"));
+    else
+        EBML_UniStringSetValue(LibName,String);
 
     AppName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
     EBML_StringGet(AppName,String,TSIZEOF(String));
@@ -1632,13 +1637,18 @@ int main(int argc, const char *argv[])
 		tcscat_s(String,TSIZEOF(String),T("u"));
 	if (s[0])
 		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
+    if (Regression)
+        stprintf_s(String,TSIZEOF(String),T("mkclean regression from %s"),s);
     EBML_UniStringSetValue(AppName,String);
 	ExtraSizeDiff = tcslen(String) - ExtraSizeDiff + 2;
 
-	if (Remux || !EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
+	if (Regression || Remux || !EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 0, 0))
 	{
 		RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextSegmentDate, 1, 1);
-		EBML_DateSetDateTime((ebml_date*)RLevel1, GetTimeDate());
+        if (Regression)
+            EBML_DateSetDateTime((ebml_date*)RLevel1, 1);
+        else
+		    EBML_DateSetDateTime((ebml_date*)RLevel1, GetTimeDate());
 		RLevel1 = NULL;
 	}
 
