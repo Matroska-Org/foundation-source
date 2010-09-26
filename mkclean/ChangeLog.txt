@@ -1,7 +1,7 @@
 2010-09-26
 version 0.6.0:
     - fix a size update issue with the new "smarter" system
-    - fix don't delete the mkclean binary if it's run with no parameter
+    - don't delete the mkclean binary if it's run with no parameter
     - put the attachments before the Cue entries (index)
     - put cover.jpg/cover.png at the front of attachments
     - support bz2 and lzo1x track reading (transformed to zlib when writing)
