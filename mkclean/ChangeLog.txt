@@ -7,6 +7,7 @@ version 0.6.0:
     - support bz2 and lzo1x track reading (transformed to zlib when writing)
     - make sure cluster timecodes are always incrementing
     - add --regression to output files that can used for comparison in regression tests
+    - fix OS X building (gcc_osx_x86 and xcode_x86)
 
 2010-09-14
 version 0.5.7:

@@ -24,9 +24,9 @@ GROUP(!HAVE_ZLIB) zlib
   //uses masm and not yasm SOURCE(COMPILER_MSVC && IX86_64) contrib/masmx64/inffas8664.c
   //uses masm and not yasm SOURCE(COMPILER_MSVC && IX86_64) contrib/masmx64/inffasx64.asm
   
-  DEFINE(COMPILER_GCC && (IX86 || IX86_64)) ASMINF
-  SOURCE(COMPILER_GCC && (IX86 || IX86_64)) contrib/inflate86/inffas86.c
-  //SOURCE(COMPILER_GCC && IX86) contrib/inflate86/inffast.S
+  DEFINE(COMPILER_GCC && IX86 && !TARGET_OSX) ASMINF
+  SOURCE(COMPILER_GCC && IX86 && !TARGET_OSX) contrib/inflate86/inffas86.c
+  //SOURCE(COMPILER_GCC && IX86 && !TARGET_OSX) contrib/inflate86/inffast.S
 
   DEFINE(COMPILER_GCC && (IX86 || IX86_64) && !TARGET_OSX) ASMV
   SOURCE(COMPILER_GCC && IX86 && !TARGET_OSX) contrib/asm686/match.S
