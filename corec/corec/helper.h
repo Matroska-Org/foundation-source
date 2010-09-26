@@ -75,6 +75,7 @@
 #define INT16BE(a) SWAP16(a)
 #endif
 
+#define LOAD8(ptr,ofs)		(((uint8_t*)(ptr))[ofs])
 #if defined(CONFIG_UNALIGNED_ACCESS)
 #define LOAD16LE(ptr)		INT16LE(*(uint16_t*)(ptr))
 #define LOAD16BE(ptr)		INT16BE(*(uint16_t*)(ptr))
@@ -83,7 +84,6 @@
 #define LOAD64LE(ptr)		INT64LE(*(uint64_t*)(ptr))
 #define LOAD64BE(ptr)		INT64BE(*(uint64_t*)(ptr))
 #else
-#define LOAD8(ptr,ofs)		(((uint8_t*)(ptr))[ofs])
 #define LOAD16LE(ptr)		((uint16_t)((LOAD8(ptr,1)<<8)|LOAD8(ptr,0)))
 #define LOAD16BE(ptr)		((uint16_t)((LOAD8(ptr,0)<<8)|LOAD8(ptr,1)))
 #define LOAD32LE(ptr)		((LOAD8(ptr,3)<<24)|(LOAD8(ptr,2)<<16)|(LOAD8(ptr,1)<<8)|LOAD8(ptr,0))

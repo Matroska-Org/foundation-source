@@ -177,13 +177,24 @@ static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceR
 	size_t i = 0;
     if (Element->Base.DataSize == 8)
     {
-        uint64_t Buf = LOAD64BE(&Element->Value);
+        union {
+            uint32_t i;
+            double f;
+        } data;
+        uint64_t Buf;
+        data.f = Element->Value;
+        Buf = LOAD64BE(&data.i);
         Err = Stream_Write(Output,&Buf,8,&i);
     }
     else
     {
-        float data = (float)Element->Value;
-        uint32_t Buf = LOAD32BE(&data);
+        union {
+            uint32_t i;
+            float f;
+        } data;
+        uint32_t Buf;
+        data.f = (float)Element->Value;
+        Buf = LOAD32BE(&data.i);
         Err = Stream_Write(Output,&Buf,4,&i);
     }
     if (Rendered)
@@ -225,30 +236,20 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
         goto failed;
 	
 	if (Element->Base.DataSize == 4) {
-        float Val;
-#ifdef IS_BIG_ENDIAN
-        memcpy(&Val,Value,4);
-#else
-        ((uint8_t*)&Val)[0] = Value[3];
-        ((uint8_t*)&Val)[1] = Value[2];
-        ((uint8_t*)&Val)[2] = Value[1];
-        ((uint8_t*)&Val)[3] = Value[0];
-#endif
-        Element->Value = Val;
+        union {
+            float f;
+            uint32_t i;
+        } data;
+        data.i = LOAD32BE(Value);
+        Element->Value = data.f;
         Element->Base.bValueIsSet = 1;
 	} else if (Element->Base.DataSize == 8) {
-#ifdef IS_BIG_ENDIAN
-        memcpy(&Element->Value,Value,8);
-#else
-        ((uint8_t*)&Element->Value)[0] = Value[7];
-        ((uint8_t*)&Element->Value)[1] = Value[6];
-        ((uint8_t*)&Element->Value)[2] = Value[5];
-        ((uint8_t*)&Element->Value)[3] = Value[4];
-        ((uint8_t*)&Element->Value)[4] = Value[3];
-        ((uint8_t*)&Element->Value)[5] = Value[2];
-        ((uint8_t*)&Element->Value)[6] = Value[1];
-        ((uint8_t*)&Element->Value)[7] = Value[0];
-#endif
+        union {
+            double f;
+            uint64_t i;
+        } data;
+        data.i = LOAD64BE(Value);
+        Element->Value = data.f;
         Element->Base.bValueIsSet = 1;
 	} else
         Result = ERR_INVALID_PARAM;
