@@ -91,10 +91,6 @@ static err_t Open(filestream* p, const tchar_t* URL, int Flags)
             mode |= O_CREAT|O_TRUNC;
 
 		//TODO: verify it works with Unicode files too
-        int mm = S_IRUSR;
-        mm |= S_IWUSR;
-        mm |= S_IRGRP;
-        mm |= S_IROTH;
 		p->fd = open(URL, mode, _RW_ACCESS_FILE);
 		if (p->fd == -1)
 		{
