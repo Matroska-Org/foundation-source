@@ -1779,7 +1779,15 @@ void TextElementEnd(textwriter* Text)
 	if (Text->Child)
 		TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
 	else
-		TextPrintf(Text,T("/>\n"));
+		TextWrite(Text,T("/>\n"));
+}
+
+void TextElementEndData(textwriter* Text, const tchar_t *Value)
+{
+	if (Text->Child)
+		TextPrintf(Text,T("%s%*c/%s>\n"),Value, Text->Deep,'<',Text->Element);
+	else
+		TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
 }
 
 void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root)

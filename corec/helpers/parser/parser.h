@@ -180,6 +180,7 @@ NODE_DLL err_t TextPrintf(textwriter*, const tchar_t* Msg,...)
 NODE_DLL void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root);
 NODE_DLL void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element);
 NODE_DLL void TextElementEnd(textwriter*);
+NODE_DLL void TextElementEndData(textwriter* Text, const tchar_t *Value);
 NODE_DLL void TextAttrib(textwriter*, const tchar_t* Name, const void* Data, dataflags Type);
 NODE_DLL void TextAttribEx(textwriter*,const tchar_t* Name, const void* Data, size_t Size, dataflags Type);
 NODE_DLL void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter);
