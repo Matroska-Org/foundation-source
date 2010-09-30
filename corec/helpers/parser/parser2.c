@@ -1910,6 +1910,13 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
                 }
                 *Out = 0;
             }
+            else if (*Name == '%')
+            {
+				if (*s == '%') {
+					++s;
+					++Name;
+				}
+			}
         }
         else
         {
