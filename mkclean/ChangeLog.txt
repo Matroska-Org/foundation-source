@@ -1,3 +1,9 @@
+2010-11-01
+version 0.6.1:
+    - add a progress phase during the cue creation as it's sometimes slow
+    - safer handling of broken files
+    - fix EBML reading on big endian processors (PowerPC)
+
 2010-09-26
 version 0.6.0:
     - fix a size update issue with the new "smarter" system
