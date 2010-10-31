@@ -588,7 +588,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
             {
                 while (Context && Context->EndPosition != INVALID_FILEPOS_T && (CurrentPos + SizeFound - SizeIdx > Context->EndPosition))
                 {
-                    if (Context->UpContext==NULL)
+                    if (AllowDummyElt || Context->UpContext==NULL)
                     {
                         bFound = 0;
                         break;
