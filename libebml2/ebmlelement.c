@@ -171,12 +171,8 @@ size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id)
     size_t i,FinalHeadSize = GetIdLength(Id);
     if (BufSize < FinalHeadSize)
         return 0;
-#if 0 && defined(IS_BIG_ENDIAN)
-    memcpy(Buffer,&Id,FinalHeadSize);
-#else
     for (i=0;i<FinalHeadSize;++i)
         Buffer[FinalHeadSize-i-1] = (uint8_t)(Id >> (i<<3));
-#endif
     return FinalHeadSize;
 }
 

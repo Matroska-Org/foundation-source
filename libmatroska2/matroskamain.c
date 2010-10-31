@@ -1520,7 +1520,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                                 Err = ERR_INVALID_DATA;
                             else
                             {
-                                lzo_uint outSize = ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2;
+                                lzo_uint outSize = max(2048, ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2);
                                 if (!ArrayResize(&Element->Data, outSize, 0))
                                     Err = ERR_OUT_OF_MEMORY;
                                 else
@@ -1686,7 +1686,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                             Err = ERR_INVALID_DATA;
                         else
                         {
-                            lzo_uint outSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] << 2;
+                            lzo_uint outSize = max(2048, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] << 2);
                             FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
                             if (!ArrayResize(&Element->Data, OutSize + outSize, 0))
                                 Err = ERR_OUT_OF_MEMORY;
