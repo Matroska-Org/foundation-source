@@ -209,6 +209,7 @@ static void ReduceSize(ebml_element *Element)
 							tchar_t IdString[MAXPATH];
 							Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
 							TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory elements, skipping\r\n"),IdString,i->ElementPosition);
+                            EBML_MasterRemove((ebml_master*)Element,i); // make sure it doesn't remain in the list
 							NodeDelete((node*)i);
 							i=EBML_MasterChildren((ebml_master*)Element);
 							break;
@@ -219,6 +220,7 @@ static void ReduceSize(ebml_element *Element)
 						tchar_t IdString[MAXPATH];
 						Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
 						TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,i->ElementPosition,GetProfileName(DstProfile));
+                        EBML_MasterRemove((ebml_master*)Element,i); // make sure it doesn't remain in the list
 						NodeDelete((node*)i);
 						i=EBML_MasterChildren((ebml_master*)Element);
 						break;
@@ -315,11 +317,18 @@ static void SetClusterPrevSize(array *Clusters, stream *Input)
 
 static void UpdateCues(ebml_master *Cues, ebml_master *Segment)
 {
-    ebml_master *Cue;
+    ebml_master *Cue,*NextCue;
 
     // reevaluate the size needed for the Cues
-    for (Cue=(ebml_master*)EBML_MasterChildren(Cues);Cue;Cue=(ebml_master*)EBML_MasterNext(Cue))
-        MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, (ebml_element*)Segment);
+    for (Cue=(ebml_master*)EBML_MasterChildren(Cues);Cue;Cue=NextCue)
+    {
+        NextCue =(ebml_master*)EBML_MasterNext(Cue);
+        if (MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, (ebml_element*)Segment)!=ERR_NONE)
+        {
+            EBML_MasterRemove(Cues,Cue); // make sure it doesn't remain in the list
+            NodeDelete((node*)Cue);
+        }
+    }
 }
 
 static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_master *Cues, ebml_master *Segment, bool_t SafeClusters, stream *Input)

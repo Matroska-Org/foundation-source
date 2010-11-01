@@ -5,6 +5,7 @@ version 0.6.1:
     - fix EBML reading on big endian processors (PowerPC)
     - add a regression test tool (needs mkvalidator too)
     - fix a wrong warning on files with only 1 Cluster
+    - fix some errors when the source mkv was truncated at the end
 
 2010-09-26
 version 0.6.0:

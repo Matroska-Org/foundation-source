@@ -1,24 +1,40 @@
-"haali.mkv" "" 1034658 ABCDEF58
-"haali.mkv" "--remux" 1034658 ABCDEF58
-"haali.mkv" "--optimize" 1034613 ABCDEF58
-"haali.mkv" "--remux --optimize" 1034613 ABCDEF58
-"haali.mkv" "--unsafe" 1034604 ABCDEF58
-"haali.mkv" "--remux --unsafe" 1034604 ABCDEF58
-"video-only.mkv" "--doctype 2"                            75310 ABCDEF58
-"video-only.mkv" "--doctype 2 --remux"                75310 ABCDEF58
-"video-only.mkv" "--doctype 2 --optimize"             74645 ABCDEF58
-"video-only.mkv" "--doctype 2 --remux --optimize" 74645 ABCDEF58
-"video-only.mkv" "--doctype 2 --unsafe"               75180 ABCDEF58
-"video-only.mkv" "--doctype 2 --remux --unsafe"   75180 ABCDEF58
-"sample252kb.mkv" "--doctype 2"                            75310 ABCDEF58
-"sample252kb.mkv" "--doctype 2 --remux"                75310 ABCDEF58
-"sample252kb.mkv" "--doctype 2 --optimize"             74645 ABCDEF58
-"sample252kb.mkv" "--doctype 2 --remux --optimize" 74645 ABCDEF58
-"sample252kb.mkv" "--doctype 2 --unsafe"               75180 ABCDEF58
-"sample252kb.mkv" "--doctype 2 --remux --unsafe"   75180 ABCDEF58
-"live-stream.webm" "--live" 1034658 ABCDEF58
-"live-stream.webm" "--live --remux" 1034658 ABCDEF58
-"live-stream.webm" "--live --optimize" 1034613 ABCDEF58
-"live-stream.webm" "--live --remux --optimize" 1034613 ABCDEF58
-"live-stream.webm" "--live --unsafe" 1034604 ABCDEF58
-"live-stream.webm" "--live --remux --unsafe" 1034604 ABCDEF58
+"ar-odd.mkv" ""                          1035422 8e163e9fb32c10d3e29895b7c070f7cd
+"ar-odd.mkv" "--remux"               1035351 a3eb74e1b53a5fde204ff02f4885323f
+"ar-odd.mkv" "--optimize"            1035221 3d8baecaf589d33a0774135594372dbf
+"ar-odd.mkv" "--remux --optimize" 1035150 2deebe90e7c2ce4f89f5d9a6fab257f6
+"ar-odd.mkv" "--unsafe"               1035342 a033f4a9063043f1de57645ab068b7dd
+"ar-odd.mkv" "--remux --unsafe"   1035297 1cba0093af36439e362148f6ea90775e
+"ar-set_to_0.mkv" ""                          156617 c04a1a8bc913a4c604326e4ddc240de2
+"ar-set_to_0.mkv" "--remux"               156669 9baeae4d6d91de7a7e16af844d285636
+"ar-set_to_0.mkv" "--optimize"            156461 441ba218af9b787357ae56e2f04f9d58
+"ar-set_to_0.mkv" "--remux --optimize" 156513 2de9bda1a54938e171004b2da53b0a07
+"ar-set_to_0.mkv" "--unsafe"               156543 645781509bfed77034062648d850ff4c
+"ar-set_to_0.mkv" "--remux --unsafe"   156578 82f4fea7fd3a53d919079f29a20a5a2e
+"mkclean-crash.mkv" ""                          1035373 7883585a585f93b651dbd6958132981e
+"mkclean-crash.mkv" "--remux"               1035383 38016a791219306c9e80950b2d5a55c6
+"mkclean-crash.mkv" "--optimize"            1035156 80659eda5758c7e40afd1e8eadcd6b08
+"mkclean-crash.mkv" "--remux --optimize" 1035166 96a90b09df92d51188480ca2284e5fd3
+"mkclean-crash.mkv" "--unsafe"               1035292 647f737b2cae9e7e388c2572905523b9
+"mkclean-crash.mkv" "--remux --unsafe"   1035302 97cc1a78881649975d5cf46f8fdd6cf6
+"haali.mkv" ""                          1034658 20dce2e79aefcb19c3d48f0de8f6c1fa
+"haali.mkv" "--remux"               1034658 e25c74bcd3f2d019ed4ab7b8340c9713
+"haali.mkv" "--optimize"            1034613 33be687a0e729a7eb3deb2aabf35b504
+"haali.mkv" "--remux --optimize" 1034613 6bc77cf0059b80aeea0e191a18ea1613
+"haali.mkv" "--unsafe"               1034604 7e578e31200a0a3ea7f44000c3eb650c
+"haali.mkv" "--remux --unsafe"   1034604 50c33b2fd74ade5bfc522c865f18ce1d
+"video-only.mkv" "--doctype 2 --remux"                75310 bddffceaa28f7d8687974934816cbce9
+"video-only.mkv" "--doctype 2 --optimize"             74645 31129497511cc08cee5780c07f30fd36
+"video-only.mkv" "--doctype 2 --remux --optimize" 74645 31129497511cc08cee5780c07f30fd36
+"video-only.mkv" "--doctype 2 --remux --unsafe"   75180 4e6eb705f1e04bf16cc86f7f42eef128
+"sample252kb.mkv" "--doctype 2"                            201138 f8bece843f9b78e93e8e8020b065b237
+"sample252kb.mkv" "--doctype 2 --remux"                201138 e87be81995679300fc9a93199dc7f460
+"sample252kb.mkv" "--doctype 2 --optimize"             200827 8c9dde4690a6f1dacb8f32bff1322663
+"sample252kb.mkv" "--doctype 2 --remux --optimize" 200827 d0844fe81776e874048985144bd83e81
+"sample252kb.mkv" "--doctype 2 --unsafe"               201077 95ef5dfa9a06957a632d470f2b998c4d
+"sample252kb.mkv" "--doctype 2 --remux --unsafe"   201077 8cc3896779d91ca0724ac6949b418f92
+"live-stream.webm" "--live"                           305615 75bcfbbb838867ba4ecb568999c5f4f4
+"live-stream.webm" "--live --remux"                305615 e6ddaa571a4fdc802612d41795503565
+"live-stream.webm" "--live --optimize"             301639 0bdce66c33dd6784f10ca9e125152d63
+"live-stream.webm" "--live --remux --optimize" 301639 5bcd629cd349e04bb85da9eaeb216f01
+"live-stream.webm" "--live --unsafe"               305565 2c577657df28317b03ee30b648e73139
+"live-stream.webm" "--live --remux --unsafe"   305577 347214026bd75586ca90c92b3b27bc42
