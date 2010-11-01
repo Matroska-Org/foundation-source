@@ -1,0 +1,6 @@
+GROUP md5
+{
+  USE corec
+  SOURCE md5.c
+  HEADER md5.h
+}
