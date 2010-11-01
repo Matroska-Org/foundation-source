@@ -1,0 +1,24 @@
+"haali.mkv" "" 1034658 ABCDEF58
+"haali.mkv" "--remux" 1034658 ABCDEF58
+"haali.mkv" "--optimize" 1034613 ABCDEF58
+"haali.mkv" "--remux --optimize" 1034613 ABCDEF58
+"haali.mkv" "--unsafe" 1034604 ABCDEF58
+"haali.mkv" "--remux --unsafe" 1034604 ABCDEF58
+"video-only.mkv" "--doctype 2"                            75310 ABCDEF58
+"video-only.mkv" "--doctype 2 --remux"                75310 ABCDEF58
+"video-only.mkv" "--doctype 2 --optimize"             74645 ABCDEF58
+"video-only.mkv" "--doctype 2 --remux --optimize" 74645 ABCDEF58
+"video-only.mkv" "--doctype 2 --unsafe"               75180 ABCDEF58
+"video-only.mkv" "--doctype 2 --remux --unsafe"   75180 ABCDEF58
+"sample252kb.mkv" "--doctype 2"                            75310 ABCDEF58
+"sample252kb.mkv" "--doctype 2 --remux"                75310 ABCDEF58
+"sample252kb.mkv" "--doctype 2 --optimize"             74645 ABCDEF58
+"sample252kb.mkv" "--doctype 2 --remux --optimize" 74645 ABCDEF58
+"sample252kb.mkv" "--doctype 2 --unsafe"               75180 ABCDEF58
+"sample252kb.mkv" "--doctype 2 --remux --unsafe"   75180 ABCDEF58
+"live-stream.webm" "--live" 1034658 ABCDEF58
+"live-stream.webm" "--live --remux" 1034658 ABCDEF58
+"live-stream.webm" "--live --optimize" 1034613 ABCDEF58
+"live-stream.webm" "--live --remux --optimize" 1034613 ABCDEF58
+"live-stream.webm" "--live --unsafe" 1034604 ABCDEF58
+"live-stream.webm" "--live --remux --unsafe" 1034604 ABCDEF58

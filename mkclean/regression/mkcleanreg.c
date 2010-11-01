@@ -1,0 +1,221 @@
+/*
+ * $Id$
+ * Copyright (c) 2010, Matroska Foundation
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Matroska Foundation nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY The Matroska Foundation ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL The Matroska Foundation BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#include "mkcleanreg_stdafx.h"
+#include "mkcleanreg_project.h"
+#include "parser/parser.h"
+#include "md5/md5.h"
+#include "system/ccsystem.h"
+
+static textwriter *StdErr = NULL;
+static tchar_t MkPath[MAXPATHFULL];
+
+static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *MkParams, filepos_t FileSize, const tchar_t *md5sum)
+{
+    tchar_t Command[MAXLINE],OutFile[MAXPATHFULL];
+    int result;
+    streamdir FileInfo;
+
+    if (!FileExists(p,File)) {
+        TextPrintf(StdErr,T("Fail:2:%d: %s doesn't exist\r\n"),LineNum,File);
+        return;
+    }
+
+    Command[0] = 0;
+    if (tcsstr(MkParams,T("--remux")))
+        tcscat_s(Command, TSIZEOF(Command), T("m"));
+    if (tcsstr(MkParams,T("--optimize")))
+        tcscat_s(Command, TSIZEOF(Command), T("o"));
+    if (tcsstr(MkParams,T("--no-optimize")))
+        tcscat_s(Command, TSIZEOF(Command), T("n"));
+    if (tcsstr(MkParams,T("--unsafe")))
+        tcscat_s(Command, TSIZEOF(Command), T("u"));
+    if (tcsstr(MkParams,T("--live")))
+        tcscat_s(Command, TSIZEOF(Command), T("l"));
+    stprintf_s(OutFile,TSIZEOF(OutFile),T("%s_%s.mkv"),File, Command);
+
+    stprintf_s(Command,TSIZEOF(Command),T("%s --regression --quiet \"%s\" \"%s\""),MkParams, File, OutFile);
+    result = RunCommand(p, MkPath, Command, 1);
+
+    if (result!=0) {
+        TextPrintf(StdErr,T("Fail:3:%d: mkclean returned %d for %s\r\n"),LineNum,result,File);
+        return;
+    }
+
+    if (FileStat(p,OutFile,&FileInfo)!=ERR_NONE) {
+        TextPrintf(StdErr,T("Fail:4:%d: failed to stat file %s\r\n"),LineNum,File);
+        return;
+    }
+
+    if (FileInfo.Size != FileSize) {
+        TextPrintf(StdErr,T("Fail:5:%d: wanted %") TPRId64 T(" got %") TPRId64 T(" size in %s\r\n"),LineNum,FileSize,FileInfo.Size,File);
+        return;
+    }
+
+    // test with mkvalidator
+    if (tcsstr(MkParams,T("--live")))
+        stprintf_s(Command,TSIZEOF(Command),T("--no-warn --quiet --live \"%s\""),OutFile);
+    else
+        stprintf_s(Command,TSIZEOF(Command),T("--no-warn --quiet \"%s\""),OutFile);
+    result = RunCommand(p, T("mkvalidator"), Command, 1);
+
+    if (result!=0) {
+        TextPrintf(StdErr,T("Fail:6:%d: mkvalidator returned %d for %s\r\n"),LineNum,result,OutFile);
+        return;
+    }
+
+    // TODO: check the MD5sum
+
+    FileErase(p, OutFile, 1, 0); // delete correct files
+    TextPrintf(StdErr,T("Success:0:%d: %s %s\r\n"),LineNum,File,MkParams);
+}
+
+int main(int argc, const char *argv[])
+{
+    parsercontext p;
+    textwriter _StdErr;
+    tchar_t Path[MAXPATHFULL], FileRoot[MAXPATHFULL], String[MAXDATA], Line[MAXLINE];
+    int i;
+    int ShowVersion = 0, ShowUsage = 0;
+    int Result = 0;
+    stream *RegList = NULL;
+    parser RegParser;
+    tchar_t MD5[24];
+    intptr_t Size;
+    int LineNum;
+
+    // Core-C init phase
+    ParserContext_Init(&p,NULL,NULL,NULL);
+	StdAfx_Init((nodemodule*)&p);
+    ProjectSettings((nodecontext*)&p);
+
+    StdErr = &_StdErr;
+    memset(StdErr,0,sizeof(_StdErr));
+    StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
+
+    memset(&RegParser,0,sizeof(RegParser));
+
+#if 1
+    tcscpy_s(MkPath,TSIZEOF(MkPath),T("mkclean"));
+#else
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[0]);
+    SplitPath(Path,MkPath,TSIZEOF(MkPath),NULL,0,NULL,0);
+    if (MkPath[0])
+        AddPathDelimiter(MkPath,TSIZEOF(MkPath));
+    tcscat_s(MkPath,TSIZEOF(MkPath),T("mkclean"));
+#endif
+
+    if (argc<2)
+    {
+        TextWrite(StdErr,T("No list of regression files provided!\r\n"));
+        Result = -1;
+        goto exit;
+    }
+
+    for (i=1;i<argc;++i)
+	{
+	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+		if (tcsisame_ascii(Path,T("--version"))) { ShowVersion = 1; }
+        else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; }
+        else if (tcsisame_ascii(Path,T("--mkclean"))) Node_FromStr(&p,MkPath,TSIZEOF(MkPath),argv[++i]);
+		else if (i!=argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
+    }
+
+    if (Result!=0 || ShowVersion)
+    {
+        TextWrite(StdErr,T("mkcleanreg v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
+        if (argc < 1 || ShowUsage)
+        {
+            TextWrite(StdErr,T("Usage: mkcleanreg [options] <regression_list>\r\n"));
+		    TextWrite(StdErr,T("Options:\r\n"));
+		    TextWrite(StdErr,T("  --mkclean <path> path to mkclean to test (default is current path)\r\n"));
+            TextWrite(StdErr,T("  --version        show the version of mkvalidator\r\n"));
+            TextWrite(StdErr,T("  --help           show this screen\r\n"));
+            TextWrite(StdErr,T("regression file format:\r\n"));
+            TextWrite(StdErr,T("\"<file_path>\" \"<mkclean_options>\" <expected_size> <expected_md5>\r\n"));
+        }
+        Result = -2;
+        goto exit;
+    }
+
+    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+    if (!FileExists((nodecontext*)&p, Path))
+    {
+        TextPrintf(StdErr,T("The file with the list of regression files '%s' could not be found!\r\n"),Path);
+        Result = -3;
+        goto exit;
+    }
+
+    RegList = StreamOpen(&p, Path, SFLAG_RDONLY);
+    if (!RegList)
+    {
+        TextPrintf(StdErr,T("Could not read '%s'\r\n"),Path);
+        Result = -4;
+        goto exit;
+    }
+
+    if (ParserStream(&RegParser,RegList,&p)!=ERR_NONE)
+    {
+        TextPrintf(StdErr,T("Could not parse '%s'\r\n"),Path);
+        Result = -5;
+        goto exit;
+    }
+
+    SplitPath(Path,FileRoot,TSIZEOF(FileRoot),NULL,0,NULL,0);
+    if (!FileRoot[0])
+        FileRoot[0] = T('.');
+    AddPathDelimiter(FileRoot,TSIZEOF(FileRoot));
+
+    LineNum = 0;
+    while (ParserLine(&RegParser, Line, TSIZEOF(Line)))
+    {
+        const tchar_t *s = Line;
+        // parse the line and if it's OK, launch the process
+        if (!ExprIsTokenEx(&s,T("\"%s\" \"%s\" %d %s"),Path,TSIZEOF(Path),String,TSIZEOF(String),&Size,MD5,TSIZEOF(MD5)))
+            TextPrintf(StdErr,T("Fail:100:%d: Invalid Line %s\r\n"),LineNum,Line);
+        else {
+            // transform the path relative to the regression file to an absolute file
+            tcscpy_s(Line,TSIZEOF(Line),FileRoot);
+            tcscat_s(Line,TSIZEOF(Line),Path);
+            testFile((nodecontext*)&p, LineNum, Line, String, Size, MD5);
+        }
+        ++LineNum;
+    }
+
+    //TextPrintf(StdErr,T("Done regression tests\r\n"),Path);
+
+exit:
+    ParserStream(&RegParser,NULL,NULL);
+    StreamClose(RegList);
+
+    // Core-C ending
+	StdAfx_Done((nodemodule*)&p);
+    ParserContext_Done(&p);
+
+    return Result;
+}

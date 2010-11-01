@@ -30,6 +30,7 @@ WORKSPACE mkclean
 {
   USE mkclean
   USE mkWDclean
+  USE mkcleanreg
 }
 
 LIB tremor
