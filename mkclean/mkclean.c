@@ -209,7 +209,6 @@ static void ReduceSize(ebml_element *Element)
 							tchar_t IdString[MAXPATH];
 							Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
 							TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory elements, skipping\r\n"),IdString,i->ElementPosition);
-							EBML_MasterRemove((ebml_master*)Element,i);
 							NodeDelete((node*)i);
 							i=EBML_MasterChildren((ebml_master*)Element);
 							break;
@@ -220,7 +219,6 @@ static void ReduceSize(ebml_element *Element)
 						tchar_t IdString[MAXPATH];
 						Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
 						TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,i->ElementPosition,GetProfileName(DstProfile));
-						EBML_MasterRemove((ebml_master*)Element,i);
 						NodeDelete((node*)i);
 						i=EBML_MasterChildren((ebml_master*)Element);
 						break;
@@ -2682,6 +2680,7 @@ exit:
 
     // Core-C ending
 	StdAfx_Done((nodemodule*)&p);
+    if (!Regression) // until all the memory leaks are fixed
     ParserContext_Done(&p);
 
     return Result;
