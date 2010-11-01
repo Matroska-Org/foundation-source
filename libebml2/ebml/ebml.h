@@ -261,6 +261,7 @@ EBML_DLL bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use);
 EBML_DLL bool_t EBML_MasterIsChecksumValid(const ebml_master *Element);
 #define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
 #define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_master*)e,c,0,0)
+#define EBML_MasterNextChild(e,c)  EBML_MasterFindNextElt((ebml_master*)e,(ebml_element*)c,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))
 #define EBML_MasterNext(p)         ((ebml_element*)NodeTree_Next(p))
 #define EBML_ElementParent(p)      ((ebml_element*)NodeTree_Parent(p))
