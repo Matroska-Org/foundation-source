@@ -794,7 +794,15 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
     size_t l;
     SplitPath(Path, Dir, MAXPATH, NameExt, MAXPATH, Ext, MAXPATH);
 	if (*Ext)
-		SetFileExt(NameExt, MAXPATH, Ext);
+    {
+        if (!tcschr(NameExt,T('.')))
+    		SetFileExt(NameExt, MAXPATH, Ext);
+        else
+        {
+            tcscat_s(NameExt,TSIZEOF(NameExt),T("."));
+            tcscat_s(NameExt,TSIZEOF(NameExt),Ext);
+        }
+    }
     l = tcslen(Ext);
     Ext[l] = ':';
     Ext[l + 1] = '1';
