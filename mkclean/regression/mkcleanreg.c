@@ -32,6 +32,10 @@
 #include "md5/md5.h"
 #include "system/ccsystem.h"
 
+/*!
+ * \todo compare the extracted raw tracks MD5 to the original tracks
+ */
+
 static textwriter *StdErr = NULL;
 static tchar_t MkPath[MAXPATHFULL];
 
@@ -229,7 +233,7 @@ int main(int argc, const char *argv[])
         ++LineNum;
     }
 
-    //TextPrintf(StdErr,T("Done regression tests\r\n"),Path);
+    // TODO: compare the extracted raw tracks MD5 to the original tracks
 
 exit:
     ParserStream(&RegParser,NULL,NULL);

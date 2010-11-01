@@ -696,23 +696,23 @@ static err_t CheckCompression(matroska_block *Block)
 {
     ebml_master *Elt, *Header;
     assert(Block->ReadTrack!=NULL);
-    Elt = (ebml_master*)EBML_MasterFindFirstElt(Block->ReadTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
+    Elt = (ebml_master*)EBML_MasterFindChild(Block->ReadTrack, &MATROSKA_ContextTrackEncodings);
     if (Elt)
     {
         if (ARRAYCOUNT(Block->Data,uint8_t))
             return ERR_INVALID_PARAM; // we cannot adjust sizes if the data are already read
 
-        Elt = (ebml_master*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+        Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextTrackEncoding);
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
                 return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
 
-            Elt = (ebml_master*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+            Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextTrackEncodingCompression);
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = (ebml_master*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+            Header = (ebml_master*)EBML_MasterGetChild(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
             if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
@@ -731,7 +731,7 @@ static err_t CheckCompression(matroska_block *Block)
 
             if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
             {
-                Header = (ebml_master*)EBML_MasterFindFirstElt(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+                Header = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
                 if (Header)
                 {
                     uint32_t *i;
@@ -753,7 +753,7 @@ err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_master *Track
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     for (Track=EBML_MasterChildren(Tracks);Track;Track=EBML_MasterNext(Track))
     {
-        TrackNum = EBML_MasterFindFirstElt((ebml_master*)Track,&MATROSKA_ContextTrackNumber,0,0);
+        TrackNum = EBML_MasterFindChild((ebml_master*)Track,&MATROSKA_ContextTrackNumber);
         if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && EBML_IntegerValue(TrackNum)==Block->TrackNumber)
         {
             Node_SET(Block,MATROSKA_BLOCK_READ_TRACK,&Track);
@@ -776,7 +776,7 @@ err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_master *Track, boo
 
     assert(Track->Base.Context->Id == MATROSKA_ContextTrackEntry.Id);
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-    TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+    TrackNum = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
     if (TrackNum && TrackNum->bValueIsSet)
     {
         Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
@@ -803,7 +803,7 @@ err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_master *Trac
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     for (Track=(ebml_master*)EBML_MasterChildren(Tracks);Track;Track=(ebml_master*)EBML_MasterNext(Track))
     {
-        TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+        TrackNum = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
         if (TrackNum && ((ebml_integer*)TrackNum)->Base.bValueIsSet && EBML_IntegerValue(TrackNum)==Block->TrackNumber)
         {
             Node_SET(Block,MATROSKA_BLOCK_WRITE_TRACK,&Track);
@@ -822,7 +822,7 @@ err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_master *Track)
 
     assert(Track->Base.Context->Id == MATROSKA_ContextTrackEntry.Id);
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-    TrackNum = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackNumber,0,0);
+    TrackNum = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
     if (TrackNum && TrackNum->bValueIsSet)
     {
         Block->TrackNumber = (uint16_t)EBML_IntegerValue(TrackNum);
@@ -864,7 +864,7 @@ fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek)
 {
 	ebml_element *SeekID;
     assert(MetaSeek->Base.Base.Context->Id == MATROSKA_ContextSeek.Id);
-    SeekID = EBML_MasterFindFirstElt((ebml_master*)MetaSeek, &MATROSKA_ContextSeekId, 0, 0);
+    SeekID = EBML_MasterFindChild((ebml_master*)MetaSeek, &MATROSKA_ContextSeekId);
 	if (!SeekID)
 		return 0;
 	return EBML_BufferToID(EBML_BinaryGetData((ebml_binary*)SeekID));
@@ -874,7 +874,7 @@ filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek)
 {
 	ebml_element *SeekPos;
     assert(MetaSeek->Base.Base.Context->Id == MATROSKA_ContextSeek.Id);
-	SeekPos = EBML_MasterFindFirstElt((ebml_master*)MetaSeek, &MATROSKA_ContextSeekPosition, 0, 0);
+	SeekPos = EBML_MasterFindChild((ebml_master*)MetaSeek, &MATROSKA_ContextSeekPosition);
 	if (!SeekPos)
 		return INVALID_FILEPOS_T;
 	return EBML_IntegerValue(SeekPos);
@@ -1025,11 +1025,11 @@ static int ClusterEltCmp(const matroska_cluster* Cluster, const ebml_element** a
     if ((*a)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
         BlockA = (const matroska_block *)*a;
     else if ((*a)->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-        BlockA = (const matroska_block *)EBML_MasterFindFirstElt((ebml_master*)*a,&MATROSKA_ContextClusterBlock,0,0);
+        BlockA = (const matroska_block *)EBML_MasterFindChild((ebml_master*)*a,&MATROSKA_ContextClusterBlock);
     if ((*b)->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
         BlockB = (const matroska_block *)*b;
     else if ((*a)->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
-        BlockB = (const matroska_block *)EBML_MasterFindFirstElt((ebml_master*)*b,&MATROSKA_ContextClusterBlock,0,0);
+        BlockB = (const matroska_block *)EBML_MasterFindChild((ebml_master*)*b,&MATROSKA_ContextClusterBlock);
     if (BlockA != NULL && BlockB != NULL)
         return MATROSKA_BlockCmp(BlockA,BlockB);
 
@@ -1047,7 +1047,7 @@ void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 	ebml_element *TimecodeElt, *Elt, *GBlock;
     assert(Cluster->Base.Base.Context->Id == MATROSKA_ContextCluster.Id);
     Cluster->GlobalTimecode = Timecode;
-    TimecodeElt = EBML_MasterFindFirstElt((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode,1,1);
+    TimecodeElt = EBML_MasterGetChild((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode);
 #if defined(CONFIG_EBML_WRITING)
 	assert(Cluster->WriteSegInfo);
 	EBML_IntegerSetValue((ebml_integer*)TimecodeElt, Scale64(Timecode,1,MATROSKA_SegmentInfoTimecodeScale(Cluster->WriteSegInfo)));
@@ -1079,7 +1079,7 @@ timecode_t MATROSKA_ClusterTimecode(matroska_cluster *Cluster)
     assert(Cluster->Base.Base.Context->Id == MATROSKA_ContextCluster.Id);
     if (Cluster->GlobalTimecode == INVALID_TIMECODE_T)
     {
-        ebml_element *Timecode = EBML_MasterFindFirstElt((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode,0,0);
+        ebml_element *Timecode = EBML_MasterFindChild((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode);
         if (Timecode)
             Cluster->GlobalTimecode = EBML_IntegerValue(Timecode) * MATROSKA_SegmentInfoTimecodeScale(Cluster->ReadSegInfo);
     }
@@ -1142,7 +1142,7 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 	{
 		ebml_master *BlockGroup = (ebml_master*)EBML_ElementParent(Block);
 		if (BlockGroup && Node_IsPartOf(BlockGroup,MATROSKA_BLOCKGROUP_CLASS))
-			return (EBML_MasterFindFirstElt(BlockGroup,&MATROSKA_ContextClusterReferenceBlock,0,0)==NULL);
+			return (EBML_MasterFindChild(BlockGroup,&MATROSKA_ContextClusterReferenceBlock)==NULL);
 	}
 	return Block->IsKeyframe;
 }
@@ -1180,10 +1180,10 @@ int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
     ebml_master *Position;
     ebml_element *CueTrack;
     assert(Cue->Base.Base.Context->Id == MATROSKA_ContextCuePoint.Id);
-    Position = (ebml_master*)EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions,0,0);
+    Position = (ebml_master*)EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
     if (!Position)
         return -1;
-    CueTrack = EBML_MasterFindFirstElt(Position,&MATROSKA_ContextCueTrack,0,0);
+    CueTrack = EBML_MasterFindChild(Position,&MATROSKA_ContextCueTrack);
     if (!CueTrack)
         return -1;
     return (int16_t)EBML_IntegerValue(CueTrack);
@@ -1207,7 +1207,7 @@ timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_master *SegmentInfo)
     if (SegmentInfo)
     {
         assert(SegmentInfo->Base.Context->Id == MATROSKA_ContextSegmentInfo.Id);
-        TimecodeScale = EBML_MasterFindFirstElt((ebml_master*)SegmentInfo,&MATROSKA_ContextTimecodeScale,0,0);
+        TimecodeScale = EBML_MasterFindChild((ebml_master*)SegmentInfo,&MATROSKA_ContextTimecodeScale);
     }
     if (!TimecodeScale)
         return MATROSKA_ContextTimecodeScale.DefaultValue;
@@ -1218,7 +1218,7 @@ double MATROSKA_TrackTimecodeScale(const ebml_master *Track)
 {
     ebml_element *TimecodeScale;
     assert(Track->Base.Context->Id == MATROSKA_ContextTrackEntry.Id);
-    TimecodeScale = EBML_MasterFindFirstElt((ebml_master*)Track,&MATROSKA_ContextTrackTimecodeScale,0,0);
+    TimecodeScale = EBML_MasterFindChild((ebml_master*)Track,&MATROSKA_ContextTrackTimecodeScale);
     if (!TimecodeScale)
         return MATROSKA_ContextTrackTimecodeScale.DefaultValue;
     return ((ebml_float*)TimecodeScale)->Value;
@@ -1228,7 +1228,7 @@ timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue)
 {
     ebml_element *TimeCode;
     assert(Cue->Base.Base.Context->Id == MATROSKA_ContextCuePoint.Id);
-    TimeCode = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTime,0,0);
+    TimeCode = EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTime);
     if (!TimeCode)
         return INVALID_TIMECODE_T;
     return EBML_IntegerValue(TimeCode) * MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo);
@@ -1238,10 +1238,10 @@ filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue)
 {
     ebml_element *TimeCode;
     assert(Cue->Base.Base.Context->Id == MATROSKA_ContextCuePoint.Id);
-    TimeCode = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions,0,0);
+    TimeCode = EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
     if (!TimeCode)
         return INVALID_TIMECODE_T;
-    TimeCode = EBML_MasterFindFirstElt((ebml_master*)TimeCode,&MATROSKA_ContextCueClusterPosition,0,0);
+    TimeCode = EBML_MasterFindChild((ebml_master*)TimeCode,&MATROSKA_ContextCueClusterPosition);
     if (!TimeCode)
         return INVALID_TIMECODE_T;
     return EBML_IntegerValue(TimeCode);
@@ -1256,20 +1256,20 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     assert(Segment); // we need the segment location
 	EBML_MasterErase((ebml_master*)Cue);
 	EBML_MasterMandatory((ebml_master*)Cue,1);
-    TimecodeElt = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTime,1,1);
+    TimecodeElt = EBML_MasterGetChild((ebml_master*)Cue,&MATROSKA_ContextCueTime);
     if (!TimecodeElt)
         return ERR_OUT_OF_MEMORY;
     EBML_IntegerSetValue((ebml_integer*)TimecodeElt, Scale64(MATROSKA_BlockTimecode(Cue->Block),1,MATROSKA_SegmentInfoTimecodeScale(Cue->SegInfo)));
 
-    Elt = EBML_MasterFindFirstElt((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions,1,1);
+    Elt = EBML_MasterGetChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
     if (!Elt)
         return ERR_OUT_OF_MEMORY;
-	TrackNum = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextCueTrack,1,1);
+	TrackNum = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextCueTrack);
     if (!TrackNum)
         return ERR_OUT_OF_MEMORY;
 	EBML_IntegerSetValue((ebml_integer*)TrackNum, MATROSKA_BlockTrackNum(Cue->Block));
 	
-    PosInCluster = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextCueClusterPosition,1,1);
+    PosInCluster = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextCueClusterPosition);
     if (!PosInCluster)
         return ERR_OUT_OF_MEMORY;
     Elt = EBML_ElementParent(Cue->Block);
@@ -1414,20 +1414,20 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     {
         // find out if compressed headers are used
         assert(Element->ReadTrack!=NULL);
-        Elt = EBML_MasterFindFirstElt(Element->ReadTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
+        Elt = EBML_MasterFindChild(Element->ReadTrack, &MATROSKA_ContextTrackEncodings);
         if (Elt)
         {
-            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
             if (EBML_MasterChildren(Elt))
             {
                 if (EBML_MasterNext(Elt))
                     return ERR_NOT_SUPPORTED; // TODO support cascaded compression/encryption
 
-                Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+                Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
                 if (!Elt)
                     return ERR_NOT_SUPPORTED; // TODO: support encryption
 
-                Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+                Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
                 if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
@@ -1445,7 +1445,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     return ERR_INVALID_DATA;
 
                 if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                    Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+                    Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
             }
         }
 
@@ -1817,7 +1817,7 @@ static err_t SetBlockGroupParent(ebml_master *Element, void* Parent, void* Befor
 {
 	// update the timecode
 	err_t Result = ERR_NONE;
-	matroska_block *Block = (matroska_block*)EBML_MasterFindFirstElt(Element, &MATROSKA_ContextClusterBlock, 0, 0);
+	matroska_block *Block = (matroska_block*)EBML_MasterFindChild(Element, &MATROSKA_ContextClusterBlock);
 	timecode_t AbsTimeCode;
 	if (Block && Block->LocalTimecodeUsed && Parent && NodeTree_Parent(Block) && NodeTree_Parent(NodeTree_Parent(Block)))
 	{
@@ -2134,20 +2134,20 @@ static char GetBestLacingType(const matroska_block *Element)
 
     // find out if compressed headers are used
     assert(Element->WriteTrack!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->WriteTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
+    Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextTrackEncodings);
     if (Elt)
     {
-        Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+        Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
                 return 0; // TODO support cascaded compression/encryption
 
-            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
             if (!Elt)
                 return 0; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+            Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB)
             if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
@@ -2156,7 +2156,7 @@ static char GetBestLacingType(const matroska_block *Element)
                 return 0; // TODO: support more than header stripping
 
             if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+                Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
         }
     }
 
@@ -2236,20 +2236,20 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         *Rendered = Written;
 
     assert(Element->WriteTrack!=NULL);
-    Elt = EBML_MasterFindFirstElt(Element->WriteTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
+    Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextTrackEncodings);
     if (Elt)
     {
-        Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+        Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
                 return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
 
-            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+            Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB)
             if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
@@ -2261,7 +2261,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
 			}
 
             if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+                Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
         }
     }
 
@@ -2435,20 +2435,20 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
             Element->Lacing = GetBestLacingType(Element);
 
         assert(Element->WriteTrack!=NULL);
-        Elt = EBML_MasterFindFirstElt(Element->WriteTrack, &MATROSKA_ContextTrackEncodings, 0, 0);
+        Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextTrackEncodings);
         if (Elt)
         {
-            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding, 0, 0);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
             if (EBML_MasterChildren(Elt))
             {
                 if (EBML_MasterNext(Elt))
                     return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
 
-                Elt = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression, 0, 0);
+                Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
                 if (!Elt)
                     return ERR_INVALID_DATA; // TODO: support encryption
 
-                Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo, 1, 1);
+                Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB)
                 if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
@@ -2457,7 +2457,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
                     return ERR_INVALID_DATA; // TODO: support more than header stripping
 
                 if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                    Header = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting, 0, 0);
+                    Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
             }
         }
 #else
