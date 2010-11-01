@@ -1894,7 +1894,7 @@ int main(int argc, const char *argv[])
 			{
 				if (!ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
 				{
-					TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
+					if (!Quiet) TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
 					for (Elt = EBML_MasterFindFirstElt(WTrackInfo,&MATROSKA_ContextTrackEntry,0,0); Elt; Elt=EBML_MasterFindNextElt(WTrackInfo,Elt,0,0))
 					{
 						if (EBML_IntegerValue(EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackNumber,0,0))==*pTrackOrder)
@@ -2374,7 +2374,7 @@ int main(int argc, const char *argv[])
                 EBML_ElementUpdateSize(RCues,0,0);
 		}
 
-		if (!RCues && WTrackInfo && ARRAYCOUNT(*Clusters,ebml_element*) >= 2)
+		if (!RCues && WTrackInfo && ARRAYCOUNT(*Clusters,ebml_element*) > 1)
 		{
 			// generate the cues
 			RCues = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
@@ -2464,6 +2464,8 @@ int main(int argc, const char *argv[])
 			RCues->Base.ElementPosition = NextPos;
 			NextPos += EBML_ElementFullSize((ebml_element*)RCues,0);
 		}
+        else if (ARRAYCOUNT(*Clusters,ebml_element*)==1)
+            ARRAYBEGIN(*Clusters,ebml_element*)[0]->ElementPosition = NextPos;
 
 		// update and write the MetaSeek and the elements following
         // write without the fake Tags pointer
@@ -2612,7 +2614,7 @@ int main(int argc, const char *argv[])
 				Result = -20;
 				goto exit;
 			}
-			TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->Base.DataSize);
+			if (!Quiet) TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->Base.DataSize);
 		}
 		if (EBML_CodedSizeLength(WSegment->Base.DataSize,0,!Live) > EBML_CodedSizeLength(SegmentSize,0,!Live))
 			WSegment->Base.SizeLength = (int8_t)EBML_CodedSizeLength(WSegment->Base.DataSize,0,!Live);
