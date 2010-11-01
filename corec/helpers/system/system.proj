@@ -1,0 +1,7 @@
+GROUP ccsystem
+{
+  USE corec
+  SOURCE(TARGET_WIN) ccsystem_win32.c
+  SOURCE(!TARGET_WIN) ccsystem_posix.c
+  HEADER ccsystem.h
+}
