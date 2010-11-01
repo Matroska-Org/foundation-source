@@ -1,3 +1,7 @@
+2010-11-01
+version 0.2.4:
+    - add a --quiet option
+
 2010-09-02
 version 0.2.3:
     - fix the UNIX source package

@@ -49,6 +49,7 @@ static bool_t Warnings = 1;
 static bool_t Live = 0;
 static bool_t Details = 0;
 static bool_t DivX = 0;
+static bool_t Quiet = 0;
 static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
 static timecode_t ClusterTime = INVALID_TIMECODE_T;
 
@@ -797,7 +798,7 @@ static int CheckCueEntries(ebml_master *Cues)
 		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindFirstElt(Cues, &MATROSKA_ContextCuePoint, 0, 0);
 		while (CuePoint)
 		{
-            if (ClustNum++ % 24 == 0)
+            if (!Quiet && ClustNum++ % 24 == 0)
                 TextWrite(StdErr,T("."));
 			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
 			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
@@ -868,6 +869,7 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--details"))) Details = 1;
 		else if (tcsisame_ascii(Path,T("--divx"))) DivX = 1;
 		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
+		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
 		else if (i<argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
@@ -883,6 +885,7 @@ int main(int argc, const char *argv[])
             TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
             TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
             TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
+            TextWrite(StdErr,T("  --quiet     don't ouput progress and file info\r\n"));
             TextWrite(StdErr,T("  --version   show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help      show this screen\r\n"));
         }
@@ -909,7 +912,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    TextWrite(StdErr,T("."));
+    if (!Quiet) TextWrite(StdErr,T("."));
 
 	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA, 1)!=ERR_NONE)
     {
@@ -977,7 +980,7 @@ int main(int argc, const char *argv[])
 	if (MatroskaProfile==0)
 		Result |= OutputError(11,T("Matroska profile not supported"));
 
-    TextWrite(StdErr,T("."));
+    if (!Quiet) TextWrite(StdErr,T("."));
 
 	// find the segment
 	RSegment = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
@@ -989,7 +992,6 @@ int main(int argc, const char *argv[])
 
 	UpperElement = 0;
 	DotCount = 0;
-//TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
 	Prev = NULL;
     RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
@@ -1255,9 +1257,11 @@ int main(int argc, const char *argv[])
             NodeDelete((node*)RLevel1);
             RLevel1 = NULL;
 		}
-        TextWrite(StdErr,T(".")); ++DotCount;
-		if (!(DotCount % 60))
-			TextWrite(StdErr,T("\r                                                              \r"));
+        if (!Quiet) {
+            TextWrite(StdErr,T(".")); ++DotCount;
+		    if (!(DotCount % 60))
+			    TextWrite(StdErr,T("\r                                                              \r"));
+        }
 
 		Prev = RLevel1;
         if (RLevelX)
@@ -1290,7 +1294,7 @@ int main(int argc, const char *argv[])
 
 	if (ARRAYCOUNT(RClusters,ebml_element*))
 	{
-        TextWrite(StdErr,T("."));
+        if (!Quiet) TextWrite(StdErr,T("."));
 		LinkClusterBlocks();
 
         if (HasVideo)
@@ -1311,7 +1315,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-    TextWrite(StdErr,T("."));
+    if (!Quiet) TextWrite(StdErr,T("."));
 	if (RTrackInfo)
 		CheckTracks(RTrackInfo, MatroskaProfile);
 
@@ -1324,7 +1328,7 @@ int main(int argc, const char *argv[])
 	if (VoidAmount > 4*1024)
 		OutputWarning(0xD0,T("There are %") TPRId64 T(" bytes of void data\r\n"),VoidAmount);
 
-	if (Result==0)
+	if (!Quiet && Result==0)
     {
         TextPrintf(StdErr,T("\r%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
         if (Details)
@@ -1339,7 +1343,7 @@ int main(int argc, const char *argv[])
     }
 
 exit:
-	if (RSegmentInfo)
+	if (!Quiet && RSegmentInfo)
 	{
 		tchar_t App[MAXPATH];
 		App[0] = 0;
@@ -1359,7 +1363,7 @@ exit:
 		}
 		if (App[0]==0)
 			tcscat_s(App,TSIZEOF(App),T("<unknown>"));
-		TextPrintf(StdErr,T("\r\tfile created with %s\r\n"),App);
+	    TextPrintf(StdErr,T("\r\tfile created with %s\r\n"),App);
 	}
 
     for (Cluster = ARRAYBEGIN(RClusters,ebml_master*);Cluster != ARRAYEND(RClusters,ebml_master*); ++Cluster)
