@@ -231,12 +231,12 @@ static void ReduceSize(ebml_element *Element)
 	}
 }
 
-static err_t ReadClusterData(ebml_master *Cluster, stream *Input)
+static void ReadClusterData(ebml_master *Cluster, stream *Input)
 {
     err_t Result = ERR_NONE;
     ebml_element *Block, *GBlock, *NextBlock;
     // read all the Block/SimpleBlock data
-    for (Block = EBML_MasterChildren(Cluster);Result==ERR_NONE && Block;Block=NextBlock)
+    for (Block = EBML_MasterChildren(Cluster);Block;Block=NextBlock)
     {
         NextBlock = EBML_MasterNext(Block);
         if (Block->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
@@ -257,7 +257,6 @@ static err_t ReadClusterData(ebml_master *Cluster, stream *Input)
                 NodeDelete((node*)Block);
         }
     }
-    return Result;
 }
 
 static err_t UnReadClusterData(ebml_master *Cluster, bool_t IncludingNotRead)
@@ -1976,7 +1975,7 @@ int main(int argc, const char *argv[])
 		if (!Quiet) TextWrite(StdErr,T("Reclustering...\r\n"));
 		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
 		{
-			bool_t ReachedNextCluster = 0;
+			bool_t ReachedClusterEnd = 0;
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterReadSegmentInfo(ClusterW, RSegmentInfo, 1);
@@ -1988,7 +1987,7 @@ int main(int argc, const char *argv[])
 			else
 				MasterEndTimecode = *(Tst+1);
 
-			while (!ReachedNextCluster && ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] != ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
+			while (!ReachedClusterEnd && ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] != ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
 			{
 				// next Block end in the master track
 				if (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack]+1 == ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
@@ -2187,7 +2186,7 @@ int main(int argc, const char *argv[])
 						if (*pTrackOrder==MainTrack)
 						{
 							if (MainBlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEndTimecode)
-								ReachedNextCluster = 1;
+								ReachedClusterEnd = 1;
 							break;
 						}
 					} 
