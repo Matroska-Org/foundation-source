@@ -40,13 +40,17 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
     tchar_t Command[MAXLINE],OutFile[MAXPATHFULL];
     int result;
     streamdir FileInfo;
+    stream *sFile;
+    size_t ReadSize;
+    md5_ctx MD5proc;
+    uint8_t MD5sum[16];
 
     if (!FileExists(p,File)) {
         TextPrintf(StdErr,T("Fail:2:%d: %s doesn't exist\r\n"),LineNum,File);
         return;
     }
 
-    Command[0] = 0;
+    tcscpy_s(Command, TSIZEOF(Command), T("_"));
     if (tcsstr(MkParams,T("--remux")))
         tcscat_s(Command, TSIZEOF(Command), T("m"));
     if (tcsstr(MkParams,T("--optimize")))
@@ -57,7 +61,7 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         tcscat_s(Command, TSIZEOF(Command), T("u"));
     if (tcsstr(MkParams,T("--live")))
         tcscat_s(Command, TSIZEOF(Command), T("l"));
-    stprintf_s(OutFile,TSIZEOF(OutFile),T("%s_%s.mkv"),File, Command);
+    stprintf_s(OutFile,TSIZEOF(OutFile),T("%s%s.mkv"),File, Command);
 
     stprintf_s(Command,TSIZEOF(Command),T("%s --regression --quiet \"%s\" \"%s\""),MkParams, File, OutFile);
     result = RunCommand(p, MkPath, Command, 1);
@@ -89,7 +93,25 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         return;
     }
 
-    // TODO: check the MD5sum
+    // check the MD5sum
+    sFile = StreamOpen(p, OutFile, SFLAG_RDONLY);
+    if (sFile==NULL) {
+        TextPrintf(StdErr,T("Fail:7:%d: could not open %s for MD5\r\n"),LineNum,OutFile);
+        return;
+    }
+
+    MD5Init(&MD5proc);
+    while (Stream_Read(sFile,Command,sizeof(Command),&ReadSize)==ERR_NONE)
+        MD5Update(&MD5proc, (uint8_t*)Command, ReadSize);
+    MD5Final(&MD5proc, MD5sum);
+    StreamClose(sFile);
+
+    stprintf_s(Command,TSIZEOF(Command),T("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),MD5sum[0], 
+        MD5sum[1],MD5sum[2],MD5sum[3],MD5sum[4],MD5sum[5],MD5sum[6],MD5sum[7],MD5sum[8],MD5sum[9],MD5sum[10],MD5sum[11],MD5sum[12],MD5sum[13],MD5sum[14],MD5sum[15]);
+    if (!tcsisame_ascii(md5sum,Command)) {
+        TextPrintf(StdErr,T("Fail:8:%d: bad MD5 %s for %s\r\n"),LineNum,Command,OutFile);
+        return;
+    }
 
     FileErase(p, OutFile, 1, 0); // delete correct files
     TextPrintf(StdErr,T("Success:0:%d: %s %s\r\n"),LineNum,File,MkParams);
@@ -105,7 +127,7 @@ int main(int argc, const char *argv[])
     int Result = 0;
     stream *RegList = NULL;
     parser RegParser;
-    tchar_t MD5[24];
+    tchar_t MD5[34];
     intptr_t Size;
     int LineNum;
 
@@ -191,7 +213,7 @@ int main(int argc, const char *argv[])
         FileRoot[0] = T('.');
     AddPathDelimiter(FileRoot,TSIZEOF(FileRoot));
 
-    LineNum = 0;
+    LineNum = 1;
     while (ParserLine(&RegParser, Line, TSIZEOF(Line)))
     {
         const tchar_t *s = Line;
