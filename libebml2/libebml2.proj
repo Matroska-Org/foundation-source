@@ -25,6 +25,7 @@ GROUP ebml2_group
   ENDIF
 
   HEADER ebml/ebml.h
+  HEADER ebml/ebml_internal.h
 
   SOURCE ebmlmain.c
   SOURCE ebmlelement.c {class EBMLElement_Class}

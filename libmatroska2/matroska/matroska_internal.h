@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2008, Matroska Foundation
+ * Copyright (c) 2010, Matroska Foundation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+#ifndef LIBMATROSKA2_INTERNAL_H
+#define LIBMATROSKA2_INTERNAL_H
+
+/*
+ * ONLY INCLUDE THIS FILE IF YOU PLAN TO CREATE YOUR OWN MATROSKA-BASED CLASS
+ */
+
+#include "ebml/ebml_internal.h"
 
 #define MATROSKA_BLOCK_READ_TRACK        0x180
 #define MATROSKA_BLOCK_READ_SEGMENTINFO  0x181
@@ -56,3 +65,5 @@ struct matroska_block
     ebml_master *WriteSegInfo;
 #endif
 };
+
+#endif /* LIBMATROSKA2_INTERNAL_H */

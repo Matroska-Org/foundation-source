@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml/ebml.h"
+#include "ebml/ebml_internal.h"
 
 static bool_t IsDefaultValue(const ebml_element *Element)
 {

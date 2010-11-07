@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml/ebml.h"
+#include "ebml/ebml_internal.h"
 #if defined(EBML_LIBRARY)
 # if defined(EBML_LEGACY_API)
 #  include "ebml2_legacy_project.h"

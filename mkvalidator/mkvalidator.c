@@ -393,72 +393,47 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 	return Result;
 }
 
+struct profile_check
+{
+    int *Result;
+    const ebml_element *Parent;
+    const tchar_t *EltName;
+    int ProfileMask;
+};
+
+static bool_t ProfileCallback(struct profile_check *check, int type, const tchar_t *ClassName, const ebml_element* Elt)
+{
+    if (type==MASTER_CHECK_PROFILE_INVALID)
+		*check->Result |= OutputError(0x201,T("Invalid %s for profile '%s' in %s at %") TPRId64,ClassName,GetProfileName(check->ProfileMask),check->EltName,EL_Pos(check->Parent));
+    else if (type==MASTER_CHECK_MISSING_MANDATORY)
+        *check->Result |= OutputError(0x200,T("Missing element %s in %s at %") TPRId64, ClassName,check->EltName,EL_Pos(check->Parent));
+    else if (type==MASTER_CHECK_MULTIPLE_UNIQUE)
+		*check->Result |= OutputError(0x202,T("Unique element %s in %s at %") TPRId64 T(" found more than once"), ClassName,check->EltName,EL_Pos(check->Parent));
+    return 0; // don't remove anything
+}
+
 static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 {
 	int Result = 0;
-	tchar_t String[MAXPATH],Invalid[MAXPATH];
+	tchar_t String[MAXPATH];
 	ebml_element *SubElt;
-
-	Node_FromStr(Elt,String,TSIZEOF(String),Elt->Context->ElementName);
-	if (Node_IsPartOf(Elt,EBML_MASTER_CLASS))
-	{
-        if (!EBML_MasterIsChecksumValid((ebml_master*)Elt))
-            Result |= OutputError(0x203,T("Invalid checksum for element '%s' at %") TPRId64,String,Elt->ElementPosition);
-		for (SubElt = EBML_MasterChildren(Elt); SubElt; SubElt = EBML_MasterNext(SubElt))
-		{
-			if (!Node_IsPartOf(SubElt,EBML_DUMMY_ID))
-			{
-				const ebml_semantic *i;
-				for (i=Elt->Context->Semantic;i->eClass;++i)
-				{
-					if (i->eClass->Id==SubElt->Context->Id)
-					{
-						if ((i->DisabledProfile & ProfileMask)!=0)
-						{
-							Node_FromStr(Elt,Invalid,TSIZEOF(Invalid),i->eClass->ElementName);
-							Result |= OutputError(0x201,T("Invalid %s for profile '%s' at %") TPRId64 T(" in %s"),Invalid,GetProfileName(ProfileMask),SubElt->ElementPosition,String);
-						}
-						break;
-					}
-				}
-				if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
-					Result |= CheckProfileViolation(SubElt, ProfileMask);
-			}
-		}
-	}
-
-	return Result;
-}
-
-static int CheckMandatory(ebml_element *Elt, int ProfileMask)
-{
-	int Result = 0;
-	tchar_t String[MAXPATH],Missing[MAXPATH];
-	ebml_element *SubElt;
+    struct profile_check Checker;
 
 	if (Node_IsPartOf(Elt,EBML_MASTER_CLASS))
 	{
 	    EBML_ElementGetName(Elt,String,TSIZEOF(String));
-		const ebml_semantic *i;
-		for (i=Elt->Context->Semantic;i->eClass;++i)
-		{
-			if ((i->DisabledProfile & ProfileMask)==0 && i->Mandatory && !i->eClass->HasDefault && !EBML_MasterFindChild(Elt,i->eClass))
-			{
-				Node_FromStr(Elt,Missing,TSIZEOF(Missing),i->eClass->ElementName);
-				Result |= OutputError(0x200,T("Missing element %s in %s at %") TPRId64 T(""),Missing,String,Elt->ElementPosition);
-			}
-            if ((i->DisabledProfile & ProfileMask)==0 && i->Unique && (SubElt=EBML_MasterFindChild((ebml_master*)Elt,i->eClass)) && EBML_MasterFindNextElt((ebml_master*)Elt,SubElt,0,0))
-            {
-				Node_FromStr(Elt,Missing,TSIZEOF(Missing),i->eClass->ElementName);
-				Result |= OutputError(0x202,T("Unique element %s in %s at %") TPRId64 T(" found more than once"),Missing,String,Elt->ElementPosition);
-            }
-		}
+        if (!EBML_MasterIsChecksumValid((ebml_master*)Elt))
+            Result |= OutputError(0x203,T("Invalid checksum for element '%s' at %") TPRId64,String,EL_Pos(Elt));
+
+        Checker.EltName = String;
+        Checker.ProfileMask = ProfileMask;
+        Checker.Parent = Elt;
+        Checker.Result = &Result;
+        EBML_MasterCheckContext((ebml_master*)Elt, ProfileMask, ProfileCallback, &Checker);
 
 		for (SubElt = EBML_MasterChildren(Elt); SubElt; SubElt = EBML_MasterNext(SubElt))
-		{
 			if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
-				Result |= CheckMandatory(SubElt, ProfileMask);
-		}
+    		    Result |= CheckProfileViolation(SubElt,ProfileMask);
 	}
 
 	return Result;
@@ -1011,7 +986,6 @@ int main(int argc, const char *argv[])
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
                 RLevelX = (ebml_master*)EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
 			}
 			else
@@ -1043,7 +1017,6 @@ int main(int argc, const char *argv[])
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 			}
 			else
 			{
@@ -1063,7 +1036,6 @@ int main(int argc, const char *argv[])
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 
                     if (Live)
                     {
@@ -1093,7 +1065,6 @@ int main(int argc, const char *argv[])
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 
                     EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
                     TrackCount = 0;
@@ -1161,7 +1132,6 @@ int main(int argc, const char *argv[])
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
@@ -1189,7 +1159,6 @@ int main(int argc, const char *argv[])
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
@@ -1210,7 +1179,6 @@ int main(int argc, const char *argv[])
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else
@@ -1238,7 +1206,6 @@ int main(int argc, const char *argv[])
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
-					Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
 				}
 			}
 			else

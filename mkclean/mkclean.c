@@ -161,13 +161,33 @@ static bool_t Live = 0;
 static int TotalPhases = 2;
 static int CurrentPhase = 1;
 
+static bool_t MasterError(void *cookie, int type, const tchar_t *ClassName, const ebml_element *i)
+{
+	tchar_t IdString[MAXPATH];
+    if (type==MASTER_CHECK_PROFILE_INVALID)
+    {
+    	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
+        TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
+    }
+    else if (type==MASTER_CHECK_MULTIPLE_UNIQUE)
+    {
+    	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
+        TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" has multiple versions of the unique element %s, skipping\r\n"),IdString,EBML_ElementPosition(i),ClassName);
+    }
+    else if (type==MASTER_CHECK_MISSING_MANDATORY)
+    {
+    	EBML_ElementGetName(cookie,IdString,TSIZEOF(IdString));
+	    TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory element %s\r\n"),IdString,EBML_ElementPosition(cookie),ClassName);
+    }
+    return 1;
+}
+
 static void ReduceSize(ebml_element *Element)
 {
     EBML_ElementSetSizeLength(Element, 0); // reset
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
         ebml_element *i, *j;
-		const ebml_semantic *s;
         if (!EBML_ElementIsType(Element,&MATROSKA_ContextClusterBlockGroup))
 		    EBML_MasterAddMandatory((ebml_master*)Element,1);
 
@@ -195,39 +215,7 @@ static void ReduceSize(ebml_element *Element)
             ReduceSize(i);
 		}
 
-		for (i=EBML_MasterChildren(Element);i;i=i?EBML_MasterNext(i):NULL)
-		{
-			for (s=Element->Context->Semantic; s->eClass; ++s)
-			{
-				if (s->eClass->Id == i->Context->Id)
-				{
-			        if (Node_IsPartOf(i,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory((ebml_master*)i,0))
-			        {
-						// if it's not unique we can remove it
-						if (!s->Unique)
-						{
-							tchar_t IdString[MAXPATH];
-							Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
-							TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory elements, skipping\r\n"),IdString,EBML_ElementPosition(i));
-                            EBML_MasterRemove((ebml_master*)Element,i); // make sure it doesn't remain in the list
-							NodeDelete((node*)i);
-							i=EBML_MasterChildren((ebml_master*)Element);
-							break;
-						}
-                    }
-                    if ((s->DisabledProfile & DstProfile)!=0)
-                    {
-						tchar_t IdString[MAXPATH];
-						Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
-						TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
-                        EBML_MasterRemove((ebml_master*)Element,i); // make sure it doesn't remain in the list
-						NodeDelete((node*)i);
-						i=EBML_MasterChildren((ebml_master*)Element);
-						break;
-                    }
-				}
-			}
-		}
+        EBML_MasterCheckContext((ebml_master*)Element, DstProfile, MasterError, Element);
 	}
 }
 

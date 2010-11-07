@@ -25,7 +25,7 @@ GROUP matroska2_group
   SOURCE matroskamain.c {class Matroska_Class}
   SOURCE matroskablock.c
   HEADER matroska/matroska.h
-  HEADER matroska_internal.h
+  HEADER matroska/matroska_internal.h
 }
 
 DLL matroska2

@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml/ebml.h"
+#include "ebml/ebml_internal.h"
 #include "ebmlcrc.h"
 
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)
@@ -553,3 +554,55 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_END(EBML_ELEMENT_CLASS)
+
+void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*ErrCallback)(void *cookie, int type, const tchar_t *ClassName, const ebml_element*), void *cookie)
+{
+	tchar_t ClassString[MAXPATH];
+    ebml_element *i, *SubElt;
+    const ebml_semantic *s;
+	for (i=EBML_MasterChildren(Element);i;i=i?EBML_MasterNext(i):NULL)
+	{
+        if (!Node_IsPartOf(SubElt,EBML_DUMMY_ID))
+        {
+		    for (s=Element->Base.Context->Semantic; s->eClass; ++s)
+		    {
+			    if (s->eClass->Id == i->Context->Id)
+			    {
+                    if (s->DisabledProfile & ProfileMask)
+                    {
+				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,i))
+                        {
+                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
+					        NodeDelete((node*)i);
+					        i=EBML_MasterChildren(Element);
+                            break;
+                        }
+                    }
+                    if (s->Unique && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && EBML_MasterNextChild(Element,SubElt))
+                    {
+		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,i))
+                        {
+                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
+			                NodeDelete((node*)i);
+			                i=EBML_MasterChildren(Element);
+                            break;
+                        }
+                    }
+				    break;
+			    }
+		    }
+        }
+	}
+
+	for (s=Element->Base.Context->Semantic; s->eClass; ++s)
+	{
+	    if (s->Mandatory && !s->eClass->HasDefault && !EBML_MasterFindChild(Element,s->eClass))
+	    {
+		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+            if (ErrCallback)
+                ErrCallback(cookie,MASTER_CHECK_MISSING_MANDATORY,ClassString,NULL);
+	    }
+	}
+}

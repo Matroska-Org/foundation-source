@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "matroska/matroska.h"
-#include "matroska_internal.h"
+#include "matroska/matroska_internal.h"
 #if defined(CONFIG_ZLIB)
 #include "zlib.h"
 #endif

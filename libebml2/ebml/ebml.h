@@ -85,46 +85,19 @@ typedef struct ebml_semantic ebml_semantic;
 typedef struct ebml_element ebml_element;
 typedef struct ebml_crc ebml_crc;
 
-struct ebml_semantic
-{
-    bool_t Mandatory;
-    bool_t Unique;
-    const ebml_context *eClass;
-    int DisabledProfile; // PROFILE_MATROSKA_V1 and others
-};
-
-struct ebml_context
-{
-    fourcc_t Id;
-    fourcc_t Class; // TODO: store a pointer to make creation faster 
-    bool_t HasDefault;
-    intptr_t DefaultValue;
-    const char *ElementName;
-    // TODO: create sub class so we don't have to assign it all the time
-    const ebml_semantic *Semantic; // table with last element class set to NULL
-    const ebml_semantic *GlobalContext; // table with last element class set to NULL
-    void (*PostCreate)(ebml_element *p, const void *Cookie);
-};
+typedef struct ebml_master ebml_master;
+typedef struct ebml_integer ebml_integer;
+typedef struct ebml_string ebml_string;
+typedef struct ebml_binary ebml_binary;
+typedef struct ebml_integer ebml_date;
+typedef struct ebml_float ebml_float;
+typedef struct ebml_dummy ebml_dummy;
 
 struct ebml_parser_context
 {
     const ebml_context *Context;
     const ebml_parser_context *UpContext;
     filepos_t EndPosition;
-};
-
-struct ebml_element
-{
-    nodetree Base;
-    filepos_t DataSize; // size of the data inside the element
-    filepos_t ElementPosition;
-    filepos_t SizePosition; // TODO: is this needed since we have the ElementPosition and SizeLength ?
-    const ebml_context *Context;
-    int DefaultSize;
-    int8_t SizeLength;
-    boolmem_t bValueIsSet;
-    boolmem_t bDefaultIsSet;
-    boolmem_t bNeedDataSizeUpdate;
 };
 
 typedef struct ebml_element_vmt
@@ -155,50 +128,6 @@ typedef struct ebml_element_vmt
 #define EBML_ElementNeedsDataSizeUpdate(p,d) VMT_FUNC(p,ebml_element_vmt)->NeedsDataSizeUpdate(p,d)
 #define EBML_ElementCmp(p,e)                 VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
 #define EBML_ElementCopy(p,c)                VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
-
-typedef struct ebml_master
-{
-    ebml_element Base;
-    int CheckSumStatus; // 0: not set, 1: requested/invalid, 2: verified
-
-} ebml_master;
-
-typedef struct ebml_string
-{
-    ebml_element Base;
-    const char *Buffer; // UTF-8 internal storage
-
-} ebml_string;
-
-typedef struct ebml_integer
-{
-    ebml_element Base;
-    int64_t Value;
-
-} ebml_integer;
-
-typedef struct ebml_float
-{
-    ebml_element Base;
-    double Value;
-
-} ebml_float;
-
-typedef struct ebml_binary
-{
-    ebml_element Base;
-    array Data;
-
-} ebml_binary;
-
-typedef ebml_integer ebml_date;
-
-typedef struct ebml_dummy
-{
-    ebml_binary Base;
-    ebml_context DummyContext;
-
-} ebml_dummy;
 
 EBML_DLL err_t EBML_Init(nodecontext *p);
 EBML_DLL err_t EBML_Done(nodecontext *p);
@@ -292,7 +221,12 @@ EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
 EBML_DLL size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id);
 EBML_DLL fourcc_t EBML_BufferToID(const uint8_t *Buffer);
 
-INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
+#define MASTER_CHECK_PROFILE_INVALID    0
+#define MASTER_CHECK_MISSING_MANDATORY  1
+#define MASTER_CHECK_MULTIPLE_UNIQUE    2
+
+typedef bool_t (*ContextCallback)(void *cookie, int type, const tchar_t *ClassName, const ebml_element*);
+EBML_DLL void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, ContextCallback callback, void *cookie);
 
 #if defined(EBML_LEGACY_API)
 #define CONTEXT_CONST
