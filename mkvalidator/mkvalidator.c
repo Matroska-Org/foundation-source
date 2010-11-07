@@ -53,6 +53,9 @@ static bool_t Quiet = 0;
 static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
 static timecode_t ClusterTime = INVALID_TIMECODE_T;
 
+// some macros for code readability
+#define EL_Int(elt)         EBML_IntegerValue((const ebml_integer*)elt)
+
 typedef struct track_info
 {
     int Num;
@@ -227,46 +230,46 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 
 		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayWidth,0,0);
 		if (Elt)
-			DisplayW = EBML_IntegerValue(Elt);
-		else if (EBML_IntegerValue(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
+			DisplayW = EL_Int(Elt);
+		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,Track->Base.ElementPosition);
         else if (PixelW)
-			DisplayW = EBML_IntegerValue(PixelW);
+			DisplayW = EL_Int(PixelW);
 
 		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoDisplayHeight,0,0);
 		if (Elt)
-			DisplayH = EBML_IntegerValue(Elt);
-		else if (EBML_IntegerValue(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
+			DisplayH = EL_Int(Elt);
+		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel height"),TrackNum,Track->Base.ElementPosition);
 		else if (PixelH)
-			DisplayH = EBML_IntegerValue(PixelH);
+			DisplayH = EL_Int(PixelH);
 
 		if (DisplayH==0)
 			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display height"),TrackNum,Track->Base.ElementPosition);
 		if (DisplayW==0)
 			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,Track->Base.ElementPosition);
 
-		if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
+		if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
 		{
 			// check if the pixel sizes appear valid
-			if (DisplayW < EBML_IntegerValue(PixelW) && DisplayH < EBML_IntegerValue(PixelH))
+			if (DisplayW < EL_Int(PixelW) && DisplayH < EL_Int(PixelH))
 			{
                 int Serious = gcd(DisplayW,DisplayH)==1; // the DAR values were reduced as much as possible
-                if (DisplayW*EBML_IntegerValue(PixelH) == DisplayH*EBML_IntegerValue(PixelW))
+                if (DisplayW*EL_Int(PixelH) == DisplayH*EL_Int(PixelW))
                     Serious++; // same aspect ratio as the source
-                if (8*DisplayW <= EBML_IntegerValue(PixelW) && 8*DisplayH <= EBML_IntegerValue(PixelH))
+                if (8*DisplayW <= EL_Int(PixelW) && 8*DisplayH <= EL_Int(PixelH))
                     Serious+=2; // too much shrinking compared to the original pixels
                 if (ProfileNum!=PROFILE_WEBM_V2 && ProfileNum!=PROFILE_WEBM_V1)
                     --Serious; // in Matroska it's tolerated as it's been operating like that for a while
 
 				if (Serious>2)
-					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
+					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EL_Int(PixelW),EL_Int(PixelH));
 				else if (Serious)
-					Result |= OutputWarning(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EBML_IntegerValue(PixelW),EBML_IntegerValue(PixelH));
+					Result |= OutputWarning(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EL_Int(PixelW),EL_Int(PixelH));
 			}
 		}
 
-        if (EBML_IntegerValue(Unit)==MATROSKA_DISPLAY_UNIT_DAR)
+        if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_DAR)
         {
             // crop values should never exist
             Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropTop,0,0);
@@ -287,13 +290,13 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
             // crop values should be less than the extended value
             PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropTop,1,1);
             PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropBottom,1,1);
-            if (EBML_IntegerValue(PixelW) + EBML_IntegerValue(PixelH) >= DisplayH)
-                Result |= OutputError(0xE5,T("Video track #%d is cropping too many vertical pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayH, EBML_IntegerValue(PixelW), EBML_IntegerValue(PixelH));
+            if (EL_Int(PixelW) + EL_Int(PixelH) >= DisplayH)
+                Result |= OutputError(0xE5,T("Video track #%d is cropping too many vertical pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayH, EL_Int(PixelW), EL_Int(PixelH));
 
             PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropLeft,1,1);
             PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextTrackVideoPixelCropRight,1,1);
-            if (EBML_IntegerValue(PixelW) + EBML_IntegerValue(PixelH) >= DisplayW)
-                Result |= OutputError(0xE6,T("Video track #%d is cropping too many horizontal pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayW, EBML_IntegerValue(PixelW), EBML_IntegerValue(PixelH));
+            if (EL_Int(PixelW) + EL_Int(PixelH) >= DisplayW)
+                Result |= OutputError(0xE6,T("Video track #%d is cropping too many horizontal pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayW, EL_Int(PixelW), EL_Int(PixelH));
         }
 	}
 	return Result;
@@ -316,33 +319,33 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 			TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
 			CodecID = (ebml_string*)EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackCodecID, 1, 1);
 			if (!CodecID)
-				Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(int)EBML_IntegerValue(TrackNum));
+				Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(int)EL_Int(TrackNum));
 			else if (!TrackType)
-				Result |= OutputError(0x301,T("Track #%d has no type defined"),(int)EBML_IntegerValue(TrackNum));
+				Result |= OutputError(0x301,T("Track #%d has no type defined"),(int)EL_Int(TrackNum));
 			else
 			{
 				EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
 				tcscpy_s(String,TSIZEOF(String),CodecName);
 				if (tcscmp(tcsupr(String),CodecName)!=0)
-					Result |= OutputWarning(0x307,T("Track #%d codec '%s' should be uppercase"),(int)EBML_IntegerValue(TrackNum),CodecName);
+					Result |= OutputWarning(0x307,T("Track #%d codec '%s' should be uppercase"),(int)EL_Int(TrackNum),CodecName);
 				if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
-					Result |= OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EBML_IntegerValue(TrackNum),String);
+					Result |= OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EL_Int(TrackNum),String);
 
 				if (ProfileNum==PROFILE_WEBM_V1 || ProfileNum==PROFILE_WEBM_V2)
 				{
-					if (EBML_IntegerValue(TrackType) != TRACK_TYPE_AUDIO && EBML_IntegerValue(TrackType) != TRACK_TYPE_VIDEO)
-						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(int)EBML_IntegerValue(TrackNum),(int)EBML_IntegerValue(TrackType),GetProfileName(ProfileNum));
+					if (EL_Int(TrackType) != TRACK_TYPE_AUDIO && EL_Int(TrackType) != TRACK_TYPE_VIDEO)
+						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(int)EL_Int(TrackNum),(int)EL_Int(TrackType),GetProfileName(ProfileNum));
 					if (CodecID)
 					{
-						if (EBML_IntegerValue(TrackType) == TRACK_TYPE_AUDIO)
+						if (EL_Int(TrackType) == TRACK_TYPE_AUDIO)
 						{
 							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
-								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(int)EBML_IntegerValue(TrackNum),CodecName,GetProfileName(ProfileNum));
+								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(int)EL_Int(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
-						else if (EBML_IntegerValue(TrackType) == TRACK_TYPE_VIDEO)
+						else if (EL_Int(TrackType) == TRACK_TYPE_VIDEO)
 						{
 							if (!tcsisame_ascii(CodecName,T("V_VP8")))
-								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(int)EBML_IntegerValue(TrackNum),CodecName,GetProfileName(ProfileNum));
+								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(int)EL_Int(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
 					}
 				}
@@ -356,7 +359,7 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
             if (!RAttachments)
             {
                 if (TrackNum)
-				    Result |= OutputError(0x305,T("Track #%d has attachment links but not attachments in the file"),(int)EBML_IntegerValue(TrackNum));
+				    Result |= OutputError(0x305,T("Track #%d has attachment links but not attachments in the file"),(int)EL_Int(TrackNum));
                 else
                     Result |= OutputError(0x305,T("Track at %") TPRId64 T(" has attachment links but not attachments in the file"),Track->Base.ElementPosition);
                 break;
@@ -367,16 +370,16 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
                 if (Elt->Context->Id == MATROSKA_ContextAttachedFile.Id)
                 {
                     Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextAttachedFileUID, 0, 0);
-                    if (Elt2 && EBML_IntegerValue(Elt2) == EBML_IntegerValue(TrackType))
+                    if (Elt2 && EL_Int(Elt2) == EL_Int(TrackType))
                         break;
                 }
             }
             if (!Elt)
             {
                 if (TrackNum)
-				    Result |= OutputError(0x306,T("Track #%d attachment link UID 0x%") TPRIx64 T(" not found in attachments"),(int)EBML_IntegerValue(TrackNum),EBML_IntegerValue(TrackType));
+				    Result |= OutputError(0x306,T("Track #%d attachment link UID 0x%") TPRIx64 T(" not found in attachments"),(int)EL_Int(TrackNum),EL_Int(TrackType));
                 else
-                    Result |= OutputError(0x306,T("Track at %") TPRId64 T(" attachment link UID 0x%") TPRIx64 T(" not found in attachments"),Track->Base.ElementPosition,EBML_IntegerValue(TrackType));
+                    Result |= OutputError(0x306,T("Track at %") TPRId64 T(" attachment link UID 0x%") TPRIx64 T(" not found in attachments"),Track->Base.ElementPosition,EL_Int(TrackType));
             }
 
             TrackType = EBML_MasterFindNextElt(Track, TrackType, 0, 0);
@@ -601,10 +604,10 @@ static bool_t TrackIsVideo(int16_t TrackNum)
     while (Track)
     {
         TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
-        if (EBML_IntegerValue(TrackData) == TrackNum)
+        if (EL_Int(TrackData) == TrackNum)
         {
             TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
-            return EBML_IntegerValue(TrackData) == TRACK_TYPE_VIDEO;
+            return EL_Int(TrackData) == TRACK_TYPE_VIDEO;
         }
         Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
     }
@@ -686,15 +689,15 @@ static int CheckPosSize(const ebml_element *RSegment)
         if (Elt)
         {
             if (PrevCluster==NULL)
-                Result |= OutputError(0xA0,T("The PrevSize %") TPRId64 T(" was set on the first Cluster at %") TPRId64 T(""),EBML_IntegerValue(Elt),Elt->ElementPosition);
+                Result |= OutputError(0xA0,T("The PrevSize %") TPRId64 T(" was set on the first Cluster at %") TPRId64,EL_Int(Elt),Elt->ElementPosition);
             else if (EBML_IntegerValue(Elt) != (*Cluster)->ElementPosition - PrevCluster->ElementPosition)
-                Result |= OutputError(0xA1,T("The Cluster PrevSize %") TPRId64 T(" at %") TPRId64 T(" should be %") TPRId64 T(""),EBML_IntegerValue(Elt),Elt->ElementPosition,((*Cluster)->ElementPosition - PrevCluster->ElementPosition));
+                Result |= OutputError(0xA1,T("The Cluster PrevSize %") TPRId64 T(" at %") TPRId64 T(" should be %") TPRId64,EL_Int(Elt),Elt->ElementPosition,((*Cluster)->ElementPosition - PrevCluster->ElementPosition));
         }
         Elt = EBML_MasterFindFirstElt((ebml_master*)*Cluster,&MATROSKA_ContextClusterPosition,0,0);
         if (Elt)
         {
             if (EBML_IntegerValue(Elt) != (*Cluster)->ElementPosition - EBML_ElementPositionData(RSegment))
-                Result |= OutputError(0xA2,T("The Cluster position %") TPRId64 T(" at %") TPRId64 T(" should be %") TPRId64 T(""),EBML_IntegerValue(Elt),Elt->ElementPosition,((*Cluster)->ElementPosition - EBML_ElementPositionData(RSegment)));
+                Result |= OutputError(0xA2,T("The Cluster position %") TPRId64 T(" at %") TPRId64 T(" should be %") TPRId64,EL_Int(Elt),Elt->ElementPosition,((*Cluster)->ElementPosition - EBML_ElementPositionData(RSegment)));
         }
         PrevCluster = *Cluster;
     }
@@ -928,16 +931,16 @@ int main(int argc, const char *argv[])
 	VoidAmount += CheckUnknownElements((ebml_element*)EbmlHead);
 
 	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextReadVersion,1,1);
-	if (EBML_IntegerValue(RLevel1) > EBML_MAX_VERSION)
-		OutputError(5,T("The EBML read version is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
+	if (EL_Int(RLevel1) > EBML_MAX_VERSION)
+		OutputError(5,T("The EBML read version is not supported: %d"),(int)EL_Int(RLevel1));
 
 	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxIdLength,1,1);
-	if (EBML_IntegerValue(RLevel1) > EBML_MAX_ID)
-		OutputError(6,T("The EBML max ID length is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
+	if (EL_Int(RLevel1) > EBML_MAX_ID)
+		OutputError(6,T("The EBML max ID length is not supported: %d"),(int)EL_Int(RLevel1));
 
 	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxSizeLength,1,1);
-	if (EBML_IntegerValue(RLevel1) > EBML_MAX_SIZE)
-		OutputError(7,T("The EBML max size length is not supported: %d"),(int)EBML_IntegerValue(RLevel1));
+	if (EL_Int(RLevel1) > EBML_MAX_SIZE)
+		OutputError(7,T("The EBML max size length is not supported: %d"),(int)EL_Int(RLevel1));
 
 	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocType,1,1);
     EBML_StringGet((ebml_string*)RLevel1,String,TSIZEOF(String));
@@ -950,19 +953,19 @@ int main(int argc, const char *argv[])
 	EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocTypeVersion,1,1);
 	EbmlReadDocVer = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocTypeReadVersion,1,1);
 
-	if (EBML_IntegerValue(EbmlDocVer) > EBML_IntegerValue(EbmlReadDocVer))
-		OutputError(9,T("The read DocType version %d is higher than the Doctype version %d"),(int)EBML_IntegerValue(EbmlReadDocVer),(int)EBML_IntegerValue(EbmlDocVer));
+	if (EL_Int(EbmlDocVer) > EL_Int(EbmlReadDocVer))
+		OutputError(9,T("The read DocType version %d is higher than the Doctype version %d"),(int)EL_Int(EbmlReadDocVer),(int)EL_Int(EbmlDocVer));
 
 	if (tcscmp(String,T("matroska"))==0)
 	{
-		if (EBML_IntegerValue(EbmlReadDocVer)==2)
+		if (EL_Int(EbmlReadDocVer)==2)
         {
             if (DivX)
     			MatroskaProfile = PROFILE_DIVX_V2;
             else
 			    MatroskaProfile = PROFILE_MATROSKA_V2;
         }
-		else if (EBML_IntegerValue(EbmlReadDocVer)==1)
+		else if (EL_Int(EbmlReadDocVer)==1)
         {
             if (DivX)
     			MatroskaProfile = PROFILE_DIVX_V1;
@@ -970,11 +973,11 @@ int main(int argc, const char *argv[])
 		    	MatroskaProfile = PROFILE_MATROSKA_V1;
         }
 		else
-			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EBML_IntegerValue(EbmlDocVer),(int)EBML_IntegerValue(EbmlReadDocVer));
+			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EL_Int(EbmlDocVer),(int)EL_Int(EbmlReadDocVer));
 	}
-	else if (EBML_IntegerValue(EbmlReadDocVer)==1)
+	else if (EL_Int(EbmlReadDocVer)==1)
 		MatroskaProfile = PROFILE_WEBM_V1;
-	else if (EBML_IntegerValue(EbmlReadDocVer)==2)
+	else if (EL_Int(EbmlReadDocVer)==2)
 		MatroskaProfile = PROFILE_WEBM_V2;
 
 	if (MatroskaProfile==0)
@@ -1010,7 +1013,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x180,T("Failed to read the Cluster at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
+				Result = OutputError(0x180,T("Failed to read the Cluster at %") TPRId64 T(" size %") TPRId64,RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 				goto exit;
 			}
         }
@@ -1108,19 +1111,19 @@ int main(int argc, const char *argv[])
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
-                            TrackMax = max(TrackMax,(size_t)EBML_IntegerValue(EbmlDocVer));
-                            ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EBML_IntegerValue(EbmlDocVer);
+                            TrackMax = max(TrackMax,(size_t)EL_Int(EbmlDocVer));
+                            ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EL_Int(EbmlDocVer);
                         }
                         EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
-                            if (EBML_IntegerValue(EbmlDocVer)==TRACK_TYPE_VIDEO)
+                            if (EL_Int(EbmlDocVer)==TRACK_TYPE_VIDEO)
 							{
 								Result |= CheckVideoTrack(EbmlHead, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
                                 HasVideo = 1;
 							}
-                            ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EBML_IntegerValue(EbmlDocVer);
+                            ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EL_Int(EbmlDocVer);
                         }
                         ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackCodecID,0,0);
                         EbmlHead = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo,(ebml_element*)EbmlHead,0,0);
