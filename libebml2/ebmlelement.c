@@ -41,9 +41,9 @@ static void PostCreate(ebml_element *Element)
 
 static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
 {
-    if (!Element->bNeedDataSizeUpdate)
-        return 0;
     if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
+        return 0;
+    if (!Element->bNeedDataSizeUpdate)
         return 0;
     return 1;
 }
@@ -53,7 +53,7 @@ static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return 0;
 
-	if (Element->DefaultSize > Element->DataSize)
+    if (Element->DefaultSize > Element->DataSize)
 		Element->DataSize = Element->DefaultSize;
 
     Element->bNeedDataSizeUpdate = 0;
@@ -147,14 +147,14 @@ void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size)
     Element->DataSize = Size;
 }
 
-int EBML_ElementSizeLength(const ebml_element *Element)
+uint8_t EBML_ElementSizeLength(const ebml_element *Element)
 {
     return Element->SizeLength;
 }
 
-void EBML_ElementSetSizeLength(ebml_element *Element, int SizeLength)
+void EBML_ElementSetSizeLength(ebml_element *Element, uint8_t SizeLength)
 {
-    Element->SizeLength = (int8_t) SizeLength;
+    Element->SizeLength = SizeLength;
 }
 
 bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_context *Context)

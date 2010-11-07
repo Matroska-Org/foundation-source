@@ -401,7 +401,7 @@ printf("Elt: size %d id %d %02X\n",SizeFound,PossibleID_Length,PossibleId[0]);
     return Result;
 }
 
-int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite)
+uint8_t EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite)
 {
 	int CodedSize;
 	if (!bSizeIsFinite)
@@ -425,10 +425,10 @@ int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFin
 		// defined size
 		CodedSize = SizeLength;
 
-	return CodedSize;
+	return (uint8_t)CodedSize;
 }
 
-int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength)
+uint8_t EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength)
 {
 	int CodedSize;
 	// prepare the head of the size (000...01xxxxxx)
@@ -447,11 +447,11 @@ int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength)
 		// defined size
 		CodedSize = SizeLength;
 
-	return CodedSize;
+	return (uint8_t)CodedSize;
 }
 
 
-int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite)
+uint8_t EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite)
 {
 	int _SizeMask = 0xFF;
     size_t i;
@@ -474,10 +474,10 @@ printf("%08X ",(int)Length);
 if (CodedSize==3)
 printf("%02X%02X%02X\n",OutBuffer[0],OutBuffer[1],OutBuffer[2]);
 #endif
-	return CodedSize;
+	return (uint8_t)CodedSize;
 }
 
-int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer)
+uint8_t EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer)
 {
 	if (Length > -64 && Length < 64) // 2^6
 		Length += 63;

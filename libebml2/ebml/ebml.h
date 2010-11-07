@@ -207,10 +207,10 @@ EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Cont
 
 EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize);
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
-EBML_DLL int EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite); // TODO: turn into a macro ?
-EBML_DLL int EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
-EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite); // TODO: turn into a macro ?
-EBML_DLL int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
+EBML_DLL uint8_t EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite); // TODO: turn into a macro ?
+EBML_DLL uint8_t EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
+EBML_DLL uint8_t EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite); // TODO: turn into a macro ?
+EBML_DLL uint8_t EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
 EBML_DLL filepos_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
 EBML_DLL filepos_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
 
@@ -234,8 +234,8 @@ EBML_DLL void EBML_ElementForcePosition(ebml_element *Element, filepos_t Pos);
 EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 EBML_DLL filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault);
 EBML_DLL void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size);
-EBML_DLL int EBML_ElementSizeLength(const ebml_element *Element);
-EBML_DLL void EBML_ElementSetSizeLength(ebml_element *Element, int SizeLength); /// 0 (for auto) to EBML_MAX_SIZE
+EBML_DLL uint8_t EBML_ElementSizeLength(const ebml_element *Element);
+EBML_DLL void EBML_ElementSetSizeLength(ebml_element *Element, uint8_t SizeLength); /// 0 (for auto) to EBML_MAX_SIZE
 
 EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_context *Context);
 

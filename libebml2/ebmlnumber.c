@@ -106,7 +106,7 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
 	int64_t TempValue = Element->Value;
     err_t Err;
 	
-	if (Element->Base.SizeLength > 8)
+	if (Element->Base.SizeLength > EBML_MAX_SIZE)
 		return 0; // integers larger than 64 bits are not supported
 
     if (Element->Base.DataSize == 0)
@@ -142,7 +142,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
 	uint64_t TempValue = Element->Value;
     err_t Err;
 
-	if (Element->Base.SizeLength > 8)
+	if (Element->Base.SizeLength > EBML_MAX_SIZE)
 		return 0; // integers larger than 64 bits are not supported
 
     if (Element->Base.DataSize == 0)
