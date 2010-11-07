@@ -230,7 +230,7 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
     return INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
-void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault)
+void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault)
 {
     const ebml_semantic *i;
     for (i=Element->Base.Context->Semantic;i->eClass;++i)
@@ -243,7 +243,7 @@ void EBML_MasterMandatory(ebml_master *Element, bool_t SetDefault)
 static void PostCreate(ebml_master *Element)
 {
     INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
-	EBML_MasterMandatory(Element,1); // TODO: should it force the default value ?
+	EBML_MasterAddMandatory(Element,1); // TODO: should it force the default value ?
 }
 
 static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)

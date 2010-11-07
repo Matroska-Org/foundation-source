@@ -1255,7 +1255,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     assert(Cue->SegInfo);
     assert(Segment); // we need the segment location
 	EBML_MasterErase((ebml_master*)Cue);
-	EBML_MasterMandatory((ebml_master*)Cue,1);
+	EBML_MasterAddMandatory((ebml_master*)Cue,1);
     TimecodeElt = EBML_MasterGetChild((ebml_master*)Cue,&MATROSKA_ContextCueTime);
     if (!TimecodeElt)
         return ERR_OUT_OF_MEMORY;

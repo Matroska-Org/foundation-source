@@ -169,7 +169,7 @@ static void ReduceSize(ebml_element *Element)
         ebml_element *i, *j;
 		const ebml_semantic *s;
         if (Element->Context->Id!=MATROSKA_ContextClusterBlockGroup.Id)
-		    EBML_MasterMandatory((ebml_master*)Element,1);
+		    EBML_MasterAddMandatory((ebml_master*)Element,1);
 
         if (Unsafe)
             EBML_MasterUseChecksum((ebml_master*)Element,0);
