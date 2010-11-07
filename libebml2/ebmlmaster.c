@@ -285,7 +285,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
             {
                 if (EBML_ElementReadData(SubElement,ReadStream,&Context,AllowDummyElt, Scope, DepthCheckCRC?DepthCheckCRC-1:0)==ERR_NONE)
                 {
-                    if (bFirst && DepthCheckCRC && Scope!=SCOPE_NO_DATA && SubElement->Context->Id==EBML_ContextEbmlCrc32.Id && CRCElement==NULL)
+                    if (bFirst && DepthCheckCRC && Scope!=SCOPE_NO_DATA && EBML_ElementIsType(SubElement, &EBML_ContextEbmlCrc32) && CRCElement==NULL)
                     {
                         if (EBML_ElementIsFiniteSize((ebml_element*)Element))
                         {

@@ -137,6 +137,11 @@ filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault)
     return Element->DataSize;
 }
 
+bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_context *Context)
+{
+    return Element->Context->Id == Context->Id;
+}
+
 fourcc_t EBML_ElementClassID(const ebml_element *Element)
 {
     return Element->Context->Id;

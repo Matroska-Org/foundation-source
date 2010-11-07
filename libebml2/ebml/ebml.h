@@ -232,6 +232,8 @@ EBML_DLL filepos_t EBML_ElementPositionEnd(const ebml_element *Element);
 
 EBML_DLL filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault);
 
+EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_context *Context);
+
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags ?
 EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
