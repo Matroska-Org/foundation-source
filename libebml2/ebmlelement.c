@@ -125,6 +125,11 @@ ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_pa
 	return Result;
 }
 
+const ebml_context *EBML_ElementContext(const ebml_element *Element)
+{
+    return Element->Context;
+}
+
 filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
 {
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))

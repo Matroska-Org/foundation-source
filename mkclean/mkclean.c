@@ -560,7 +560,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     tchar_t String[MAXLINE];
 
     SubContext.UpContext = Parser;
-    SubContext.Context = Head->Context;
+    SubContext.Context = EBML_ElementContext(Head);
     SubContext.EndPosition = EBML_ElementPositionEnd(Head);
     SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
     while (SubElement)

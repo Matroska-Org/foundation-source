@@ -217,7 +217,7 @@ EBML_DLL filepos_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t
 EBML_DLL void EBML_ElementGetName(const ebml_element *Element, tchar_t *Out, size_t OutLen);
 EBML_DLL const char *EBML_ElementGetClassName(const ebml_element *Element);
 
-EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
+EBML_DLL const ebml_context *EBML_ElementContext(const ebml_element *Element);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
 EBML_DLL bool_t EBML_ElementIsFiniteSize(const ebml_element *Element);

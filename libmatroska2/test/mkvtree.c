@@ -125,7 +125,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             fprintf(stdout,"(master) [%"PRId64" bytes]",EBML_ElementDataSize(Element, 1));
         EndLine(Element);
         SubContext.UpContext = Context;
-        SubContext.Context = Element->Context;
+        SubContext.Context = EBML_ElementContext(Element);
         SubContext.EndPosition = EBML_ElementPositionEnd(Element);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
 		while (SubElement != NULL && UpperElement<=0 && (!EBML_ElementIsFiniteSize(Element) || EBML_ElementPosition(SubElement) <= EBML_ElementPositionEnd(Element)))
