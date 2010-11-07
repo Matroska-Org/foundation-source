@@ -335,7 +335,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 {
     ebml_element *Elt, *Elt2;
     ebml_master **Cluster;
-    filepos_t OriginalSize = Cues->Base.DataSize;
+    filepos_t OriginalSize = EBML_ElementDataSize(Cues,0);
     filepos_t ClusterPos = ClusterStart + EBML_ElementFullSize((ebml_element*)Cues,0);
     filepos_t ClusterSize = INVALID_FILEPOS_T;
 
@@ -397,7 +397,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegment)
 {
     if (!Quiet)
-        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),RSegment->DataSize)+1);
+        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),EBML_ElementDataSize(RSegment,0))+1);
 }
 
 static void EndProgress()
@@ -653,7 +653,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
 
 static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, filepos_t PrevSize, timecode_t *PrevTimecode)
 {
-    filepos_t IntendedPosition = Cluster->Base.ElementPosition;
+    filepos_t IntendedPosition = EBML_ElementPosition(Cluster);
     ebml_element *Elt;
     bool_t CuesChanged = 0;
 
@@ -664,7 +664,7 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
         timecode_t OrigTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster);
         if (*PrevTimecode >= OrigTimecode)
         {
-            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timecode %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), Cluster->Base.ElementPosition,*PrevTimecode,OrigTimecode);
+            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timecode %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition(Cluster),*PrevTimecode,OrigTimecode);
             MATROSKA_ClusterSetTimecode((matroska_cluster*)Cluster, *PrevTimecode + MATROSKA_ClusterTimecodeScale((matroska_cluster*)Cluster, 0));
             CuesChanged = 1;
         }
@@ -675,13 +675,13 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
 
     UnReadClusterData(Cluster, 1);
 
-    if (!Live && Cluster->Base.ElementPosition != IntendedPosition)
-        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), Cluster->Base.ElementPosition,IntendedPosition);
+    if (!Live && EBML_ElementPosition(Cluster) != IntendedPosition)
+        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition(Cluster),IntendedPosition);
     if (!Live && PrevSize!=INVALID_FILEPOS_T)
     {
         Elt = EBML_MasterGetChild(Cluster, &MATROSKA_ContextClusterPrevSize);
         if (Elt && PrevSize!=EBML_IntegerValue(Elt))
-            TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), Cluster->Base.ElementPosition,EBML_IntegerValue(Elt),PrevSize);
+            TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition(Cluster),EBML_IntegerValue(Elt),PrevSize);
     }
     return CuesChanged;
 }
@@ -891,7 +891,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackNumber);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track at %") TPRId64 T(" has no number set!\r\n"),CurTrack->Base.ElementPosition);
+			TextPrintf(StdErr,T("The track at %") TPRId64 T(" has no number set!\r\n"),EBML_ElementPosition(CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -900,7 +900,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackCodecID);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,CurTrack->Base.ElementPosition);
+			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,EBML_ElementPosition(CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -908,7 +908,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackType);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no type set!\r\n"), TrackNum,CurTrack->Base.ElementPosition);
+			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no type set!\r\n"), TrackNum,EBML_ElementPosition(CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -935,7 +935,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
             Height = (int)EBML_IntegerValue(EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackVideoPixelHeight));
 	        if (Width==0 || Height==0)
 	        {
-		        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid pixel dimensions %dx%d!\r\n"), TrackNum,CurTrack->Base.ElementPosition,Width,Height);
+		        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid pixel dimensions %dx%d!\r\n"), TrackNum,EBML_ElementPosition(CurTrack),Width,Height);
 		        NodeDelete((node*)CurTrack);
 		        continue;
 	        }
@@ -962,7 +962,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
                     }
                     else if (EBML_IntegerValue(DisplayW)==0)
                     {
-		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display width %") TPRId64 T("!\r\n"), TrackNum,CurTrack->Base.ElementPosition,EBML_IntegerValue(DisplayW));
+		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display width %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition(CurTrack),EBML_IntegerValue(DisplayW));
 		                NodeDelete((node*)CurTrack);
 		                continue;
                     }
@@ -981,7 +981,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
                     }
                     else if (EBML_IntegerValue(DisplayH)==0)
                     {
-		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T("!\r\n"), TrackNum,CurTrack->Base.ElementPosition,EBML_IntegerValue(DisplayH));
+		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition(CurTrack),EBML_IntegerValue(DisplayH));
 		                NodeDelete((node*)CurTrack);
 		                continue;
                     }
@@ -1608,7 +1608,7 @@ int main(int argc, const char *argv[])
     {
         // temporary value
         if (EBML_ElementIsFiniteSize((ebml_element*)RSegment))
-		    WSegment->Base.DataSize = RSegment->Base.DataSize;
+		    WSegment->Base.DataSize = EBML_ElementDataSize(RSegment,0);
         else
             WSegment->Base.SizeLength = EBML_MAX_SIZE;
     }
@@ -2005,8 +2005,8 @@ int main(int argc, const char *argv[])
 					MainBlockEnd = pBlockInfo->DecodeTime;
 				}
 
-                if (((ebml_element*)ClusterW)->ElementPosition == INVALID_FILEPOS_T)
-                    ((ebml_element*)ClusterW)->ElementPosition = ((ebml_element*)pBlockInfo->Block)->ElementPosition; // fake average value
+                if (EBML_ElementPosition(ClusterW) == INVALID_FILEPOS_T)
+                    ((ebml_element*)ClusterW)->ElementPosition = EBML_ElementPosition(pBlockInfo->Block); // fake average value
 
 				for (pTrackOrder=ARRAYBEGIN(TrackOrder,size_t);pTrackOrder!=ARRAYEND(TrackOrder,size_t);++pTrackOrder)
 				{
@@ -2612,18 +2612,19 @@ int main(int argc, const char *argv[])
     // update the WSegment size
 	if (!Live)
 	{
-		if (WSegment->Base.DataSize!=INVALID_FILEPOS_T && SegmentSize - ExtraSizeDiff > WSegment->Base.DataSize)
+		if (EBML_ElementDataSize(WSegment,0)!=INVALID_FILEPOS_T && SegmentSize - ExtraSizeDiff > EBML_ElementDataSize(WSegment,0))
 		{
-			if (EBML_CodedSizeLength(SegmentSize,WSegment->Base.SizeLength,0) != EBML_CodedSizeLength(SegmentSize,WSegment->Base.SizeLength,0))
+			if (EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength(WSegment),0) != EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength(WSegment),0))
 			{
-				TextPrintf(StdErr,T("The segment written is much bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->Base.DataSize);
+                // TODO: this check is always false
+				TextPrintf(StdErr,T("The segment written is much bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize(WSegment,0));
 				Result = -20;
 				goto exit;
 			}
-			if (!Quiet) TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,WSegment->Base.DataSize);
+			if (!Quiet) TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize(WSegment,0));
 		}
-		if (EBML_CodedSizeLength(WSegment->Base.DataSize,0,!Live) > EBML_CodedSizeLength(SegmentSize,0,!Live))
-			WSegment->Base.SizeLength = (int8_t)EBML_CodedSizeLength(WSegment->Base.DataSize,0,!Live);
+		if (EBML_CodedSizeLength(EBML_ElementDataSize(WSegment,0),0,!Live) > EBML_CodedSizeLength(SegmentSize,0,!Live))
+			WSegment->Base.SizeLength = (int8_t)EBML_CodedSizeLength(EBML_ElementDataSize(WSegment,0),0,!Live);
 		WSegment->Base.DataSize = SegmentSize;
 		Stream_Seek(Output,WSegment->Base.ElementPosition,SEEK_SET);
 		if (EBML_ElementRenderHead((ebml_element*)WSegment, Output, 0, NULL)!=ERR_NONE)
@@ -2635,7 +2636,7 @@ int main(int argc, const char *argv[])
 
 		// update the Meta Seek
 		MetaSeekUpdate(WMetaSeek);
-		//Stream_Seek(Output,WMetaSeek->ElementPosition,SEEK_SET);
+		//Stream_Seek(Output,EBML_ElementPosition(WMetaSeek,SEEK_SET);
 		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
 		{
 			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));

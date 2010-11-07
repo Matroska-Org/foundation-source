@@ -117,12 +117,12 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         ebml_element *SubElement,*NewElement;
         ebml_parser_context SubContext;
 
-        if (Element->DataSize == INVALID_FILEPOS_T)
+        if (EBML_ElementDataSize(Element, 1) == INVALID_FILEPOS_T)
             fprintf(stdout,"(master)");
         else if (!EBML_ElementIsFiniteSize(Element))
-            fprintf(stdout,"(master) [unknown size]",Element->DataSize);
+            fprintf(stdout,"(master) [unknown size]",EBML_ElementDataSize(Element, 1));
         else
-            fprintf(stdout,"(master) [%"PRId64" bytes]",Element->DataSize);
+            fprintf(stdout,"(master) [%"PRId64" bytes]",EBML_ElementDataSize(Element, 1));
         EndLine(Element);
         SubContext.UpContext = Context;
         SubContext.Context = Element->Context;
@@ -194,7 +194,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     }
     else if (EBML_ElementIsDummy(Element))
     {
-        fprintf(stdout,"[%X] [%"PRId64" bytes]",EBML_ElementClassID(Element),Element->DataSize);
+        fprintf(stdout,"[%X] [%"PRId64" bytes]",EBML_ElementClassID(Element),EBML_ElementDataSize(Element, 1));
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
         EndLine(Element);
     }
@@ -203,18 +203,18 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_PARTIAL_DATA,0)==ERR_NONE)
         {
             uint8_t *Data = ARRAYBEGIN(((ebml_binary*)Element)->Data,uint8_t);
-            if (Element->DataSize != 0)
+            if (EBML_ElementDataSize(Element, 1) != 0)
             {
-                if (Element->DataSize == 1)
-                    fprintf(stdout,"%02X (%"PRId64")",Data[0],Element->DataSize);
-                else if (Element->DataSize == 2)
-                    fprintf(stdout,"%02X %02X (%"PRId64")",Data[0],Data[1],Element->DataSize);
-                else if (Element->DataSize == 3)
-                    fprintf(stdout,"%02X %02X %02X (%"PRId64")",Data[0],Data[1],Data[2],Element->DataSize);
-                else if (Element->DataSize == 4)
-                    fprintf(stdout,"%02X %02X %02X %02X (%"PRId64")",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
+                if (EBML_ElementDataSize(Element, 1) == 1)
+                    fprintf(stdout,"%02X (%"PRId64")",Data[0],EBML_ElementDataSize(Element, 1));
+                else if (EBML_ElementDataSize(Element, 1) == 2)
+                    fprintf(stdout,"%02X %02X (%"PRId64")",Data[0],Data[1],EBML_ElementDataSize(Element, 1));
+                else if (EBML_ElementDataSize(Element, 1) == 3)
+                    fprintf(stdout,"%02X %02X %02X (%"PRId64")",Data[0],Data[1],Data[2],EBML_ElementDataSize(Element, 1));
+                else if (EBML_ElementDataSize(Element, 1) == 4)
+                    fprintf(stdout,"%02X %02X %02X %02X (%"PRId64")",Data[0],Data[1],Data[2],Data[3],EBML_ElementDataSize(Element, 1));
                 else
-                    fprintf(stdout,"%02X %02X %02X %02X.. (%"PRId64")",Data[0],Data[1],Data[2],Data[3],Element->DataSize);
+                    fprintf(stdout,"%02X %02X %02X %02X.. (%"PRId64")",Data[0],Data[1],Data[2],Data[3],EBML_ElementDataSize(Element, 1));
             }
         }
         else
@@ -224,7 +224,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     }
     else if (Node_IsPartOf(Element,EBML_VOID_CLASS))
     {
-        fprintf(stdout,"[%"PRId64" bytes]",Element->DataSize);
+        fprintf(stdout,"[%"PRId64" bytes]",EBML_ElementDataSize(Element, 1));
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
         EndLine(Element);
 	}

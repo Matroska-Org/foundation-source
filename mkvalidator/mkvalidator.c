@@ -57,7 +57,7 @@ static timecode_t ClusterTime = INVALID_TIMECODE_T;
 #define EL_Pos(elt)         EBML_ElementPosition((const ebml_element*)elt)
 #define EL_Int(elt)         EBML_IntegerValue((const ebml_integer*)elt)
 #define EL_Type(elt, type)  (((const ebml_element*)elt)->Context->Id == (type)->Id)
-#define EL_DataSize(elt)    ((const ebml_element*)elt)->DataSize
+#define EL_DataSize(elt)    EBML_ElementDataSize((const ebml_element*)elt, 1)
 
 typedef struct track_info
 {

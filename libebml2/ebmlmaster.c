@@ -296,7 +296,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                                 Node_GET(Input,MEMSTREAM_OFFSET,&OffSet);
                                 Node_GET(Input,MEMSTREAM_PTR,&CRCData);
                                 CRCData += (DataPos - OffSet);
-                                CRCDataSize = Element->Base.DataSize - EBML_ElementFullSize(SubElement,0);
+                                CRCDataSize = (size_t)(EBML_ElementDataSize((ebml_element*)Element,1) - EBML_ElementFullSize(SubElement,1));
                                 Stream_Read(Input, CRCData, CRCDataSize, NULL);
                             }
                             else

@@ -230,6 +230,8 @@ EBML_DLL filepos_t EBML_ElementPosition(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionData(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionEnd(const ebml_element *Element);
 
+EBML_DLL filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault);
+
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags ?
 EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
