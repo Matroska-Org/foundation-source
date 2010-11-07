@@ -163,7 +163,7 @@ static int CurrentPhase = 1;
 
 static void ReduceSize(ebml_element *Element)
 {
-    Element->SizeLength = 0; // reset
+    EBML_ElementSetSizeLength(Element, 0); // reset
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
         ebml_element *i, *j;
@@ -1608,9 +1608,9 @@ int main(int argc, const char *argv[])
     {
         // temporary value
         if (EBML_ElementIsFiniteSize((ebml_element*)RSegment))
-		    WSegment->Base.DataSize = EBML_ElementDataSize(RSegment,0);
+		    EBML_ElementForceDataSize(WSegment, EBML_ElementDataSize(RSegment,0));
         else
-            WSegment->Base.SizeLength = EBML_MAX_SIZE;
+            EBML_ElementSetSizeLength(WSegment, EBML_MAX_SIZE);
     }
     if (EBML_ElementRenderHead((ebml_element*)WSegment,Output,0,NULL)!=ERR_NONE)
     {
@@ -2624,8 +2624,8 @@ int main(int argc, const char *argv[])
 			if (!Quiet) TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize(WSegment,0));
 		}
 		if (EBML_CodedSizeLength(EBML_ElementDataSize(WSegment,0),0,!Live) > EBML_CodedSizeLength(SegmentSize,0,!Live))
-			WSegment->Base.SizeLength = (int8_t)EBML_CodedSizeLength(EBML_ElementDataSize(WSegment,0),0,!Live);
-		WSegment->Base.DataSize = SegmentSize;
+			EBML_ElementSetSizeLength(WSegment, EBML_CodedSizeLength(EBML_ElementDataSize(WSegment,0),0,!Live));
+		EBML_ElementForceDataSize(WSegment, SegmentSize);
 		Stream_Seek(Output,EBML_ElementPosition(WSegment),SEEK_SET);
 		if (EBML_ElementRenderHead((ebml_element*)WSegment, Output, 0, NULL)!=ERR_NONE)
 		{

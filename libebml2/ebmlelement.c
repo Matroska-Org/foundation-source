@@ -142,6 +142,21 @@ filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault)
     return Element->DataSize;
 }
 
+void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size)
+{
+    Element->DataSize = Size;
+}
+
+int EBML_ElementSizeLength(const ebml_element *Element)
+{
+    return Element->SizeLength;
+}
+
+void EBML_ElementSetSizeLength(ebml_element *Element, int SizeLength)
+{
+    Element->SizeLength = (int8_t) SizeLength;
+}
+
 bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_context *Context)
 {
     return Element->Context->Id == Context->Id;

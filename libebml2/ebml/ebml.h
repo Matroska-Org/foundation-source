@@ -231,7 +231,11 @@ EBML_DLL filepos_t EBML_ElementPositionData(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionEnd(const ebml_element *Element);
 EBML_DLL void EBML_ElementForcePosition(ebml_element *Element, filepos_t Pos);
 
+EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 EBML_DLL filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault);
+EBML_DLL void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size);
+EBML_DLL int EBML_ElementSizeLength(const ebml_element *Element);
+EBML_DLL void EBML_ElementSetSizeLength(ebml_element *Element, int SizeLength); /// 0 (for auto) to EBML_MAX_SIZE
 
 EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_context *Context);
 
