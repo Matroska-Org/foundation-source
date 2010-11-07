@@ -480,7 +480,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 			Result |= OutputError(0x60,T("The SeekPoint at %") TPRId64 T(" has an unknown position (ID %s)"),EL_Pos(RLevel1),IdString);
 		else if (SeekId==0)
 			Result |= OutputError(0x61,T("The SeekPoint at %") TPRId64 T(" has no ID defined (position %") TPRId64 T(")"),EL_Pos(RLevel1),Pos);
-		else if (SeekId == MATROSKA_ContextSegmentInfo.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextSegmentInfo))
 		{
 			if (!RSegmentInfo)
 				Result |= OutputError(0x62,T("The SeekPoint at %") TPRId64 T(" references an unknown SegmentInfo at %") TPRId64,EL_Pos(RLevel1),Pos);
@@ -488,7 +488,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x63,T("The SeekPoint at %") TPRId64 T(" references a SegmentInfo at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),EL_Pos(RLevel1),Pos,EL_Pos(RSegmentInfo));
             BSegmentInfo = 1;
 		}
-		else if (SeekId == MATROSKA_ContextTracks.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextTracks))
 		{
 			if (!RTrackInfo)
 				Result |= OutputError(0x64,T("The SeekPoint at %") TPRId64 T(" references an unknown TrackInfo at %") TPRId64,EL_Pos(RLevel1),Pos);
@@ -496,7 +496,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x65,T("The SeekPoint at %") TPRId64 T(" references a TrackInfo at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),EL_Pos(RLevel1),Pos,EL_Pos(RTrackInfo));
             BTrackInfo = 1;
 		}
-		else if (SeekId == MATROSKA_ContextCues.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextCues))
 		{
 			if (!RCues)
 				Result |= OutputError(0x66,T("The SeekPoint at %") TPRId64 T(" references an unknown Cues at %") TPRId64,EL_Pos(RLevel1),Pos);
@@ -504,7 +504,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x67,T("The SeekPoint at %") TPRId64 T(" references a Cues at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),EL_Pos(RLevel1),Pos,EL_Pos(RCues));
             BCues = 1;
 		}
-		else if (SeekId == MATROSKA_ContextTags.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextTags))
 		{
 			if (!RTags)
 				Result |= OutputError(0x68,T("The SeekPoint at %") TPRId64 T(" references an unknown Tags at %") TPRId64,EL_Pos(RLevel1),Pos);
@@ -512,7 +512,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x69,T("The SeekPoint at %") TPRId64 T(" references a Tags at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),EL_Pos(RLevel1),Pos,EL_Pos(RTags));
             BTags = 1;
 		}
-		else if (SeekId == MATROSKA_ContextChapters.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextChapters))
 		{
 			if (!RChapters)
 				Result |= OutputError(0x6A,T("The SeekPoint at %") TPRId64 T(" references an unknown Chapters at %") TPRId64,EL_Pos(RLevel1),Pos);
@@ -520,7 +520,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x6B,T("The SeekPoint at %") TPRId64 T(" references a Chapters at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),EL_Pos(RLevel1),Pos,EL_Pos(RChapters));
             BChapters = 1;
 		}
-		else if (SeekId == MATROSKA_ContextAttachments.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextAttachments))
 		{
 			if (!RAttachments)
 				Result |= OutputError(0x6C,T("The SeekPoint at %") TPRId64 T(" references an unknown Attachments at %") TPRId64,EL_Pos(RLevel1),Pos);
@@ -528,7 +528,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x6D,T("The SeekPoint at %") TPRId64 T(" references a Attachments at wrong position %") TPRId64 T(" (real %") TPRId64 T(")"),EL_Pos(RLevel1),Pos,EL_Pos(RAttachments));
             BAttachments = 1;
 		}
-		else if (SeekId == MATROSKA_ContextSeekHead.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextSeekHead))
 		{
 			if (EL_Pos(SeekHead) == Pos)
 				Result |= OutputError(0x6E,T("The SeekPoint at %") TPRId64 T(" references references its own SeekHead"),EL_Pos(RLevel1));
@@ -541,7 +541,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 			else if (SeekHead == RSeekHead2 && Pos!=EL_Pos(RSeekHead))
 			    Result |= OutputError(0x70,T("The SeekPoint at %") TPRId64 T(" references an unknown extra SeekHead at %") TPRId64,EL_Pos(RLevel1),Pos);
 		}
-		else if (SeekId == MATROSKA_ContextCluster.Id)
+		else if (MATROSKA_MetaSeekIsClass(RLevel1, &MATROSKA_ContextCluster))
 		{
 			ebml_element **Cluster;
 			for (Cluster = ARRAYBEGIN(RClusters,ebml_element*);Cluster != ARRAYEND(RClusters,ebml_element*); ++Cluster)

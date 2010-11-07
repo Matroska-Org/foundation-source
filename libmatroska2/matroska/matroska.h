@@ -121,6 +121,7 @@ EBML_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
 EBML_DLL void MATROSKA_CuesSort(ebml_master *Cues);
 EBML_DLL void MATROSKA_AttachmentSort(ebml_master *Attachments);
 EBML_DLL fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek);
+EBML_DLL bool_t MATROSKA_MetaSeekIsClass(const matroska_seekpoint *MetaSeek, const ebml_context *Class);
 EBML_DLL filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek);
 EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSeek);
 

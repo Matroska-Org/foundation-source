@@ -870,6 +870,11 @@ fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek)
 	return EBML_BufferToID(EBML_BinaryGetData((ebml_binary*)SeekID));
 }
 
+bool_t MATROSKA_MetaSeekIsClass(const matroska_seekpoint *MetaSeek, const ebml_context *Class)
+{
+    return MATROSKA_MetaSeekID(MetaSeek) == Class->Id;
+}
+
 filepos_t MATROSKA_MetaSeekPosInSegment(const matroska_seekpoint *MetaSeek)
 {
 	ebml_element *SeekPos;
