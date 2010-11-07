@@ -208,7 +208,7 @@ static void ReduceSize(ebml_element *Element)
 						{
 							tchar_t IdString[MAXPATH];
 							Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
-							TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory elements, skipping\r\n"),IdString,i->ElementPosition);
+							TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory elements, skipping\r\n"),IdString,EBML_ElementPosition(i));
                             EBML_MasterRemove((ebml_master*)Element,i); // make sure it doesn't remain in the list
 							NodeDelete((node*)i);
 							i=EBML_MasterChildren((ebml_master*)Element);
@@ -219,7 +219,7 @@ static void ReduceSize(ebml_element *Element)
                     {
 						tchar_t IdString[MAXPATH];
 						Node_FromStr(i,IdString,TSIZEOF(IdString),s->eClass->ElementName);
-						TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,i->ElementPosition,GetProfileName(DstProfile));
+						TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
                         EBML_MasterRemove((ebml_master*)Element,i); // make sure it doesn't remain in the list
 						NodeDelete((node*)i);
 						i=EBML_MasterChildren((ebml_master*)Element);
@@ -397,7 +397,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegment)
 {
     if (!Quiet)
-        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,RCluster->ElementPosition,RSegment->DataSize)+1);
+        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),RSegment->DataSize)+1);
 }
 
 static void EndProgress()

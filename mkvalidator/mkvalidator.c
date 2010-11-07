@@ -54,7 +54,7 @@ static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
 static timecode_t ClusterTime = INVALID_TIMECODE_T;
 
 // some macros for code readability
-#define EL_Pos(elt)         ((const ebml_element*)elt)->ElementPosition
+#define EL_Pos(elt)         EBML_ElementPosition((const ebml_element*)elt)
 #define EL_Int(elt)         EBML_IntegerValue((const ebml_integer*)elt)
 #define EL_Type(elt, type)  (((const ebml_element*)elt)->Context->Id == (type)->Id)
 #define EL_DataSize(elt)    ((const ebml_element*)elt)->DataSize

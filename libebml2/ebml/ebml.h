@@ -226,24 +226,9 @@ EBML_DLL bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t N
 EBML_DLL bool_t EBML_ElementIsDummy(const ebml_element *Element);
 
 EBML_DLL fourcc_t EBML_ElementClassID(const ebml_element *Element);
-static INLINE filepos_t EBML_ElementPositionData(const ebml_element *Element)
-{
-    if (!EBML_ElementIsFiniteSize(Element))
-    {
-        if (!Element->SizeLength)
-            return INVALID_FILEPOS_T;
-        return Element->SizePosition + Element->SizeLength;
-    }
-    else
-        return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1);
-}
-static INLINE filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
-{
-    if (!EBML_ElementIsFiniteSize(Element))
-        return INVALID_FILEPOS_T; // the end position is unknown
-    else
-        return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1) + Element->DataSize;
-}
+EBML_DLL filepos_t EBML_ElementPosition(const ebml_element *Element);
+EBML_DLL filepos_t EBML_ElementPositionData(const ebml_element *Element);
+EBML_DLL filepos_t EBML_ElementPositionEnd(const ebml_element *Element);
 
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags ?

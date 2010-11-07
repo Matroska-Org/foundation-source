@@ -99,8 +99,8 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static void EndLine(ebml_element *Element)
 {
-    if (ShowPos && Element->ElementPosition!=INVALID_FILEPOS_T)
-        fprintf(stdout," at %"PRId64"\r\n",Element->ElementPosition);
+    if (ShowPos && EBML_ElementPosition(Element)!=INVALID_FILEPOS_T)
+        fprintf(stdout," at %"PRId64"\r\n",EBML_ElementPosition(Element));
     else
         fprintf(stdout,"\r\n");
 }
@@ -128,7 +128,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         SubContext.Context = Element->Context;
         SubContext.EndPosition = EBML_ElementPositionEnd(Element);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
-		while (SubElement != NULL && UpperElement<=0 && (!EBML_ElementIsFiniteSize(Element) || SubElement->ElementPosition <= EBML_ElementPositionEnd(Element)))
+		while (SubElement != NULL && UpperElement<=0 && (!EBML_ElementIsFiniteSize(Element) || EBML_ElementPosition(SubElement) <= EBML_ElementPositionEnd(Element)))
         {
             // a sub element == not higher level and contained inside the current element
             (*Level)++;
