@@ -177,7 +177,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 		if (Node_IsPartOf(SubElt,EBML_DUMMY_ID))
 		{
             EBML_ElementGetName(Elt,String,TSIZEOF(String));
-			EBML_IdToString(IdStr,TSIZEOF(IdStr),SubElt->Context->Id);
+			EBML_IdToString(IdStr,TSIZEOF(IdStr),EBML_ElementClassID(SubElt));
 			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(")"),String,IdStr,SubElt->ElementPosition,SubElt->DataSize);
 		}
 		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
@@ -1246,7 +1246,7 @@ int main(int argc, const char *argv[])
 			if (Node_IsPartOf(RLevel1,EBML_DUMMY_ID))
 			{
 				tchar_t Id[32];
-				EBML_IdToString(Id,TSIZEOF(Id),RLevel1->Base.Context->Id);
+				EBML_IdToString(Id,TSIZEOF(Id),EBML_ElementClassID((ebml_element*)RLevel1));
 				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64 T(""),Id,RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
 			}
 			if (Node_IsPartOf(RLevel1,EBML_VOID_CLASS))

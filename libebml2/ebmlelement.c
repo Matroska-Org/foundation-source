@@ -132,6 +132,11 @@ filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
 	return Element->DataSize + GetIdLength(Element->Context->Id) + EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
 }
 
+fourcc_t EBML_ElementClassID(const ebml_element *Element)
+{
+    return Element->Context->Id;
+}
+
 bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
 {
 	int OldSizeLen;

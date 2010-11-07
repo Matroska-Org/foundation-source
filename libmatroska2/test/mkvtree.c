@@ -194,7 +194,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     }
     else if (EBML_ElementIsDummy(Element))
     {
-        fprintf(stdout,"[%X] [%"PRId64" bytes]",Element->Context->Id,Element->DataSize);
+        fprintf(stdout,"[%X] [%"PRId64" bytes]",EBML_ElementClassID(Element),Element->DataSize);
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
         EndLine(Element);
     }
@@ -234,14 +234,14 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
 #ifdef IS_BIG_ENDIAN
         fprintf(stdout,"<unsupported element %x>\r\n",Element->Context->Id);
 #else
-        fourcc_t Id = Element->Context->Id;
+        fourcc_t Id = EBML_ElementClassID(Element);
         fprintf(stdout,"<unsupported element ");
         while (Id & 0xFF)
         {
             fprintf(stdout,"[%x]",Id & 0xFF);
             Id >>= 8;
         }
-        fprintf(stdout,">",Element->Context->Id);
+        fprintf(stdout,">",EBML_ElementClassID(Element));
 #endif
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
         EndLine(Element);
