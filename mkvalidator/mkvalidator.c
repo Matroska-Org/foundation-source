@@ -56,6 +56,7 @@ static timecode_t ClusterTime = INVALID_TIMECODE_T;
 // some macros for code readability
 #define EL_Pos(elt)         ((const ebml_element*)elt)->ElementPosition
 #define EL_Int(elt)         EBML_IntegerValue((const ebml_integer*)elt)
+#define EL_DataSize(elt)    ((const ebml_element*)elt)->DataSize
 
 typedef struct track_info
 {
@@ -182,7 +183,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 		{
             EBML_ElementGetName(Elt,String,TSIZEOF(String));
 			EBML_IdToString(IdStr,TSIZEOF(IdStr),EBML_ElementClassID(SubElt));
-			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(")"),String,IdStr,EL_Pos(SubElt),SubElt->DataSize);
+			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(")"),String,IdStr,EL_Pos(SubElt),EL_DataSize(SubElt));
 		}
 		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
 		{
@@ -465,12 +466,12 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 static int CheckSeekHead(ebml_master *SeekHead)
 {
 	int Result = 0;
-	ebml_element *RLevel1 = EBML_MasterFindFirstElt(SeekHead, &MATROSKA_ContextSeek, 0, 0);
+	matroska_seekpoint *RLevel1 = (matroska_seekpoint*)EBML_MasterFindFirstElt(SeekHead, &MATROSKA_ContextSeek, 0, 0);
     bool_t BSegmentInfo = 0, BTrackInfo = 0, BCues = 0, BTags = 0, BChapters = 0, BAttachments = 0, BSecondSeek = 0;
 	while (RLevel1)
 	{
-		filepos_t Pos = MATROSKA_MetaSeekAbsolutePos((matroska_seekpoint*)RLevel1);
-		fourcc_t SeekId = MATROSKA_MetaSeekID((matroska_seekpoint*)RLevel1);
+		filepos_t Pos = MATROSKA_MetaSeekAbsolutePos(RLevel1);
+		fourcc_t SeekId = MATROSKA_MetaSeekID(RLevel1);
 		tchar_t IdString[32];
 
 		EBML_IdToString(IdString,TSIZEOF(IdString),SeekId);
@@ -552,7 +553,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 		}
 		else
 			Result |= OutputWarning(0x860,T("The SeekPoint at %") TPRId64 T(" references an element that is not a known level 1 ID %s at %") TPRId64 T(")"),EL_Pos(RLevel1),IdString,Pos);
-		RLevel1 = EBML_MasterFindNextElt(SeekHead, RLevel1, 0, 0);
+		RLevel1 = (matroska_seekpoint*)EBML_MasterFindNextElt(SeekHead, (ebml_element*)RLevel1, 0, 0);
 	}
     if (SeekHead == RSeekHead)
     {
@@ -588,10 +589,10 @@ static bool_t TrackIsLaced(int16_t TrackNum)
     while (Track)
     {
         TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
-        if (EBML_IntegerValue(TrackData) == TrackNum)
+        if (EL_Int(TrackData) == TrackNum)
         {
             TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackLacing, 1, 1);
-            return EBML_IntegerValue(TrackData) != 0;
+            return EL_Int(TrackData) != 0;
         }
         Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
     }
@@ -1010,11 +1011,11 @@ int main(int argc, const char *argv[])
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
 				Result |= CheckMandatory((ebml_element*)RLevel1, MatroskaProfile);
-                RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+                RLevelX = (ebml_master*)EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
 			}
 			else
 			{
-				Result = OutputError(0x180,T("Failed to read the Cluster at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x180,T("Failed to read the Cluster at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
         }
@@ -1037,7 +1038,7 @@ int main(int argc, const char *argv[])
 					RSeekHead2 = RLevel1;
                 }
 				else
-					Result |= OutputError(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),RLevel1->Base.DataSize);
+					Result |= OutputError(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
@@ -1045,7 +1046,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x100,T("Failed to read the SeekHead at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x100,T("Failed to read the SeekHead at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1054,7 +1055,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
 			{
 				if (RSegmentInfo != NULL)
-					Result |= OutputError(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),RLevel1->Base.DataSize);
+					Result |= OutputError(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RSegmentInfo = RLevel1;
@@ -1073,7 +1074,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x111,T("Failed to read the SegmentInfo at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x111,T("Failed to read the SegmentInfo at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1082,7 +1083,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,4)==ERR_NONE)
 			{
 				if (RTrackInfo != NULL)
-					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),RLevel1->Base.DataSize);
+					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
                     size_t TrackCount;
@@ -1136,7 +1137,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x121,T("Failed to read the TrackInfo at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x121,T("Failed to read the TrackInfo at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1144,15 +1145,15 @@ int main(int argc, const char *argv[])
         {
             if (Live)
             {
-                Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64 T(""),RLevel1->Base.ElementPosition);
-			    RLevelX = EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
+                Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64,EL_Pos(RLevel1));
+			    RLevelX = (ebml_master*)EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
             }
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RCues != NULL)
-					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
+					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RCues = RLevel1;
@@ -1164,7 +1165,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x131,T("Failed to read the Cues at %") TPRId64 T(" size %") TPRId64 T(""),RLevel1->Base.ElementPosition,RLevel1->Base.DataSize);
+				Result = OutputError(0x131,T("Failed to read the Cues at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1180,7 +1181,7 @@ int main(int argc, const char *argv[])
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,16)==ERR_NONE)
 			{
 				if (RChapters != NULL)
-					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),RLevel1->Base.DataSize);
+					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RChapters = RLevel1;
@@ -1192,7 +1193,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x141,T("Failed to read the Chapters at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x141,T("Failed to read the Chapters at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1201,7 +1202,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,4)==ERR_NONE)
 			{
 				if (RTags != NULL)
-					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),RLevel1->Base.DataSize);
+					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RTags = RLevel1;
@@ -1213,7 +1214,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x151,T("Failed to read the Tags at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x151,T("Failed to read the Tags at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1229,7 +1230,7 @@ int main(int argc, const char *argv[])
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RAttachments != NULL)
-					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),RLevel1->Base.DataSize);
+					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RAttachments = RLevel1;
@@ -1241,7 +1242,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				Result = OutputError(0x161,T("Failed to read the Attachments at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result = OutputError(0x161,T("Failed to read the Attachments at %") TPRId64 T(" size %") TPRId64,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				goto exit;
 			}
 		}
@@ -1251,7 +1252,7 @@ int main(int argc, const char *argv[])
 			{
 				tchar_t Id[32];
 				EBML_IdToString(Id,TSIZEOF(Id),EBML_ElementClassID((ebml_element*)RLevel1));
-				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64,Id,EL_Pos(RLevel1),RLevel1->Base.DataSize);
+				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64,Id,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 			}
 			if (Node_IsPartOf(RLevel1,EBML_VOID_CLASS))
 			{
