@@ -110,7 +110,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     int LevelPrint;
     for (LevelPrint=0;LevelPrint<*Level;++LevelPrint)
         fprintf(stdout,"+ ");
-    fprintf(stdout,"%s: ",Element->Context->ElementName);
+    fprintf(stdout,"%s: ", EBML_ElementGetClassName(Element));
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
         int UpperElement = 0;

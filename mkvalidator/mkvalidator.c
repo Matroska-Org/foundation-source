@@ -176,7 +176,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 	{
 		if (Node_IsPartOf(SubElt,EBML_DUMMY_ID))
 		{
-			Node_FromStr(Elt,String,TSIZEOF(String),Elt->Context->ElementName);
+            EBML_ElementGetName(Elt,String,TSIZEOF(String));
 			EBML_IdToString(IdStr,TSIZEOF(IdStr),SubElt->Context->Id);
 			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(")"),String,IdStr,SubElt->ElementPosition,SubElt->DataSize);
 		}
@@ -430,9 +430,9 @@ static int CheckMandatory(ebml_element *Elt, int ProfileMask)
 	tchar_t String[MAXPATH],Missing[MAXPATH];
 	ebml_element *SubElt;
 
-	Node_FromStr(Elt,String,TSIZEOF(String),Elt->Context->ElementName);
 	if (Node_IsPartOf(Elt,EBML_MASTER_CLASS))
 	{
+	    EBML_ElementGetName(Elt,String,TSIZEOF(String));
 		const ebml_semantic *i;
 		for (i=Elt->Context->Semantic;i->eClass;++i)
 		{

@@ -26,8 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __LIBEBML2_H
-#define __LIBEBML2_H
+#ifndef LIBEBML2_H
+#define LIBEBML2_H
 
 #include "node/node.h"
 #include "file/file.h"
@@ -213,6 +213,10 @@ EBML_DLL int EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *
 EBML_DLL int EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t * OutBuffer); // TODO: turn into a macro ?
 EBML_DLL filepos_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
 EBML_DLL filepos_t EBML_ReadCodedSizeSignedValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown);
+
+EBML_DLL void EBML_ElementGetName(const ebml_element *Element, tchar_t *Out, size_t OutLen);
+EBML_DLL const char *EBML_ElementGetClassName(const ebml_element *Element);
+
 EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
@@ -322,4 +326,4 @@ extern const ebml_semantic EBML_SemanticGlobals[];
 }
 #endif
 
-#endif /* __LIBEBML2_H */
+#endif /* LIBEBML2_H */

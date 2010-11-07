@@ -273,3 +273,13 @@ err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeep
 	return Err;
 }
 #endif
+
+void EBML_ElementGetName(const ebml_element *Element, tchar_t *Out, size_t OutLen)
+{
+    Node_FromStr(Element,Out,OutLen,Element->Context->ElementName);
+}
+
+const char *EBML_ElementGetClassName(const ebml_element *Element)
+{
+    return Element->Context->ElementName;
+}
