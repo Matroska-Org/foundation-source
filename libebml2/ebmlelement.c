@@ -152,6 +152,11 @@ filepos_t EBML_ElementPosition(const ebml_element *Element)
     return Element->ElementPosition;
 }
 
+void EBML_ElementForcePosition(ebml_element *Element, filepos_t Pos)
+{
+    Element->ElementPosition = Pos;
+}
+
 filepos_t EBML_ElementPositionData(const ebml_element *Element)
 {
     if (!EBML_ElementIsFiniteSize(Element))

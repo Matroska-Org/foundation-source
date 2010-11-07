@@ -229,6 +229,7 @@ EBML_DLL fourcc_t EBML_ElementClassID(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPosition(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionData(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionEnd(const ebml_element *Element);
+EBML_DLL void EBML_ElementForcePosition(ebml_element *Element, filepos_t Pos);
 
 EBML_DLL filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault);
 
