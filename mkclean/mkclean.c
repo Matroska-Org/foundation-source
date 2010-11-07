@@ -1053,7 +1053,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
             {
                 DisplayH = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackAudioSamplingFreq);
                 assert(DisplayH!=NULL);
-                if (((ebml_float*)Elt2)->Value == ((ebml_float*)DisplayH)->Value)
+                if (EBML_FloatValue(Elt2) == EBML_FloatValue(DisplayH))
                     NodeDelete((node*)Elt2);
             }
         }

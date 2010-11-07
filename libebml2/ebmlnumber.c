@@ -419,10 +419,32 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderDataFloat)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyFloat)
 META_END(EBML_ELEMENT_CLASS)
 
-err_t EBML_IntegerSetValue(ebml_integer *Element, int64_t Value)
+void EBML_IntegerSetValue(ebml_integer *Element, int64_t Value)
 {
     Element->Value = Value;
     Element->Base.bValueIsSet = 1;
     Element->Base.bNeedDataSizeUpdate = 1;
-    return ERR_NONE;
+}
+
+int64_t EBML_IntegerValue(const ebml_integer *Element)
+{
+#if !defined(NDEBUG)
+    assert(Element->Base.bValueIsSet);
+#endif
+    return Element->Value;
+}
+
+double EBML_FloatValue(const ebml_float *Element)
+{
+#if !defined(NDEBUG)
+    assert(Element->Base.bValueIsSet);
+#endif
+    return Element->Value;
+}
+
+void EBML_FloatSetValue(ebml_float *Element, double Value)
+{
+    Element->Value = Value;
+    Element->Base.bValueIsSet = 1;
+    Element->Base.bNeedDataSizeUpdate = 1;
 }

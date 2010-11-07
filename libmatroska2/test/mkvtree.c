@@ -153,8 +153,13 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         //tchar_t UnicodeString[MAXDATA];
         //EBML_StringRead((ebml_string*)Element,Input,UnicodeString,TSIZEOF(UnicodeString));
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
-            fprintf(stdout,"'%s'",((ebml_string*)Element)->Buffer);
-        else
+        {
+            tchar_t String[MAXDATA];
+            char cString[MAXDATA];
+            EBML_StringGet((ebml_string*)Element, String, TSIZEOF(String));
+            Node_ToUTF8(Element, cString, sizeof(cString), String);
+            fprintf(stdout,"'%s'",cString);
+        } else
             fprintf(stdout,"<error reading>");
         EndLine(Element);
     }
@@ -176,9 +181,9 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
         {
             if (Node_IsPartOf(Element,EBML_SINTEGER_CLASS))
-                fprintf(stdout,"%"PRId64,EBML_IntegerValue(Element));
+                fprintf(stdout,"%"PRId64,EBML_IntegerValue((ebml_integer*)Element));
             else
-                fprintf(stdout,"%"PRIu64,EBML_IntegerValue(Element));
+                fprintf(stdout,"%"PRIu64,EBML_IntegerValue((ebml_integer*)Element));
         }
         else
             fprintf(stdout,"<error reading>");
@@ -187,7 +192,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     else if (Node_IsPartOf(Element,EBML_FLOAT_CLASS))
     {
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
-            fprintf(stdout,"%f",((ebml_float*)Element)->Value);
+            fprintf(stdout,"%f",EBML_FloatValue((ebml_float*)Element));
         else
             fprintf(stdout,"<error reading>");
         EndLine(Element);
@@ -202,7 +207,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     {
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_PARTIAL_DATA,0)==ERR_NONE)
         {
-            uint8_t *Data = ARRAYBEGIN(((ebml_binary*)Element)->Data,uint8_t);
+            const uint8_t *Data = EBML_BinaryGetData((ebml_binary*)Element);
             if (EBML_ElementDataSize(Element, 1) != 0)
             {
                 if (EBML_ElementDataSize(Element, 1) == 1)
