@@ -542,8 +542,22 @@ static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
     return (ebml_element*)Result;
 }
 
+static void RemoveChild(ebml_master* p,ebml_element* Child)
+{
+    p->Base.bNeedDataSizeUpdate = 1;
+    INHERITED(p,nodetree_vmt,EBML_MASTER_CLASS)->RemoveChild(p,Child);
+}
+
+static void AddChild(ebml_master* p,ebml_element* Child,ebml_element* Before)
+{
+    p->Base.bNeedDataSizeUpdate = 1;
+    INHERITED(p,nodetree_vmt,EBML_MASTER_CLASS)->AddChild(p,Child,Before);
+}
+
 META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
 META_CLASS(SIZE,sizeof(ebml_master))
+META_VMT(TYPE_FUNC,nodetree_vmt,AddChild,AddChild)
+META_VMT(TYPE_FUNC,nodetree_vmt,RemoveChild,RemoveChild)
 META_VMT(TYPE_FUNC,ebml_element_vmt,PostCreate,PostCreate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,IsDefaultValue,IsDefaultValue)
 META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSize)
@@ -562,7 +576,7 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
     const ebml_semantic *s;
 	for (i=EBML_MasterChildren(Element);i;i=i?EBML_MasterNext(i):NULL)
 	{
-        if (!Node_IsPartOf(SubElt,EBML_DUMMY_ID))
+        if (!Node_IsPartOf(i,EBML_DUMMY_ID))
         {
 		    for (s=Element->Base.Context->Semantic; s->eClass; ++s)
 		    {

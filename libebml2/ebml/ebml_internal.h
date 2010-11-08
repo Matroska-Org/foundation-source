@@ -74,7 +74,6 @@ struct ebml_element
     boolmem_t bValueIsSet;
     boolmem_t bDefaultIsSet;
     boolmem_t bNeedDataSizeUpdate;
-    //boolmem_t bSizeWithDefault; // whether the size is valid when default values are not written
 };
 
 struct ebml_master

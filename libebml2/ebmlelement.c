@@ -42,9 +42,9 @@ static void PostCreate(ebml_element *Element)
 
 static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
 {
-    if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
-        return 0;
     if (!Element->bNeedDataSizeUpdate)
+        return 0;
+    if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
         return 0;
     return 1;
 }
