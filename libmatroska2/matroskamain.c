@@ -714,15 +714,15 @@ static err_t CheckCompression(matroska_block *Block)
 
             Header = (ebml_master*)EBML_MasterGetChild(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
 #endif
 #else
             if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
@@ -1437,15 +1437,15 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 
                 Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-                if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
 #endif
 #else
                 if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
@@ -1485,7 +1485,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     else
                     {
 #if defined(CONFIG_ZLIB)
-                        if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_ZLIB)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_ZLIB)
                         {
                             // get the ouput size, adjust the Element->SizeList value, write in Element->Data
                             z_stream stream;
@@ -1522,7 +1522,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                         }
 #endif
 #if defined(CONFIG_LZO1X)
-                        if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_LZO1X)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_LZO1X)
                         {
                             if (lzo_init() != LZO_E_OK)
                                 Err = ERR_INVALID_DATA;
@@ -1545,7 +1545,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                         }
 #endif
 #if defined(CONFIG_BZLIB)
-                        if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_BZLIB)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_BZLIB)
                         {
                             unsigned int outSize = ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2;
                             bz_stream strm;
@@ -1652,7 +1652,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_ZLIB)
                     {
                         z_stream stream;
                         int Res;
@@ -1688,7 +1688,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     }
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_LZO1X)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_LZO1X)
                     {
                         if (lzo_init() != LZO_E_OK)
                             Err = ERR_INVALID_DATA;
@@ -1713,7 +1713,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     }
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue(Header)==MATROSKA_BLOCK_COMPR_BZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_BZLIB)
                     {
                         bz_stream stream;
                         int Res;
@@ -2157,7 +2157,7 @@ static char GetBestLacingType(const matroska_block *Element)
 
             Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB)
-            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
             if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
@@ -2259,7 +2259,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
 
             Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB)
-            if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
             if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
@@ -2458,7 +2458,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
 
                 Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
 #if defined(CONFIG_ZLIB)
-                if (EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue(Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
                 if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #endif
