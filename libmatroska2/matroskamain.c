@@ -329,7 +329,7 @@ const ebml_semantic EBML_SemanticTrackVideo[] = {
     {0, 1, &MATROSKA_ContextTrackVideoDisplayUnit     ,0},
     {0, 1, &MATROSKA_ContextTrackVideoAspectRatio     ,0},
     {0, 1, &MATROSKA_ContextTrackVideoColourSpace     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
+    {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {0, 1, &MATROSKA_ContextTrackVideoFrameRate       ,0},
     {0, 1, &MATROSKA_ContextTrackVideoGammaValue      ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM_V1|PROFILE_WEBM_V2|PROFILE_DIVX_V1|PROFILE_DIVX_V2},
     {0, 0, NULL ,0} // end of the table
