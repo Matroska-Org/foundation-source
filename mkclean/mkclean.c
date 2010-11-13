@@ -192,6 +192,12 @@ static void ReduceSize(ebml_element *Element)
         if (Unsafe)
             EBML_MasterUseChecksum((ebml_master*)Element,0);
 
+        if (EBML_ElementIsType(Element, &MATROSKA_ContextClusterBlockGroup) && !EBML_MasterCheckMandatory(Element, 0))
+        {
+            NodeDelete((node*)Element);
+            return;
+        }
+
         for (i=EBML_MasterChildren(Element);i;i=j)
 		{
 			j = EBML_MasterNext(i);
@@ -213,7 +219,7 @@ static void ReduceSize(ebml_element *Element)
             ReduceSize(i);
 		}
 
-        if (!EBML_MasterChildren(Element))
+        if (!EBML_MasterChildren(Element) && !EBML_MasterCheckMandatory(Element, 0))
         {
             NodeDelete((node*)Element);
             return;
