@@ -318,31 +318,28 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_
 	return INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
 }
 
-static void PostCreateInt(ebml_element *Element)
+static void PostCreateInt(ebml_element *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->PostCreate(Element);
+    INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->PostCreate(Element, SetDefault);
     Element->DefaultSize = 1;
-    if (Element->bDefaultIsSet)
+    if (SetDefault && Element->Context->HasDefault)
         EBML_IntegerSetValue((ebml_integer*)Element, Element->Context->DefaultValue);
 }
 
-static void PostCreateSignedInt(ebml_element *Element)
+static void PostCreateSignedInt(ebml_element *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->PostCreate(Element);
+    INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->PostCreate(Element, SetDefault);
     Element->DefaultSize = 1;
-    if (Element->bDefaultIsSet)
+    if (SetDefault && Element->Context->HasDefault)
         EBML_IntegerSetValue((ebml_integer*)Element, Element->Context->DefaultValue);
 }
 
-static void PostCreateFloat(ebml_element *Element)
+static void PostCreateFloat(ebml_element *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_FLOAT_CLASS)->PostCreate(Element);
+    INHERITED(Element,ebml_element_vmt,EBML_FLOAT_CLASS)->PostCreate(Element, SetDefault);
     Element->DefaultSize = 4;
-    if (Element->bDefaultIsSet)
-    {
-        Element->bValueIsSet = 1;
-        ((ebml_float*)Element)->Value = Element->Context->DefaultValue;
-    }
+    if (SetDefault && Element->Context->HasDefault)
+        EBML_FloatSetValue((ebml_float*)Element, Element->Context->DefaultValue);
 }
 
 static ebml_integer *CopyInt(const ebml_integer *Element, const void *Cookie)
@@ -352,7 +349,6 @@ static ebml_integer *CopyInt(const ebml_integer *Element, const void *Cookie)
     {
         Result->Value = Element->Value;
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
-        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
@@ -369,7 +365,6 @@ static ebml_float *CopyFloat(const ebml_float *Element, const void *Cookie)
     {
         Result->Value = Element->Value;
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
-        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;

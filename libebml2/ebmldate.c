@@ -83,9 +83,9 @@ failed:
     return Result;
 }
 
-static void PostCreate(ebml_date *Element)
+static void PostCreate(ebml_date *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_DATE_CLASS)->PostCreate(Element);
+    INHERITED(Element,ebml_element_vmt,EBML_DATE_CLASS)->PostCreate(Element, SetDefault);
     Element->Base.DefaultSize = 8;
     Element->Base.bNeedDataSizeUpdate = 0;
 }

@@ -117,7 +117,7 @@ typedef struct ebml_element_vmt
     ebml_element *(*Copy)(const void*, const void *Cookie);
     
     // internal call only
-    void (*PostCreate)(void*);
+    void (*PostCreate)(void*, bool_t SetDefault);
 
 } ebml_element_vmt;
 

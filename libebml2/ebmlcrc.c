@@ -194,7 +194,6 @@ static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
     {
         Result->CRC = Element->CRC;
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
-        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;

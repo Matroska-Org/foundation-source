@@ -64,7 +64,6 @@ static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
     if (Result)
     {
         Result->bValueIsSet = Element->bValueIsSet;
-        Result->bDefaultIsSet = Element->bDefaultIsSet;
         Result->DataSize = Element->DataSize;
         Result->ElementPosition = Element->ElementPosition;
         Result->SizeLength = Element->SizeLength;

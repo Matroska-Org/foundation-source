@@ -72,7 +72,6 @@ struct ebml_element
     int DefaultSize;
     int8_t SizeLength;
     boolmem_t bValueIsSet;
-    boolmem_t bDefaultIsSet;
     boolmem_t bNeedDataSizeUpdate;
 };
 

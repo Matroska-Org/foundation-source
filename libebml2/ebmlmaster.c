@@ -241,10 +241,14 @@ void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault)
     }
 }
 
-static void PostCreate(ebml_master *Element)
+static void PostCreate(ebml_master *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element);
-	EBML_MasterAddMandatory(Element,1); // TODO: should it force the default value ?
+    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element, SetDefault);
+    if (SetDefault)
+    {
+	    EBML_MasterAddMandatory(Element, SetDefault);
+        Element->Base.bValueIsSet = 1;
+    }
 }
 
 static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
@@ -522,7 +526,6 @@ static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
     {
         EBML_MasterErase(Result); // delete the children elements created by default
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
-        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;

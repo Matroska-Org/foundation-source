@@ -216,13 +216,12 @@ ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool
     if (Result!=NULL)
     {
         Result->Context = Context;
-        Result->bDefaultIsSet = (SetDefault && Context->HasDefault);
 #if defined(EBML_LEGACY_API)
         assert(Context->PostCreate); // for projects with legacy access
 #endif
         if (Context->PostCreate)
             Context->PostCreate(Result,Cookie);
-        VMT_FUNC(Result,ebml_element_vmt)->PostCreate(Result);
+        VMT_FUNC(Result,ebml_element_vmt)->PostCreate(Result, SetDefault);
     }
     return Result;
 }

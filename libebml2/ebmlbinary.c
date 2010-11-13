@@ -96,7 +96,6 @@ static ebml_binary *Copy(const ebml_binary *Element, const void *Cookie)
     {
         ArrayCopy(&Result->Data,&Element->Data);
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
-        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;

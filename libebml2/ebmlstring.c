@@ -183,24 +183,18 @@ static bool_t IsDefaultValue(const ebml_string *Element)
     return Element->Base.Context->HasDefault && (!Element->Base.bValueIsSet || strcmp(Element->Buffer,(const char*)Element->Base.Context->DefaultValue)==0);
 }
 
-static void PostCreateString(ebml_element *Element)
+static void PostCreateString(ebml_element *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->PostCreate(Element);
-    if (Element->bDefaultIsSet)
-    {
-        Element->bValueIsSet = 1;
-        ((ebml_string*)Element)->Buffer = strdup((const char *)Element->Context->DefaultValue);
-    }
+    INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->PostCreate(Element, SetDefault);
+    if (SetDefault && Element->Context->HasDefault)
+        EBML_StringSetValue((ebml_string*)Element, (const char *)Element->Context->DefaultValue);
 }
 
-static void PostCreateUniString(ebml_element *Element)
+static void PostCreateUniString(ebml_element *Element, bool_t SetDefault)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->PostCreate(Element);
-    if (Element->bDefaultIsSet)
-    {
-        Element->bValueIsSet = 1;
-        ((ebml_string*)Element)->Buffer = strdup((const char *)Element->Context->DefaultValue);
-    }
+    INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->PostCreate(Element, SetDefault);
+    if (SetDefault && Element->Context->HasDefault)
+        EBML_StringSetValue((ebml_string*)Element, (const char *)Element->Context->DefaultValue);
 }
 
 static ebml_string *Copy(const ebml_string *Element, const void *Cookie)
@@ -210,7 +204,6 @@ static ebml_string *Copy(const ebml_string *Element, const void *Cookie)
     {
         Result->Buffer = strdup(Element->Buffer);
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
-        Result->Base.bDefaultIsSet = Element->Base.bDefaultIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;

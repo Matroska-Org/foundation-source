@@ -33,7 +33,7 @@ static bool_t ValidateSize(const ebml_element *p)
     return 1;
 }
 
-static void PostCreate(ebml_element *Element)
+static void PostCreate(ebml_element *Element, bool_t SetDefault)
 {
     Element->DefaultSize = -1;
     Element->ElementPosition = INVALID_FILEPOS_T;
@@ -282,10 +282,10 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
         Rendered = &_Rendered;
     *Rendered = 0;
 
-    assert(Element->bValueIsSet || (bWithDefault && Element->bDefaultIsSet)); // an element is been rendered without a value set !!!
+    assert(Element->bValueIsSet || (bWithDefault && EBML_ElementIsDefaultValue(Element))); // an element is been rendered without a value set !!!
 		                 // it may be a mandatory element without a default value
 
-    if (!(Element->bValueIsSet || (bWithDefault && Element->bDefaultIsSet)))
+    if (!(Element->bValueIsSet || (bWithDefault && EBML_ElementIsDefaultValue(Element))))
 		return ERR_INVALID_DATA;
 
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
