@@ -188,8 +188,6 @@ static void ReduceSize(ebml_element *Element)
     if (Node_IsPartOf(Element,EBML_MASTER_CLASS))
     {
         ebml_element *i, *j;
-        if (!EBML_ElementIsType(Element,&MATROSKA_ContextClusterBlockGroup))
-		    EBML_MasterAddMandatory((ebml_master*)Element,1);
 
         if (Unsafe)
             EBML_MasterUseChecksum((ebml_master*)Element,0);
@@ -214,6 +212,14 @@ static void ReduceSize(ebml_element *Element)
 			}
             ReduceSize(i);
 		}
+
+        if (!EBML_MasterChildren(Element))
+        {
+            NodeDelete((node*)Element);
+            return;
+        }
+
+        EBML_MasterAddMandatory((ebml_master*)Element,1);
 
         EBML_MasterCheckContext((ebml_master*)Element, DstProfile, MasterError, Element);
 	}

@@ -3,7 +3,7 @@ version 0.7.0:
     - fix an incorrect element size computing when invalid data was read
     - allow StereoMode for WebM
     - adjust the timecodescale automatically if it's too small
-    - better handling of default values
+    - better handling of default/mandatory values
     - internal code shuffling
     - make the regression test tool compile under UNIX
 
