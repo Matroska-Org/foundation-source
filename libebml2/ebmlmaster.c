@@ -151,8 +151,19 @@ void EBML_MasterErase(ebml_master *Element)
 
 static bool_t IsDefaultValue(const ebml_element *Element)
 {
-    // TODO: a master element has the default value if all the sub elements are unique and have the default value
     return 0;
+    // TODO: a master element has the default value if all the sub elements are unique and have the default value
+#if 0
+    const ebml_semantic *i;
+    for (i=Element->Context->Semantic;i->eClass;++i)
+    {
+        if (!i->Unique)
+            return 0;
+        if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass))
+            return 0;
+    }
+    return 1;
+#endif
 }
 
 static bool_t CheckMandatory(const ebml_master *Element, bool_t bWithDefault)
@@ -217,6 +228,7 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
             if (!bWithDefault && EBML_ElementIsDefaultValue(i))
                 continue;
             EBML_ElementUpdateSize(i,bWithDefault,bForceWithoutMandatory);
+            assert(!EBML_ElementNeedsDataSizeUpdate(i, bWithDefault));
             if (i->DataSize == INVALID_FILEPOS_T)
                 return INVALID_FILEPOS_T;
             Element->Base.DataSize += EBML_ElementFullSize(i,bWithDefault);

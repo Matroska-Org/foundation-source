@@ -185,7 +185,7 @@ EBML_DLL size_t EBML_MasterCount(const ebml_master *Element);
 EBML_DLL void EBML_MasterClear(ebml_master *Element); // clear the list (the children and not freed)
 EBML_DLL void EBML_MasterErase(ebml_master *Element);
 EBML_DLL void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault); // add the mandatory elements
-EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t SetDefault);
+EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault);
 EBML_DLL void EBML_MasterSort(ebml_master *Element, arraycmp Cmp, const void* CmpParam);
 EBML_DLL bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use);
 EBML_DLL bool_t EBML_MasterIsChecksumValid(const ebml_master *Element);
