@@ -174,7 +174,7 @@ static err_t ReadData(ebml_crc *Element, stream *Input, const ebml_parser_contex
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_crc *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderData(ebml_crc *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
     err_t Result;
     size_t Written = 0;

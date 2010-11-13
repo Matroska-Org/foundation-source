@@ -57,7 +57,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_binary *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderData(ebml_binary *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
     size_t Written;
     err_t Err = Stream_Write(Output,ARRAYBEGIN(Element->Data,uint8_t),ARRAYCOUNT(Element->Data,uint8_t),&Written);
@@ -77,11 +77,11 @@ static bool_t IsDefaultValue(const ebml_binary *Element)
     return 0; // TODO: a default binary value needs a size too (use a structure to set the value in the structure)
 }
 
-static filepos_t UpdateDataSize(ebml_binary *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateDataSize(ebml_binary *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
 	Element->Base.DataSize = ARRAYCOUNT(Element->Data,uint8_t);
 
-	return INHERITED(Element,ebml_element_vmt,EBML_BINARY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
+	return INHERITED(Element,ebml_element_vmt,EBML_BINARY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
 }
 
 static bool_t ValidateSize(const ebml_element *p)

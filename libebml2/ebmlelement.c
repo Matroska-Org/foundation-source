@@ -49,7 +49,7 @@ static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
     return 1;
 }
 
-static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return 0;
@@ -270,7 +270,7 @@ fourcc_t EBML_BufferToID(const uint8_t *Buffer)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered)
+err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, filepos_t *Rendered)
 {
     err_t Result;
     filepos_t _Rendered,WrittenSize;
@@ -293,19 +293,19 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 
 #if !defined(NDEBUG)
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
-	    SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
+	    SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceWithoutMandatory);
     else
         SupposedSize = Element->DataSize;
 #else
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
-	    EBML_ElementUpdateSize(Element, bWithDefault, bForceRender);
+	    EBML_ElementUpdateSize(Element, bWithDefault, bForceWithoutMandatory);
 #endif
 	Result = EBML_ElementRenderHead(Element, Output, bKeepPosition, &WrittenSize);
     *Rendered += WrittenSize;
     if (Result != ERR_NONE)
         return Result;
 
-    Result = EBML_ElementRenderData(Element, Output, bForceRender, bWithDefault, &WrittenSize);
+    Result = EBML_ElementRenderData(Element, Output, bForceWithoutMandatory, bWithDefault, &WrittenSize);
 #if !defined(NDEBUG)
     if (SupposedSize != INVALID_FILEPOS_T) assert(WrittenSize == SupposedSize);
 #endif

@@ -2193,7 +2193,7 @@ static char GetBestLacingType(const matroska_block *Element)
 		return LACING_EBML;
 }
 
-static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
     err_t Err = ERR_NONE;
     uint8_t BlockHead[5], *Cursor;
@@ -2432,7 +2432,7 @@ static matroska_block *CopyBlockInfo(const matroska_block *Element, const void *
     return Result;
 }
 
-static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
@@ -2563,7 +2563,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
     }
 
     // skip the EBML_BINARY_CLASS version as we have another internal buffer
-	return INHERITED(Element,ebml_element_vmt,EBML_BINARY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
+	return INHERITED(Element,ebml_element_vmt,EBML_BINARY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
 }
 
 static int CmpCuePoint(const matroska_cuepoint* a,const matroska_cuepoint* b)

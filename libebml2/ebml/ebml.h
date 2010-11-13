@@ -107,11 +107,11 @@ typedef struct ebml_element_vmt
     bool_t (*ValidateSize)(const void*);
     err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
 #if defined(CONFIG_EBML_WRITING)
-    err_t (*RenderData)(void*, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered);
+    err_t (*RenderData)(void*, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered);
 #endif
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);
-    filepos_t (*UpdateDataSize)(void*, bool_t bWithDefault, bool_t bForceRender);
+    filepos_t (*UpdateDataSize)(void*, bool_t bWithDefault, bool_t bForceWithoutMandatory);
     bool_t (*NeedsDataSizeUpdate)(const void*, bool_t bWithDefault);
     int (*Cmp)(const void*, const void*);
     ebml_element *(*Copy)(const void*, const void *Cookie);
@@ -171,7 +171,7 @@ EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_conte
 
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags ?
-EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceRender, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, filepos_t *Rendered);
 EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 

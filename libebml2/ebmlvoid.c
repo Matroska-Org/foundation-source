@@ -40,7 +40,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
     size_t Written, Left = (size_t)Element->DataSize;
     err_t Err = ERR_NONE;

@@ -100,7 +100,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
 	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
 	size_t i;
@@ -136,7 +136,7 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
     return Err;
 }
 
-static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
 	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
 	size_t i;
@@ -172,7 +172,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceR
     return Err;
 }
 
-static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceRender, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
 {
     err_t Err;
 	size_t i = 0;
@@ -268,7 +268,7 @@ static bool_t IsDefaultValueFloat(const ebml_float *Element)
     return Element->Base.Context->HasDefault && (!Element->Base.bValueIsSet || (Element->Value == (double)Element->Base.Context->DefaultValue));
 }
 
-static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
@@ -290,10 +290,10 @@ static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault,
 		    Element->Base.DataSize = 8;
     }
 
-	return INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
+	return INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
 }
 
-static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceRender)
+static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
@@ -315,7 +315,7 @@ static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_
 		    Element->Base.DataSize = 8;
     }
 
-	return INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceRender);
+	return INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
 }
 
 static void PostCreateInt(ebml_element *Element, bool_t SetDefault)
