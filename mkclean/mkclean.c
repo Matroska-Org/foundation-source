@@ -450,7 +450,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 			{
 				if (EBML_ElementIsType(Block, &MATROSKA_ContextClusterSimpleBlock))
                 {
-					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),GetProfileId(PROFILE_MATROSKA_V2));
+					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' at %") TPRId64 T(" try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),EBML_ElementPosition(Block),GetProfileId(PROFILE_MATROSKA_V2));
 					return -32;
 				}
 			}
@@ -550,6 +550,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     SubContext.UpContext = Parser;
     SubContext.Context = EBML_ElementContext(Head);
     SubContext.EndPosition = EBML_ElementPositionEnd(Head);
+    SubContext.Profile = Parser->Profile;
     SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
     while (SubElement)
     {
@@ -1358,6 +1359,7 @@ int main(int argc, const char *argv[])
     RContext.Context = &MATROSKA_ContextStream;
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
+    RContext.Profile = 0;
     EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
     if (!EbmlHead || !EBML_ElementIsType((ebml_element*)EbmlHead, &EBML_ContextHead))
     {
@@ -1395,10 +1397,12 @@ int main(int argc, const char *argv[])
     RSegmentContext.Context = &MATROSKA_ContextSegment;
     RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
     RSegmentContext.UpContext = &RContext;
+    RSegmentContext.Profile = SrcProfile;
 	UpperElement = 0;
 //TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
     RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
-    while (RLevel1)    {
+    while (RLevel1)
+    {
         ShowProgress((ebml_element*)RLevel1,(ebml_element*)RSegment);
         if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextSegmentInfo))
         {
@@ -2113,7 +2117,7 @@ int main(int argc, const char *argv[])
 								    }
 								    else
 								    {
-									    assert(EBML_ElementIsType(pBlockInfo->Block, &MATROSKA_ContextClusterBlock));
+									    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextClusterBlock));
 									    // This block needs to be split
                                         Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
 									    Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextClusterBlock);

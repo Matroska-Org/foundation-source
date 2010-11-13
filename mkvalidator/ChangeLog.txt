@@ -1,3 +1,7 @@
+2010-11-13
+version 0.3.0:
+    - internal code shuffling
+
 2010-11-01
 version 0.2.4:
     - add a --quiet option

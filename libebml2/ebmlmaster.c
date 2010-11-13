@@ -274,6 +274,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
         Context.UpContext = ParserContext;
         Context.Context = Element->Base.Context;
         Context.EndPosition = EBML_ElementPositionEnd((ebml_element*)Element);
+        Context.Profile = ParserContext->Profile;
         SubElement = EBML_FindNextElement(Input,&Context,&UpperEltFound,AllowDummyElt);
 		while (SubElement && UpperEltFound<=0 && (!EBML_ElementIsFiniteSize((ebml_element*)Element) || EBML_ElementPositionEnd(SubElement) <= EBML_ElementPositionEnd((ebml_element*)Element)))
         {

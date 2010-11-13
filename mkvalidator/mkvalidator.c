@@ -886,6 +886,7 @@ int main(int argc, const char *argv[])
     RContext.Context = &MATROSKA_ContextStream;
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
+    RContext.Profile = 0;
     EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
 	if (!EbmlHead || !EL_Type(EbmlHead, &EBML_ContextHead))
     {
@@ -968,6 +969,7 @@ int main(int argc, const char *argv[])
     RSegmentContext.Context = &MATROSKA_ContextSegment;
     RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
     RSegmentContext.UpContext = &RContext;
+    RSegmentContext.Profile = MatroskaProfile;
 
     RContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
 

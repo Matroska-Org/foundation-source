@@ -98,6 +98,7 @@ struct ebml_parser_context
     const ebml_context *Context;
     const ebml_parser_context *UpContext;
     filepos_t EndPosition;
+    int Profile;
 };
 
 typedef struct ebml_element_vmt

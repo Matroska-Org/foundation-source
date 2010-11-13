@@ -269,7 +269,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
 	// elements at the current level
     for (Semantic=Context->Context->Semantic;Semantic->eClass;Semantic++)
     {
-		if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id))
+        if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id) && (bAllowDummy || !(Context->Profile & Semantic->DisabledProfile)))
         {
             Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0,NULL);
 			return Result;
@@ -291,6 +291,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
         GlobalContext.Context = &ContextGlobals;
         GlobalContext.UpContext = Context;
         GlobalContext.EndPosition = INVALID_FILEPOS_T;
+        GlobalContext.Profile = Context->Profile;
 		(*LowLevel)--;
 		MaxLowerLevel--;
 		// recursive is good, but be carefull...
