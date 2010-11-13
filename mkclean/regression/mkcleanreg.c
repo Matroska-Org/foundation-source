@@ -38,6 +38,7 @@
 
 static textwriter *StdErr = NULL;
 static tchar_t MkPath[MAXPATHFULL];
+static bool_t KeepOutput = 0;
 
 static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *MkParams, filepos_t FileSize, const tchar_t *md5sum)
 {
@@ -117,7 +118,8 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         return;
     }
 
-    FileErase(p, OutFile, 1, 0); // delete correct files
+    if (!KeepOutput)
+        FileErase(p, OutFile, 1, 0); // delete correct files
     TextPrintf(StdErr,T("Success:0:%d: %s %s\r\n"),LineNum,File,MkParams);
 }
 
@@ -169,6 +171,7 @@ int main(int argc, const char *argv[])
 		if (tcsisame_ascii(Path,T("--version"))) { ShowVersion = 1; }
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; }
         else if (tcsisame_ascii(Path,T("--mkclean"))) Node_FromStr(&p,MkPath,TSIZEOF(MkPath),argv[++i]);
+        else if (tcsisame_ascii(Path,T("--keep"))) KeepOutput = 1;
 		else if (i!=argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
     }
 
@@ -180,6 +183,7 @@ int main(int argc, const char *argv[])
             TextWrite(StdErr,T("Usage: mkcleanreg [options] <regression_list>\r\n"));
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --mkclean <path> path to mkclean to test (default is current path)\r\n"));
+            TextWrite(StdErr,T("  --keep           keep the output files\r\n"));
             TextWrite(StdErr,T("  --version        show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help           show this screen\r\n"));
             TextWrite(StdErr,T("regression file format:\r\n"));
