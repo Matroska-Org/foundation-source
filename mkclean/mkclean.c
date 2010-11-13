@@ -1468,18 +1468,22 @@ int main(int argc, const char *argv[])
     WSegmentInfo = (ebml_master*)EBML_ElementCopy(RSegmentInfo, NULL);
     EBML_MasterUseChecksum(WSegmentInfo,!Unsafe);
 
-    if (TimeCodeScale!=0)
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,&MATROSKA_ContextTimecodeScale);
+	if (!RLevel1)
 	{
-		RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,&MATROSKA_ContextTimecodeScale);
-		if (!RLevel1)
-		{
-			TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
-			Result = -10;
-			goto exit;
-		}
-		EBML_IntegerSetValue((ebml_integer*)RLevel1,TimeCodeScale);
-		RLevel1 = NULL;
+		TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
+		Result = -10;
+		goto exit;
 	}
+    if (TimeCodeScale==0)
+    {
+        TimeCodeScale = EBML_IntegerValue((ebml_integer*)RLevel1);
+        while (TimeCodeScale < 100000)
+            TimeCodeScale <<= 1;
+    }
+    EBML_IntegerSetValue((ebml_integer*)RLevel1,TimeCodeScale);
+	RLevel1 = NULL;
+
     if (Live)
     {
 	    // remove MATROSKA_ContextDuration from Live streams

@@ -1,3 +1,11 @@
+2010-11-13
+version 0.7.0:
+    - fix an incorrect element size computing when invalid data was read
+    - allow StereoMode for WebM
+    - adjust the timecodescale automatically if it's too small
+    - internal code shuffling
+    - make the regression test tool compile under UNIX
+
 2010-11-01
 version 0.6.1:
     - add a progress phase during the cue creation as it's sometimes slow
