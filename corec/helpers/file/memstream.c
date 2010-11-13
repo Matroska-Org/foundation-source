@@ -55,6 +55,7 @@ static err_t MemWrite(memstream* p, const void* Data, size_t Size, size_t* Writt
     *Written = 0;
     if (Size + p->Pos > p->Size)
         return ERR_INVALID_PARAM;
+    assert(p->Ptr!=NULL);
     memcpy(p->Ptr + p->Pos, Data, Size);
     p->Pos += Size;
     *Written = Size;
@@ -96,6 +97,7 @@ static err_t MemLength(memstream* p, dataid UNUSED_PARAM(Id), filepos_t* Data, s
 
 static err_t MemData(memstream* p, dataid UNUSED_PARAM(Id), const void* Data, size_t Size)
 {
+    assert(Size==0 || Data!=NULL);
 	p->Ptr = (const uint8_t*)Data;
 	p->Size = Size;
     p->Pos = 0;
