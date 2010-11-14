@@ -192,7 +192,7 @@ static void ReduceSize(ebml_element *Element)
         if (Unsafe)
             EBML_MasterUseChecksum((ebml_master*)Element,0);
 
-        if (EBML_ElementIsType(Element, &MATROSKA_ContextClusterBlockGroup) && !EBML_MasterCheckMandatory(Element, 0))
+        if (EBML_ElementIsType(Element, &MATROSKA_ContextClusterBlockGroup) && !EBML_MasterCheckMandatory((ebml_master*)Element, 0))
         {
             NodeDelete((node*)Element);
             return;
@@ -219,7 +219,7 @@ static void ReduceSize(ebml_element *Element)
             ReduceSize(i);
 		}
 
-        if (!EBML_MasterChildren(Element) && !EBML_MasterCheckMandatory(Element, 0))
+        if (!EBML_MasterChildren(Element) && !EBML_MasterCheckMandatory((ebml_master*)Element, 0))
         {
             NodeDelete((node*)Element);
             return;
@@ -2092,9 +2092,10 @@ int main(int argc, const char *argv[])
 							}
 						}
 
-						if (MainBlockEnd!=INVALID_TIMECODE_T && BlockEnd>=MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
+						if (MainBlockEnd!=INVALID_TIMECODE_T && BlockEnd>MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
 						{
 							// relacing
+                            //TextPrintf(StdErr,T("\rRelacing block track %d at %") TPRId64 T(" ends %") TPRId64 T(" next cluster at %") TPRId64 T("\r\n"),*pTrackOrder,pBlockInfo->DecodeTime,BlockEnd,MasterEndTimecode);
                             if (MATROSKA_BlockReadData(pBlockInfo->Block,Input)==ERR_NONE)
                             {
 						        bool_t HasDuration = MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE;
