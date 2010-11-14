@@ -2016,9 +2016,10 @@ int main(int argc, const char *argv[])
                 if (EBML_ElementPosition((ebml_element*)ClusterW) == INVALID_FILEPOS_T)
                     EBML_ElementForcePosition((ebml_element*)ClusterW, EBML_ElementPosition((ebml_element*)pBlockInfo->Block)); // fake average value
 
+                // loop on all tracks in their specified order
 				for (pTrackOrder=ARRAYBEGIN(TrackOrder,size_t);pTrackOrder!=ARRAYEND(TrackOrder,size_t);++pTrackOrder)
 				{
-					// output all the blocks (todo frames) until MainBlockEnd (included) for this track
+					// output all the blocks until MainBlockEnd (included) for this track
 					while (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder] < ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
 					{
 						// End of the current Block
@@ -2032,7 +2033,7 @@ int main(int argc, const char *argv[])
 
 						pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder];
 						if (pBlockInfo->DecodeTime > MainBlockEnd && *pTrackOrder!=MainTrack)
-							break; // next track
+							break; // next track around this timecode
 
 						if (pBlockInfo->FrameStart!=0)
 						{
@@ -2091,81 +2092,80 @@ int main(int argc, const char *argv[])
 							}
 						}
 
-						if (BlockEnd>=MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
+						if (MainBlockEnd!=INVALID_TIMECODE_T && BlockEnd>=MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
 						{
 							// relacing
                             if (MATROSKA_BlockReadData(pBlockInfo->Block,Input)==ERR_NONE)
                             {
-							    if (MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE)
+						        bool_t HasDuration = MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE;
+							    Result = ERR_NONE;
+							    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock))
 							    {
-								    Result = ERR_NONE;
-								    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextClusterSimpleBlock))
-								    {
-									    // This block needs to be split
-                                        Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
-								        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
+								    // This block needs to be split
+                                    Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
+							        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
-									    for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
-									    {
-										    if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
-											    break;
-										    MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
-										    MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
-									    }
-    	                                
-									    if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
-									    {
-										    pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
-										    NodeDelete((node*)Block1);
-									    }
-									    else
-									    {
-										    if (MATROSKA_BlockGetFrameCount(Block1))
-											    Result = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)Block1);
-										    else
-											    NodeDelete((node*)Block1);
-										    break; // next track
-									    }
-								    }
+							        for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+							        {
+								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
+									        break;
+								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
+								        MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
+							        }
+
+							        if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+							        {
+								        pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
+								        NodeDelete((node*)Block1);
+							        }
+							        else
+							        {
+								        if (MATROSKA_BlockGetFrameCount(Block1))
+									        Result = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)Block1);
+								        else
+									        NodeDelete((node*)Block1);
+							        }
+							        break; // next track
+							    }
+							    else
+							    {
+								    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextClusterBlock));
+								    // This block needs to be split
+                                    Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
+								    Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextClusterBlock);
+							        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
+
+							        for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+							        {
+								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
+									        break;
+								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
+								        MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
+							        }
+
+							        if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+							        {
+								        pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
+								        NodeDelete((node*)Elt);
+							        }
+							        else
+							        {
+								        if (MATROSKA_BlockGetFrameCount(Block1))
+									        Result = EBML_MasterAppend((ebml_master*)ClusterW,Elt);
+								        else
+									        NodeDelete((node*)Elt);
+							        }
+							        break; // next track
+							    }
+
+							    if (Result != ERR_NONE)
+							    {
+								    if (Result==ERR_INVALID_DATA)
+									    TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
 								    else
-								    {
-									    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextClusterBlock));
-									    // This block needs to be split
-                                        Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
-									    Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextClusterBlock);
-								        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
-
-									    for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
-									    {
-										    if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
-											    break;
-										    MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
-										    MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
-									    }
-    	                                
-									    if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
-									    {
-										    pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
-										    NodeDelete((node*)Elt);
-									    }
-									    else
-									    {
-										    if (MATROSKA_BlockGetFrameCount(Block1))
-											    Result = EBML_MasterAppend((ebml_master*)ClusterW,Elt);
-										    else
-											    NodeDelete((node*)Elt);
-										    break; // next track
-									    }
-								    }
-								    if (Result != ERR_NONE)
-								    {
-									    if (Result==ERR_INVALID_DATA)
-										    TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
-									    else
-										    TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
-									    Result = -46;
-									    goto exit;
-								    }
+									    TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+								    Result = -46;
+								    goto exit;
 							    }
                                 MATROSKA_BlockReleaseData(pBlockInfo->Block,0);
                             }
