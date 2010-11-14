@@ -224,7 +224,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 	const tchar_t *In;
 	const char *InA;
 	size_t n;
-    int64_t lvs,_lvs;
+    int64_t lvs,_lvs,ww;
 
 	while (OutLen>1 && *Mask)
 	{
@@ -306,12 +306,12 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 				{
 					Unsigned = 1;
 					q = 16;
-					w = 0x10000000;
+					ww = 0x10000000;
 				}
 				else
 				{
 					q = 10;
-					w = 1000000000;
+					ww = 100000000000;
 				}
 
 				Sign = vl<0 && !Unsigned;
@@ -326,14 +326,14 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 					w0 *= q;
 
 				v = vl;
-				while (v<w && w>w0)
-					w/=q;
+				while (vl<ww && ww>w0)
+					ww/=q;
 
-				while (w>0)
+				while (ww>0)
 				{
-					unsigned int i = v/w;
-					v-=i*w;
-					if (OutLen>1 && Sign && (w==1 || ZeroFill || i>0))
+					unsigned int i = (unsigned int)(vl/ww); // between 0 and q-1
+					vl-=i*ww;
+					if (OutLen>1 && Sign && (ww==1 || ZeroFill || i>0))
 					{
 						*(Out++) = '-';
 						--OutLen;
@@ -341,7 +341,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 					}
 					if (OutLen>1)
 					{
-						if (i==0 && !ZeroFill && w!=1)
+						if (i==0 && !ZeroFill && ww!=1)
 							i = ' ';
 						else
 						{
@@ -359,7 +359,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 						*(Out++) = (tchar_t)i;
 						--OutLen;
 					}
-					w/=q;
+					ww/=q;
 				}
 
 				break;
