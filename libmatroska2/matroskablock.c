@@ -139,7 +139,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                         {
                             fscod =  Cursor[5] >> 3;
                             SampleRate = Cursor[4] >> 6;
-                            if (fscod > 10)
+                            if (fscod > 10 || fscod < 8)
                             {
                                 Err = ERR_INVALID_DATA;
                                 ARRAYBEGIN(Block->Durations,timecode_t)[Frame] = INVALID_TIMECODE_T;
