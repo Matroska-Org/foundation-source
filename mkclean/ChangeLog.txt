@@ -1,4 +1,4 @@
-2010-11-13
+2010-11-14
 version 0.7.0:
     - fix an incorrect element size computing when invalid data was read
     - allow StereoMode for WebM

@@ -1,5 +1,6 @@
-2010-11-13
+2010-11-14
 version 0.3.0:
+    - allow StereoMode for WebM
     - internal code shuffling
 
 2010-11-01
