@@ -41,14 +41,6 @@ extern "C" {
 
 INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 
-struct ebml_semantic
-{
-    bool_t Mandatory;
-    bool_t Unique;
-    const ebml_context *eClass;
-    int DisabledProfile; // PROFILE_MATROSKA_V1 and others
-};
-
 struct ebml_context
 {
     fourcc_t Id;
