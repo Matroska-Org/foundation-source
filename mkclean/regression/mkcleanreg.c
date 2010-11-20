@@ -41,6 +41,8 @@ static tchar_t MkPath[MAXPATHFULL];
 static bool_t KeepOutput = 0;
 static bool_t Generate = 0;
 
+#define MD5_BLOCK_SIZE  (8*1024)
+
 static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *MkParams, filepos_t FileSize, const tchar_t *md5sum)
 {
     tchar_t Command[MAXLINE],OutFile[MAXPATHFULL];
@@ -113,10 +115,10 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         return;
     }
 
-    DataBuffer = malloc(8*1024);
+    DataBuffer = malloc(MD5_BLOCK_SIZE);
 
     MD5Init(&MD5proc);
-    while ((Err=Stream_Read(sFile,DataBuffer,sizeof(32*1024),&ReadSize))==ERR_NONE)
+    while ((Err=Stream_Read(sFile,DataBuffer,MD5_BLOCK_SIZE,&ReadSize))==ERR_NONE)
         MD5Update(&MD5proc, (uint8_t*)DataBuffer, ReadSize);
     if (Err==ERR_END_OF_FILE)
         MD5Update(&MD5proc, (uint8_t*)DataBuffer, ReadSize);
