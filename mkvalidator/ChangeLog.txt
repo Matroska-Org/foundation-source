@@ -1,6 +1,7 @@
 2010-11-20
 version 0.3.1:
     - fix some files reported as fine even though it contains hidden junk (not seen by libebml2 so far)
+    - a warning on the aspect ratio should not result in an error code
 
 2010-11-14
 version 0.3.0:
