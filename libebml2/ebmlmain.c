@@ -317,7 +317,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
 	}
 
     // dummy fallback
-	if (!IsGlobalContext && bAllowDummy) {
+	if (!IsGlobalContext && bAllowDummy && IdLength!=0) {
 		(*LowLevel) = 0;
         Result = CreateElement(AnyNode,PossibleId,IdLength,Context->Context,NULL);
 	}
@@ -545,6 +545,8 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 			}
 			if (bFound)
 				break;
+            if (Context->EndPosition == StartPos+ReadSize)
+                break; // we should not read further than our limit
 
 			if (ReadIndex >= 4) {
 				// ID not found
@@ -556,13 +558,14 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 				return NULL; // no more data ?
 			ReadSize++;
 
-        } while (!bFound && (Context->EndPosition==INVALID_FILEPOS_T || Context->EndPosition > StartPos+ReadSize));
+        } while (!bFound);
 
 		SizeIdx = ReadIndex;
 		ReadIndex = ReadIndex - PossibleID_Length;
 
 		// read the data size
 		PossibleSizeLength = ReadIndex;
+        bFound = 0;
 		while (1)
 		{
 			_SizeLength = PossibleSizeLength;
@@ -571,10 +574,10 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 				bFound = 1;
 				break;
 			}
-			if (PossibleSizeLength >= 8) {
-				bFound = 0;
+			if (PossibleSizeLength >= 8)
 				break;
-			}
+            if (Context->EndPosition == StartPos+ReadSize)
+                break; // we should not read further than our limit
             if (Stream_ReadOneOrMore(Input,&PossibleIdNSize[SizeIdx++], 1, NULL)!=ERR_NONE)
                 return NULL;
 			ReadSize++;
@@ -637,6 +640,28 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 				NodeDelete((node*)Result);
 			}
 		}
+
+        if (Context->EndPosition!=INVALID_FILEPOS_T && Context->EndPosition <= CurrentPos)
+        {
+            if (AllowDummyElt)
+            {
+                int LevelChange = 0;
+			    ebml_element *Result = EBML_ElementCreateUsingContext(Input, PossibleIdNSize, PossibleID_Length, Context, &LevelChange, 0, 1);
+			    if (Result != NULL)
+                {
+                    if (LevelChange > 0)
+                        *UpperLevels += LevelChange;
+				    Result->SizePosition = CurrentPos - SizeIdx + PossibleID_Length;
+				    Result->ElementPosition = Result->SizePosition - PossibleID_Length;
+				    Result->DataSize = 0;
+                    Result->SizeLength = (int8_t)(Context->EndPosition - Result->SizePosition);
+				    // place the file at the end of the element
+				    Stream_Seek(Input,Context->EndPosition,SEEK_SET);
+				    return Result;
+			    }
+            }
+            break; // we should not read further than our limit
+        }
 
 		// recover all the data in the buffer minus one byte
 		ReadIndex = SizeIdx - 1;
