@@ -1,5 +1,6 @@
 2010-11-20
 version 0.7.1:
+    - fix the regression test check on large files
     - fix in libebml2 not to read data too far in a bogus EBML master
 
 2010-11-14

@@ -4,6 +4,10 @@
 "ar-odd.mkv" "--remux --optimize" 1035150 2deebe90e7c2ce4f89f5d9a6fab257f6
 "ar-odd.mkv" "--unsafe"           1035342 a033f4a9063043f1de57645ab068b7dd
 "ar-odd.mkv" "--remux --unsafe"   1035297 1cba0093af36439e362148f6ea90775e
+"null-junk.mkv" ""                   1034939 c6a891334e32d5e2dc09bb6ee65ffa44
+"null-junk.mkv" "--remux"            1034939 c6a891334e32d5e2dc09bb6ee65ffa44
+"null-junk.mkv" "--optimize"         1034738 f6578907263c14882c81b297d3593d1c
+"null-junk.mkv" "--unsafe"           1034885 6d81d95870297fecf7aad798ecdec30d
 "ar-set_to_0.mkv" ""                   156617 c04a1a8bc913a4c604326e4ddc240de2
 "ar-set_to_0.mkv" "--remux"            156669 9baeae4d6d91de7a7e16af844d285636
 "ar-set_to_0.mkv" "--optimize"         156461 441ba218af9b787357ae56e2f04f9d58
@@ -163,7 +167,7 @@
 "damaged.mkv" "--remux --optimize" 1171032210 12a0cb5f2adede2194377614912545e6
 "damaged.mkv" "--unsafe"           1171095645 a1fb211ec4fab4a627797d8452b83a86
 "damaged.mkv" "--remux --unsafe"   1171087983 91431df314e385001c2a1da4635407b8
-"large.mkv" ""                   4695069870 846a499b34bcac9928b3b34d44447f36
-"large.mkv" "--remux"            4695015841 5bd5e42a480c688aa5d48673ed4b6913
-"large.mkv" "--remux --optimize" 4672242259 0433b18e5e0b950cbe6d748a32590e23
-"large.mkv" "--unsafe"           4695031324 a1fb211ec4fab4a627797d8452b83a86
+"large.mkv" ""                   4695069870 57ebe2e607aa2d4ce98a26571014a18a
+"large.mkv" "--remux"            4695015841 12e5e6e4466f8c3292e1d6d660b37032
+"large.mkv" "--remux --optimize" 4672242259 cfb43f1d8394bd526d74bedae50a2d0c
+"large.mkv" "--unsafe"           4695031324 9e249389e2c6a9d9c9513ed38cefac23

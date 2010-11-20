@@ -134,7 +134,7 @@ int main(int argc, const char *argv[])
     stream *RegList = NULL;
     parser RegParser;
     tchar_t MD5[34];
-    intptr_t Size;
+    int64_t Size;
     int LineNum;
 
     // Core-C init phase
@@ -226,7 +226,7 @@ int main(int argc, const char *argv[])
     {
         const tchar_t *s = Line;
         // parse the line and if it's OK, launch the process
-        if (!ExprIsTokenEx(&s,T("\"%s\" \"%s\" %d %s"),Path,TSIZEOF(Path),String,TSIZEOF(String),&Size,MD5,TSIZEOF(MD5)))
+        if (!ExprIsTokenEx(&s,T("\"%s\" \"%s\" %") TPRId64 T(" %s"),Path,TSIZEOF(Path),String,TSIZEOF(String),&Size,MD5,TSIZEOF(MD5)))
             TextPrintf(StdErr,T("Fail:100:%d: Invalid Line %s\r\n"),LineNum,Line);
         else {
             // transform the path relative to the regression file to an absolute file
