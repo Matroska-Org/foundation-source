@@ -1875,6 +1875,7 @@ NOINLINE bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen)
 NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
 {
     const tchar_t* s = *p;
+    bool_t Long = 0;
 	va_list Arg;
 	va_start(Arg, Name);
 
@@ -1900,10 +1901,28 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
                 IntSize = *Name - '0';
                 ++Name;
             }
+            while (*Name == 'l')
+            {
+                Long=1;
+				++Name; // long
+            }
+            if (*Name=='I' && *(Name+1)=='6' && *(Name+2)=='4')
+            {
+                Long=1;
+				Name += 3;
+            }
             if (*Name == 'd')
             {
-                if ((!IntSize && !ExprIsInt(&s,va_arg(Arg,intptr_t*)))||(IntSize && !ExprIsIntEx(&s,IntSize,va_arg(Arg,intptr_t*))))
-                    break;
+                if (Long)
+                {
+                    if ((!IntSize && !ExprIsInt64(&s,va_arg(Arg,int64_t*)))||(IntSize && !ExprIsInt64Ex(&s,IntSize,va_arg(Arg,int64_t*))))
+                        break;
+                }
+                else
+                {
+                    if ((!IntSize && !ExprIsInt(&s,va_arg(Arg,intptr_t*)))||(IntSize && !ExprIsIntEx(&s,IntSize,va_arg(Arg,intptr_t*))))
+                        break;
+                }
                 ++Name;
             }
             else if (*Name == 's')
@@ -2227,10 +2246,65 @@ NOINLINE bool_t ExprIsIntEx(const tchar_t** p,int Size,intptr_t* Out)
     return 1;
 }
 
+NOINLINE bool_t ExprIsInt64Ex(const tchar_t** p,int Size,int64_t* Out)
+{
+    const tchar_t* s = *p;
+    int64_t v = 0;
+
+    bool_t Pos = *s == '+';
+    bool_t Neg = *s == '-';
+    if (Neg || Pos) ++s;
+
+	if (!IsDigit(*s))
+        return 0;
+
+	do
+    {
+		v = v*10 + (*s-'0');
+    }
+    while (--Size && IsDigit(*(++s)));
+
+    if (Size!=0)
+        return 0;
+
+	if (Neg)
+		v = -v;
+
+    *Out = v;
+    *p = s+1;
+    return 1;
+}
+
 NOINLINE bool_t ExprIsInt(const tchar_t** p,intptr_t* Out)
 {
     const tchar_t* s = *p;
     intptr_t v = 0;
+
+    bool_t Pos = *s == '+';
+    bool_t Neg = *s == '-';
+    if (Neg || Pos) ++s;
+
+	if (!IsDigit(*s))
+        return 0;
+
+	do
+    {
+		v = v*10 + (*s-'0');
+    }
+    while (IsDigit(*(++s)));
+
+	if (Neg)
+		v = -v;
+
+    *Out = v;
+    *p = s;
+    return 1;
+}
+
+NOINLINE bool_t ExprIsInt64(const tchar_t** p,int64_t* Out)
+{
+    const tchar_t* s = *p;
+    int64_t v = 0;
 
     bool_t Pos = *s == '+';
     bool_t Neg = *s == '-';

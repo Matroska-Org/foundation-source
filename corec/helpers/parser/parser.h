@@ -208,7 +208,9 @@ NODE_DLL void ExprParamEnd(const tchar_t** p);
 NODE_DLL bool_t ExprParamNext(const tchar_t** p);
 NODE_DLL bool_t ExprIsFrac(const tchar_t** p,cc_fraction*); // no space skipping!
 NODE_DLL bool_t ExprIsInt(const tchar_t** p,intptr_t*); // no space skipping!
+NODE_DLL bool_t ExprIsInt64(const tchar_t** p,int64_t*); // no space skipping!
 NODE_DLL bool_t ExprIsIntEx(const tchar_t** p,int size,intptr_t*); // no space skipping!
+NODE_DLL bool_t ExprIsInt64Ex(const tchar_t** p,int size,int64_t*); // no space skipping!
 NODE_DLL bool_t ExprIsHex(const tchar_t** p,intptr_t*); // no space skipping!
 NODE_DLL bool_t ExprIsRGB(const tchar_t** p,intptr_t*); // no space skipping!
 NODE_DLL bool_t ExprIsFourCC(const tchar_t** p,intptr_t*); // no space skipping!
