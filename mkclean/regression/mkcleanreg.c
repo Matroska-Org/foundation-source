@@ -39,15 +39,18 @@
 static textwriter *StdErr = NULL;
 static tchar_t MkPath[MAXPATHFULL];
 static bool_t KeepOutput = 0;
+static bool_t Generate = 0;
 
 static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *MkParams, filepos_t FileSize, const tchar_t *md5sum)
 {
     tchar_t Command[MAXLINE],OutFile[MAXPATHFULL];
     int result;
+    err_t Err;
     streamdir FileInfo;
     stream *sFile;
     size_t ReadSize;
     md5_ctx MD5proc;
+    uint8_t *DataBuffer;
     uint8_t MD5sum[16];
 
     if (!FileExists(p,File)) {
@@ -86,16 +89,21 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         return;
     }
 
-    // test with mkvalidator
-    if (tcsstr(MkParams,T("--live")))
-        stprintf_s(Command,TSIZEOF(Command),T("--no-warn --quiet --live \"%s\""),OutFile);
-    else
-        stprintf_s(Command,TSIZEOF(Command),T("--no-warn --quiet \"%s\""),OutFile);
-    result = RunCommand(p, T("mkvalidator"), Command, 1);
+    if (!Generate)
+    {
+        // test with mkvalidator
+        tcscpy_s(Command,TSIZEOF(Command),T("--quiet "));
+        if (tcsstr(MkParams,T("--live")))
+            tcscat_s(Command,TSIZEOF(Command),T("--live "));
+        if (!tcsstr(MkParams,T("--remux")))
+            tcscat_s(Command,TSIZEOF(Command),T("--no-warn "));
+        stcatprintf_s(Command,TSIZEOF(Command),T("\"%s\""),OutFile);
+        result = RunCommand(p, T("mkvalidator"), Command, 1);
 
-    if (result!=0) {
-        TextPrintf(StdErr,T("Fail:6:%d: mkvalidator returned %d for %s\r\n"),LineNum,result,OutFile);
-        return;
+        if (result!=0) {
+            TextPrintf(StdErr,T("Fail:6:%d: mkvalidator returned %d for %s\r\n"),LineNum,result,OutFile);
+            return;
+        }
     }
 
     // check the MD5sum
@@ -105,22 +113,31 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         return;
     }
 
+    DataBuffer = malloc(8*1024);
+
     MD5Init(&MD5proc);
-    while (Stream_Read(sFile,Command,sizeof(Command),&ReadSize)==ERR_NONE)
-        MD5Update(&MD5proc, (uint8_t*)Command, ReadSize);
+    while ((Err=Stream_Read(sFile,DataBuffer,sizeof(32*1024),&ReadSize))==ERR_NONE)
+        MD5Update(&MD5proc, (uint8_t*)DataBuffer, ReadSize);
+    if (Err==ERR_END_OF_FILE)
+        MD5Update(&MD5proc, (uint8_t*)DataBuffer, ReadSize);
     MD5Final(&MD5proc, MD5sum);
     StreamClose(sFile);
 
+    free(DataBuffer);
+
     stprintf_s(Command,TSIZEOF(Command),T("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),MD5sum[0], 
         MD5sum[1],MD5sum[2],MD5sum[3],MD5sum[4],MD5sum[5],MD5sum[6],MD5sum[7],MD5sum[8],MD5sum[9],MD5sum[10],MD5sum[11],MD5sum[12],MD5sum[13],MD5sum[14],MD5sum[15]);
-    if (!tcsisame_ascii(md5sum,Command)) {
+    if (Generate) {
+        TextPrintf(StdErr,T("\"%s\" \"%-18s\" %11") TPRId64 T(" %s\n"),File,MkParams,FileInfo.Size,Command);
+    } else if (!tcsisame_ascii(md5sum,Command)) {
         TextPrintf(StdErr,T("Fail:8:%d: bad MD5 %s for %s\r\n"),LineNum,Command,OutFile);
         return;
     }
 
     if (!KeepOutput)
         FileErase(p, OutFile, 1, 0); // delete correct files
-    TextPrintf(StdErr,T("Success:0:%d: %s %s\r\n"),LineNum,File,MkParams);
+    if (!Generate)
+        TextPrintf(StdErr,T("Success:0:%d: %s %s\r\n"),LineNum,File,MkParams);
 }
 
 int main(int argc, const char *argv[])
@@ -172,6 +189,7 @@ int main(int argc, const char *argv[])
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; }
         else if (tcsisame_ascii(Path,T("--mkclean"))) Node_FromStr(&p,MkPath,TSIZEOF(MkPath),argv[++i]);
         else if (tcsisame_ascii(Path,T("--keep"))) KeepOutput = 1;
+        else if (tcsisame_ascii(Path,T("--generate"))) {Generate = 1; }
 		else if (i!=argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
     }
 
@@ -183,6 +201,7 @@ int main(int argc, const char *argv[])
             TextWrite(StdErr,T("Usage: mkcleanreg [options] <regression_list>\r\n"));
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --mkclean <path> path to mkclean to test (default is current path)\r\n"));
+            TextWrite(StdErr,T("  --generate       output is usable as a regression list file\r\n"));
             TextWrite(StdErr,T("  --keep           keep the output files\r\n"));
             TextWrite(StdErr,T("  --version        show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help           show this screen\r\n"));
@@ -226,9 +245,10 @@ int main(int argc, const char *argv[])
     {
         const tchar_t *s = Line;
         // parse the line and if it's OK, launch the process
-        if (!ExprIsTokenEx(&s,T("\"%s\" \"%s\" %") TPRId64 T(" %s"),Path,TSIZEOF(Path),String,TSIZEOF(String),&Size,MD5,TSIZEOF(MD5)))
-            TextPrintf(StdErr,T("Fail:100:%d: Invalid Line %s\r\n"),LineNum,Line);
-        else {
+        if (!ExprIsTokenEx(&s,T("\"%s\" \"%s\" %") TPRId64 T(" %s"),Path,TSIZEOF(Path),String,TSIZEOF(String),&Size,MD5,TSIZEOF(MD5))) {
+            if (!Generate)
+                TextPrintf(StdErr,T("Fail:100:%d: Invalid Line %s\r\n"),LineNum,Line);
+        } else {
             // transform the path relative to the regression file to an absolute file
             tcscpy_s(Line,TSIZEOF(Line),FileRoot);
             tcscat_s(Line,TSIZEOF(Line),Path);
