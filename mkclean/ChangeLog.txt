@@ -5,6 +5,7 @@ version 0.7.1:
     - fix the timecodes when --optimize and --timecodescale are used
     - fix in libebml2 not to read data too far in a bogus EBML master
     - the regression tests pass under Linux too
+    - add a --quiet option for the regression tests to disable mkvalidator error display
 
 2010-11-14
 version 0.7.0:

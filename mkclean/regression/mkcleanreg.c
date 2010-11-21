@@ -39,6 +39,7 @@
 static textwriter *StdErr = NULL;
 static tchar_t MkPath[MAXPATHFULL];
 static bool_t KeepOutput = 0;
+static bool_t Quiet = 0;
 static bool_t Generate = 0;
 
 #define MD5_BLOCK_SIZE  (8*1024)
@@ -86,7 +87,7 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         return;
     }
 
-    if (FileInfo.Size != FileSize) {
+    if (!Generate && FileInfo.Size != FileSize) {
         TextPrintf(StdErr,T("Fail:5:%d: wanted %") TPRId64 T(" got %") TPRId64 T(" size in %s\r\n"),LineNum,FileSize,FileInfo.Size,File);
         return;
     }
@@ -100,7 +101,7 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         if (!tcsstr(MkParams,T("--remux")))
             tcscat_s(Command,TSIZEOF(Command),T("--no-warn "));
         stcatprintf_s(Command,TSIZEOF(Command),T("\"%s\""),OutFile);
-        result = RunCommand(p, T("mkvalidator"), Command, 1);
+        result = RunCommand(p, T("mkvalidator"), Command, Quiet);
 
         if (result!=0) {
             TextPrintf(StdErr,T("Fail:6:%d: mkvalidator returned %d for %s\r\n"),LineNum,result,OutFile);
@@ -191,6 +192,7 @@ int main(int argc, const char *argv[])
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; }
         else if (tcsisame_ascii(Path,T("--mkclean"))) Node_FromStr(&p,MkPath,TSIZEOF(MkPath),argv[++i]);
         else if (tcsisame_ascii(Path,T("--keep"))) KeepOutput = 1;
+        else if (tcsisame_ascii(Path,T("--quiet"))) {Quiet = 1; }
         else if (tcsisame_ascii(Path,T("--generate"))) {Generate = 1; }
 		else if (i!=argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
     }
@@ -204,6 +206,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --mkclean <path> path to mkclean to test (default is current path)\r\n"));
             TextWrite(StdErr,T("  --generate       output is usable as a regression list file\r\n"));
+            TextWrite(StdErr,T("  --quiet          don't display messages from mkvalidator\r\n"));
             TextWrite(StdErr,T("  --keep           keep the output files\r\n"));
             TextWrite(StdErr,T("  --version        show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help           show this screen\r\n"));
