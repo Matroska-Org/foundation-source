@@ -1793,6 +1793,38 @@ int main(int argc, const char *argv[])
 	if (Result!=0)
 		goto exit;
 
+    // use the output track settings for each block
+    for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
+    {
+        //EBML_MasterUseChecksum((ebml_master*)*Cluster,!Unsafe);
+        for (Elt = EBML_MasterChildren(*Cluster);Elt;Elt=(ebml_element*)RLevel1)
+        {
+            RLevel1 = (ebml_master*)EBML_MasterNext((ebml_master*)Elt);
+            if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterBlockGroup))
+            {
+                for (Elt2 = EBML_MasterChildren((ebml_master*)Elt);Elt2;Elt2=EBML_MasterNext((ebml_master*)Elt2))
+                {
+                    if (EBML_ElementIsType(Elt2, &MATROSKA_ContextClusterBlock))
+                    {
+                        if (MATROSKA_LinkBlockWithWriteTracks((matroska_block*)Elt2,WTrackInfo)!=ERR_NONE)
+                            NodeDelete((node*)Elt);
+                        else if (MATROSKA_LinkBlockWriteSegmentInfo((matroska_block*)Elt2,WSegmentInfo)!=ERR_NONE)
+                            NodeDelete((node*)Elt);
+                        break;
+                    }
+                }
+            }
+            else if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
+            {
+                if (MATROSKA_LinkBlockWithWriteTracks((matroska_block*)Elt,WTrackInfo)!=ERR_NONE)
+                    NodeDelete((node*)Elt);
+                else if (MATROSKA_LinkBlockWriteSegmentInfo((matroska_block*)Elt,WSegmentInfo)!=ERR_NONE)
+                    NodeDelete((node*)Elt);
+            }
+        }
+	    //EBML_ElementUpdateSize(*Cluster, 0, 0);
+    }
+
     if (Optimize && !UnOptimize)
     {
         int16_t BlockTrack;
@@ -1997,7 +2029,7 @@ int main(int argc, const char *argv[])
 		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
 		{
 			bool_t ReachedClusterEnd = 0;
-			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 1, NULL);
+			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 0, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterReadSegmentInfo(ClusterW, RSegmentInfo, 1);
 			MATROSKA_LinkClusterWriteSegmentInfo(ClusterW, WSegmentInfo);
@@ -2341,38 +2373,6 @@ int main(int argc, const char *argv[])
             }
 		}
 	}
-
-    // use the output track settings for each block
-    for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
-    {
-        //EBML_MasterUseChecksum((ebml_master*)*Cluster,!Unsafe);
-        for (Elt = EBML_MasterChildren(*Cluster);Elt;Elt=(ebml_element*)RLevel1)
-        {
-            RLevel1 = (ebml_master*)EBML_MasterNext((ebml_master*)Elt);
-            if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterBlockGroup))
-            {
-                for (Elt2 = EBML_MasterChildren((ebml_master*)Elt);Elt2;Elt2=EBML_MasterNext((ebml_master*)Elt2))
-                {
-                    if (EBML_ElementIsType(Elt2, &MATROSKA_ContextClusterBlock))
-                    {
-                        if (MATROSKA_LinkBlockWithWriteTracks((matroska_block*)Elt2,WTrackInfo)!=ERR_NONE)
-                            NodeDelete((node*)Elt);
-                        else if (MATROSKA_LinkBlockWriteSegmentInfo((matroska_block*)Elt2,WSegmentInfo)!=ERR_NONE)
-                            NodeDelete((node*)Elt);
-                        break;
-                    }
-                }
-            }
-            else if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
-            {
-                if (MATROSKA_LinkBlockWithWriteTracks((matroska_block*)Elt,WTrackInfo)!=ERR_NONE)
-                    NodeDelete((node*)Elt);
-                else if (MATROSKA_LinkBlockWriteSegmentInfo((matroska_block*)Elt,WSegmentInfo)!=ERR_NONE)
-                    NodeDelete((node*)Elt);
-            }
-        }
-	    //EBML_ElementUpdateSize(*Cluster, 0, 0);
-    }
 
 	if (!Live)
 	{
