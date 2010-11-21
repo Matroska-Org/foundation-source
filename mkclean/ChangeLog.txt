@@ -1,7 +1,9 @@
 2010-11-20
 version 0.7.1:
     - fix the regression test check on large files
+    - fix the cues when blocks could not be read and written in the output
     - fix in libebml2 not to read data too far in a bogus EBML master
+    - the regression tests pass under Linux too
 
 2010-11-14
 version 0.7.0:

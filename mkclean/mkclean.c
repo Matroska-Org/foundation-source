@@ -231,8 +231,9 @@ static void ReduceSize(ebml_element *Element)
 	}
 }
 
-static void ReadClusterData(ebml_master *Cluster, stream *Input)
+static bool_t ReadClusterData(ebml_master *Cluster, stream *Input)
 {
+    bool_t Changed = 0;
     err_t Result = ERR_NONE;
     ebml_element *Block, *GBlock, *NextBlock;
     // read all the Block/SimpleBlock data
@@ -246,7 +247,10 @@ static void ReadClusterData(ebml_master *Cluster, stream *Input)
                 if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
                 {
                     if ((Result = MATROSKA_BlockReadData((matroska_block*)GBlock, Input))!=ERR_NONE)
+                    {
+                        Changed = 1;
                         NodeDelete((node*)Block);
+                    }
                     break;
                 }
             }
@@ -254,9 +258,13 @@ static void ReadClusterData(ebml_master *Cluster, stream *Input)
         else if (EBML_ElementIsType(Block, &MATROSKA_ContextClusterSimpleBlock))
         {
             if ((Result = MATROSKA_BlockReadData((matroska_block*)Block, Input))!=ERR_NONE)
+            {
+                Changed = 1;
                 NodeDelete((node*)Block);
+            }
         }
     }
+    return Changed;
 }
 
 static err_t UnReadClusterData(ebml_master *Cluster, bool_t IncludingNotRead)
@@ -656,9 +664,7 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
 {
     filepos_t IntendedPosition = EBML_ElementPosition((ebml_element*)Cluster);
     ebml_element *Elt;
-    bool_t CuesChanged = 0;
-
-    ReadClusterData(Cluster, Input);
+    bool_t CuesChanged = ReadClusterData(Cluster, Input);
 
     if (*PrevTimecode != INVALID_TIMECODE_T)
     {
@@ -2497,7 +2503,7 @@ int main(int argc, const char *argv[])
             // write a Void element the size of WSeekPointTags
             SeekPointSize = EBML_ElementFullSize((ebml_element*)WSeekPointTags, 0);
             Void = EBML_ElementCreate(WSeekPointTags,&EBML_ContextEbmlVoid,1,NULL);
-            EBML_VoidSetSize(Void, SeekPointSize - 1 - EBML_CodedSizeLength(SeekPointSize,0,1));
+            EBML_VoidSetFullSize(Void, SeekPointSize);
             EBML_MasterAppend(WMetaSeek,Void);
 
             NodeDelete((node*)WSeekPointTags);
@@ -2608,12 +2614,22 @@ int main(int argc, const char *argv[])
             Result = -16;
             goto exit;
         }
-        assert(ClusterSize == CuesSize);
-        if (ClusterSize != CuesSize)
+        if (CuesSize >= ClusterSize+2)
         {
-            TextWrite(StdErr,T("The Cues size changed after a Cluster timecode was altered!\r\n"));
-            Result = -18;
-            goto exit;
+            // the cues were shrinked, write a void element
+            ebml_element *Void = EBML_ElementCreate(RCues,&EBML_ContextEbmlVoid,1,NULL);
+            EBML_VoidSetFullSize(Void, CuesSize - ClusterSize);
+            EBML_ElementRender(Void,Output,0,0,1,NULL);
+        }
+        else
+        {
+            assert(ClusterSize == CuesSize);
+            if (ClusterSize != CuesSize)
+            {
+                TextWrite(StdErr,T("The Cues size changed after a Cluster timecode was altered!\r\n"));
+                Result = -18;
+                goto exit;
+            }
         }
         Stream_Seek(Output,PosBefore,SEEK_SET);
     }
