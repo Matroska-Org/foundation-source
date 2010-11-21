@@ -1282,7 +1282,7 @@ int main(int argc, const char *argv[])
 			    OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
         }
 		else
-			CheckCueEntries(RCues);
+			Result |= CheckCueEntries(RCues);
 		if (!RTrackInfo)
 		{
 			Result = OutputError(0x41,T("The segment has Clusters but no TrackInfo section"));
