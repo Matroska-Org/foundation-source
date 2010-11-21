@@ -692,6 +692,41 @@ static err_t BlockTrackChanged(matroska_block *Block)
 	return ERR_NONE;
 }
 
+static err_t ClusterTimeChanged(matroska_cluster *Cluster)
+{
+    timecode_t ClusterTimecode, BlockTimecode;
+    ebml_element *Elt, *GBlock;
+
+	Cluster->Base.Base.bNeedDataSizeUpdate = 1;
+    ClusterTimecode = MATROSKA_ClusterTimecode(Cluster);
+    MATROSKA_ClusterSetTimecode(Cluster, ClusterTimecode);
+#if defined(CONFIG_EBML_WRITING)
+    for (Elt = EBML_MasterChildren(Cluster); Elt; Elt = EBML_MasterNext(Elt))
+    {
+        if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterBlockGroup))
+        {
+            for (GBlock = EBML_MasterChildren(Elt);GBlock;GBlock=EBML_MasterNext(GBlock))
+            {
+                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
+                {
+                    BlockTimecode = MATROSKA_BlockTimecode((matroska_block*)GBlock);
+                    if (BlockTimecode!=INVALID_TIMECODE_T)
+                        MATROSKA_BlockSetTimecode((matroska_block*)GBlock, BlockTimecode, ClusterTimecode);
+                    break;
+                }
+            }
+        }
+        else if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
+        {
+            BlockTimecode = MATROSKA_BlockTimecode((matroska_block*)Elt);
+            if (BlockTimecode!=INVALID_TIMECODE_T)
+                MATROSKA_BlockSetTimecode((matroska_block*)Elt, BlockTimecode, ClusterTimecode);
+        }
+    }
+#endif
+    return ERR_NONE;
+}
+
 static err_t CheckCompression(matroska_block *Block)
 {
     ebml_master *Elt, *Header;
@@ -1052,6 +1087,8 @@ void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 {
 	ebml_integer *TimecodeElt;
     ebml_element *Elt, *GBlock;
+    timecode_t BlockTimeCode;
+
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
     Cluster->GlobalTimecode = Timecode;
     TimecodeElt = (ebml_integer*)EBML_MasterGetChild((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode);
@@ -1061,19 +1098,25 @@ void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
     // update all the blocks LocalTimecode
     for (Elt = EBML_MasterChildren(Cluster); Elt; Elt = EBML_MasterNext(Elt))
     {
-        if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
+        if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterBlockGroup))
         {
             for (GBlock = EBML_MasterChildren(Elt);GBlock;GBlock=EBML_MasterNext(GBlock))
             {
                 if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
                 {
-                    MATROSKA_BlockSetTimecode((matroska_block*)GBlock, MATROSKA_BlockTimecode((matroska_block*)GBlock), Timecode);
+                    BlockTimeCode = MATROSKA_BlockTimecode((matroska_block*)GBlock);
+                    if (BlockTimeCode!=INVALID_TIMECODE_T)
+                        MATROSKA_BlockSetTimecode((matroska_block*)GBlock, BlockTimeCode, Timecode);
                     break;
                 }
             }
         }
         else if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
-            MATROSKA_BlockSetTimecode((matroska_block*)Elt, MATROSKA_BlockTimecode((matroska_block*)Elt), Timecode);
+        {
+            BlockTimeCode = MATROSKA_BlockTimecode((matroska_block*)Elt);
+            if (BlockTimeCode!=INVALID_TIMECODE_T)
+                MATROSKA_BlockSetTimecode((matroska_block*)Elt, BlockTimeCode, Timecode);
+        }
     }
 #else
 	assert(Cluster->ReadSegInfo);
@@ -1125,6 +1168,8 @@ timecode_t MATROSKA_BlockTimecode(matroska_block *Block)
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
 	if (Block->GlobalTimecode!=INVALID_TIMECODE_T)
 		return Block->GlobalTimecode;
+    if (Block->ReadTrack==NULL)
+        return INVALID_TIMECODE_T;
     assert(Block->LocalTimecodeUsed);
     Cluster = EBML_ElementParent(Block);
     while (Cluster && !EBML_ElementIsType(Cluster, &MATROSKA_ContextCluster))
@@ -1132,7 +1177,8 @@ timecode_t MATROSKA_BlockTimecode(matroska_block *Block)
     if (!Cluster)
         return INVALID_TIMECODE_T;
     Block->GlobalTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster) + (timecode_t)(Block->LocalTimecode * MATROSKA_SegmentInfoTimecodeScale(Block->ReadSegInfo) * MATROSKA_TrackTimecodeScale(Block->ReadTrack));
-	return Block->GlobalTimecode;
+    MATROSKA_BlockSetTimecode(Block, Block->GlobalTimecode, MATROSKA_ClusterTimecode((matroska_cluster*)Cluster));
+    return Block->GlobalTimecode;
 }
 
 int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
@@ -2747,7 +2793,7 @@ META_CLASS(CREATE,CreateCluster)
 META_PARAM(TYPE,MATROSKA_CLUSTER_READ_SEGMENTINFO,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_CLUSTER_READ_SEGMENTINFO,matroska_cluster,ReadSegInfo)
 META_PARAM(TYPE,MATROSKA_CLUSTER_WRITE_SEGMENTINFO,TYPE_NODE)
-META_DATA(TYPE_NODE_REF,MATROSKA_CLUSTER_WRITE_SEGMENTINFO,matroska_cluster,WriteSegInfo)
+META_DATA_UPDATE_CMP(TYPE_NODE_REF,MATROSKA_CLUSTER_WRITE_SEGMENTINFO,matroska_cluster,WriteSegInfo,ClusterTimeChanged)
 META_END_CONTINUE(EBML_MASTER_CLASS)
 
 META_START_CONTINUE(MATROSKA_SEEKPOINT_CLASS)
