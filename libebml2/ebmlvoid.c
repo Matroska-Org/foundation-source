@@ -83,12 +83,13 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
 META_END(EBML_ELEMENT_CLASS)
 
 #if defined(CONFIG_EBML_WRITING)
-void EBML_VoidSetSize(ebml_element *Void, filepos_t DataSize)
+bool_t EBML_VoidSetFullSize(ebml_element *Void, filepos_t DataSize)
 {
     assert(Node_IsPartOf(Void,EBML_VOID_CLASS));
-    Void->DataSize = DataSize;
+    Void->DataSize = DataSize - 1 - EBML_CodedSizeLength(DataSize,0,1); // 1 is the length of the Void ID
     Void->bValueIsSet = 1;
     Void->bNeedDataSizeUpdate = 0;
+    return Void->DataSize >= 0;
 }
 
 filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault)
@@ -116,7 +117,7 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
         if (aTmp)
         {
             filepos_t HeadBefore,HeadAfter;
-            EBML_VoidSetSize(aTmp, EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1) - 1); // 1 is the length of the Void ID
+            EBML_VoidSetFullSize(aTmp, EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1));
             HeadBefore = EBML_ElementFullSize(aTmp,1) - aTmp->DataSize;
             aTmp->DataSize = aTmp->DataSize - EBML_CodedSizeLength(aTmp->DataSize, aTmp->SizeLength, EBML_ElementIsFiniteSize(aTmp));
             HeadAfter = EBML_ElementFullSize(aTmp,1) - aTmp->DataSize;

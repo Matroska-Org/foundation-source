@@ -223,7 +223,7 @@ EBML_DLL err_t EBML_BinarySetData(ebml_binary *Element, const uint8_t *Data, siz
 EBML_DLL const uint8_t *EBML_BinaryGetData(ebml_binary *Element);
 
 #if defined(CONFIG_EBML_WRITING)
-EBML_DLL void EBML_VoidSetSize(ebml_element *Void, filepos_t);
+EBML_DLL bool_t EBML_VoidSetFullSize(ebml_element *Void, filepos_t);
 EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
 #endif
 EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
