@@ -14,12 +14,12 @@
 "ar-set_to_0.mkv" "--remux --optimize"     156513 12faeb3a23325e6d22f4c24b080d1069
 "ar-set_to_0.mkv" "--unsafe          "     156543 ada5ab20bf959a6749eba0376c6652f4
 "ar-set_to_0.mkv" "--remux --unsafe  "     156578 e1114160f50835d65cacd8fffb7f3903
-"mkclean-crash.mkv" "                  "    1035373 516bf66ff0b23427ff974cb7c7ddd19e
-"mkclean-crash.mkv" "--remux           "    1035383 06bfd950ff3df8615b16bb118bc1472b
+"mkclean-crash.mkv" "                  "    1035373 7a1fbce72bc3ba3021ed7651d0161a17
+"mkclean-crash.mkv" "--remux           "    1035383 72a4802b8a80f0da9c0740ea14c8ef7c
 "mkclean-crash.mkv" "--optimize        "    1035156 acd61cd11dbc094885fa13d1314c54fe
 "mkclean-crash.mkv" "--remux --optimize"    1035166 22e4e8d23bf951ec697f4b086daaca16
-"mkclean-crash.mkv" "--unsafe          "    1035292 2d10a8a624ce3156dec88972334815bc
-"mkclean-crash.mkv" "--remux --unsafe  "    1035302 a2e498663f60d542b9de4bb9b92cd404
+"mkclean-crash.mkv" "--unsafe          "    1035292 f12be7473908e5ab6217c29e919fcb79
+"mkclean-crash.mkv" "--remux --unsafe  "    1035302 d82bd6d4016f6e618d9ba68afc637505
 "haali.mkv" "                  "    1034658 53abcdbce5a004314561e5a659424114
 "haali.mkv" "--remux           "    1034658 78455decf021a256a79f6c5847fb51ff
 "haali.mkv" "--optimize        "    1034613 f66afc1cea41af89a416ad873bc389fe
@@ -48,11 +48,11 @@
 "bad-stereo.mkv" "--remux --optimize"    1034674 f607bb86f53769cb5bd54c766227fd66
 "bad-stereo.mkv" "--unsafe          "    1034866 c2d2483957d69d32c35e9e675b4bee66
 "bad-stereo.mkv" "--remux --unsafe  "    1034820 edbe9b3b334163548105c8b22d2082ac
-"audio-only.mka" "                  "    2055535 10dd2e486f8784c3411407d70392af10
+"audio-only.mka" "                  "    2055521 6a26a147e19d124c131948490a18bbd9
 "audio-only.mka" "--remux           "    2054116 844069f4bc47049eaeee9181e05ba5bb
-"audio-only.mka" "--optimize        "    2044634 6aed57a02e8005f566e5e327ba194fc9
+"audio-only.mka" "--optimize        "    2044620 18a83eb1c7b76a19afbabe46c43e9038
 "audio-only.mka" "--remux --optimize"    2043215 22ba6edbee9f2f2612b25540171b1a14
-"audio-only.mka" "--unsafe          "    2052107 e36659d0ce318cbe0a582be8917eb1c2
+"audio-only.mka" "--unsafe          "    2052093 7a70688c4b9c38124a2740dedea3d245
 "audio-only.mka" "--remux --unsafe  "    2051800 9e619a655a8407dfca97b7d2f5b0e59c
 "odd-cues.mkv" "                  "   14620917 6b88df3da3724172f2d34c13d599fa1a
 "odd-cues.mkv" "--remux           "   14620917 4661ad7ac44e5bf5d0f4763ac8afa9af
@@ -111,6 +111,10 @@
 "zlib-audio.mkv" "--remux --optimize"   25840462 75809f9ab0180c942722352a5185a05d
 "zlib-audio.mkv" "--unsafe          "   25842091 519b697f891547b91ec87ff683619546
 "zlib-audio.mkv" "--remux --unsafe  "   25841938 bb9bce8ac17742800fee4dff224130fa
+"zlib-audio.mkv" "--no-optimize     "   25822520 3e01c8ea5d3a13352b60e4ef89d944ca
+"zlib-audio.mkv" "--remux --no-optimize"   25822222 96d01c92e5ce2cd664de7cb073b11422
+"zlib-audio.mkv" "--unsafe --no-optimize"   25822203 a6aa972aed84dbe44301c843b4019594
+"zlib-audio.mkv" "--remux --unsafe --no-optimize"   25822050 386c2f5965370e8eef24dcbc2e577968
 "ar.mkv" "                  "   54089704 9697e01d129f35e35a84f4aa00433cc3
 "ar.mkv" "--remux           "   54089252 2ec6de6747aa473c8254cfe369388b1e
 "ar.mkv" "--optimize        "   54079828 989acbaebfa3acef5eefc6f5a6da294c
@@ -139,11 +143,11 @@
 "chrome_linux_x64_fail.webm" "--remux           "  138038831 7bb2d55c3320d7c2fe91c45a15bebe86
 "chrome_linux_x64_fail.webm" "--remux --optimize"  138038831 7bb2d55c3320d7c2fe91c45a15bebe86
 "chrome_linux_x64_fail.webm" "--remux --unsafe  "  138036645 7374849e55b5ef21413312838bc09760
-"A_Digital_Media_Primer_For_Geeks-360p.webm" "                  "  138043865 6c00554560868c3f55d099c42d9ec7cf
+"A_Digital_Media_Primer_For_Geeks-360p.webm" "                  "  138043865 2a311c4ca044e7850d2356c0f19737fa
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux           "  138038718 58801fb819c8a7e1960fcee94cbd3ef2
-"A_Digital_Media_Primer_For_Geeks-360p.webm" "--optimize        "  138043865 6c00554560868c3f55d099c42d9ec7cf
+"A_Digital_Media_Primer_For_Geeks-360p.webm" "--optimize        "  138043865 2a311c4ca044e7850d2356c0f19737fa
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux --optimize"  138038718 58801fb819c8a7e1960fcee94cbd3ef2
-"A_Digital_Media_Primer_For_Geeks-360p.webm" "--unsafe          "  138038997 3afe7eddef651c1516754d07c9d8c327
+"A_Digital_Media_Primer_For_Geeks-360p.webm" "--unsafe          "  138038997 960d012324adc027a3df7ef06dac3182
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux --unsafe  "  138036532 ef7f77ded78c086c2a2fc5726c0beef8
 "fake-side-by-side.webm" "                  "  138038840 16920ac044e29744125a8af0b3e4e954
 "fake-side-by-side.webm" "--remux           "  138038840 b9049225c438fbbcf5a4c715fae62f58
