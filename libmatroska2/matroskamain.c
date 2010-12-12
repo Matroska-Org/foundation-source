@@ -477,7 +477,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 1, &MATROSKA_ContextTrackCodecName          ,0},
     {0, 1, &MATROSKA_ContextTrackAttachmentLink     ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, &MATROSKA_ContextTrackOverlay            ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
-    {0, 1, &MATROSKA_ContextTrackEncodings          ,0},
+    {0, 1, &MATROSKA_ContextTrackEncodings          ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {0, 0, &MATROSKA_ContextTrackTranslate          ,PROFILE_WEBM_V1|PROFILE_WEBM_V2},
     {1, 1, &MATROSKA_ContextTrackCodecDecodeAll     ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1},
     {0, 1, &MATROSKA_ContextTrackOperation          ,PROFILE_MATROSKA_V1|PROFILE_DIVX_V1|PROFILE_WEBM_V1|PROFILE_WEBM_V2},
