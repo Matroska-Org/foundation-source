@@ -1395,6 +1395,12 @@ int main(int argc, const char *argv[])
 
 	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_WEBM_V2)
 		DocVersion=2;
+    
+    if (DstProfile==PROFILE_WEBM_V2)
+    {
+        UnOptimize = 1;
+        Optimize = 0;
+    }
 
     if (!RSegment)
     {
@@ -1657,7 +1663,7 @@ int main(int argc, const char *argv[])
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
 	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
-	if (Remux ||Live || Optimize)
+	if (Remux || Optimize || Live || UnOptimize)
 		tcscat_s(String,TSIZEOF(String),T(" "));
 	if (Remux)
 		tcscat_s(String,TSIZEOF(String),T("r"));

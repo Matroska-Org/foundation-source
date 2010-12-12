@@ -38,8 +38,6 @@
 "sample252kb.mkv" "--doctype 2 --remux --unsafe"     201077 e0f2b92858169469514f9bae33dd0405
 "live-stream.webm" "--live            "     305615 def22ffa99d9195d831dba37ab96a793
 "live-stream.webm" "--live --remux    "     305615 4e005630e45a9d45e0257cace5fd3d90
-"live-stream.webm" "--live --optimize "     301639 ca2b16715e3d31180ee6b8e80c2fc004
-"live-stream.webm" "--live --remux --optimize"     301639 618ee87ff231ad3eabf1be6180947559
 "live-stream.webm" "--live --unsafe   "     305565 9c1c7bf914ab84f1e38a97daf72f9cb5
 "live-stream.webm" "--live --remux --unsafe"     305577 1a528b6597653049792d42938e825f9a
 "bad-stereo.mkv" "                  "    1034946 83577948abfd25b5b75a8ce7c64bcb3f
