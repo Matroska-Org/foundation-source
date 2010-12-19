@@ -1,3 +1,7 @@
+2010-12-19
+version 0.7.3:
+    - add --optimize_nv to use header stripping where possible except video tracks (for some hardware)
+
 2010-12-12
 version 0.7.2:
     - discard --optimize for WebM

@@ -1238,7 +1238,7 @@ int main(int argc, const char *argv[])
     filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize;
     timecode_t PrevTimecode;
     bool_t CuesChanged;
-	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Optimize = 0, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
+	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Optimize = 0, OptimizeVideo = 1, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
     int InputPathIndex = 1;
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
@@ -1301,7 +1301,8 @@ int main(int argc, const char *argv[])
 			InputPathIndex = i+1;
 		}
 		else if (tcsisame_ascii(Path,T("--unsafe"))) { Unsafe = 1; InputPathIndex = i+1; }
-		else if (tcsisame_ascii(Path,T("--optimize"))) { Optimize = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--optimize"))) { Optimize = 1; OptimizeVideo = 1; InputPathIndex = i+1; }
+		else if (tcsisame_ascii(Path,T("--optimize_nv"))) { Optimize = 1; OptimizeVideo = 0; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--regression"))) { Regression = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--no-optimize"))) { UnOptimize = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--quiet"))) { Quiet = 1; InputPathIndex = i+1; }
@@ -1328,6 +1329,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
 		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
 		    TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
+		    TextWrite(StdErr,T("  --optimize_nv use all possible optimization for the output file, except video tracks\r\n"));
 		    TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
 		    TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
 		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
@@ -1841,8 +1843,25 @@ int main(int argc, const char *argv[])
 
 		ArrayResize(&TrackMaxHeader, sizeof(array)*(MaxTrackNum+1), 0);
 		ArrayZero(&TrackMaxHeader);
-        for (i=0;(size_t)i<=MaxTrackNum;++i)
-            InitCommonHeader(ARRAYBEGIN(TrackMaxHeader,array)+i);
+        for (i=0;(size_t)i<=MaxTrackNum;++i) {
+            bool_t OptimizeTrack = 1;
+            if (!OptimizeVideo)
+            {
+                ebml_master *Track;
+	            for (Track = (ebml_master*)EBML_MasterFindChild(WTrackInfo,&MATROSKA_ContextTrackEntry); Track; Track=(ebml_master*)EBML_MasterNextChild(WTrackInfo,Track))
+	            {
+		            Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
+		            if (EBML_IntegerValue((ebml_integer*)Elt) != i)
+                        continue;
+		            Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
+		            if (EBML_IntegerValue((ebml_integer*)Elt) == TRACK_TYPE_VIDEO)
+			            OptimizeTrack = 0;
+		            break;
+	            }
+            }
+            if (OptimizeTrack)
+                InitCommonHeader(ARRAYBEGIN(TrackMaxHeader,array)+i);
+        }
 
 	    for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*);ClusterR!=ARRAYEND(RClusters,matroska_cluster*);++ClusterR)
 	    {
