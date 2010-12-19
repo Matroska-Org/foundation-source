@@ -1855,7 +1855,11 @@ int main(int argc, const char *argv[])
                         continue;
 		            Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
 		            if (EBML_IntegerValue((ebml_integer*)Elt) == TRACK_TYPE_VIDEO)
+                    {
+                        Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackEncodings);
+                        NodeDelete((node*)Elt);
 			            OptimizeTrack = 0;
+                    }
 		            break;
 	            }
             }
