@@ -119,7 +119,7 @@ void DebugMessage(const tchar_t* Msg,...)
 }
 #endif
 
-#define EXTRA_SEEK_SPACE  22
+#define EXTRA_SEEK_SPACE     22
 
 typedef struct track_info
 {
@@ -1709,12 +1709,14 @@ int main(int argc, const char *argv[])
             NextPos += Unsafe ? 18 : 24;
         if (RChapters)
             NextPos += Unsafe ? 17 : 23;
+
 		// segment info
 		WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
         EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 		EBML_ElementForcePosition((ebml_element*)WSegmentInfo, NextPos);
 		NextPos += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0) + 60; // 60 for the extra string we add
 		MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)WSegmentInfo);
+
 		// track info
 		if (WTrackInfo)
 		{
@@ -2411,8 +2413,6 @@ int main(int argc, const char *argv[])
 
 	if (!Live)
 	{
-        ebml_element *Void;
-
         // cues
         if (ARRAYCOUNT(*Clusters,ebml_element*) < 2)
         {
@@ -2464,16 +2464,13 @@ int main(int argc, const char *argv[])
     
         if (!RChapters)
             ExtraVoidSize += EXTRA_SEEK_SPACE;
-    
-        // create a fake placeholder elements to have its position prepared in the SeekHead
-        Void = EBML_ElementCreate(WMetaSeek,&EBML_ContextEbmlVoid,1,NULL);
-        EBML_VoidSetFullSize(Void, ExtraVoidSize);
-        EBML_MasterAppend(WMetaSeek,Void);
 
 		// first estimation of the MetaSeek size
 		MetaSeekUpdate(WMetaSeek);
 		MetaSeekBefore = EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
         NextPos = EBML_ElementPositionData((ebml_element*)WSegment) + EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
+
+        NextPos += ExtraVoidSize;
 	}
 
     EBML_ElementUpdateSize(WSegmentInfo,0,0);
@@ -2491,6 +2488,7 @@ int main(int argc, const char *argv[])
 
 	if (!Live)
 	{
+        ebml_element *Void;
 		//  Compute the Chapters size
 		if (RChapters)
 		{
@@ -2543,7 +2541,19 @@ int main(int argc, const char *argv[])
 			goto exit;
 		}
 		SegmentSize += MetaSeekBefore;
-	}
+
+        // create a fake placeholder elements to have its position prepared in the SeekHead
+        Void = EBML_ElementCreate(WMetaSeek,&EBML_ContextEbmlVoid,1,NULL);
+        EBML_VoidSetFullSize(Void, ExtraVoidSize);
+		if (EBML_ElementRender((ebml_element*)Void,Output,0,0,1,&ClusterSize)!=ERR_NONE)
+		{
+			TextWrite(StdErr,T("Failed to write the Void after Seek Head\r\n"));
+			Result = -24;
+			goto exit;
+		}
+        NodeDelete((node*)Void);
+		SegmentSize += ClusterSize;
+    }
     else if (!Unsafe)
         SetClusterPrevSize(Clusters, ClustersNeedRead?Input:NULL);
 
