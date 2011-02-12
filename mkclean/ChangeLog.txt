@@ -1,6 +1,7 @@
 2011-02-12
 version 0.8.0:
     - fix some odd case where some file other than the bogus output file would be deleted after an error
+    - add more padding in the SeekHead to make room for links to chapters/tags/attachments/others when there are none in the source (for later editing)
 
 2010-12-19
 version 0.7.3:

@@ -119,6 +119,8 @@ void DebugMessage(const tchar_t* Msg,...)
 }
 #endif
 
+#define EXTRA_SEEK_SPACE  22
+
 typedef struct track_info
 {
 	bool_t IsLaced;
@@ -1228,7 +1230,7 @@ int main(int argc, const char *argv[])
     ebml_master *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
     ebml_master *WSegment = NULL, *WMetaSeek = NULL, *WSegmentInfo = NULL, *WTrackInfo = NULL;
     ebml_element *Elt, *Elt2;
-    matroska_seekpoint *WSeekPoint = NULL, *WSeekPointTags = NULL;
+    matroska_seekpoint *WSeekPoint = NULL;
     ebml_string *LibName, *AppName;
     array RClusters, WClusters, *Clusters, WTracks;
     ebml_parser_context RContext;
@@ -1236,6 +1238,7 @@ int main(int argc, const char *argv[])
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize;
+    size_t ExtraVoidSize = 0;
     timecode_t PrevTimecode;
     bool_t CuesChanged;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Optimize = 0, OptimizeVideo = 1, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
@@ -1701,7 +1704,7 @@ int main(int argc, const char *argv[])
 		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,&MATROSKA_ContextSeekHead,0);
         EBML_MasterUseChecksum(WMetaSeek,!Unsafe);
 		EBML_ElementForcePosition((ebml_element*)WMetaSeek, Stream_Seek(Output,0,SEEK_CUR)); // keep the position for when we need to write it
-        NextPos = 38 + 4* (Unsafe ? 17 : 23); // raw estimation of the SeekHead size
+        NextPos = 38 + 6* (Unsafe ? 17 : 23); // raw estimation of the SeekHead size
         if (RAttachments)
             NextPos += Unsafe ? 18 : 24;
         if (RChapters)
@@ -2408,6 +2411,8 @@ int main(int argc, const char *argv[])
 
 	if (!Live)
 	{
+        ebml_element *Void;
+
         // cues
         if (ARRAYCOUNT(*Clusters,ebml_element*) < 2)
         {
@@ -2450,15 +2455,20 @@ int main(int argc, const char *argv[])
 			MATROSKA_LinkMetaSeekElement(WSeekPoint,(ebml_element*)RCues);
 		}
 
+        ExtraVoidSize = 2 * EXTRA_SEEK_SPACE; // leave room for 2 unknown level1 elements
         if (!RTags)
-        {
-            // create a fake Tags element to have its position prepared in the SeekHead
-            RTags = (ebml_master*)EBML_ElementCreate(WMetaSeek,&MATROSKA_ContextTags,1,NULL);
-            EBML_ElementForcePosition((ebml_element*)RTags, NextPos);
-			WSeekPointTags = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
-            EBML_MasterUseChecksum((ebml_master*)WSeekPointTags,!Unsafe);
-            MATROSKA_LinkMetaSeekElement(WSeekPointTags,(ebml_element*)RTags);
-        }
+            ExtraVoidSize += EXTRA_SEEK_SPACE;
+
+        if (!RAttachments)
+            ExtraVoidSize += EXTRA_SEEK_SPACE;
+    
+        if (!RChapters)
+            ExtraVoidSize += EXTRA_SEEK_SPACE;
+    
+        // create a fake placeholder elements to have its position prepared in the SeekHead
+        Void = EBML_ElementCreate(WMetaSeek,&EBML_ContextEbmlVoid,1,NULL);
+        EBML_VoidSetFullSize(Void, ExtraVoidSize);
+        EBML_MasterAppend(WMetaSeek,Void);
 
 		// first estimation of the MetaSeek size
 		MetaSeekUpdate(WMetaSeek);
@@ -2500,7 +2510,7 @@ int main(int argc, const char *argv[])
 		}
 
 		//  Compute the Tags size
-		if (RTags && !WSeekPointTags)
+		if (RTags)
 		{
 			EBML_ElementUpdateSize(RTags,0,0);
 			EBML_ElementForcePosition((ebml_element*)RTags, NextPos);
@@ -2524,25 +2534,6 @@ int main(int argc, const char *argv[])
         // write without the fake Tags pointer
 		Stream_Seek(Output,EBML_ElementPosition((ebml_element*)WMetaSeek),SEEK_SET);
         MetaSeekUpdate(WMetaSeek);
-        if (WSeekPointTags)
-        {
-            filepos_t SeekPointSize;
-            ebml_element *Void;
-
-            // remove the fake tags pointer and replace by a void of the same size
-            NodeTree_SetParent(WSeekPointTags,NULL,NULL);
-
-            // write a Void element the size of WSeekPointTags
-            SeekPointSize = EBML_ElementFullSize((ebml_element*)WSeekPointTags, 0);
-            Void = EBML_ElementCreate(WSeekPointTags,&EBML_ContextEbmlVoid,1,NULL);
-            EBML_VoidSetFullSize(Void, SeekPointSize);
-            EBML_MasterAppend(WMetaSeek,Void);
-
-            NodeDelete((node*)WSeekPointTags);
-            WSeekPointTags = NULL;
-            NodeDelete((node*)RTags);
-            RTags = NULL;
-        }
 
 		EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
 		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekBefore)!=ERR_NONE)
@@ -2669,7 +2660,7 @@ int main(int argc, const char *argv[])
     // update the WSegment size
 	if (!Live)
 	{
-		if (EBML_ElementDataSize((ebml_element*)WSegment,0)!=INVALID_FILEPOS_T && SegmentSize - ExtraSizeDiff > EBML_ElementDataSize((ebml_element*)WSegment,0))
+		if (EBML_ElementDataSize((ebml_element*)WSegment,0)!=INVALID_FILEPOS_T && SegmentSize - ExtraSizeDiff - ExtraVoidSize > EBML_ElementDataSize((ebml_element*)WSegment,0))
 		{
 			if (EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength((ebml_element*)WSegment),0) != EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength((ebml_element*)WSegment),0))
 			{

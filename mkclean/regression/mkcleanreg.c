@@ -241,8 +241,10 @@ int main(int argc, const char *argv[])
     }
 
     SplitPath(Path,FileRoot,TSIZEOF(FileRoot),NULL,0,NULL,0);
-    if (!FileRoot[0])
-        FileRoot[0] = T('.');
+    if (!FileRoot[0]) {
+        FileRoot[0] = '.';
+        FileRoot[1] = 0;
+    }
     AddPathDelimiter(FileRoot,TSIZEOF(FileRoot));
 
     LineNum = 1;
