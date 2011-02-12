@@ -1289,6 +1289,7 @@ int main(int argc, const char *argv[])
 			else
 			{
 		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
+                Path[0] = 0;
 				Result = -8;
 				goto exit;
 			}
@@ -1336,6 +1337,7 @@ int main(int argc, const char *argv[])
             TextWrite(StdErr,T("  --version     show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help        show this screen\r\n"));
         }
+        Path[0] = 0;
         Result = -1;
         goto exit;
     }
@@ -1345,6 +1347,7 @@ int main(int argc, const char *argv[])
     if (!Input)
     {
         TextPrintf(StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
+        Path[0] = 0;
         Result = -2;
         goto exit;
     }

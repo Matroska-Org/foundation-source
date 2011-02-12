@@ -1,3 +1,7 @@
+2011-02-12
+version 0.8.0:
+    - fix some odd case where some file other than the bogus output file would be deleted after an error
+
 2010-12-19
 version 0.7.3:
     - add --optimize_nv to use header stripping where possible except video tracks (for some hardware)
