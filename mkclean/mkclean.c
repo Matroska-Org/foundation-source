@@ -1230,7 +1230,7 @@ int main(int argc, const char *argv[])
     ebml_master *RSegmentInfo = NULL, *RTrackInfo = NULL, *RChapters = NULL, *RTags = NULL, *RCues = NULL, *RAttachments = NULL;
     ebml_master *WSegment = NULL, *WMetaSeek = NULL, *WSegmentInfo = NULL, *WTrackInfo = NULL;
     ebml_element *Elt, *Elt2;
-    matroska_seekpoint *WSeekPoint = NULL;
+    matroska_seekpoint *WSeekPoint = NULL, *W1stClusterSeek = NULL;
     ebml_string *LibName, *AppName;
     array RClusters, WClusters, *Clusters, WTracks;
     ebml_parser_context RContext;
@@ -1704,7 +1704,7 @@ int main(int argc, const char *argv[])
 		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,&MATROSKA_ContextSeekHead,0);
         EBML_MasterUseChecksum(WMetaSeek,!Unsafe);
 		EBML_ElementForcePosition((ebml_element*)WMetaSeek, Stream_Seek(Output,0,SEEK_CUR)); // keep the position for when we need to write it
-        NextPos = 38 + 6* (Unsafe ? 17 : 23); // raw estimation of the SeekHead size
+        NextPos = 38 + 4* (Unsafe ? 17 : 23); // raw estimation of the SeekHead size
         if (RAttachments)
             NextPos += Unsafe ? 18 : 24;
         if (RChapters)
@@ -2465,6 +2465,16 @@ int main(int argc, const char *argv[])
         if (!RChapters)
             ExtraVoidSize += EXTRA_SEEK_SPACE;
 
+        // first cluster
+        if (ARRAYCOUNT(RClusters,matroska_cluster*))
+        {
+			W1stClusterSeek = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+            EBML_MasterUseChecksum((ebml_master*)W1stClusterSeek,!Unsafe);
+			EBML_ElementForcePosition(ARRAYBEGIN(*Clusters,ebml_element*)[0], NextPos + ExtraVoidSize);
+			NextPos += EBML_ElementFullSize(ARRAYBEGIN(*Clusters,ebml_element*)[0],0);
+			MATROSKA_LinkMetaSeekElement(W1stClusterSeek,ARRAYBEGIN(*Clusters,ebml_element*)[0]);
+        }
+
 		// first estimation of the MetaSeek size
 		MetaSeekUpdate(WMetaSeek);
 		MetaSeekBefore = EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
@@ -2536,7 +2546,7 @@ int main(int argc, const char *argv[])
 		EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
 		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekBefore)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
+			TextWrite(StdErr,T("Failed to write the final Meta Seek\r\n"));
 			Result = -22;
 			goto exit;
 		}
@@ -2547,7 +2557,7 @@ int main(int argc, const char *argv[])
         EBML_VoidSetFullSize(Void, ExtraVoidSize);
 		if (EBML_ElementRender((ebml_element*)Void,Output,0,0,1,&ClusterSize)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the Void after Seek Head\r\n"));
+			TextWrite(StdErr,T("Failed to write the Void after Meta Seek\r\n"));
 			Result = -24;
 			goto exit;
 		}
@@ -2608,6 +2618,7 @@ int main(int argc, const char *argv[])
         }
         SegmentSize += ClusterSize;
     }
+
     if (!Live && RCues)
     {
         if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&CuesSize)!=ERR_NONE)
@@ -2697,13 +2708,13 @@ int main(int argc, const char *argv[])
 		//Stream_Seek(Output,EBML_ElementPosition(WMetaSeek,SEEK_SET);
 		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the final Seek Head\r\n"));
+			TextWrite(StdErr,T("Failed to write the final Meta Seek\r\n"));
 			Result = -22;
 			goto exit;
 		}
 		if (MetaSeekBefore != MetaSeekAfter)
 		{
-			TextPrintf(StdErr,T("The final Seek Head size has changed %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),MetaSeekBefore,MetaSeekAfter);
+			TextPrintf(StdErr,T("The final Meta Seek size has changed %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),MetaSeekBefore,MetaSeekAfter);
 			Result = -23;
 			goto exit;
 		}

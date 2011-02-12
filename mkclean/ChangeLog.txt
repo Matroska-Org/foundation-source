@@ -2,6 +2,7 @@
 version 0.8.0:
     - fix some odd case where some file other than the bogus output file would be deleted after an error
     - add more padding after the SeekHead to make room for links to chapters/tags/attachments/others and/or editing
+    - add a link to the first Cluster in the Seek Head
 
 2010-12-19
 version 0.7.3:
