@@ -128,6 +128,7 @@ NODE_DLL err_t ParserSkip(parser*, intptr_t* Skip);
 NODE_DLL err_t ParserRead(parser*, void* Data, size_t Size, size_t* Readed);
 NODE_DLL err_t ParserReadEx(parser*, void* Data, size_t Size, size_t* Readed, bool_t Fill);
 NODE_DLL intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter);
+NODE_DLL void ParserSkipAfter(parser* p, int Delimiter);
 NODE_DLL bool_t ParserLine(parser*, tchar_t* Out, size_t OutLen);
 NODE_DLL bool_t ParserBigLine(parser*);
 NODE_DLL bool_t ParserIsToken(parser*, const tchar_t* Token); // case insensitive, ascii
@@ -168,6 +169,7 @@ typedef struct textwriter
 	const tchar_t* Element;
 	int Deep;
 	bool_t Child;
+    bool_t InsideContent;
 
 } textwriter;
 
@@ -180,6 +182,7 @@ NODE_DLL err_t TextPrintf(textwriter*, const tchar_t* Msg,...)
 NODE_DLL void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root);
 NODE_DLL void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element);
 NODE_DLL void TextElementEnd(textwriter*);
+NODE_DLL void TextElementAppendData(textwriter* Text, const tchar_t *Value);
 NODE_DLL void TextElementEndData(textwriter* Text, const tchar_t *Value);
 NODE_DLL void TextAttrib(textwriter*, const tchar_t* Name, const void* Data, dataflags Type);
 NODE_DLL void TextAttribEx(textwriter*,const tchar_t* Name, const void* Data, size_t Size, dataflags Type);

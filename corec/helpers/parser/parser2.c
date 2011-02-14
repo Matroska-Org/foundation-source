@@ -620,6 +620,15 @@ void ParserURLToHTML(tchar_t* p,size_t n)
 		}
 }
 
+void ParserSkipAfter(parser* p, int Delimiter)
+{
+    tchar_t Del[2];
+    ParserReadUntil(p,NULL,0,Delimiter);
+    Del[0] = Delimiter;
+    Del[1] = 0;
+    IsToken(p,Del);
+}
+
 intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
 {
     char* s = alloca(OutLen);
@@ -854,8 +863,7 @@ bool_t ParserAttribString(parser* p, tchar_t* Out, size_t OutLen)
     // skip spaces by ParserIsToken
 	if (ParserIsToken(p,T("\"")))
 		Delimiter = '\"';
-	else
-	if (IsToken(p,T("'")))
+	else if (IsToken(p,T("'")))
 		Delimiter = '\'';
 	else
 		Delimiter = '>';
@@ -1769,16 +1777,23 @@ void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
     Out->CC = In->CC;
 	Out->Stream = In->Stream;
 	Out->Child = 0;
-	Out->Deep = In->Deep+2;
+    Out->InsideContent = In->Deep==0;
+    Out->Deep = In->Deep+2;
 	Out->Element = Element;
-	TextPrintf(Out,T("%*c%s"),Out->Deep,'<',Element);
+    TextPrintf(Out,T("%*c%s"),In->Deep?Out->Deep:0, '<',Element);
 }
 
 void TextElementEnd(textwriter* Text)
 {
-	if (Text->Child)
-		TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
-	else
+    if (Text->Child) {
+        if (Text->InsideContent)
+            TextPrintf(Text,T("</%s> "),Text->Element);
+        else
+            TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
+    }
+    else if (Text->InsideContent)
+		TextWrite(Text,T("/>"));
+    else
 		TextWrite(Text,T("/>\n"));
 }
 
@@ -1790,6 +1805,17 @@ void TextElementEndData(textwriter* Text, const tchar_t *Value)
 		TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
 }
 
+void TextElementAppendData(textwriter* Text, const tchar_t *Value)
+{
+	if (Text->Child)
+		TextWrite(Text,Value);
+    else {
+		TextPrintf(Text,T(">%s"), Value);
+        Text->Child = 1;
+        Text->Deep = 0;
+    }
+}
+
 void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root)
 {
 	assert(Text->Stream);
@@ -1797,6 +1823,7 @@ void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Roo
 	Text->Element = Root;
 	Text->Deep = 1;
 	Text->Child = 0;
+    Text->InsideContent = 0;
 	TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);
 }
 

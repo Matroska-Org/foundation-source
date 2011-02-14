@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2010, Matroska (non-profit organisation)
+ * Copyright (c) 2010-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
