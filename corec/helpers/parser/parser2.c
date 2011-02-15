@@ -1907,6 +1907,8 @@ NOINLINE bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen)
     return 1;
 }
 
+static NOINLINE bool_t ReadHex(const tchar_t** p,intptr_t* Out,bool_t RGB, bool_t Neg);
+
 NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
 {
     const tchar_t* s = *p;
@@ -1958,6 +1960,12 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
                     if ((!IntSize && !ExprIsInt(&s,va_arg(Arg,intptr_t*)))||(IntSize && !ExprIsIntEx(&s,IntSize,va_arg(Arg,intptr_t*))))
                         break;
                 }
+                ++Name;
+            }
+            if (*Name == 'x')
+            {
+                if (!ReadHex(&s,va_arg(Arg,intptr_t*),0,0))
+                    break;
                 ++Name;
             }
             else if (*Name == 's')
