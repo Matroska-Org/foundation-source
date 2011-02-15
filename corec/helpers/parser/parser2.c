@@ -624,7 +624,7 @@ void ParserSkipAfter(parser* p, int Delimiter)
 {
     tchar_t Del[2];
     ParserReadUntil(p,NULL,0,Delimiter);
-    Del[0] = Delimiter;
+    Del[0] = (tchar_t)Delimiter;
     Del[1] = 0;
     IsToken(p,Del);
 }
@@ -1777,6 +1777,7 @@ void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
     Out->CC = In->CC;
 	Out->Stream = In->Stream;
 	Out->Child = 0;
+	Out->SafeFormat = In->SafeFormat;
     Out->InsideContent = In->Deep==0;
     Out->Deep = In->Deep+2;
 	Out->Element = Element;
@@ -1785,16 +1786,22 @@ void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
 
 void TextElementEnd(textwriter* Text)
 {
-    if (Text->Child) {
+    if (Text->Child)
+	{
         if (Text->InsideContent)
             TextPrintf(Text,T("</%s> "),Text->Element);
         else
             TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
     }
-    else if (Text->InsideContent)
-		TextWrite(Text,T("/>"));
-    else
-		TextWrite(Text,T("/>\n"));
+	else
+	{
+		if (Text->SafeFormat)
+			TextPrintf(Text,T("></%s>"),Text->Element);
+		else
+			TextWrite(Text,T("/>"));
+		if (!Text->InsideContent)
+			TextWrite(Text,T("\n"));
+	}
 }
 
 void TextElementEndData(textwriter* Text, const tchar_t *Value)
@@ -1824,6 +1831,7 @@ void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Roo
 	Text->Deep = 1;
 	Text->Child = 0;
     Text->InsideContent = 0;
+	Text->SafeFormat = 0;
 	TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);
 }
 

@@ -164,6 +164,7 @@ typedef struct textwriter
 {
 	stream* Stream;
 	charconv* CC;
+	bool_t SafeFormat; // use <tag></tag> instead of <tag/>
 
 	// private
 	const tchar_t* Element;

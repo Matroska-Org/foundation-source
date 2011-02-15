@@ -115,6 +115,8 @@ int main(void)
         outFile.Stream = Output;
         TextElementXML(&p, &outFile, T("table"));
 
+		outFile.SafeFormat = 1; // Drupal doesn't like <td/>
+
         DumpLevel(&parseIn, &outFile);
 
         TextElementEnd(&outFile); // /table
