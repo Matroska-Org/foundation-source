@@ -823,10 +823,11 @@ bool_t ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
 bool_t ParserElementContent(parser* p, tchar_t* Out, size_t OutLen)
 {
 	ParserElementSkip(p);
-    if (ParserIsToken(p,T("<![CDATA[")))
+    if (ParserReadUntil(p,Out,OutLen,'<')<0)
+        return 0;
+    if (ParserIsToken(p,T("![CDATA[")))
     	return ParserReadUntil(p,Out,OutLen,']')>=0;
-    else
-    	return ParserReadUntil(p,Out,OutLen,'<')>=0;
+    return 1;
 }
 
 bool_t ParserIsAttrib(parser* p, tchar_t* Name, size_t NameLen)
@@ -1814,7 +1815,9 @@ void TextElementEndData(textwriter* Text, const tchar_t *Value)
 
 void TextElementAppendData(textwriter* Text, const tchar_t *Value)
 {
-	if (Text->Child)
+    if (Text->Deep==1 && tcsisame_ascii(Value,T(" ")))
+        return; // root element
+    if (Text->Child) 
 		TextWrite(Text,Value);
     else {
 		TextPrintf(Text,T(">%s"), Value);
