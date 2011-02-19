@@ -1,5 +1,5 @@
 /*
- * $Id: mkclean.c 676 2011-02-12 14:51:07Z robux4 $
+ * $Id$
  * Copyright (c) 2011, Matroska (non-profit organisation)
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: mkclean.c 676 2011-02-12 14:51:07Z robux4 $
+ * $Id$
  * Copyright (c) 2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
@@ -27,42 +27,7 @@
  */
 
 #include "spec2data_stdafx.h"
-#ifndef CONFIG_EBML_UNICODE
-#define CONFIG_EBML_UNICODE
-#endif
-#include "parser/parser.h"
-
-#define SPEC_ELEMENT_CLASS  FOURCC('S','P','E','C')
-
-typedef enum {
-    EBML_unknown,
-    EBML_MASTER,
-    EBML_INTEGER,
-    EBML_UNSIGNED_INTEGER,
-    EBML_DATE,
-    EBML_FLOAT,
-    EBML_STRING,
-    EBML_BINARY,
-    EBML_UNICODE_STRING,
-} ebml_type;
-
-typedef struct SpecElement {
-    node Base;
-
-    tchar_t Name[MAXPATH]; // verify it matches the ID
-    int level;
-    bool_t ExtendedLevel;
-    int32_t Id;
-    ebml_type Type;
-    bool_t Mandatory;
-    bool_t Multiple;
-    tchar_t Range[MAXPATH];
-    tchar_t DefaultValue[16];
-    int MinVersion, MaxVersion;
-    bool_t InWebM;
-    tchar_t Description[MAXLINE];
-} SpecElement;
-
+#include "spec_element.h"
 
 static void SkipLevel(parser *p)
 {
@@ -71,59 +36,6 @@ static void SkipLevel(parser *p)
     ParserSkipAfter(p,'>');
 }
 
-
-static void ReadElementText(parser *p, tchar_t *Out, size_t OutLen)
-{
-    tchar_t Element[MAXDATA], String[MAXDATA], Value[MAXLINE];
-	size_t len = 0;
-	Out[0] = 0;
-	for (;;) {
-		if (ParserElementContent(p, Out+len, OutLen-len) && Out[len])
-		{
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("\n"),T(" "));
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("  "),T(" "));
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("  "),T(" "));
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("  "),T(" "));
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("  "),T(" "));
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("  "),T(" "));
-			if (Out[0]) tcsreplace(Out+len, OutLen-len, T("&quot;"),T("\""));
-			ParserHTMLChars(p, Out+len, OutLen-len);
-			len += tcslen(Out+len);
-		}
-        else if (ParserIsElementNested(p, Element, TSIZEOF(Element)))
-        {
-            if (len)
-                tcscat_s(Out+len, OutLen-len,T(" "));
-            stprintf_s(Out+len, OutLen-len, T("<%s"), Element);
-
-            while (ParserIsAttrib(p, String, TSIZEOF(String)))
-                if (ParserAttribString(p, Value, TSIZEOF(Value)))
-                    stcatprintf_s(Out+len, OutLen-len, T(" %s=\"%s\""), String, Value);
-
-            if (p->ElementEof)
-            {
-                stcatprintf_s(Out+len, OutLen-len, T("/>"));
-                p->ElementEof = 0;
-            }
-            else
-            {
-                stcatprintf_s(Out+len, OutLen-len, T(">"));
-                len += tcslen(Out+len);
-
-                ReadElementText(p, Out+len, OutLen-len);
-                len += tcslen(Out+len);
-
-                stprintf_s(Out+len, OutLen-len, T("</%s>"), Element);
-            }
-            len += tcslen(Out+len);
-		}
-        else
-        {
-            ParserSkipAfter(p,'>');
-            break;
-        }
-	}
-}
 
 static void FillSpecElement(SpecElement *elt, parser *p)
 {
@@ -163,16 +75,15 @@ static void FillSpecElement(SpecElement *elt, parser *p)
 						tcscpy_s(elt->Name, TSIZEOF(elt->Name), Value);
                         break;
                     case 1:
-                        if (tcsisame_ascii(Value,T("global"))) {
-                            elt->level = -1;
-                            elt->ExtendedLevel = 1;
+                        if (tcsisame_ascii(Value,T("global")) || tcsisame_ascii(Value,T("g"))) {
+                            elt->Level = -1;
                         }
                         else
                         {
 						    ExprIsInt(&s,&id0);
-						    elt->level = id0;
+						    elt->Level = id0;
                             if (s[0]=='+')
-                                elt->ExtendedLevel = 1;
+                                elt->Recursive = 1;
                         }
                         break;
                     case 2:
@@ -270,15 +181,17 @@ static void OutputElement(SpecElement *elt, textwriter *parent)
 {
     if (elt->Type != EBML_unknown && elt->Name[0])
     {
+        tchar_t IdString[16];
         textwriter child;
         TextElementBegin(&child, parent, T("element"));
 
         TextAttribEx(&child, T("name"), elt->Name, 0, TYPE_STRING);
-        TextAttribEx(&child, T("level"), &elt->level, sizeof(elt->level), TYPE_INT);
-        if (elt->ExtendedLevel)
-            TextAttribEx(&child, T("extralevel"), &elt->ExtendedLevel, sizeof(elt->ExtendedLevel), TYPE_BOOLEAN);
+        TextAttribEx(&child, T("level"), &elt->Level, sizeof(elt->Level), TYPE_INT);
+        if (elt->Recursive)
+            TextAttribEx(&child, T("recursive"), &elt->Recursive, sizeof(elt->Recursive), TYPE_BOOLEAN);
 
-        TextAttribEx(&child, T("id"), &elt->Id, sizeof(elt->Id), TYPE_INT32|TUNIT_HEX);
+        stprintf_s(IdString,TSIZEOF(IdString), T("0x%X"),elt->Id);
+        TextAttribEx(&child, T("id"), IdString, 0, TYPE_STRING);
 
         TextAttribEx(&child, T("type"), GetTypeString(elt->Type), 0, TYPE_STRING);
 
@@ -343,14 +256,8 @@ static void ReadLevel(parser *p, textwriter *current)
 				while (ParserIsAttrib(p, String, TSIZEOF(String)))
 				{
 					if (ParserAttribString(p, Value, TSIZEOF(Value))) {
-						/*if (tcsisame_ascii(String,T("colspan")))
-							isSpecData = 0;
-						else if (tcsisame_ascii(String,T("class")) && tcsisame_ascii(Value,T("toptitle")))
-							isSpecData = 0;
-						else*/
 						if (tcsisame_ascii(String,T("id")))
 							tcsreplace(Value,TSIZEOF(Value),T(" "),T("_"));
-						//TextAttribEx(&child, String, Value, 0, TYPE_STRING);
 					}
 				}
 
@@ -391,7 +298,7 @@ int main(void)
     StdAfx_Init((nodemodule*)&p);
 
     Input = StreamOpen(&p,T("spec.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
-    Output = StreamOpen(&p,T("table_spec.xml"),SFLAG_WRONLY|SFLAG_CREATE);
+    Output = StreamOpen(&p,T("specdata.xml"),SFLAG_WRONLY|SFLAG_CREATE);
 
     memset(&parseIn, 0, sizeof(parseIn));
 

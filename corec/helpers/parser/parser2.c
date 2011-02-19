@@ -1770,24 +1770,27 @@ void TextAttrib(textwriter* Text, const tchar_t* Name, const void* Data, datafla
 
 void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
 {
-	if (!In->Child)
+	if (!In->HasChild)
 	{
-		In->Child = 1;
-		TextPrintf(In,T(">\n"));
+		In->HasChild = 1;
+        if (In->InsideContent)
+            TextWrite(In,T(">"));
+        else
+		    TextWrite(In,T(">\n"));
 	}
     Out->CC = In->CC;
 	Out->Stream = In->Stream;
-	Out->Child = 0;
+	Out->HasChild = 0;
 	Out->SafeFormat = In->SafeFormat;
     Out->InsideContent = In->Deep==0;
-    Out->Deep = In->Deep+2;
+    Out->Deep = In->InsideContent ? 0 : In->Deep+2;
 	Out->Element = Element;
     TextPrintf(Out,T("%*c%s"),In->Deep?Out->Deep:0, '<',Element);
 }
 
 void TextElementEnd(textwriter* Text)
 {
-    if (Text->Child)
+    if (Text->HasChild)
 	{
         if (Text->InsideContent)
             TextPrintf(Text,T("</%s> "),Text->Element);
@@ -1807,7 +1810,7 @@ void TextElementEnd(textwriter* Text)
 
 void TextElementEndData(textwriter* Text, const tchar_t *Value)
 {
-	if (Text->Child)
+	if (Text->HasChild)
 		TextPrintf(Text,T("%s%*c/%s>\n"),Value, Text->Deep,'<',Text->Element);
 	else
 		TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
@@ -1817,11 +1820,11 @@ void TextElementAppendData(textwriter* Text, const tchar_t *Value)
 {
     if (Text->Deep==1 && tcsisame_ascii(Value,T(" ")))
         return; // root element
-    if (Text->Child) 
+    if (Text->HasChild) 
 		TextWrite(Text,Value);
     else {
 		TextPrintf(Text,T(">%s"), Value);
-        Text->Child = 1;
+        Text->HasChild = 1;
         Text->Deep = 0;
     }
 }
@@ -1832,7 +1835,7 @@ void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Roo
 	Text->CC = Context->ToUTF8;
 	Text->Element = Root;
 	Text->Deep = 1;
-	Text->Child = 0;
+	Text->HasChild = 0;
     Text->InsideContent = 0;
 	Text->SafeFormat = 0;
 	TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);

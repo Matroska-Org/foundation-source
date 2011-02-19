@@ -169,7 +169,7 @@ typedef struct textwriter
 	// private
 	const tchar_t* Element;
 	int Deep;
-	bool_t Child;
+	bool_t HasChild;
     bool_t InsideContent;
 
 } textwriter;
