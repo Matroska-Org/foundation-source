@@ -40,10 +40,9 @@
 // if a profile is set in ebml_semantic.DisabledProfile that means the element is not available for that profile
 #define PROFILE_MATROSKA_V1          1
 #define PROFILE_MATROSKA_V2          2
-#define PROFILE_WEBM_V1              4
-#define PROFILE_WEBM_V2              8
-#define PROFILE_DIVX_V1             16
-#define PROFILE_DIVX_V2             32
+#define PROFILE_MATROSKA_V3          4
+#define PROFILE_WEBM                 8
+#define PROFILE_DIVX                16
 
 #define MATROSKA_VERSION  2
 

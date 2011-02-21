@@ -130,14 +130,15 @@ typedef struct track_info
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("unused webm"), T("webm"), T("matroska+DivX"), T("unused matroska+DivX") };
+static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX")};
 	switch (ProfileNum)
 	{
+	default:                  return Profile[0];
 	case PROFILE_MATROSKA_V1: return Profile[1];
 	case PROFILE_MATROSKA_V2: return Profile[2];
-	case PROFILE_WEBM_V2:     return Profile[4];
-	case PROFILE_DIVX_V1:     return Profile[5];
-	default:                  return Profile[0];
+	case PROFILE_MATROSKA_V3: return Profile[3];
+	case PROFILE_WEBM:        return Profile[4];
+	case PROFILE_DIVX:        return Profile[5];
 	}
 }
 
@@ -145,11 +146,12 @@ static int GetProfileId(int Profile)
 {
 	switch (Profile)
 	{
+	default:                  return 0;
 	case PROFILE_MATROSKA_V1: return 1;
 	case PROFILE_MATROSKA_V2: return 2;
-	case PROFILE_WEBM_V2:     return 4;
-	case PROFILE_DIVX_V1:     return 5;
-	default:                  return 0;
+	case PROFILE_MATROSKA_V3: return 3;
+	case PROFILE_WEBM:        return 4;
+	case PROFILE_DIVX:        return 5;
 	}
 }
 
@@ -464,7 +466,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
     int BlockNum;
 
 	// find out if the Clusters use forbidden features for that DstProfile
-	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_DIVX_V1)
+	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_DIVX)
 	{
 		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 		{
@@ -628,7 +630,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 if (tcscmp(String,T("matroska"))==0)
                     SrcProfile = PROFILE_MATROSKA_V1;
                 else if (tcscmp(String,T("webm"))==0)
-                    SrcProfile = PROFILE_WEBM_V2;
+                    SrcProfile = PROFILE_WEBM;
                 else
                 {
                     TextPrintf(StdErr,T("EBML DocType '%s' not supported\r\n"),String);
@@ -922,7 +924,7 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
 			continue;
 		}
 		
-		if (Profile==PROFILE_WEBM_V2)
+		if (Profile==PROFILE_WEBM)
 		{
 	        // verify that we have only VP8 and Vorbis tracks
 			TrackType = (int)EBML_IntegerValue((ebml_integer*)Elt);
@@ -1285,10 +1287,12 @@ int main(int argc, const char *argv[])
 				DstProfile = PROFILE_MATROSKA_V1;
 			else if (tcsisame_ascii(Path,T("2")))
 				DstProfile = PROFILE_MATROSKA_V2;
+			else if (tcsisame_ascii(Path,T("3")))
+				DstProfile = PROFILE_MATROSKA_V3;
 			else if (tcsisame_ascii(Path,T("4")))
-				DstProfile = PROFILE_WEBM_V2;
+				DstProfile = PROFILE_WEBM;
 			else if (tcsisame_ascii(Path,T("5")))
-				DstProfile = PROFILE_DIVX_V1;
+				DstProfile = PROFILE_DIVX;
 			else
 			{
 		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
@@ -1327,6 +1331,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
 		    TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
 		    TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
+		    TextWrite(StdErr,T("    3: 'matroska' v3\r\n"));
 		    TextWrite(StdErr,T("    4: 'webm'\r\n"));
 		    TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
 		    TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
@@ -1397,14 +1402,18 @@ int main(int argc, const char *argv[])
     RSegment = (ebml_master*)CheckMatroskaHead((ebml_element*)EbmlHead,&RContext,Input);
     if (SrcProfile==PROFILE_MATROSKA_V1 && DocVersion==2)
         SrcProfile = PROFILE_MATROSKA_V2;
+    else if (SrcProfile==PROFILE_MATROSKA_V1 && DocVersion==3)
+        SrcProfile = PROFILE_MATROSKA_V3;
 
 	if (!DstProfile)
 		DstProfile = SrcProfile;
 
-	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_WEBM_V2)
+	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_WEBM)
 		DocVersion=2;
+	if (DstProfile==PROFILE_MATROSKA_V3)
+		DocVersion=3;
     
-    if (DstProfile==PROFILE_WEBM_V2)
+    if (DstProfile==PROFILE_WEBM)
     {
         UnOptimize = 1;
         Optimize = 0;
@@ -1597,7 +1606,7 @@ int main(int argc, const char *argv[])
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
-    if (DstProfile == PROFILE_WEBM_V2)
+    if (DstProfile == PROFILE_WEBM)
     {
         if (EBML_StringSetValue((ebml_string*)RLevel1,"webm") != ERR_NONE)
             goto exit;

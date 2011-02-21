@@ -133,16 +133,15 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("webm v1"), T("webm v2"), T("divx v1"), T("divx v2") };
+static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX") };
 	switch (ProfileNum)
 	{
+	default:                  return Profile[0];
 	case PROFILE_MATROSKA_V1: return Profile[1];
 	case PROFILE_MATROSKA_V2: return Profile[2];
-	case PROFILE_WEBM_V1:     return Profile[3];
-	case PROFILE_WEBM_V2:     return Profile[4];
-	case PROFILE_DIVX_V1:     return Profile[5];
-	case PROFILE_DIVX_V2:     return Profile[6];
-	default:                  return Profile[0];
+	case PROFILE_MATROSKA_V3: return Profile[3];
+	case PROFILE_WEBM:        return Profile[4];
+	case PROFILE_DIVX:        return Profile[5];
 	}
 }
 
@@ -262,7 +261,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
                     Serious++; // same aspect ratio as the source
                 if (8*DisplayW <= EL_Int(PixelW) && 8*DisplayH <= EL_Int(PixelH))
                     Serious+=2; // too much shrinking compared to the original pixels
-                if (ProfileNum!=PROFILE_WEBM_V2 && ProfileNum!=PROFILE_WEBM_V1)
+                if (ProfileNum!=PROFILE_WEBM)
                     --Serious; // in Matroska it's tolerated as it's been operating like that for a while
 
 				if (Serious>2)
@@ -334,7 +333,7 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 				if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
 					Result |= OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EL_Int(TrackNum),String);
 
-				if (ProfileNum==PROFILE_WEBM_V1 || ProfileNum==PROFILE_WEBM_V2)
+				if (ProfileNum==PROFILE_WEBM)
 				{
 					if (EL_Int(TrackType) != TRACK_TYPE_AUDIO && EL_Int(TrackType) != TRACK_TYPE_VIDEO)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(int)EL_Int(TrackNum),(int)EL_Int(TrackType),GetProfileName(ProfileNum));
@@ -937,27 +936,19 @@ int main(int argc, const char *argv[])
 
 	if (tcscmp(String,T("matroska"))==0)
 	{
-		if (EL_Int(EbmlReadDocVer)==2)
-        {
-            if (DivX)
-    			MatroskaProfile = PROFILE_DIVX_V2;
-            else
-			    MatroskaProfile = PROFILE_MATROSKA_V2;
-        }
+        if (DivX)
+			MatroskaProfile = PROFILE_DIVX;
+        else if (EL_Int(EbmlReadDocVer)==3)
+		    MatroskaProfile = PROFILE_MATROSKA_V3;
+        else if (EL_Int(EbmlReadDocVer)==2)
+		    MatroskaProfile = PROFILE_MATROSKA_V2;
 		else if (EL_Int(EbmlReadDocVer)==1)
-        {
-            if (DivX)
-    			MatroskaProfile = PROFILE_DIVX_V1;
-            else
-		    	MatroskaProfile = PROFILE_MATROSKA_V1;
-        }
+	    	MatroskaProfile = PROFILE_MATROSKA_V1;
 		else
 			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EL_Int(EbmlDocVer),(int)EL_Int(EbmlReadDocVer));
 	}
-	else if (EL_Int(EbmlReadDocVer)==1)
-		MatroskaProfile = PROFILE_WEBM_V1;
-	else if (EL_Int(EbmlReadDocVer)==2)
-		MatroskaProfile = PROFILE_WEBM_V2;
+	else if (tcscmp(String,T("webm"))==0)
+		MatroskaProfile = PROFILE_WEBM;
 
 	if (MatroskaProfile==0)
 		Result |= OutputError(11,T("Matroska profile not supported"));

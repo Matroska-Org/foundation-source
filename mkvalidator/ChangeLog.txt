@@ -1,3 +1,7 @@
+2011-02-xx
+version 0.3.3:
+    - add support for Matroska v3
+
 2010-12-12
 version 0.3.2:
     - header/zlib compression is not allowed in WebM
