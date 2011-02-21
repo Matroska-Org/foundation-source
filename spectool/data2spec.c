@@ -240,6 +240,18 @@ static void AddColumnHeader(textwriter *TBody)
 
     TextElementBegin(&Th, &Tr, T("th"));
     Th.InsideContent = 1;
+    TextAttribEx(&Th, T("title"), T("Version 3"), 0, TYPE_STRING);
+    TextElementBegin(&Abbr, &Th, T("abbr"));
+    Abbr.InsideContent = 1;
+    TextAttribEx(&Abbr, T("title"), T("Version 3"), 0, TYPE_STRING);
+    TextElementAppendData(&Abbr, T("3"));
+    TextElementEnd(&Abbr);
+    Th.InsideContent = 0;
+    Th.Deep = 0;
+    TextElementEnd(&Th);
+
+    TextElementBegin(&Th, &Tr, T("th"));
+    Th.InsideContent = 1;
     TextAttribEx(&Th, T("title"), T("WebM"), 0, TYPE_STRING);
     TextElementBegin(&Abbr, &Th, T("abbr"));
     Abbr.InsideContent = 1;
@@ -288,7 +300,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->StartedGlobal = 1;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
-            TextAttribEx(&Td, T("colspan"), T("12"), 0, TYPE_STRING);
+            TextAttribEx(&Td, T("colspan"), T("13"), 0, TYPE_STRING);
             TextElementAppendData(&Td, T("Global elements (used everywhere in the format)"));
             TextElementEnd(&Td);
             TextElementEnd(&Tr);
@@ -304,7 +316,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->InTags = 0;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
-            TextAttribEx(&Td, T("colspan"), T("12"), 0, TYPE_STRING);
+            TextAttribEx(&Td, T("colspan"), T("13"), 0, TYPE_STRING);
             if (elt->Id == 0x1A45DFA3) {
                 TextAttribEx(&Td, T("id"), T("LevelEBML"), 0, TYPE_STRING);
                 TextElementAppendData(&Td, T("EBML Header"));
@@ -376,6 +388,8 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         TextElementEndData(&Td, IdString);
 
         TextElementBegin(&Td, &Tr, T("td"));
+        if (elt->Level==0)
+            TextAttribEx(&Td, T("style"), T("white-space: nowrap"), 0, TYPE_STRING);
         if (elt->Id > 0x00FFFFFF)
             stprintf_s(IdString,TSIZEOF(IdString),T("[%02X][%02X][%02X][%02X]"),((elt->Id)>>24)&0xFF,((elt->Id)>>16)&0xFF,((elt->Id)>>8)&0xFF,elt->Id&0xFF);
         else if (elt->Id > 0x0000FFFF)
@@ -483,7 +497,20 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             TextElementEnd(&Td);
         }
         else
-        if (!elt->MinVersion || elt->MinVersion > 2 || elt->MaxVersion == 1) {
+        if (!elt->MinVersion || elt->MinVersion > 2 || (elt->MaxVersion && elt->MaxVersion < 2)) {
+            TextAttribEx(&Tr, T("class"), T("flagnot"), 0, TYPE_STRING);
+            TextElementEnd(&Td);
+        }
+        else
+            TextElementEndData(&Td, T("*"));
+
+        // v3
+        TextElementBegin(&Td, &Tr, T("td"));
+        if (!elt->MinVersion && !elt->MaxVersion && !elt->InWebM) {
+            TextElementEnd(&Td);
+        }
+        else
+        if (!elt->MinVersion || elt->MinVersion > 3 || (elt->MaxVersion && elt->MaxVersion < 3)) {
             TextAttribEx(&Tr, T("class"), T("flagnot"), 0, TYPE_STRING);
             TextElementEnd(&Td);
         }
@@ -506,6 +533,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         TextElementBegin(&Td, &Tr, T("td"));
         if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("& "),T("&amp; "));
         if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("<br/>"),T("<br>\n")); // Drupal doesn't like <br/>
+        if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("http://www.matroska.org/technical/specs/"),T(""));
         TextElementEndData(&Td, elt->Description);
 
         TextElementEnd(&Tr);
