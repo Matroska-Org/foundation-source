@@ -39,10 +39,10 @@ typedef struct table_extras
 
 } table_extras;
 
-static void AddElementSemantic(textwriter *CFile, SpecElement *elt)
+static void AddElementSemantic(textwriter *CFile, SpecElement *elt, bool_t InRecursive)
 {
-    TextPrintf(CFile, T("    {%d, %d, &MATROSKA_Context%s, "), elt->Mandatory?1:0, elt->Multiple?0:1, elt->Name);
-    if (elt->InWebM && elt->MinVersion==1 && !elt->MaxVersion)
+    TextPrintf(CFile, T("    {%d, %d, &MATROSKA_Context%s, "), InRecursive?0:(elt->Mandatory?1:0), elt->Multiple?0:1, elt->Name);
+    if (elt->InWebM && elt->MinVersion==1 && !elt->MaxVersion && elt->InDivX)
         TextWrite(CFile, T("0"));
     else {
         bool_t hasData = 0;
@@ -52,11 +52,17 @@ static void AddElementSemantic(textwriter *CFile, SpecElement *elt)
             hasData = 1;
             TextWrite(CFile, T("PROFILE_MATROSKA_V1"));
         }
-        if (!elt->MinVersion || elt->MinVersion>2) {
+        if (!elt->MinVersion || elt->MinVersion>2 || (elt->MaxVersion && elt->MaxVersion<2)) {
             if (hasData)
                 TextWrite(CFile, T("|"));
             hasData = 1;
             TextWrite(CFile, T("PROFILE_MATROSKA_V2"));
+        }
+        if (!elt->MinVersion || elt->MinVersion>3 || (elt->MaxVersion && elt->MaxVersion<3)) {
+            if (hasData)
+                TextWrite(CFile, T("|"));
+            hasData = 1;
+            TextWrite(CFile, T("PROFILE_MATROSKA_V3"));
         }
         if (!elt->InDivX) {
             if (hasData)
@@ -71,7 +77,10 @@ static void AddElementSemantic(textwriter *CFile, SpecElement *elt)
             TextWrite(CFile, T("PROFILE_WEBM"));
         }
     }
-    TextWrite(CFile, T("},\n"));
+    if (InRecursive)
+        TextWrite(CFile, T("}, // recursive\n"));
+    else
+        TextWrite(CFile, T("},\n"));
 }
 
 static bool_t IsValidElement(const SpecElement *elt)
@@ -132,7 +141,7 @@ static void OutputElement(const SpecElement **pElt, const SpecElement **EltEnd, 
                 // write the semantic
                 TextPrintf(CFile, T("\nconst ebml_semantic EBML_Semantic%s[] = {\n"), elt->Name);
                 if (elt->Recursive)
-                    AddElementSemantic(CFile, elt);
+                    AddElementSemantic(CFile, elt, 1);
                 for (sub = pElt+1; sub!=EltEnd; ++sub) 
                 {
                     if ((*sub)->Level<= elt->Level)
@@ -140,7 +149,7 @@ static void OutputElement(const SpecElement **pElt, const SpecElement **EltEnd, 
                     if ((*sub)->Level== elt->Level+1)
                     {
                         //if (!IsValidElement(*sub)) TextWrite(CFile, T("// "));
-                        AddElementSemantic(CFile, *sub);
+                        AddElementSemantic(CFile, *sub, 0);
                     }
                 }
                 TextWrite(CFile, T("    {0, 0, NULL ,0} // end of the table\n};\n"));
@@ -157,6 +166,12 @@ static void OutputElement(const SpecElement **pElt, const SpecElement **EltEnd, 
                 TextWrite(CFile, T("MATROSKA_BLOCKGROUP_CLASS, "));
             else if (elt->Id==0x1F43B675)
                 TextWrite(CFile, T("MATROSKA_CLUSTER_CLASS, "));
+            else if (elt->Id==0xBB)
+                TextWrite(CFile, T("MATROSKA_CUEPOINT_CLASS, "));
+            else if (elt->Id==0x465C)
+                TextWrite(CFile, T("MATROSKA_BIGBINARY_CLASS, "));
+            else if (elt->Id==0x61A7)
+                TextWrite(CFile, T("MATROSKA_ATTACHMENT_CLASS, "));
             else switch (elt->Type)
             {
             case EBML_MASTER:
