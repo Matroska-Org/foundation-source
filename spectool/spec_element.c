@@ -1,5 +1,5 @@
 /*
- * $Id: mkclean.c 676 2011-02-12 14:51:07Z robux4 $
+ * $Id$
  * Copyright (c) 2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
@@ -79,5 +79,85 @@ void ReadElementText(parser *p, tchar_t *Out, size_t OutLen)
             break;
         }
 	}
+}
+
+void ReadSpecElement(SpecElement *elt, parser *p)
+{
+    tchar_t String[MAXDATA], Value[MAXLINE];
+
+	while (ParserIsAttrib(p, String, TSIZEOF(String)))
+	{
+		if (ParserAttribString(p, Value, TSIZEOF(Value))) {
+            const tchar_t *s = Value;
+        	intptr_t intval;
+
+			if (tcsisame_ascii(String,T("name")))
+                tcscpy_s(elt->Name, TSIZEOF(elt->Name), Value);
+            else if (tcsisame_ascii(String,T("level"))) {
+                ExprIsInt(&s,&intval);
+                elt->Level = intval;
+            }
+            else if (tcsisame_ascii(String,T("recursive"))) {
+                ExprIsInt(&s,&intval);
+                elt->Recursive = intval!=0;
+            }
+            else if (tcsisame_ascii(String,T("id"))) {
+                ExprIsHex(&s,&intval);
+                elt->Id = intval;
+            }
+            else if (tcsisame_ascii(String,T("type"))) {
+                if (tcsisame_ascii(Value,T("master")))
+                    elt->Type = EBML_MASTER;
+                else if (tcsisame_ascii(Value,T("integer")))
+                    elt->Type = EBML_INTEGER;
+                else if (tcsisame_ascii(Value,T("uinteger")))
+                    elt->Type = EBML_UNSIGNED_INTEGER;
+                else if (tcsisame_ascii(Value,T("date")))
+                    elt->Type = EBML_DATE;
+                else if (tcsisame_ascii(Value,T("float")))
+                    elt->Type = EBML_FLOAT;
+                else if (tcsisame_ascii(Value,T("string")))
+                    elt->Type = EBML_STRING;
+                else if (tcsisame_ascii(Value,T("utf-8")))
+                    elt->Type = EBML_UNICODE_STRING;
+                else if (tcsisame_ascii(Value,T("binary")))
+                    elt->Type = EBML_BINARY;
+                else
+                    elt->Type = EBML_unknown;
+            }
+            else if (tcsisame_ascii(String,T("mandatory"))) {
+                ExprIsInt(&s,&intval);
+                elt->Mandatory = intval!=0;
+            }
+            else if (tcsisame_ascii(String,T("multiple"))) {
+                ExprIsInt(&s,&intval);
+                elt->Multiple = intval!=0;
+            }
+            else if (tcsisame_ascii(String,T("default")))
+                tcscpy_s(elt->DefaultValue, TSIZEOF(elt->DefaultValue), Value);
+            else if (tcsisame_ascii(String,T("range")))
+                tcscpy_s(elt->Range, TSIZEOF(elt->Range), Value);
+            else if (tcsisame_ascii(String,T("minver"))) {
+                ExprIsInt(&s,&intval);
+                elt->MinVersion = intval;
+            }
+            else if (tcsisame_ascii(String,T("maxver"))) {
+                ExprIsInt(&s,&intval);
+                elt->MaxVersion = intval;
+            }
+            else if (tcsisame_ascii(String,T("webm"))) {
+                ExprIsInt(&s,&intval);
+                elt->InWebM = intval!=0;
+            }
+            else if (tcsisame_ascii(String,T("divx"))) {
+                ExprIsInt(&s,&intval);
+                elt->InDivX = intval!=0;
+            }
+		}
+        if (elt->MinVersion==1)
+            elt->InDivX = 1;
+	}
+
+    ReadElementText(p, elt->Description, TSIZEOF(elt->Description));
 }
 

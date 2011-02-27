@@ -62,9 +62,11 @@ typedef struct SpecElement {
     tchar_t DefaultValue[32];
     int MinVersion, MaxVersion;
     bool_t InWebM;
+    bool_t InDivX;
     tchar_t Description[MAXLINE];
 } SpecElement;
 
 void ReadElementText(parser *p, tchar_t *Out, size_t OutLen);
+void ReadSpecElement(SpecElement *elt, parser *p);
 
 #endif /* SPEC_ELEMENT_H */
