@@ -85,6 +85,8 @@ void ReadSpecElement(SpecElement *elt, parser *p)
 {
     tchar_t String[MAXDATA], Value[MAXLINE];
 
+    elt->InDivX = -1;
+    elt->InWebM = -1;
 	while (ParserIsAttrib(p, String, TSIZEOF(String)))
 	{
 		if (ParserAttribString(p, Value, TSIZEOF(Value))) {
@@ -154,9 +156,21 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                 elt->InDivX = intval!=0;
             }
 		}
+	}
+    if (elt->InDivX==-1)
+    {
         if (elt->MinVersion==1)
             elt->InDivX = 1;
-	}
+        else
+            elt->InDivX=0;
+    }
+    if (elt->InWebM==-1)
+    {
+        if (elt->MinVersion==1)
+            elt->InWebM = 1;
+        else
+            elt->InWebM=0;
+    }
 
     ReadElementText(p, elt->Description, TSIZEOF(elt->Description));
 }
