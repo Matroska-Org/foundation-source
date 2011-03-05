@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2010, Matroska (non-profit organisation)
+ * Copyright (c) 2010-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,5 +65,14 @@ struct matroska_block
     ebml_master *WriteSegInfo;
 #endif
 };
+
+#define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
+#define MATROSKA_BLOCKGROUP_CLASS FOURCC('M','K','B','G')
+#define MATROSKA_CUEPOINT_CLASS   FOURCC('M','K','C','P')
+#define MATROSKA_CLUSTER_CLASS    FOURCC('M','K','C','U')
+#define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
+#define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
+#define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
+#define MATROSKA_ATTACHMENT_CLASS FOURCC('M','K','A','T')
 
 #endif /* LIBMATROSKA2_INTERNAL_H */

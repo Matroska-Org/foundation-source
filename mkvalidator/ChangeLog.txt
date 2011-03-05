@@ -1,6 +1,7 @@
-2011-02-xx
+2011-03-xx
 version 0.3.3:
     - add support for Matroska v3
+    - fix some mismatches with the specfications
 
 2010-12-12
 version 0.3.2:

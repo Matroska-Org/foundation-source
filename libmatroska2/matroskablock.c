@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2010, Matroska (non-profit organisation)
+ * Copyright (c) 2010-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "matroska/matroska.h"
+#include "matroska/matroska_sem.h"
 #include "matroska/matroska_internal.h"
 #if defined(CONFIG_CODEC_HELPER)
 #include "ivorbiscodec.h"
@@ -90,7 +91,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                 Err = ERR_READ;
             else
             {
-                Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecID,0,0);
+                Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextCodecID,0,0);
                 if (!Elt) // missing codec ID
                     Err = ERR_INVALID_DATA;
                 else
@@ -201,10 +202,10 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                     else if (tcsisame_ascii(CodecID,T("A_AAC")) || tcsncmp(CodecID,T("A_AAC/"),6)==0)
                     {
                         Block->IsKeyframe = 1; // safety
-                        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackAudio,0,0);
+                        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextAudio,0,0);
                         if (Elt)
                         {
-                            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextTrackAudioSamplingFreq,0,0);
+                            Elt = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextSamplingFrequency,0,0);
                             if (Elt)
                             {
                                 ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
@@ -219,7 +220,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                     else if (tcsisame_ascii(CodecID,T("A_VORBIS")))
                     {
                         Block->IsKeyframe = 1; // safety
-                        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextTrackCodecPrivate,0,0);
+                        Elt = EBML_MasterFindFirstElt(Track,&MATROSKA_ContextCodecPrivate,0,0);
                         if (Elt)
                         {
                             vorbis_info vi;

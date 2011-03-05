@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2008-2010, Matroska (non-profit organisation)
+ * Copyright (c) 2008-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "matroska/matroska.h"
+#include "matroska/matroska_sem.h"
 #include "matroska/matroska_internal.h"
 #if defined(CONFIG_ZLIB)
 #include "zlib.h"
@@ -39,588 +40,6 @@
 #if defined(MATROSKA_LIBRARY)
 #include "matroska2_project.h"
 #endif
-
-#define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
-#define MATROSKA_BLOCKGROUP_CLASS FOURCC('M','K','B','G')
-#define MATROSKA_CUEPOINT_CLASS   FOURCC('M','K','C','P')
-#define MATROSKA_CLUSTER_CLASS    FOURCC('M','K','C','U')
-#define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
-#define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
-#define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
-#define MATROSKA_ATTACHMENT_CLASS FOURCC('M','K','A','T')
-
-// Seek Header
-const ebml_context MATROSKA_ContextSeekId = {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextSeekPosition = {0x53AC, EBML_INTEGER_CLASS, 0, 0, "SeekPosition", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticSeekPoint[] = {
-    {1, 1, &MATROSKA_ContextSeekId       ,0},
-    {1, 1, &MATROSKA_ContextSeekPosition ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextSeek = {0x4DBB, MATROSKA_SEEKPOINT_CLASS, 0, 0, "SeekPoint", EBML_SemanticSeekPoint, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticSeekHead[] = {
-    {1, 0, &MATROSKA_ContextSeek ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextSeekHead = {0x114D9B74, EBML_MASTER_CLASS, 0, 0, "SeekHeader", EBML_SemanticSeekHead, EBML_SemanticGlobals, NULL};
-
-// Segment Info
-const ebml_context MATROSKA_ContextTranslateEditionUID = {0x69FC, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateEditionUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTranslateCodec = {0x69BF, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTranslateID = {0x69A5, EBML_BINARY_CLASS, 0, 0, "ChapterTranslateID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticCodecTranslate[] = {
-    {0, 0, &MATROSKA_ContextTranslateEditionUID ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTranslateCodec      ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTranslateID         ,PROFILE_WEBM},
-    {0, 0, NULL, 0} // end of the table
-};
-const ebml_context MATROSKA_ContextChapterTranslate = {0x6924, EBML_MASTER_CLASS, 0, 0, "ChapterTranslate", EBML_SemanticCodecTranslate, EBML_SemanticGlobals, NULL};
-
-const ebml_context MATROSKA_ContextSegmentUid = {0x73A4, MATROSKA_SEGMENTUID_CLASS, 0, 0, "SegmentUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextSegmentFilename = {0x7384, EBML_UNISTRING_CLASS, 0, 0, "SegmentFilename", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextPrevUid = {0x3CB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "PrevUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextPrevFilename = {0x3C83AB, EBML_UNISTRING_CLASS, 0, 0, "PrevFilename", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextNextUid = {0x3EB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "NextUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextNextFilename = {0x3E83BB, EBML_UNISTRING_CLASS, 0, 0, "NextFilename", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextSegmentFamily = {0x4444, EBML_BINARY_CLASS, 0, 0, "SegmentFamily", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTimecodeScale = {0x2AD7B1, EBML_INTEGER_CLASS, 1, 1000000, "TimecodeScale", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextDuration = {0x4489, EBML_FLOAT_CLASS, 0, 0, "Duration", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextSegmentDate = {0x4461, EBML_DATE_CLASS, 0, 0, "DateUTC", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextSegmentTitle = {0x7BA9, EBML_UNISTRING_CLASS, 0, 0, "Title", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextMuxingApp = {0x4D80, EBML_UNISTRING_CLASS, 0, 0, "MuxingApp", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextWritingApp = {0x5741, EBML_UNISTRING_CLASS, 0, 0, "WritingApp", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticSegmentInfo[] = {
-    {0, 1, &MATROSKA_ContextSegmentUid       ,0},
-    {0, 1, &MATROSKA_ContextSegmentFilename  ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextPrevUid          ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextPrevFilename     ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextNextUid          ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextNextFilename     ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextSegmentFamily    ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapterTranslate ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTimecodeScale    ,0},
-    {0, 1, &MATROSKA_ContextDuration         ,0},
-    {0, 1, &MATROSKA_ContextSegmentDate      ,0},
-    {0, 1, &MATROSKA_ContextSegmentTitle     ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextMuxingApp        ,0},
-    {1, 1, &MATROSKA_ContextWritingApp       ,0},
-    {0, 0, NULL, 0} // end of the table
-};
-const ebml_context MATROSKA_ContextSegmentInfo = {0x1549A966, EBML_MASTER_CLASS, 0, 0, "Info", EBML_SemanticSegmentInfo, EBML_SemanticGlobals, NULL};
-
-
-// Chapters
-const ebml_context MATROSKA_ContextChapterTrackNumber = {0x89, EBML_INTEGER_CLASS, 0, 0, "ChapterFlagEnabled", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticChapterTrack[] = {
-    {1, 0, &MATROSKA_ContextChapterTrackNumber ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextChapterProcessTime = {0x6922, EBML_INTEGER_CLASS, 0, 0, "ChapterProcessTime", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterProcessData = {0x6933, EBML_BINARY_CLASS, 0, 0, "ChapterProcessData", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticChapterProcessCommand[] = {
-    {1, 1, &MATROSKA_ContextChapterProcessTime ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextChapterProcessData ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextChapterProcessCodecID = {0x6955, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ChapterProcessCodecID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterProcessPrivate = {0x450D, EBML_BINARY_CLASS, 0, 0, "ChapterProcessPrivate", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterProcessCommand = {0x6911, EBML_MASTER_CLASS, 0, 0, "ChapterProcessCommand", EBML_SemanticChapterProcessCommand, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticChapterProcess[] = {
-    {1, 1, &MATROSKA_ContextChapterProcessCodecID ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterProcessPrivate ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapterProcessCommand ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextChapterString = {0x85, EBML_UNISTRING_CLASS, 0, 0, "ChapterString", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterLanguage = {0x437C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "ChapterLanguage", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterCountry = {0x437E, EBML_STRING_CLASS, 0, 0, "ChapterCountry", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticChapterDisplay[] = {
-    {1, 1, &MATROSKA_ContextChapterString   ,PROFILE_WEBM},
-    {1, 0, &MATROSKA_ContextChapterLanguage ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapterCountry  ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextChapterUID = {0x73C4, EBML_INTEGER_CLASS, 0, 0, "ChapterUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterTimeStart = {0x91, EBML_INTEGER_CLASS, 0, 0, "ChapterTimeStart", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterTimeEnd = {0x92, EBML_INTEGER_CLASS, 0, 0, "ChapterTimeEnd", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterHidden = {0x98, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "ChapterFlagHidden", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterEnabled = {0x4598, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "ChapterFlagEnabled", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterSegmentUID = {0x6E67, EBML_BINARY_CLASS, 0, 0, "ChapterSegmentUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterSegmentEditionUID = {0x6EBC, EBML_BINARY_CLASS, 0, 0, "ChapterSegmentEditionUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterPhysical = {0x63C3, EBML_INTEGER_CLASS, 0, 0, "ChapterPhysicalEquiv", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterTrack = {0x8F, EBML_MASTER_CLASS, 0, 0, "ChapterTrack", EBML_SemanticChapterTrack, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterDisplay = {0x80, EBML_MASTER_CLASS, 0, 0, "ChapterDisplay", EBML_SemanticChapterDisplay, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterProcess = {0x6944, EBML_MASTER_CLASS, 0, 0, "ChapterProcess", EBML_SemanticChapterProcess, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticChapterAtom[] = {
-    {0, 0, &MATROSKA_ContextChapterAtom              ,PROFILE_WEBM}, // recursive
-    {1, 1, &MATROSKA_ContextChapterUID               ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextChapterTimeStart         ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterTimeEnd           ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextChapterHidden            ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextChapterEnabled           ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterSegmentUID        ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterSegmentEditionUID ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterPhysical          ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterTrack             ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapterDisplay           ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapterProcess           ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextChapterAtom = {0xB6, EBML_MASTER_CLASS, 0, 0, "ChapterAtom", EBML_SemanticChapterAtom, EBML_SemanticGlobals, NULL};
-
-const ebml_context MATROSKA_ContextEditionUID = {0x45BC, EBML_INTEGER_CLASS, 0, 0, "EditionUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextEditionHidden = {0x45BD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagHidden", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextEditionDefault = {0x45DB, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagDefault", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextEditionOrdered = {0x45DD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagOrdered", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticEdition[] = {
-    {1, 0, &MATROSKA_ContextEditionUID     ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextEditionHidden  ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextEditionDefault ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextEditionOrdered ,PROFILE_WEBM},
-    {1, 0, &MATROSKA_ContextChapterAtom    ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextChapterEntry = {0x45B9, EBML_MASTER_CLASS, 0, 0, "EditionEntry", EBML_SemanticEdition, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticChapters[] = {
-    {1, 0, &MATROSKA_ContextChapterEntry ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextChapters = {0x1043A770, EBML_MASTER_CLASS, 0, 0, "Chapters", EBML_SemanticChapters, EBML_SemanticGlobals, NULL};
-
-// Cluster
-const ebml_context MATROSKA_ContextClusterBlockAdditionalID = {0xEE, EBML_INTEGER_CLASS, 1, (intptr_t)1, "ClusterBlockAdditionalID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterBlockAdditional = {0xA5, EBML_BINARY_CLASS, 0, 0, "BlockAdditional", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticClusterBlockMore[] = {
-    {1, 1, &MATROSKA_ContextClusterBlockAdditionalID ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextClusterBlockAdditional   ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextClusterBlockMore = {0xA6, EBML_MASTER_CLASS, 0, 0, "ClusterBlockMore", EBML_SemanticClusterBlockMore, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticClusterBlockAdditions[] = {
-    {1, 0, &MATROSKA_ContextClusterBlockMore ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextClusterLaceNumber = {0xCC, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ClusterLaceNumber", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterSliceDuation = {0xCF, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ClusterSliceDuation", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticClusterTimeSlice[] = {
-    {0, 1, &MATROSKA_ContextClusterLaceNumber   ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextClusterSliceDuation ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextClusterTimeSlice = {0xE8, EBML_MASTER_CLASS, 0, 0, "ClusterTimeSlice", EBML_SemanticClusterTimeSlice, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticClusterSlices[] = {
-    {0, 0, &MATROSKA_ContextClusterTimeSlice ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-// DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
-const ebml_context MATROSKA_ContextClusterReferenceOffset = {0xC9, EBML_INTEGER_CLASS, 0, 0, "ClusterReferenceOffset", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterReferenceTimeCode = {0xCA, EBML_INTEGER_CLASS, 0, 0, "ClusterReferenceTimeCode", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticClusterReferenceFrame[] = {
-    {1, 1, &MATROSKA_ContextClusterReferenceOffset    ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextClusterReferenceTimeCode  ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextClusterBlock = {0xA1, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterBlock", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterBlockAdditions = {0x75A1, EBML_MASTER_CLASS, 0, 0, "ClusterBlockAdditions", EBML_SemanticClusterBlockAdditions, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterBlockDuration = {0x9B, EBML_INTEGER_CLASS, 0, 0, "ClusterBlockDuration", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterReferencePriority = {0xFA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ClusterReferencePriority", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterReferenceBlock = {0xFB, EBML_SINTEGER_CLASS, 0, 0, "ClusterReferenceBlock", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterCodecState = {0xA4, EBML_BINARY_CLASS, 0, 0, "CodecState", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterSlices = {0x8E, EBML_MASTER_CLASS, 0, 0, "ClusterSlices", EBML_SemanticClusterSlices, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterReferenceFrame = {0xC8, EBML_MASTER_CLASS, 0, 0, "ReferenceFrame", EBML_SemanticClusterReferenceFrame, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticClusterBlockGroup[] = {
-    {1, 1, &MATROSKA_ContextClusterBlock             ,0},
-    {0, 1, &MATROSKA_ContextClusterBlockDuration     ,0},
-    {1, 1, &MATROSKA_ContextClusterReferencePriority ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextClusterReferenceBlock    ,0},
-    {0, 1, &MATROSKA_ContextClusterCodecState        ,PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextClusterSlices            ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextClusterBlockAdditions    ,PROFILE_WEBM},
-    // DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
-    {0, 1, &MATROSKA_ContextClusterReferenceFrame    ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextClusterSilentTrackNumber = {0x58D7, EBML_INTEGER_CLASS, 0, 0, "ClusterSilentTrackNumber", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticClusterSilentTracks[] = {
-    {0, 0, &MATROSKA_ContextClusterSilentTrackNumber ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextClusterTimecode = {0xE7, EBML_INTEGER_CLASS, 0, 0, "ClusterTimecode", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterSilentTracks = {0x5854, EBML_MASTER_CLASS, 0, 0, "ClusterSilentTracks", EBML_SemanticClusterSilentTracks, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterPosition = {0xA7, EBML_INTEGER_CLASS, 0, 0, "ClusterPosition", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterPrevSize = {0xAB, EBML_INTEGER_CLASS, 0, 0, "ClusterPrevSize", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterBlockGroup = {0xA0, MATROSKA_BLOCKGROUP_CLASS, 0, 0, "ClusterBlockGroup", EBML_SemanticClusterBlockGroup, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextClusterSimpleBlock = {0xA3, MATROSKA_BLOCK_CLASS, 0, 0, "ClusterSimpleBlock", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticCluster[] = {
-    {1, 1, &MATROSKA_ContextClusterTimecode     ,0},
-    {0, 1, &MATROSKA_ContextClusterPosition     ,0},
-    {0, 1, &MATROSKA_ContextClusterPrevSize     ,0},
-    {0, 0, &MATROSKA_ContextClusterBlockGroup   ,0},
-    {0, 0, &MATROSKA_ContextClusterSimpleBlock  ,PROFILE_MATROSKA_V1},
-    {0, 1, &MATROSKA_ContextClusterSilentTracks ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextCluster = {0x1F43B675, MATROSKA_CLUSTER_CLASS, 0, 0, "Cluster", EBML_SemanticCluster, EBML_SemanticGlobals, NULL};
-
-// Tracks
-const ebml_context MATROSKA_ContextTrackAudioSamplingFreq = {0xB5, EBML_FLOAT_CLASS, 1, (intptr_t)8000.0, "TrackAudioSamplingFreq", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackAudioOutputSamplingFreq = {0x78B5, EBML_FLOAT_CLASS, 0, 0, "TrackAudioOutputSamplingFreq", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackAudioChannels = {0x9F, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackAudioChannels", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackAudioBitDepth = {0x6264, EBML_INTEGER_CLASS, 0, 0, "TrackAudioBitDepth", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackAudio[] = {
-    {1, 1, &MATROSKA_ContextTrackAudioSamplingFreq       ,0},
-    {0, 1, &MATROSKA_ContextTrackAudioOutputSamplingFreq ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackAudioChannels           ,0},
-    {0, 1, &MATROSKA_ContextTrackAudioBitDepth           ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackVideoInterlaced = {0x9A, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "TrackVideoInterlaced", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoStereo = {0x53B8, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoStereo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoPixelWidth = {0xB0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelWidth", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoPixelHeight = {0xBA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoPixelHeight", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoPixelCropBottom = {0x54AA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropBottom", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoPixelCropTop = {0x54BB, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropTop", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoPixelCropLeft = {0x54CC, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropLeft", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoPixelCropRight = {0x54DD, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoPixelCropRight", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoDisplayWidth = {0x54B0, EBML_INTEGER_CLASS, 0, 0, "TrackVideoDisplayWidth", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoDisplayHeight = {0x54BA, EBML_INTEGER_CLASS, 0, 0, "TrackVideoDisplayHeight", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoDisplayUnit = {0x54B2, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackVideoDisplayUnit", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoAspectRatio = {0x54B3, EBML_INTEGER_CLASS, 1, (intptr_t)MATROSKA_DISPLAY_UNIT_PIXEL, "TrackVideoAspectRatio", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoColourSpace = {0x2EB524, EBML_BINARY_CLASS, 0, 0, "TrackVideoColourSpace", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "TrackVideoFrameRate", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideoGammaValue = {0x2FB523, EBML_FLOAT_CLASS, 0, 0, "TrackVideoGammaValue", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackVideo[] = {
-    {1, 1, &MATROSKA_ContextTrackVideoInterlaced      ,PROFILE_MATROSKA_V1},
-    {1, 1, &MATROSKA_ContextTrackVideoPixelWidth      ,0},
-    {1, 1, &MATROSKA_ContextTrackVideoPixelHeight     ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoPixelCropBottom ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoPixelCropTop    ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoPixelCropLeft   ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoPixelCropRight  ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoDisplayWidth    ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoDisplayHeight   ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoDisplayUnit     ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoAspectRatio     ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoColourSpace     ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackVideoStereo          ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX},
-    {0, 1, &MATROSKA_ContextTrackVideoFrameRate       ,0},
-    {0, 1, &MATROSKA_ContextTrackVideoGammaValue      ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM|PROFILE_DIVX},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackEncodingCompressionAlgo = {0x4254, EBML_INTEGER_CLASS, 1, (intptr_t)MATROSKA_BLOCK_COMPR_ZLIB, "TrackEncodingCompressionAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingCompressionSetting = {0x4255, EBML_BINARY_CLASS, 0, 0, "TrackEncodingCompressionSetting", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackEncodingCompression[] = {
-    {1, 1, &MATROSKA_ContextTrackEncodingCompressionAlgo    ,0},
-    {0, 1, &MATROSKA_ContextTrackEncodingCompressionSetting ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackEncodingEncryptionAlgo = {0x47E1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingEncryptionKeyID = {0x47E2, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionKeyID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignature = {0x47E3, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionSignature", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignatureKeyID = {0x47E4, EBML_BINARY_CLASS, 0, 0, "TrackEncodingEncryptionSignatureKeyID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignatureAlgo = {0x47E5, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingEncryptionSignatureHashAlgo = {0x47E6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingEncryptionSignatureHashAlgo", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackEncodingEncryption[] = {
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionAlgo              ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionKeyID             ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignature         ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignatureKeyID    ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignatureAlgo     ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryptionSignatureHashAlgo ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackEncodingOrder = {0x5031, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingOrder", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingScope = {0x5032, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackEncodingScope", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingType = {0x5033, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackEncodingType", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingCompression = {0x5034, EBML_MASTER_CLASS, 0, 0, "TrackEncodingCompression", EBML_SemanticTrackEncodingCompression, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodingEncryption = {0x5035, EBML_MASTER_CLASS, 0, 0, "TrackEncodingEncryption", EBML_SemanticTrackEncodingEncryption, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackEncoding[] = {
-    {1, 1, &MATROSKA_ContextTrackEncodingOrder       ,0},
-    {1, 1, &MATROSKA_ContextTrackEncodingScope       ,0},
-    {1, 1, &MATROSKA_ContextTrackEncodingType        ,0},
-    {0, 1, &MATROSKA_ContextTrackEncodingCompression ,0},
-    {0, 1, &MATROSKA_ContextTrackEncodingEncryption  ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackEncoding = {0x6240, EBML_MASTER_CLASS, 0, 0, "TrackEncoding", EBML_SemanticTrackEncoding, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackEncodings[] = {
-    {1, 0, &MATROSKA_ContextTrackEncoding ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackTranslateEditionUID = {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackTranslateCodec = {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackTranslateID = {0x66A5, EBML_BINARY_CLASS, 0, 0, "TrackTranslateID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTrackTranslate[] = {
-    {0, 0, &MATROSKA_ContextTrackTranslateEditionUID ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackTranslateCodec      ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackTranslateID         ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackNumber = {0xD7, EBML_INTEGER_CLASS, 0, 0, "TrackNumber", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackUID = {0x73C5, EBML_INTEGER_CLASS, 0, 0, "TrackUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackType = {0x83, EBML_INTEGER_CLASS, 0, 0, "TrackType", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEnabled = {0xB9, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TrackEnabled", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackDefault = {0x88, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TrackDefault", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackForced = {0x55AA, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "TrackForced", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackLacing = {0x9C, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TrackLacing", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackMinCache = {0x6DE7, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackMinCache", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackMaxCache = {0x6DF8, EBML_INTEGER_CLASS, 0, 0, "TrackMaxCache", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackDefaultDuration = {0x23E383, EBML_INTEGER_CLASS, 0, 0, "TrackDefaultDuration", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackTimecodeScale = {0x23314F, EBML_FLOAT_CLASS, 1, (intptr_t)1.0, "TrackTimecodeScale", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackMaxBlockAdditionID = {0x55EE, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackMaxBlockAdditionID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackName = {0x536E, EBML_UNISTRING_CLASS, 0, 0, "TrackName", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackLanguage = {0x22B59C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "TrackLanguage", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackCodecID = {0x86, EBML_STRING_CLASS, 0, 0, "TrackCodecID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackCodecPrivate = {0x63A2, EBML_BINARY_CLASS, 0, 0, "TrackCodecPrivate", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackCodecName = {0x258688, EBML_UNISTRING_CLASS, 0, 0, "TrackCodecName", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackAttachmentLink = {0x7446, EBML_INTEGER_CLASS, 0, 0, "TrackAttachmentLink", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackOverlay = {0x6FAB, EBML_INTEGER_CLASS, 0, 0, "TrackOverlay", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackTranslate = {0x6624, EBML_MASTER_CLASS, 0, 0, "TrackTranslate", EBML_SemanticTrackTranslate, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackVideo = {0xE0, EBML_MASTER_CLASS, 0, 0, "TrackVideo", EBML_SemanticTrackVideo, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackAudio = {0xE1, EBML_MASTER_CLASS, 0, 0, "TrackAudio", EBML_SemanticTrackAudio, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackEncodings = {0x6D80, EBML_MASTER_CLASS, 0, 0, "TrackEncodings", EBML_SemanticTrackEncodings, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackCodecDecodeAll = {0xAA, EBML_INTEGER_CLASS, 1, (intptr_t)1, "TrackCodecDecodeAll", NULL, EBML_SemanticGlobals, NULL};
-
-// DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
-const ebml_context MATROSKA_ContextTrickTrackUID = {0xC0, EBML_INTEGER_CLASS, 0, 0, "TrackUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrickTrackSegUID = {0xC1, EBML_BINARY_CLASS, 0, 0, "TrackSegUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrickTrackFlag = {0xC6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TrackFlag", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrickMasterTrackUID = {0xC7, EBML_INTEGER_CLASS, 0, 0, "MasterTrackUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrickMasterTrackSegUID = {0xC4, EBML_BINARY_CLASS, 0, 0, "MasterTrackSegUID", NULL, EBML_SemanticGlobals, NULL};
-
-
-const ebml_context MATROSKA_ContextTrackPlaneUID  = {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackPlaneType = {0xE6, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneType", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackPlane[] = {
-    {1, 1, &MATROSKA_ContextTrackPlaneUID  ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackPlaneType ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackPlane = {0xE4, EBML_MASTER_CLASS, 0, 0, "TrackPlane", EBML_SemanticTrackPlane, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackCombinePlanes[] = {
-    {1, 0, &MATROSKA_ContextTrackPlane ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackJoinUID = {0xED, EBML_INTEGER_CLASS, 0, 0, "TrackJoinUID", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackJoinBlocks[] = {
-    {1, 0, &MATROSKA_ContextTrackJoinUID ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-
-const ebml_context MATROSKA_ContextTrackCombinePlanes = {0xE3, EBML_MASTER_CLASS, 0, 0, "TrackCombinePlanes", EBML_SemanticTrackCombinePlanes, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTrackJoinBlocks    = {0xE9, EBML_MASTER_CLASS, 0, 0, "TrackJoinBlocks", EBML_SemanticTrackJoinBlocks, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackOperation[] = {
-    {0, 1, &MATROSKA_ContextTrackCombinePlanes ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackJoinBlocks    ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTrackOperation = {0xE2, EBML_MASTER_CLASS, 0, 0, "TrackOperation", EBML_SemanticTrackOperation, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTrackEntry[] = {
-    {1, 1, &MATROSKA_ContextTrackNumber             ,0},
-    {1, 1, &MATROSKA_ContextTrackUID                ,0},
-    {1, 1, &MATROSKA_ContextTrackType               ,0},
-    {1, 1, &MATROSKA_ContextTrackCodecID            ,0},
-    {1, 1, &MATROSKA_ContextTrackEnabled            ,PROFILE_MATROSKA_V1},
-    {1, 1, &MATROSKA_ContextTrackDefault            ,0},
-    {1, 0, &MATROSKA_ContextTrackForced             ,0},
-    {0, 1, &MATROSKA_ContextTrackVideo              ,0},
-    {0, 1, &MATROSKA_ContextTrackAudio              ,0},
-    {1, 1, &MATROSKA_ContextTrackLacing             ,0},
-    {1, 1, &MATROSKA_ContextTrackMinCache           ,0},
-    {0, 1, &MATROSKA_ContextTrackMaxCache           ,0},
-    {0, 1, &MATROSKA_ContextTrackDefaultDuration    ,0},
-    {1, 1, &MATROSKA_ContextTrackTimecodeScale      ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackMaxBlockAdditionID ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackName               ,0},
-    {0, 1, &MATROSKA_ContextTrackLanguage           ,0},
-    {0, 1, &MATROSKA_ContextTrackCodecPrivate       ,0},
-    {0, 1, &MATROSKA_ContextTrackCodecName          ,0},
-    {0, 1, &MATROSKA_ContextTrackAttachmentLink     ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTrackOverlay            ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackEncodings          ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTrackTranslate          ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackCodecDecodeAll     ,PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrackOperation          ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX|PROFILE_WEBM},
-    // DivX trick track extenstions http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW
-    {0, 1, &MATROSKA_ContextTrickTrackUID           ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrickTrackSegUID        ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrickTrackFlag          ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrickMasterTrackUID     ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTrickMasterTrackSegUID  ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTrackEntry = {0xAE, EBML_MASTER_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTracks[] = {
-    {1, 0, &MATROSKA_ContextTrackEntry      ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTracks = {0x1654AE6B, EBML_MASTER_CLASS, 0, 0, "Tracks", EBML_SemanticTracks, EBML_SemanticGlobals, NULL};
-
-// Cues
-const ebml_context MATROSKA_ContextRefTime = {0x96, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticCueReference[] = {
-    {1, 1, &MATROSKA_ContextRefTime ,PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextCueTrack = {0xF7, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextCueClusterPosition = {0xF1, EBML_INTEGER_CLASS, 0, 0, "CueClusterPosition", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextCueBlockNumber = {0x5378, EBML_INTEGER_CLASS, 1, (intptr_t)1, "CueBlockNumber", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextCueCodecState = {0xEA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "CueCodecState", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextCueReference = {0xDB, EBML_MASTER_CLASS, 0, 0, "CueReference", EBML_SemanticCueReference, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticCueTrackPosition[] = {
-    {1, 1, &MATROSKA_ContextCueTrack           ,0},
-    {1, 1, &MATROSKA_ContextCueClusterPosition ,0},
-    {0, 1, &MATROSKA_ContextCueBlockNumber     ,0},
-    {0, 1, &MATROSKA_ContextCueCodecState      ,PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextCueReference       ,PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextCueTrackPositions = {0xB7, EBML_MASTER_CLASS, 0, 0, "CueTrackPosition", EBML_SemanticCueTrackPosition, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextCueTime = {0xB3, EBML_INTEGER_CLASS, 0, 0, "CueTime", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticCuePoint[] = {
-    {1, 1, &MATROSKA_ContextCueTime           ,0},
-    {1, 0, &MATROSKA_ContextCueTrackPositions ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextCuePoint = {0xBB, MATROSKA_CUEPOINT_CLASS, 0, 0, "CuePoint", EBML_SemanticCuePoint, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticCues[] = {
-    {1, 0, &MATROSKA_ContextCuePoint ,0},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextCues = {0x1C53BB6B, EBML_MASTER_CLASS, 0, 0, "Cues", EBML_SemanticCues, EBML_SemanticGlobals, NULL};
-
-// Attachments
-const ebml_context MATROSKA_ContextAttachedFileDescription = {0x467E, EBML_UNISTRING_CLASS, 0, 0, "AttachedFileDescription", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextAttachedFileName = {0x466E, EBML_UNISTRING_CLASS, 0, 0, "AttachedFileName", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextAttachedFileMimeType = {0x4660, EBML_STRING_CLASS, 0, 0, "AttachedFileMimeType", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextAttachedFileData = {0x465C, MATROSKA_BIGBINARY_CLASS, 0, 0, "AttachedFileData", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextAttachedFileUID = {0x46AE, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUID", NULL, EBML_SemanticGlobals, NULL};
-// DivX extensions http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts
-const ebml_context MATROSKA_ContextAttachedFileUsedStartTime = {0x4661, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUsedStartTime", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextAttachedFileUsedEndTime = {0x4662, EBML_INTEGER_CLASS, 0, 0, "AttachedFileUsedEndTime", NULL, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticAttachedFile[] = {
-    {1, 1, &MATROSKA_ContextAttachedFileName          ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextAttachedFileMimeType      ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextAttachedFileData          ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextAttachedFileUID           ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextAttachedFileDescription   ,PROFILE_WEBM},
-    // DivX extensions http://developer.divx.com/docs/divx_plus_hd/format_features/World_Fonts
-    {0, 1, &MATROSKA_ContextAttachedFileUsedStartTime ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextAttachedFileUsedEndTime   ,PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextAttachedFile = {0x61A7, MATROSKA_ATTACHMENT_CLASS, 0, 0, "AttachedFile", EBML_SemanticAttachedFile, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticAttachments[] = {
-    {1, 0, &MATROSKA_ContextAttachedFile ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextAttachments = {0x1941A469, EBML_MASTER_CLASS, 0, 0, "Attachments", EBML_SemanticAttachments, EBML_SemanticGlobals, NULL};
-
-// Tags
-const ebml_context MATROSKA_ContextTagTargetTypeValue = {0x68CA, EBML_INTEGER_CLASS, 1, (intptr_t)50, "TagTargetTypeValue", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagTargetType = {0x63CA, EBML_STRING_CLASS, 0, 0, "TagTargetType", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagTargetTrackUID = {0x63C5, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetTrackUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagTargetEditionUID = {0x63C9, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetEditionUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagTargetChapterUID = {0x63C4, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetChapterUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagTargetAttachmentUID = {0x63C6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagTargetAttachmentUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTagTargets[] = {
-    {0, 1, &MATROSKA_ContextTagTargetTypeValue     ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTagTargetType          ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTagTargetTrackUID      ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTagTargetEditionUID    ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTagTargetChapterUID    ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTagTargetAttachmentUID ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTagTargets = {0x63C0, EBML_MASTER_CLASS, 0, 0, "TagTargets", EBML_SemanticTagTargets, EBML_SemanticGlobals, NULL};
-
-const ebml_context MATROSKA_ContextTagName = {0x45A3, EBML_UNISTRING_CLASS, 0, 0, "TagName", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagLanguage = {0x447A, EBML_STRING_CLASS, 1, (intptr_t)"und", "TagLanguage", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagDefault = {0x4484, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TagDefault", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagString = {0x4487, EBML_UNISTRING_CLASS, 0, 0, "TagString", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTagBinary = {0x4485, EBML_BINARY_CLASS, 0, 0, "TagBinary", NULL, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticSimpleTag[] = {
-    {1, 1, &MATROSKA_ContextTagName     ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTagLanguage ,PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTagDefault  ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTagString   ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTagBinary   ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextSimpleTag   ,PROFILE_WEBM}, // recursive
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextSimpleTag = {0x67C8, EBML_MASTER_CLASS, 0, 0, "SimpleTag", EBML_SemanticSimpleTag, EBML_SemanticGlobals, NULL};
-
-const ebml_semantic EBML_SemanticTag[] = {
-    {1, 1, &MATROSKA_ContextTagTargets ,PROFILE_WEBM},
-    {1, 0, &MATROSKA_ContextSimpleTag  ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTag = {0x7373, EBML_MASTER_CLASS, 0, 0, "Tag", EBML_SemanticTag, EBML_SemanticGlobals, NULL};
-const ebml_semantic EBML_SemanticTags[] = {
-    {1, 0, &MATROSKA_ContextTag ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextTags = {0x1254C367, EBML_MASTER_CLASS, 0, 0, "Tags", EBML_SemanticTags, EBML_SemanticGlobals, NULL};
-
-// Segment
-const ebml_semantic EBML_SemanticSegment[] = {
-    {0, 0, &MATROSKA_ContextSeekHead     ,0},
-    {1, 0, &MATROSKA_ContextSegmentInfo  ,0},
-    {0, 0, &MATROSKA_ContextCluster      ,0},
-    {0, 0, &MATROSKA_ContextTracks       ,0},
-    {0, 1, &MATROSKA_ContextCues         ,0},
-    {0, 1, &MATROSKA_ContextAttachments  ,PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapters     ,PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTags         ,PROFILE_WEBM},
-    {0, 0, NULL ,0} // end of the table
-};
-const ebml_context MATROSKA_ContextSegment = {0x18538067, EBML_MASTER_CLASS, 0, 0, "Segment\0wrmf", EBML_SemanticSegment, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticMatroska[] = {
     {1, 0, &EBML_ContextHead        ,0},
@@ -703,11 +122,11 @@ static err_t ClusterTimeChanged(matroska_cluster *Cluster)
 #if defined(CONFIG_EBML_WRITING)
     for (Elt = EBML_MasterChildren(Cluster); Elt; Elt = EBML_MasterNext(Elt))
     {
-        if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterBlockGroup))
+        if (EBML_ElementIsType(Elt, &MATROSKA_ContextBlockGroup))
         {
             for (GBlock = EBML_MasterChildren(Elt);GBlock;GBlock=EBML_MasterNext(GBlock))
             {
-                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
+                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextBlock))
                 {
                     BlockTimecode = MATROSKA_BlockTimecode((matroska_block*)GBlock);
                     if (BlockTimecode!=INVALID_TIMECODE_T)
@@ -716,7 +135,7 @@ static err_t ClusterTimeChanged(matroska_cluster *Cluster)
                 }
             }
         }
-        else if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
+        else if (EBML_ElementIsType(Elt, &MATROSKA_ContextSimpleBlock))
         {
             BlockTimecode = MATROSKA_BlockTimecode((matroska_block*)Elt);
             if (BlockTimecode!=INVALID_TIMECODE_T)
@@ -731,23 +150,23 @@ static err_t CheckCompression(matroska_block *Block)
 {
     ebml_master *Elt, *Header;
     assert(Block->ReadTrack!=NULL);
-    Elt = (ebml_master*)EBML_MasterFindChild(Block->ReadTrack, &MATROSKA_ContextTrackEncodings);
+    Elt = (ebml_master*)EBML_MasterFindChild(Block->ReadTrack, &MATROSKA_ContextContentEncodings);
     if (Elt)
     {
         if (ARRAYCOUNT(Block->Data,uint8_t))
             return ERR_INVALID_PARAM; // we cannot adjust sizes if the data are already read
 
-        Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextTrackEncoding);
+        Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextContentEncoding);
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
                 return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
 
-            Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextTrackEncodingCompression);
+            Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextContentCompression);
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = (ebml_master*)EBML_MasterGetChild(Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
+            Header = (ebml_master*)EBML_MasterGetChild(Elt, &MATROSKA_ContextContentCompAlgo);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
             if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
@@ -766,7 +185,7 @@ static err_t CheckCompression(matroska_block *Block)
 
             if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
             {
-                Header = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
+                Header = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextContentCompSettings);
                 if (Header)
                 {
                     uint32_t *i;
@@ -900,7 +319,7 @@ fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek)
 {
 	ebml_element *SeekID;
     assert(EBML_ElementIsType((ebml_element*)MetaSeek, &MATROSKA_ContextSeek));
-    SeekID = EBML_MasterFindChild((ebml_master*)MetaSeek, &MATROSKA_ContextSeekId);
+    SeekID = EBML_MasterFindChild((ebml_master*)MetaSeek, &MATROSKA_ContextSeekID);
 	if (!SeekID)
 		return 0;
 	return EBML_BufferToID(EBML_BinaryGetData((ebml_binary*)SeekID));
@@ -960,7 +379,7 @@ err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
     if (Link==NULL)
         return ERR_INVALID_DATA;
 
-    WSeekID = EBML_MasterFindFirstElt((ebml_master*)MetaSeek,&MATROSKA_ContextSeekId,1,0);
+    WSeekID = EBML_MasterFindFirstElt((ebml_master*)MetaSeek,&MATROSKA_ContextSeekID,1,0);
     IdSize = EBML_FillBufferID(IdBuffer,sizeof(IdBuffer),Link->Context->Id);
     EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
 
@@ -973,7 +392,7 @@ err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
 err_t MATROSKA_LinkClusterReadSegmentInfo(matroska_cluster *Cluster, ebml_master *SegmentInfo, bool_t UseForWriteToo)
 {
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
-    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextSegmentInfo));
+    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
     Node_SET(Cluster,MATROSKA_CLUSTER_READ_SEGMENTINFO,&SegmentInfo);
     if (UseForWriteToo)
         Node_SET(Cluster,MATROSKA_CLUSTER_WRITE_SEGMENTINFO,&SegmentInfo);
@@ -984,7 +403,7 @@ err_t MATROSKA_LinkClusterReadSegmentInfo(matroska_cluster *Cluster, ebml_master
 err_t MATROSKA_LinkClusterWriteSegmentInfo(matroska_cluster *Cluster, ebml_master *SegmentInfo)
 {
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
-    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextSegmentInfo));
+    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
     Node_SET(Cluster,MATROSKA_CLUSTER_WRITE_SEGMENTINFO,&SegmentInfo);
     return ERR_NONE;
 }
@@ -992,7 +411,7 @@ err_t MATROSKA_LinkClusterWriteSegmentInfo(matroska_cluster *Cluster, ebml_maste
 
 err_t MATROSKA_LinkBlockReadSegmentInfo(matroska_block *Block, ebml_master *SegmentInfo, bool_t UseForWriteToo)
 {
-    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextSegmentInfo));
+    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     Node_SET(Block,MATROSKA_BLOCK_READ_SEGMENTINFO,&SegmentInfo);
 #if defined(CONFIG_EBML_WRITING)
@@ -1005,7 +424,7 @@ err_t MATROSKA_LinkBlockReadSegmentInfo(matroska_block *Block, ebml_master *Segm
 #if defined(CONFIG_EBML_WRITING)
 err_t MATROSKA_LinkBlockWriteSegmentInfo(matroska_block *Block, ebml_master *SegmentInfo)
 {
-    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextSegmentInfo));
+    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     Node_SET(Block,MATROSKA_BLOCK_WRITE_SEGMENTINFO,&SegmentInfo);
     return ERR_NONE;
@@ -1033,7 +452,7 @@ ebml_element *MATROSKA_BlockWriteSegmentInfo(const matroska_block *Block)
 err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_master *SegmentInfo)
 {
     assert(EBML_ElementIsType((ebml_element*)Cue, &MATROSKA_ContextCuePoint));
-    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextSegmentInfo));
+    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
     Node_SET(Cue,MATROSKA_CUE_SEGMENTINFO,&SegmentInfo);
     return ERR_NONE;
 }
@@ -1058,19 +477,19 @@ static int MATROSKA_BlockCmp(const matroska_block *BlockA, const matroska_block 
 static int ClusterEltCmp(const matroska_cluster* Cluster, const ebml_element** a,const ebml_element** b)
 {
     const matroska_block *BlockA = NULL,*BlockB = NULL;
-    if (EBML_ElementIsType(*a, &MATROSKA_ContextClusterTimecode))
+    if (EBML_ElementIsType(*a, &MATROSKA_ContextTimecode))
         return -1;
-    if (EBML_ElementIsType(*b, &MATROSKA_ContextClusterTimecode))
+    if (EBML_ElementIsType(*b, &MATROSKA_ContextTimecode))
         return 1;
 
-    if (EBML_ElementIsType(*a, &MATROSKA_ContextClusterSimpleBlock))
+    if (EBML_ElementIsType(*a, &MATROSKA_ContextSimpleBlock))
         BlockA = (const matroska_block *)*a;
-    else if (EBML_ElementIsType(*a, &MATROSKA_ContextClusterBlockGroup))
-        BlockA = (const matroska_block *)EBML_MasterFindChild((ebml_master*)*a,&MATROSKA_ContextClusterBlock);
-    if (EBML_ElementIsType(*b, &MATROSKA_ContextClusterSimpleBlock))
+    else if (EBML_ElementIsType(*a, &MATROSKA_ContextBlockGroup))
+        BlockA = (const matroska_block *)EBML_MasterFindChild((ebml_master*)*a,&MATROSKA_ContextBlock);
+    if (EBML_ElementIsType(*b, &MATROSKA_ContextSimpleBlock))
         BlockB = (const matroska_block *)*b;
-    else if (EBML_ElementIsType(*a, &MATROSKA_ContextClusterBlockGroup))
-        BlockB = (const matroska_block *)EBML_MasterFindChild((ebml_master*)*b,&MATROSKA_ContextClusterBlock);
+    else if (EBML_ElementIsType(*a, &MATROSKA_ContextBlockGroup))
+        BlockB = (const matroska_block *)EBML_MasterFindChild((ebml_master*)*b,&MATROSKA_ContextBlock);
     if (BlockA != NULL && BlockB != NULL)
         return MATROSKA_BlockCmp(BlockA,BlockB);
 
@@ -1091,18 +510,18 @@ void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
     Cluster->GlobalTimecode = Timecode;
-    TimecodeElt = (ebml_integer*)EBML_MasterGetChild((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode);
+    TimecodeElt = (ebml_integer*)EBML_MasterGetChild((ebml_master*)Cluster,&MATROSKA_ContextTimecode);
 #if defined(CONFIG_EBML_WRITING)
 	assert(Cluster->WriteSegInfo);
 	EBML_IntegerSetValue(TimecodeElt, Scale64(Timecode,1,MATROSKA_SegmentInfoTimecodeScale(Cluster->WriteSegInfo)));
     // update all the blocks LocalTimecode
     for (Elt = EBML_MasterChildren(Cluster); Elt; Elt = EBML_MasterNext(Elt))
     {
-        if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterBlockGroup))
+        if (EBML_ElementIsType(Elt, &MATROSKA_ContextBlockGroup))
         {
             for (GBlock = EBML_MasterChildren(Elt);GBlock;GBlock=EBML_MasterNext(GBlock))
             {
-                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
+                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextBlock))
                 {
                     BlockTimeCode = MATROSKA_BlockTimecode((matroska_block*)GBlock);
                     if (BlockTimeCode!=INVALID_TIMECODE_T)
@@ -1111,7 +530,7 @@ void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
                 }
             }
         }
-        else if (EBML_ElementIsType(Elt, &MATROSKA_ContextClusterSimpleBlock))
+        else if (EBML_ElementIsType(Elt, &MATROSKA_ContextSimpleBlock))
         {
             BlockTimeCode = MATROSKA_BlockTimecode((matroska_block*)Elt);
             if (BlockTimeCode!=INVALID_TIMECODE_T)
@@ -1129,7 +548,7 @@ timecode_t MATROSKA_ClusterTimecode(matroska_cluster *Cluster)
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
     if (Cluster->GlobalTimecode == INVALID_TIMECODE_T)
     {
-        ebml_integer *Timecode = (ebml_integer*)EBML_MasterFindChild((ebml_master*)Cluster,&MATROSKA_ContextClusterTimecode);
+        ebml_integer *Timecode = (ebml_integer*)EBML_MasterFindChild((ebml_master*)Cluster,&MATROSKA_ContextTimecode);
         if (Timecode)
             Cluster->GlobalTimecode = EBML_IntegerValue(Timecode) * MATROSKA_SegmentInfoTimecodeScale(Cluster->ReadSegInfo);
     }
@@ -1191,11 +610,11 @@ int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
 bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-	if (EBML_ElementIsType((const ebml_element*)Block, &MATROSKA_ContextClusterBlock))
+	if (EBML_ElementIsType((const ebml_element*)Block, &MATROSKA_ContextBlock))
 	{
 		ebml_master *BlockGroup = (ebml_master*)EBML_ElementParent(Block);
 		if (BlockGroup && Node_IsPartOf(BlockGroup,MATROSKA_BLOCKGROUP_CLASS))
-			return (EBML_MasterFindChild(BlockGroup,&MATROSKA_ContextClusterReferenceBlock)==NULL);
+			return (EBML_MasterFindChild(BlockGroup,&MATROSKA_ContextReferenceBlock)==NULL);
 	}
 	return Block->IsKeyframe;
 }
@@ -1203,7 +622,7 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 bool_t MATROSKA_BlockDiscardable(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-	if (EBML_ElementIsType((const ebml_element*)Block, &MATROSKA_ContextClusterBlock))
+	if (EBML_ElementIsType((const ebml_element*)Block, &MATROSKA_ContextBlock))
         return 0;
 	return Block->IsDiscardable;
 }
@@ -1217,7 +636,7 @@ void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set)
 void MATROSKA_BlockSetDiscardable(matroska_block *Block, bool_t Set)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-	if (EBML_ElementIsType((const ebml_element*)Block, &MATROSKA_ContextClusterSimpleBlock))
+	if (EBML_ElementIsType((const ebml_element*)Block, &MATROSKA_ContextSimpleBlock))
     	Block->IsDiscardable = Set;
 }
 
@@ -1259,7 +678,7 @@ timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_master *SegmentInfo)
     ebml_integer *TimecodeScale = NULL;
     if (SegmentInfo)
     {
-        assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextSegmentInfo));
+        assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
         TimecodeScale = (ebml_integer*)EBML_MasterFindChild((ebml_master*)SegmentInfo,&MATROSKA_ContextTimecodeScale);
     }
     if (!TimecodeScale)
@@ -1344,11 +763,11 @@ matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode
     ebml_element *Block, *GBlock;
     for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
     {
-        if (EBML_ElementIsType(Block, &MATROSKA_ContextClusterBlockGroup))
+        if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
         {
             for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
             {
-                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
+                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextBlock))
                 {
                     if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == Track &&
                         MATROSKA_BlockTimecode((matroska_block*)GBlock) == Timecode)
@@ -1358,7 +777,7 @@ matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode
                 }
             }
         }
-        else if (EBML_ElementIsType(Block, &MATROSKA_ContextClusterSimpleBlock))
+        else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
         {
             if (MATROSKA_BlockTrackNum((matroska_block*)Block) == Track &&
                 MATROSKA_BlockTimecode((matroska_block*)Block) == Timecode)
@@ -1375,7 +794,7 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegment
     ebml_element *Block, *GBlock,*NextBlock;
 
 	assert(Node_IsPartOf(Cluster,MATROSKA_CLUSTER_CLASS));
-	assert(EBML_ElementIsType((ebml_element*)RSegmentInfo, &MATROSKA_ContextSegmentInfo));
+	assert(EBML_ElementIsType((ebml_element*)RSegmentInfo, &MATROSKA_ContextInfo));
 	assert(EBML_ElementIsType((ebml_element*)Tracks, &MATROSKA_ContextTracks));
 
 	// link each Block/SimpleBlock with its Track and SegmentInfo
@@ -1383,11 +802,11 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegment
 	for (Block = EBML_MasterChildren(Cluster);Block;Block=NextBlock)
 	{
         NextBlock = EBML_MasterNext(Block);
-		if (EBML_ElementIsType(Block, &MATROSKA_ContextClusterBlockGroup))
+		if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
 		{
 			for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
 			{
-				if (EBML_ElementIsType(GBlock, &MATROSKA_ContextClusterBlock))
+				if (EBML_ElementIsType(GBlock, &MATROSKA_ContextBlock))
 				{
 					if (MATROSKA_LinkBlockWithReadTracks((matroska_block*)GBlock,Tracks,1)!=ERR_NONE && !KeepUnmatched)
                         NodeDelete((node*)Block);
@@ -1397,7 +816,7 @@ void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegment
 				}
 			}
 		}
-		else if (EBML_ElementIsType(Block, &MATROSKA_ContextClusterSimpleBlock))
+		else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
 		{
 			if (MATROSKA_LinkBlockWithReadTracks((matroska_block*)Block,Tracks,1)!=ERR_NONE && !KeepUnmatched)
                 NodeDelete((node*)Block);
@@ -1468,20 +887,20 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     {
         // find out if compressed headers are used
         assert(Element->ReadTrack!=NULL);
-        Elt = EBML_MasterFindChild(Element->ReadTrack, &MATROSKA_ContextTrackEncodings);
+        Elt = EBML_MasterFindChild(Element->ReadTrack, &MATROSKA_ContextContentEncodings);
         if (Elt)
         {
-            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentEncoding);
             if (EBML_MasterChildren(Elt))
             {
                 if (EBML_MasterNext(Elt))
                     return ERR_NOT_SUPPORTED; // TODO support cascaded compression/encryption
 
-                Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
+                Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompression);
                 if (!Elt)
                     return ERR_NOT_SUPPORTED; // TODO: support encryption
 
-                Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
+                Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextContentCompAlgo);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
                 if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
 #if defined(CONFIG_ZLIB)
@@ -1499,12 +918,12 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     return ERR_INVALID_DATA;
 
                 if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                    Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
+                    Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompSettings);
             }
         }
 
 #if !defined(CONFIG_ZLIB) && !defined(CONFIG_LZO1X) && !defined(CONFIG_BZLIB)
-        if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+        if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
             return ERR_NOT_SUPPORTED;
 #endif
 
@@ -1515,7 +934,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         {
         case LACING_NONE:
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+            if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
             {
                 // zlib handling, read the buffer in temp memory
                 array TmpBuf;
@@ -1672,7 +1091,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 BufSize += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+            if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
             {
                 // zlib handling, read the buffer in temp memory
                 // get the ouput size, adjust the Element->SizeList value, write in Element->Data
@@ -1871,7 +1290,7 @@ static err_t SetBlockGroupParent(ebml_master *Element, void* Parent, void* Befor
 {
 	// update the timecode
 	err_t Result = ERR_NONE;
-	matroska_block *Block = (matroska_block*)EBML_MasterFindChild(Element, &MATROSKA_ContextClusterBlock);
+	matroska_block *Block = (matroska_block*)EBML_MasterFindChild(Element, &MATROSKA_ContextBlock);
 	timecode_t AbsTimeCode;
 	if (Block && Block->LocalTimecodeUsed && Parent && NodeTree_Parent(Block) && NodeTree_Parent(NodeTree_Parent(Block)))
 	{
@@ -1940,7 +1359,7 @@ static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_pa
 	Element->LocalTimecodeUsed = 1;
 	cursor += 2;
 
-	if (EBML_ElementIsType((ebml_element*)Element, &MATROSKA_ContextClusterSimpleBlock))
+	if (EBML_ElementIsType((ebml_element*)Element, &MATROSKA_ContextSimpleBlock))
     {
 		Element->IsKeyframe = (*cursor & 0x80) != 0;
 		Element->IsDiscardable = (*cursor & 0x01) != 0;
@@ -2141,7 +1560,7 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
 
     if (!Header)
         return ARRAYBEGIN(Element->SizeList,int32_t)[Frame];
-    if (Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+    if (Header->Context==&MATROSKA_ContextContentCompAlgo)
     {
         // handle zlib
         size_t OutSize;
@@ -2188,20 +1607,20 @@ static char GetBestLacingType(const matroska_block *Element)
 
     // find out if compressed headers are used
     assert(Element->WriteTrack!=NULL);
-    Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextTrackEncodings);
+    Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextContentEncodings);
     if (Elt)
     {
-        Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
+        Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentEncoding);
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
                 return 0; // TODO support cascaded compression/encryption
 
-            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompression);
             if (!Elt)
                 return 0; // TODO: support encryption
 
-            Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
+            Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextContentCompAlgo);
 #if defined(CONFIG_ZLIB)
             if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
@@ -2210,7 +1629,7 @@ static char GetBestLacingType(const matroska_block *Element)
                 return 0; // TODO: support more than header stripping
 
             if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
+                Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompSettings);
         }
     }
 
@@ -2270,7 +1689,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     if (Element->Invisible)
         *Cursor |= 0x08;
     *Cursor |= Element->Lacing << 1;
-    if (EBML_ElementIsType((ebml_element*)Element, &MATROSKA_ContextClusterSimpleBlock))
+    if (EBML_ElementIsType((ebml_element*)Element, &MATROSKA_ContextSimpleBlock))
     {
         if (Element->IsKeyframe)
             *Cursor |= 0x80;
@@ -2290,20 +1709,20 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         *Rendered = Written;
 
     assert(Element->WriteTrack!=NULL);
-    Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextTrackEncodings);
+    Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextContentEncodings);
     if (Elt)
     {
-        Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
+        Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentEncoding);
         if (EBML_MasterChildren(Elt))
         {
             if (EBML_MasterNext(Elt))
                 return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
 
-            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompression);
             if (!Elt)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
-            Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
+            Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextContentCompAlgo);
 #if defined(CONFIG_ZLIB)
             if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
@@ -2315,12 +1734,12 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
 			}
 
             if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
+                Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompSettings);
         }
     }
 
 #if !defined(CONFIG_ZLIB)
-    if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+    if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
     {
         Err = ERR_NOT_SUPPORTED;
         goto failed;
@@ -2381,7 +1800,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     Cursor = ARRAYBEGIN(Element->Data,uint8_t);
     if (Header)
     {
-        if (Header && Header->Context==&MATROSKA_ContextTrackEncodingCompressionAlgo)
+        if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
         {
 #if defined(CONFIG_ZLIB)
             uint8_t *OutBuf;
@@ -2489,20 +1908,20 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
             Element->Lacing = GetBestLacingType(Element);
 
         assert(Element->WriteTrack!=NULL);
-        Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextTrackEncodings);
+        Elt = EBML_MasterFindChild(Element->WriteTrack, &MATROSKA_ContextContentEncodings);
         if (Elt)
         {
-            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncoding);
+            Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentEncoding);
             if (EBML_MasterChildren(Elt))
             {
                 if (EBML_MasterNext(Elt))
                     return ERR_INVALID_DATA; // TODO support cascaded compression/encryption
 
-                Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompression);
+                Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompression);
                 if (!Elt)
                     return ERR_INVALID_DATA; // TODO: support encryption
 
-                Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionAlgo);
+                Header = EBML_MasterGetChild((ebml_master*)Elt, &MATROSKA_ContextContentCompAlgo);
 #if defined(CONFIG_ZLIB)
                 if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
 #else
@@ -2511,7 +1930,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
                     return ERR_INVALID_DATA; // TODO: support more than header stripping
 
                 if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
-                    Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextTrackEncodingCompressionSetting);
+                    Header = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompSettings);
             }
         }
 #else
@@ -2640,8 +2059,8 @@ static int CmpAttachedFile(const ebml_master* a,const ebml_master* b)
 	bool_t CoverA=0,CoverB=0;
 	bool_t LandCoverA=0,LandCoverB=0;
 	bool_t SmallCoverA=0,SmallCoverB=0;
-	ebml_element *NameA = EBML_MasterFindChild(a,&MATROSKA_ContextAttachedFileName);
-	ebml_element *NameB = EBML_MasterFindChild(b,&MATROSKA_ContextAttachedFileName);
+	ebml_element *NameA = EBML_MasterFindChild(a,&MATROSKA_ContextFileName);
+	ebml_element *NameB = EBML_MasterFindChild(b,&MATROSKA_ContextFileName);
 
 	if (NameB==NULL)
 		return -1;

@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2008-2010, Matroska (non-profit organisation)
+ * Copyright (c) 2008-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef MATROSKA_MATROSKA_H
+#define MATROSKA_MATROSKA_H
+
 #include "ebml/ebml.h"
 
 #if defined(MATROSKA2_EXPORTS)
@@ -152,131 +155,6 @@ EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_f
 EBML_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
 EBML_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched);
 
-// EBML contexts
 extern const ebml_context MATROSKA_ContextStream;
 
-extern const ebml_context MATROSKA_ContextSegment;
-
-extern const ebml_context MATROSKA_ContextSeekHead;
-extern const ebml_context MATROSKA_ContextSeek;
-extern const ebml_context MATROSKA_ContextSeekId;
-extern const ebml_context MATROSKA_ContextSeekPosition;
-
-extern const ebml_context MATROSKA_ContextSegmentInfo;
-extern const ebml_context MATROSKA_ContextWritingApp;
-extern const ebml_context MATROSKA_ContextMuxingApp;
-extern const ebml_context MATROSKA_ContextSegmentTitle;
-extern const ebml_context MATROSKA_ContextSegmentDate;
-extern const ebml_context MATROSKA_ContextDuration;
-extern const ebml_context MATROSKA_ContextTimecodeScale;
-extern const ebml_context MATROSKA_ContextSegmentFilename;
-extern const ebml_context MATROSKA_ContextPrevFilename;
-extern const ebml_context MATROSKA_ContextNextFilename;
-extern const ebml_context MATROSKA_ContextSegmentUid;
-extern const ebml_context MATROSKA_ContextPrevUid;
-extern const ebml_context MATROSKA_ContextNextUid;
-
-extern const ebml_context MATROSKA_ContextCluster;
-extern const ebml_context MATROSKA_ContextTracks;
-extern const ebml_context MATROSKA_ContextCues;
-extern const ebml_context MATROSKA_ContextAttachments;
-extern const ebml_context MATROSKA_ContextChapters;
-extern const ebml_context MATROSKA_ContextTags;
-
-extern const ebml_context MATROSKA_ContextAttachedFile;
-extern const ebml_context MATROSKA_ContextAttachedFileName;
-extern const ebml_context MATROSKA_ContextAttachedFileMimeType;
-extern const ebml_context MATROSKA_ContextAttachedFileData;
-extern const ebml_context MATROSKA_ContextAttachedFileUID;
-extern const ebml_context MATROSKA_ContextAttachedFileDescription;
-
-extern const ebml_context MATROSKA_ContextTrackEntry;
-extern const ebml_context MATROSKA_ContextTrackType;
-extern const ebml_context MATROSKA_ContextTrackNumber;
-extern const ebml_context MATROSKA_ContextTrackEnabled;
-extern const ebml_context MATROSKA_ContextTrackDefault;
-extern const ebml_context MATROSKA_ContextTrackForced;
-extern const ebml_context MATROSKA_ContextTrackCodecDecodeAll;
-extern const ebml_context MATROSKA_ContextTrackTimecodeScale;
-extern const ebml_context MATROSKA_ContextTrackName;
-extern const ebml_context MATROSKA_ContextTrackLanguage;
-extern const ebml_context MATROSKA_ContextTrackCodecID;
-extern const ebml_context MATROSKA_ContextTrackUID;
-extern const ebml_context MATROSKA_ContextTrackLacing;
-extern const ebml_context MATROSKA_ContextTrackMinCache;
-extern const ebml_context MATROSKA_ContextTrackMaxCache;
-extern const ebml_context MATROSKA_ContextTrackDefaultDuration;
-extern const ebml_context MATROSKA_ContextTrackOverlay;
-extern const ebml_context MATROSKA_ContextTrackCodecPrivate;
-extern const ebml_context MATROSKA_ContextTrackMaxBlockAdditionID;
-extern const ebml_context MATROSKA_ContextTrackAttachmentLink;
-
-extern const ebml_context MATROSKA_ContextTrackEncodings;
-extern const ebml_context MATROSKA_ContextTrackEncoding;
-extern const ebml_context MATROSKA_ContextTrackEncodingCompression;
-extern const ebml_context MATROSKA_ContextTrackEncodingCompressionAlgo;
-extern const ebml_context MATROSKA_ContextTrackEncodingCompressionSetting;
-
-extern const ebml_context MATROSKA_ContextTrackAudio;
-extern const ebml_context MATROSKA_ContextTrackAudioSamplingFreq;
-extern const ebml_context MATROSKA_ContextTrackAudioOutputSamplingFreq;
-extern const ebml_context MATROSKA_ContextTrackAudioChannels;
-extern const ebml_context MATROSKA_ContextTrackAudioBitDepth;
-
-extern const ebml_context MATROSKA_ContextTrackVideo;
-extern const ebml_context MATROSKA_ContextTrackVideoInterlaced;
-extern const ebml_context MATROSKA_ContextTrackVideoStereo;
-extern const ebml_context MATROSKA_ContextTrackVideoPixelWidth;
-extern const ebml_context MATROSKA_ContextTrackVideoPixelHeight;
-extern const ebml_context MATROSKA_ContextTrackVideoPixelCropBottom;
-extern const ebml_context MATROSKA_ContextTrackVideoPixelCropTop;
-extern const ebml_context MATROSKA_ContextTrackVideoPixelCropLeft;
-extern const ebml_context MATROSKA_ContextTrackVideoPixelCropRight;
-extern const ebml_context MATROSKA_ContextTrackVideoDisplayWidth;
-extern const ebml_context MATROSKA_ContextTrackVideoDisplayHeight;
-extern const ebml_context MATROSKA_ContextTrackVideoDisplayUnit;
-extern const ebml_context MATROSKA_ContextTrackVideoAspectRatio;
-extern const ebml_context MATROSKA_ContextTrackVideoColourSpace;
-extern const ebml_context MATROSKA_ContextTrackVideoGammaValue;
-
-extern const ebml_context MATROSKA_ContextCuePoint;
-
-extern const ebml_context MATROSKA_ContextTag;
-extern const ebml_context MATROSKA_ContextSimpleTag;
-extern const ebml_context MATROSKA_ContextTagTargets;
-extern const ebml_context MATROSKA_ContextTagTargetTypeValue;
-extern const ebml_context MATROSKA_ContextTagTargetType;
-extern const ebml_context MATROSKA_ContextTagTargetTrackUID;
-extern const ebml_context MATROSKA_ContextTagTargetEditionUID;
-extern const ebml_context MATROSKA_ContextTagTargetChapterUID;
-extern const ebml_context MATROSKA_ContextTagTargetAttachmentUID;
-extern const ebml_context MATROSKA_ContextTagName;
-extern const ebml_context MATROSKA_ContextTagLanguage;
-extern const ebml_context MATROSKA_ContextTagDefault;
-extern const ebml_context MATROSKA_ContextTagString;
-extern const ebml_context MATROSKA_ContextTagBinary;
-
-extern const ebml_context MATROSKA_ContextChapterEntry;
-extern const ebml_context MATROSKA_ContextEditionUID;
-extern const ebml_context MATROSKA_ContextEditionHidden;
-extern const ebml_context MATROSKA_ContextEditionDefault;
-extern const ebml_context MATROSKA_ContextEditionOrdered;
-extern const ebml_context MATROSKA_ContextChapterAtom;
-extern const ebml_context MATROSKA_ContextChapterUID;
-extern const ebml_context MATROSKA_ContextChapterTimeStart;
-extern const ebml_context MATROSKA_ContextChapterTimeEnd;
-extern const ebml_context MATROSKA_ContextChapterHidden;
-extern const ebml_context MATROSKA_ContextChapterEnabled;
-extern const ebml_context MATROSKA_ContextChapterDisplay;
-extern const ebml_context MATROSKA_ContextChapterString;
-extern const ebml_context MATROSKA_ContextChapterLanguage;
-extern const ebml_context MATROSKA_ContextChapterCountry;
-
-extern const ebml_context MATROSKA_ContextClusterTimecode;
-extern const ebml_context MATROSKA_ContextClusterBlockGroup;
-extern const ebml_context MATROSKA_ContextClusterBlock;
-extern const ebml_context MATROSKA_ContextClusterReferenceBlock;
-extern const ebml_context MATROSKA_ContextClusterBlockDuration;
-extern const ebml_context MATROSKA_ContextClusterSimpleBlock;
-extern const ebml_context MATROSKA_ContextClusterPosition;
-extern const ebml_context MATROSKA_ContextClusterPrevSize;
+#endif // MATROSKA_MATROSKA_H
