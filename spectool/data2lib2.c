@@ -88,7 +88,7 @@ static bool_t IsValidElement(const SpecElement *elt)
     return elt->InWebM || elt->MinVersion || elt->InDivX;
 }
 
-static void OutputElement(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
+static void OutputElementDefinition(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
 {
     SpecElement *elt = *pElt;
 
@@ -103,7 +103,7 @@ static void OutputElement(const SpecElement **pElt, const SpecElement **EltEnd, 
             if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
                 break;
             if ((*sub)->Level== elt->Level+1)
-                OutputElement(sub, EltEnd, CFile, Extras);
+                OutputElementDefinition(sub, EltEnd, CFile, Extras);
         }
     }
 
@@ -247,6 +247,57 @@ static void OutputElement(const SpecElement **pElt, const SpecElement **EltEnd, 
     }
 }
 
+static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
+{
+    SpecElement *elt = *pElt;
+
+    if (pElt==EltEnd)
+        return;
+
+    if (elt->Type==EBML_MASTER)
+    {
+        SpecElement **sub;
+        for (sub = pElt+1; sub!=EltEnd; ++sub)
+        {
+            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
+                break;
+            if ((*sub)->Level== elt->Level+1)
+                OutputElementDeclaration(sub, EltEnd, CFile, Extras);
+        }
+    }
+
+    if (elt->Type != EBML_unknown && elt->Name[0])
+    {
+        tchar_t IdString[32];
+
+        if (elt->Level==-1 && !Extras->StartedGlobal)
+        {
+            Extras->StartedGlobal = 1;
+        }
+
+        if (elt->Level>=0 && Extras->StartedGlobal)
+        {
+            Extras->StartedGlobal = 0;
+        }
+
+        if (elt->Level==0 || (elt->Level==1 && Extras->PassedEBML))
+        {
+            Extras->InTags = 0;
+        }
+        Extras->CurrLevel = elt->Level;
+
+        if (Extras->PassedEBML)
+        {
+            const tchar_t *s;
+            intptr_t value;
+
+            TextPrintf(CFile, T("extern const ebml_context MATROSKA_Context%s;\n"), elt->Name);
+            if (elt->Type==EBML_MASTER)
+                TextWrite(CFile, T("\n"));
+        }
+    }
+}
+
 static void ReadLevel(parser *p, array *Elements)
 {
     tchar_t Element[MAXDATA], String[MAXDATA], Value[MAXLINE];
@@ -292,6 +343,44 @@ META_CLASS(SIZE,sizeof(SpecElement))
 META_END(NODE_CLASS)
 
 
+static void OutputCHeader(textwriter *CFile, const tchar_t *Name, bool_t WithInclude)
+{
+    TextWrite(CFile, T("/*\n"));
+    TextWrite(CFile, T(" * DO NOT EDIT, GENERATED WITH DATA2LIB2\n"));
+    TextWrite(CFile, T(" *\n"));
+    TextPrintf(CFile, T(" * $Id$\n"), Name);
+    TextWrite(CFile, T(" * Copyright (c) 2008-2011, Matroska (non-profit organisation)\n"));
+    TextWrite(CFile, T(" * All rights reserved.\n"));
+    TextWrite(CFile, T(" *\n"));
+    TextWrite(CFile, T(" * Redistribution and use in source and binary forms, with or without\n"));
+    TextWrite(CFile, T(" * modification, are permitted provided that the following conditions are met:\n"));
+    TextWrite(CFile, T(" *     * Redistributions of source code must retain the above copyright\n"));
+    TextWrite(CFile, T(" *       notice, this list of conditions and the following disclaimer.\n"));
+    TextWrite(CFile, T(" *     * Redistributions in binary form must reproduce the above copyright\n"));
+    TextWrite(CFile, T(" *       notice, this list of conditions and the following disclaimer in the\n"));
+    TextWrite(CFile, T(" *       documentation and/or other materials provided with the distribution.\n"));
+    TextWrite(CFile, T(" *     * Neither the name of the Matroska assocation nor the\n"));
+    TextWrite(CFile, T(" *       names of its contributors may be used to endorse or promote products\n"));
+    TextWrite(CFile, T(" *       derived from this software without specific prior written permission.\n"));
+    TextWrite(CFile, T(" *\n"));
+    TextWrite(CFile, T(" * THIS SOFTWARE IS PROVIDED BY the Matroska association ``AS IS'' AND ANY\n"));
+    TextWrite(CFile, T(" * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n"));
+    TextWrite(CFile, T(" * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\n"));
+    TextWrite(CFile, T(" * DISCLAIMED. IN NO EVENT SHALL The Matroska Foundation BE LIABLE FOR ANY\n"));
+    TextWrite(CFile, T(" * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\n"));
+    TextWrite(CFile, T(" * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\n"));
+    TextWrite(CFile, T(" * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\n"));
+    TextWrite(CFile, T(" * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"));
+    TextWrite(CFile, T(" * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n"));
+    TextWrite(CFile, T(" * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"));
+    TextWrite(CFile, T(" */\n"));
+    TextWrite(CFile, T("#include \"matroska/matroska.h\"\n"));
+    if (WithInclude) TextWrite(CFile, T("#include \"matroska/matroska_sem.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/matroska_internal.h\"\n"));
+    TextWrite(CFile, T("\n"));
+}
+
+
 /**
  * A tool to format the table in the specs
  *  input: spec.xml
@@ -301,7 +390,7 @@ int main(void)
 {
     parsercontext p;
     parser parseIn;
-    stream *Input = NULL,*Output = NULL;
+    stream *Input = NULL,*OutputC = NULL,*OutputH = NULL;
     array Elements;
     SpecElement **element;
     //tchar_t Element[MAXLINE], String[MAXLINE], Value[MAXLINE];
@@ -310,7 +399,8 @@ int main(void)
     StdAfx_Init((nodemodule*)&p);
 
     Input = StreamOpen(&p,T("specdata.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
-    Output = StreamOpen(&p,T("matroskamain.c"),SFLAG_WRONLY|SFLAG_CREATE);
+    OutputC = StreamOpen(&p,T("matroska_sem.c"),SFLAG_WRONLY|SFLAG_CREATE);
+    OutputH = StreamOpen(&p,T("matroska_sem.h"),SFLAG_WRONLY|SFLAG_CREATE);
 
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
@@ -320,12 +410,13 @@ int main(void)
         textwriter CFile;
         table_extras Extras;
 
+        ReadLevel(&parseIn, &Elements);
+
         memset(&Extras,0,sizeof(Extras));
         Extras.CurrLevel = -1;
 
-        ReadLevel(&parseIn, &Elements);
-
-        CFile.Stream = Output;
+        CFile.Stream = OutputC;
+        OutputCHeader(&CFile, T("matroska_sem.c"), 1);
 
         for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
             if ((element+1) == ARRAYEND(Elements,SpecElement*))
@@ -333,10 +424,32 @@ int main(void)
             if ((*element)->Id == 0x18538067)
             {
                 Extras.PassedEBML = 1;
-                OutputElement(element, ARRAYEND(Elements,SpecElement*), &CFile, &Extras);
+                OutputElementDefinition(element, ARRAYEND(Elements,SpecElement*), &CFile, &Extras);
                 break;
             }
         }
+
+        memset(&Extras,0,sizeof(Extras));
+        Extras.CurrLevel = -1;
+
+        CFile.Stream = OutputH;
+        OutputCHeader(&CFile, T("matroska_sem.h"), 0);
+
+        TextWrite(&CFile, T("#ifndef MATROSKA_SEMANTIC_H\n"));
+        TextWrite(&CFile, T("#define MATROSKA_SEMANTIC_H\n\n"));
+
+        for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
+            if ((element+1) == ARRAYEND(Elements,SpecElement*))
+                Extras.IsLast = 1;
+            if ((*element)->Id == 0x18538067)
+            {
+                Extras.PassedEBML = 1;
+                OutputElementDeclaration(element, ARRAYEND(Elements,SpecElement*), &CFile, &Extras);
+                break;
+            }
+        }
+
+        TextWrite(&CFile, T("#endif // MATROSKA_SEMANTIC_H\n"));
     }
 
     for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element)
@@ -344,7 +457,8 @@ int main(void)
     ArrayClear(&Elements);
 
     StreamClose(Input);
-    StreamClose(Output);
+    StreamClose(OutputC);
+    StreamClose(OutputH);
 
 	StdAfx_Done((nodemodule*)&p);
     ParserContext_Done(&p);

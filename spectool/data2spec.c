@@ -266,11 +266,13 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->PassedEBML = 1;
 
         TextElementBegin(&Tr, TBody, T("tr"));
+#if 0
         if (Extras->InTags && tcsstr(elt->Name,T("UID"))) {
             stprintf_s(IdString,TSIZEOF(IdString), T("T%s"),elt->Name);
             TextAttribEx(&Tr, T("id"), IdString, 0, TYPE_STRING);
         }
         else
+#endif
             TextAttribEx(&Tr, T("id"), elt->Name, 0, TYPE_STRING);
         if (!elt->MinVersion && !elt->MaxVersion && !elt->InWebM)
             stprintf_s(IdString,TSIZEOF(IdString),T("version2"));
