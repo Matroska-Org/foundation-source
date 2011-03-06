@@ -1,4 +1,4 @@
-2011-03-xx
+2011-03-06
 version 0.8.0:
     - add support for Matroska v3
     - fix some odd case where some file other than the bogus output file would be deleted after an error

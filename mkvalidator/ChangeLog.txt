@@ -1,7 +1,7 @@
-2011-03-xx
+2011-03-06
 version 0.3.3:
     - add support for Matroska v3
-    - fix some mismatches with the specfications
+    - fix some mismatches with the specfications (especially WebM)
 
 2010-12-12
 version 0.3.2:
