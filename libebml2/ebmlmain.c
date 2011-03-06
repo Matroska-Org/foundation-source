@@ -268,7 +268,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
 	// elements at the current level
     for (Semantic=Context->Context->Semantic;Semantic->eClass;Semantic++)
     {
-        if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id) && (bAllowDummy || !(Context->Profile & Semantic->DisabledProfile)))
+        if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id)) // && (bAllowDummy || bAllowOutOfProfile || !(Context->Profile & Semantic->DisabledProfile)))
         {
             Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0,NULL);
 			return Result;

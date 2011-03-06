@@ -298,6 +298,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                 // TODO: this should never happen
                 EBML_ElementSkipData(SubElement,ReadStream,&Context,NULL,AllowDummyElt);
 				NodeDelete((node*)SubElement); // forget this unknown element
+                SubElement = NULL;
 			}
             else
             {
