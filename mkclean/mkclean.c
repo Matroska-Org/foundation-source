@@ -380,7 +380,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                 Elt2 = Elt; // make sure the Cluster Position is just after the PrevSize
             else
                 Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimecode); // make sure the Cluster Position is just after the ClusterTimecode
-            if (Elt2)
+            if (Elt2 && DstProfile!=PROFILE_WEBM)
             {
                 Elt = EBML_MasterGetChild(*Cluster, &MATROSKA_ContextPosition);
                 if (Elt)

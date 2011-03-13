@@ -1,6 +1,7 @@
 2011-03-13
 version 0.8.1:
     - turn old StereoMode values into the Matroska v3 ones
+    - remove the ClusterPosition field in WebM files as it's not supported
 
 2011-03-06
 version 0.8.0:
