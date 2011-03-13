@@ -88,6 +88,10 @@ typedef int64_t    timecode_t; // in nanoseconds
 #define TRACK_STEREO_MODE_SIDEBYSIDE_R        11
 #define TRACK_STEREO_MODE_ANAGLYPH_GREEN_MAG  12
 
+#define TRACK_PLANE_LEFT        0
+#define TRACK_PLANE_RIGHT       1
+#define TRACK_PLANE_BACKGROUND  2
+
 #define TRACK_OLD_STEREOMODE_MONO   0
 #define TRACK_OLD_STEREOMODE_RIGHT  1
 #define TRACK_OLD_STEREOMODE_LEFT   2

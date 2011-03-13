@@ -210,7 +210,9 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             const uint8_t *Data = EBML_BinaryGetData((ebml_binary*)Element);
             if (EBML_ElementDataSize(Element, 1) != 0)
             {
-                if (EBML_ElementDataSize(Element, 1) == 1)
+                if (Data==NULL)
+                    fprintf(stdout,"[data too large] (%"PRId64")",EBML_ElementDataSize(Element, 1));
+                else if (EBML_ElementDataSize(Element, 1) == 1)
                     fprintf(stdout,"%02X (%"PRId64")",Data[0],EBML_ElementDataSize(Element, 1));
                 else if (EBML_ElementDataSize(Element, 1) == 2)
                     fprintf(stdout,"%02X %02X (%"PRId64")",Data[0],Data[1],EBML_ElementDataSize(Element, 1));
@@ -233,7 +235,13 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
         EndLine(Element);
 	}
-    // TODO: handle crc32
+    else if (Node_IsPartOf(Element,EBML_CRC_CLASS))
+    {
+        // TODO: handle crc32
+        fprintf(stdout,"[%"PRId64" bytes]",EBML_ElementDataSize(Element, 1));
+        EBML_ElementSkipData(Element, Input, Context, NULL, 0);
+        EndLine(Element);
+	}
     else
     {
 #ifdef IS_BIG_ENDIAN
