@@ -343,12 +343,12 @@ META_CLASS(SIZE,sizeof(SpecElement))
 META_END(NODE_CLASS)
 
 
-static void OutputCHeader(textwriter *CFile, const tchar_t *Name, bool_t WithInclude)
+static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
 {
     TextWrite(CFile, T("/*\n"));
     TextWrite(CFile, T(" * DO NOT EDIT, GENERATED WITH DATA2LIB2\n"));
     TextWrite(CFile, T(" *\n"));
-    TextPrintf(CFile, T(" * $Id$\n"), Name);
+    TextPrintf(CFile, T(" * $Id $\n"));
     TextWrite(CFile, T(" * Copyright (c) 2008-2011, Matroska (non-profit organisation)\n"));
     TextWrite(CFile, T(" * All rights reserved.\n"));
     TextWrite(CFile, T(" *\n"));
@@ -416,7 +416,7 @@ int main(void)
         Extras.CurrLevel = -1;
 
         CFile.Stream = OutputC;
-        OutputCHeader(&CFile, T("matroska_sem.c"), 1);
+        OutputCHeader(&CFile, 1);
 
         for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
             if ((element+1) == ARRAYEND(Elements,SpecElement*))
@@ -433,7 +433,7 @@ int main(void)
         Extras.CurrLevel = -1;
 
         CFile.Stream = OutputH;
-        OutputCHeader(&CFile, T("matroska_sem.h"), 0);
+        OutputCHeader(&CFile, 0);
 
         TextWrite(&CFile, T("#ifndef MATROSKA_SEMANTIC_H\n"));
         TextWrite(&CFile, T("#define MATROSKA_SEMANTIC_H\n\n"));
