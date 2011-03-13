@@ -889,9 +889,21 @@ static void CleanCropValues(ebml_master *Track, int64_t Width, int64_t Height)
     }
 }
 
+static bool_t HasTrackUID(ebml_master *Tracks, int TrackUID, const ebml_context *UIDType)
+{
+    ebml_master *Track;
+    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry);Track; Track = (ebml_master*)EBML_MasterNextChild(Tracks,Track))
+    {
+        ebml_element *Elt = EBML_MasterFindChild(Track,UIDType);
+        if (Elt && EBML_IntegerValue((ebml_integer*)Elt)==TrackUID)
+            return 1;
+    }
+    return 0;
+}
+
 static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebml_master *Attachments)
 {
-    ebml_master *Track, *CurTrack;
+    ebml_master *Track, *CurTrack, *OtherTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
     int TrackType, TrackNum, Width, Height;
     tchar_t CodecID[MAXPATH];
@@ -910,7 +922,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		TrackNum = (int)EBML_IntegerValue((ebml_integer*)Elt);
 
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
-		if (!Elt)
+		if (!Elt && !EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackOperation))
 		{
 			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
 			NodeDelete((node*)CurTrack);
@@ -929,33 +941,6 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
         Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextVideo);
         if (Elt)
         {
-            if (SrcProfile==PROFILE_MATROSKA_V1 || SrcProfile==PROFILE_MATROSKA_V2 || SrcProfile==PROFILE_DIVX)
-            {
-                // clean the older StereoMode values
-                Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextStereoMode);
-                if (!Elt2)
-                    Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextOldStereoMode);
-                if (Elt2)
-                {
-                    Width = (int)EBML_IntegerValue((ebml_integer*)Elt2);
-                    if (Width!=TRACK_OLD_STEREOMODE_MONO && Width <= 3) // upper values are probably the new ones
-                    {
-                        *DstProfile = PROFILE_MATROSKA_V3;
-                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
-                        if (EBML_ElementIsType(Elt2, &MATROSKA_ContextOldStereoMode))
-                            // replace the old by a new
-                            Elt2->Context = &MATROSKA_ContextOldStereoMode;
-
-                        // TODO: replace the old values with the new ones
-                        if (Width==TRACK_OLD_STEREOMODE_BOTH)
-                        {
-                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
-                            EBML_IntegerSetValue(Elt2,TRACK_STEREO_MODE_SIDEBYSIDE_L);
-                        }
-                    }
-                }
-            }
-
             Width = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelWidth));
             Height = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelHeight));
 	        if (Width==0 || Height==0)
@@ -1066,6 +1051,144 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     CleanCropValues(CurTrack, 0, 0);
                 else
                     CleanCropValues(CurTrack, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
+            }
+
+            if (SrcProfile==PROFILE_MATROSKA_V1 || SrcProfile==PROFILE_MATROSKA_V2 || SrcProfile==PROFILE_DIVX)
+            {
+                // clean the older StereoMode values
+                Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextStereoMode);
+                if (!Elt2)
+                    Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextOldStereoMode);
+                if (Elt2)
+                {
+                    Width = (int)EBML_IntegerValue((ebml_integer*)Elt2);
+                    if (Width!=TRACK_OLD_STEREOMODE_MONO && Width <= 3) // upper values are probably the new ones
+                    {
+                        *DstProfile = PROFILE_MATROSKA_V3;
+                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                        if (EBML_ElementIsType(Elt2, &MATROSKA_ContextOldStereoMode))
+                            // replace the old by a new
+                            Elt2->Context = &MATROSKA_ContextOldStereoMode;
+
+                        // replace the old values with the new ones
+                        if (Width==TRACK_OLD_STEREOMODE_BOTH)
+                        {
+                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                            EBML_IntegerSetValue((ebml_integer*)Elt2,TRACK_STEREO_MODE_SIDEBYSIDE_L);
+                        }
+                        else
+                        {
+                            EBML_IntegerSetValue((ebml_integer*)Elt2,TRACK_STEREO_MODE_MONO);
+                            TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==TRACK_OLD_STEREOMODE_LEFT?T("left"):T("right"));
+                            // look for the other track
+                            for (OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,CurTrack);OtherTrack; OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,OtherTrack))
+                            {
+                                ebml_element *VidElt = EBML_MasterFindChild(OtherTrack,&MATROSKA_ContextVideo);
+                                if (VidElt)
+                                {
+                                    // TODO: only use a video track that has the same output pixels as the source
+                                    ebml_element *OtherStereo = EBML_MasterFindChild(VidElt,&MATROSKA_ContextStereoMode);
+                                    if (!OtherStereo)
+                                        OtherStereo = EBML_MasterFindChild(VidElt,&MATROSKA_ContextOldStereoMode);
+                                    if (OtherStereo && ((Width==TRACK_OLD_STEREOMODE_LEFT && EBML_IntegerValue((ebml_integer*)OtherStereo)==TRACK_OLD_STEREOMODE_RIGHT) ||
+                                        (Width==TRACK_OLD_STEREOMODE_RIGHT && EBML_IntegerValue((ebml_integer*)OtherStereo)==TRACK_OLD_STEREOMODE_LEFT)))
+                                    {
+                                        ebml_master *CombinedTrack;
+                                        int NewTrackUID;
+
+                                        TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==TRACK_OLD_STEREOMODE_RIGHT?T("left"):T("right"));
+                                        EBML_IntegerSetValue((ebml_integer*)OtherStereo,TRACK_STEREO_MODE_MONO);
+
+                                        // create another track that is this one combined
+                                        CombinedTrack = (ebml_master*)EBML_ElementCopy(CurTrack, NULL);
+                                        EBML_MasterAppend(Tracks, (ebml_element*)CombinedTrack);
+
+                                        // set a new TrackNumber
+                                        NewTrackUID = TrackNum+1;
+                                        while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackNumber))
+                                            ++NewTrackUID;
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackNumber);
+                                        EBML_IntegerSetValue((ebml_integer*)Elt,NewTrackUID);
+
+                                        // set a new TrackUID
+                                        NewTrackUID = 1;
+                                        while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackUID))
+                                            ++NewTrackUID;
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackUID);
+                                        EBML_IntegerSetValue((ebml_integer*)Elt,NewTrackUID);
+
+                                        // cleaning
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextFlagEnabled);
+                                        if (Elt)
+                                            EBML_IntegerSetValue((ebml_integer*)Elt,1);
+                                        
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextFlagLacing);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMinCache);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMaxCache);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextDefaultDuration);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackTimecodeScale);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMaxBlockAdditionID);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterGetChild(CombinedTrack,&MATROSKA_ContextCodecID);
+                                        EBML_StringSetValue((ebml_string*)Elt,"V_COMBINED");
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextCodecPrivate);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextAttachmentLink);
+                                        NodeDelete((node*)Elt);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackTranslate);
+                                        NodeDelete((node*)Elt);
+
+                                        // add the TrackCombine info
+                                        Elt = EBML_MasterAddElt(CombinedTrack, &MATROSKA_ContextTrackOperation, 1);
+                                        if (Elt)
+                                            Elt = EBML_MasterAddElt((ebml_master*)Elt, &MATROSKA_ContextTrackCombinePlanes, 1);
+                                        if (Elt)
+                                        {
+                                            // track 1
+                                            CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, &MATROSKA_ContextTrackPlane, 1);
+                                            OtherStereo = EBML_MasterFindChild(CurTrack, &MATROSKA_ContextTrackUID);
+                                            if (!OtherStereo)
+                                            {
+                                                OtherStereo = EBML_MasterAddElt((ebml_master*)CurTrack, &MATROSKA_ContextTrackUID, 1);
+                                                while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackUID))
+                                                    ++NewTrackUID;
+                                                EBML_IntegerSetValue((ebml_integer*)OtherStereo, NewTrackUID);
+                                            }
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneUID);
+                                            EBML_IntegerSetValue((ebml_integer*)Elt2, EBML_IntegerValue((ebml_integer*)OtherStereo));
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneType);
+                                            EBML_IntegerSetValue((ebml_integer*)Elt2, Width==TRACK_OLD_STEREOMODE_LEFT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
+
+                                            // track 2
+                                            CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, &MATROSKA_ContextTrackPlane, 1);
+                                            OtherStereo = EBML_MasterFindChild(OtherTrack, &MATROSKA_ContextTrackUID);
+                                            if (!OtherStereo)
+                                            {
+                                                OtherStereo = EBML_MasterAddElt((ebml_master*)OtherTrack, &MATROSKA_ContextTrackUID, 1);
+                                                while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackUID))
+                                                    ++NewTrackUID;
+                                                EBML_IntegerSetValue((ebml_integer*)OtherStereo, NewTrackUID);
+                                            }
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneUID);
+                                            EBML_IntegerSetValue((ebml_integer*)Elt2, EBML_IntegerValue((ebml_integer*)OtherStereo));
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneType);
+                                            EBML_IntegerSetValue((ebml_integer*)Elt2, Width==TRACK_OLD_STEREOMODE_RIGHT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
+                                        }
+
+                                        return CleanTracks(Tracks, SrcProfile, DstProfile, Attachments);
+                                    }
+                                }
+                            }
+
+                            TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==TRACK_OLD_STEREOMODE_RIGHT?T("left"):T("right"));
+                        }
+                    }
+                }
             }
         }
 
