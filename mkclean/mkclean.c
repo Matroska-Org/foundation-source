@@ -1195,6 +1195,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		if (*DstProfile==PROFILE_WEBM)
 		{
 	        // verify that we have only VP8 and Vorbis tracks
+            Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackType);
 			TrackType = (int)EBML_IntegerValue((ebml_integer*)Elt);
 			Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
 			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
