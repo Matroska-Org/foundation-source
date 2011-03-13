@@ -1068,7 +1068,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                         TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
                         if (EBML_ElementIsType(Elt2, &MATROSKA_ContextOldStereoMode))
                             // replace the old by a new
-                            Elt2->Context = &MATROSKA_ContextOldStereoMode;
+                            Elt2->Context = &MATROSKA_ContextStereoMode;
 
                         // replace the old values with the new ones
                         if (Width==TRACK_OLD_STEREOMODE_BOTH)
