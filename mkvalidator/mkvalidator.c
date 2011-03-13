@@ -214,24 +214,24 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 	int Result = 0;
 	ebml_element *Unit, *Elt, *PixelW, *PixelH;
 	ebml_master *Video;
-	Video = (ebml_master*)EBML_MasterFindFirstElt(Track,&MATROSKA_ContextVideo,0,0);
+	Video = (ebml_master*)EBML_MasterFindChild(Track,&MATROSKA_ContextVideo);
 	if (!Video)
 		Result = OutputWarning(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),EL_Pos(Track));
 	// check the DisplayWidth and DisplayHeight are correct
 	else
 	{
 		int64_t DisplayW = 0,DisplayH = 0;
-		PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelWidth,1,1);
+		PixelW = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelWidth);
 		if (!PixelW)
 			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,EL_Pos(Track));
-		PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelHeight,1,1);
+		PixelH = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelHeight);
 		if (!PixelH)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,EL_Pos(Track));
 
-        Unit = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextDisplayUnit,1,1);
+        Unit = EBML_MasterGetChild(Video,&MATROSKA_ContextDisplayUnit);
 		assert(Unit!=NULL);
 
-		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextDisplayWidth,0,0);
+		Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextDisplayWidth);
 		if (Elt)
 			DisplayW = EL_Int(Elt);
 		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
@@ -239,7 +239,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
         else if (PixelW)
 			DisplayW = EL_Int(PixelW);
 
-		Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextDisplayHeight,0,0);
+		Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextDisplayHeight);
 		if (Elt)
 			DisplayH = EL_Int(Elt);
 		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
@@ -275,29 +275,29 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
         if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_DAR)
         {
             // crop values should never exist
-            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropTop,0,0);
+            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropTop);
             if (Elt)
                 Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has top crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropBottom,0,0);
+            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropBottom);
             if (Elt)
                 Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has bottom crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropLeft,0,0);
+            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropLeft);
             if (Elt)
                 Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has left crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-            Elt = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropRight,0,0);
+            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropRight);
             if (Elt)
                 Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has right crop at %") TPRId64,TrackNum,EL_Pos(Elt));
         }
         else
         {
             // crop values should be less than the extended value
-            PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropTop,1,1);
-            PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropBottom,1,1);
+            PixelW = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropTop);
+            PixelH = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropBottom);
             if (EL_Int(PixelW) + EL_Int(PixelH) >= DisplayH)
                 Result |= OutputError(0xE5,T("Video track #%d is cropping too many vertical pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayH, EL_Int(PixelW), EL_Int(PixelH));
 
-            PixelW = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropLeft,1,1);
-            PixelH = EBML_MasterFindFirstElt(Video,&MATROSKA_ContextPixelCropRight,1,1);
+            PixelW = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropLeft);
+            PixelH = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropRight);
             if (EL_Int(PixelW) + EL_Int(PixelH) >= DisplayW)
                 Result |= OutputError(0xE6,T("Video track #%d is cropping too many horizontal pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayW, EL_Int(PixelW), EL_Int(PixelH));
         }
@@ -312,15 +312,15 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 	ebml_string *CodecID;
 	tchar_t CodecName[MAXPATH],String[MAXPATH];
 	int Result = 0;
-	Track = (ebml_master*)EBML_MasterFindFirstElt(Tracks, &MATROSKA_ContextTrackEntry, 0, 0);
+	Track = (ebml_master*)EBML_MasterFindChild(Tracks, &MATROSKA_ContextTrackEntry);
 	while (Track)
 	{
         // check if the codec is valid for the profile
-		TrackNum = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+		TrackNum = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackNumber);
 		if (TrackNum)
 		{
-			TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
-			CodecID = (ebml_string*)EBML_MasterFindFirstElt(Track, &MATROSKA_ContextCodecID, 1, 1);
+			TrackType = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackType);
+			CodecID = (ebml_string*)EBML_MasterGetChild(Track, &MATROSKA_ContextCodecID);
 			if (!CodecID)
 				Result |= OutputError(0x300,T("Track #%d has no CodecID defined"),(int)EL_Int(TrackNum));
 			else if (!TrackType)
@@ -356,7 +356,7 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 		}
 
         // check if the AttachmentLink values match existing attachments
-		TrackType = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextAttachmentLink, 0, 0);
+		TrackType = EBML_MasterFindChild(Track, &MATROSKA_ContextAttachmentLink);
         while (TrackType)
         {
             if (!RAttachments)
@@ -372,7 +372,7 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
             {
                 if (EL_Type(Elt, &MATROSKA_ContextAttachedFile))
                 {
-                    Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt, &MATROSKA_ContextFileUID, 0, 0);
+                    Elt2 = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextFileUID);
                     if (Elt2 && EL_Int(Elt2) == EL_Int(TrackType))
                         break;
                 }
@@ -442,7 +442,7 @@ static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 static int CheckSeekHead(ebml_master *SeekHead)
 {
 	int Result = 0;
-	matroska_seekpoint *RLevel1 = (matroska_seekpoint*)EBML_MasterFindFirstElt(SeekHead, &MATROSKA_ContextSeek, 0, 0);
+	matroska_seekpoint *RLevel1 = (matroska_seekpoint*)EBML_MasterFindChild(SeekHead, &MATROSKA_ContextSeek);
     bool_t BSegmentInfo = 0, BTrackInfo = 0, BCues = 0, BTags = 0, BChapters = 0, BAttachments = 0, BSecondSeek = 0;
 	while (RLevel1)
 	{
@@ -561,13 +561,13 @@ static void LinkClusterBlocks()
 static bool_t TrackIsLaced(int16_t TrackNum)
 {
     ebml_element *TrackData;
-    ebml_master *Track = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
+    ebml_master *Track = (ebml_master*)EBML_MasterFindChild(RTrackInfo, &MATROSKA_ContextTrackEntry);
     while (Track)
     {
-        TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+        TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackNumber);
         if (EL_Int(TrackData) == TrackNum)
         {
-            TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextFlagLacing, 1, 1);
+            TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextFlagLacing);
             return EL_Int(TrackData) != 0;
         }
         Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
@@ -578,13 +578,13 @@ static bool_t TrackIsLaced(int16_t TrackNum)
 static bool_t TrackIsVideo(int16_t TrackNum)
 {
     ebml_element *TrackData;
-    ebml_master *Track = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo, &MATROSKA_ContextTrackEntry, 0, 0);
+    ebml_master *Track = (ebml_master*)EBML_MasterFindChild(RTrackInfo, &MATROSKA_ContextTrackEntry);
     while (Track)
     {
-        TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackNumber, 1, 1);
+        TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackNumber);
         if (EL_Int(TrackData) == TrackNum)
         {
-            TrackData = EBML_MasterFindFirstElt(Track, &MATROSKA_ContextTrackType, 1, 1);
+            TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackType);
             return EL_Int(TrackData) == TRACK_TYPE_VIDEO;
         }
         Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
@@ -663,7 +663,7 @@ static int CheckPosSize(const ebml_element *RSegment)
 
 	for (Cluster=ARRAYBEGIN(RClusters,ebml_element*);Cluster!=ARRAYEND(RClusters,ebml_element*);++Cluster)
     {
-        Elt = EBML_MasterFindFirstElt((ebml_master*)*Cluster,&MATROSKA_ContextPrevSize,0,0);
+        Elt = EBML_MasterFindChild((ebml_master*)*Cluster,&MATROSKA_ContextPrevSize);
         if (Elt)
         {
             if (PrevCluster==NULL)
@@ -671,7 +671,7 @@ static int CheckPosSize(const ebml_element *RSegment)
             else if (EL_Int(Elt) != EL_Pos(*Cluster) - EL_Pos(PrevCluster))
                 Result |= OutputError(0xA1,T("The Cluster PrevSize %") TPRId64 T(" at %") TPRId64 T(" should be %") TPRId64,EL_Int(Elt),EL_Pos(Elt),EL_Pos(*Cluster) - EL_Pos(PrevCluster));
         }
-        Elt = EBML_MasterFindFirstElt((ebml_master*)*Cluster,&MATROSKA_ContextPosition,0,0);
+        Elt = EBML_MasterFindChild((ebml_master*)*Cluster,&MATROSKA_ContextPosition);
         if (Elt)
         {
             if (EL_Int(Elt) != EL_Pos(*Cluster) - EBML_ElementPositionData(RSegment))
@@ -776,7 +776,7 @@ static int CheckCueEntries(ebml_master *Cues)
 		Result |= OutputError(0x310,T("A Cues (index) is defined but no SegmentInfo was found"));
 	else if (ARRAYCOUNT(RClusters,matroska_cluster*))
 	{
-		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindFirstElt(Cues, &MATROSKA_ContextCuePoint, 0, 0);
+		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindChild(Cues, &MATROSKA_ContextCuePoint);
 		while (CuePoint)
 		{
             if (!Quiet && ClustNum++ % 24 == 0)
@@ -909,19 +909,19 @@ int main(int argc, const char *argv[])
 
 	VoidAmount += CheckUnknownElements((ebml_element*)EbmlHead);
 
-	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextReadVersion,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextReadVersion);
 	if (EL_Int(RLevel1) > EBML_MAX_VERSION)
 		OutputError(5,T("The EBML read version is not supported: %d"),(int)EL_Int(RLevel1));
 
-	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxIdLength,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextMaxIdLength);
 	if (EL_Int(RLevel1) > EBML_MAX_ID)
 		OutputError(6,T("The EBML max ID length is not supported: %d"),(int)EL_Int(RLevel1));
 
-	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextMaxSizeLength,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextMaxSizeLength);
 	if (EL_Int(RLevel1) > EBML_MAX_SIZE)
 		OutputError(7,T("The EBML max size length is not supported: %d"),(int)EL_Int(RLevel1));
 
-	RLevel1 = (ebml_master*)EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocType,1,1);
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
     EBML_StringGet((ebml_string*)RLevel1,String,TSIZEOF(String));
     if (tcscmp(String,T("matroska"))!=0 && tcscmp(String,T("webm"))!=0)
 	{
@@ -929,8 +929,8 @@ int main(int argc, const char *argv[])
 		goto exit;
 	}
 
-	EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocTypeVersion,1,1);
-	EbmlReadDocVer = EBML_MasterFindFirstElt(EbmlHead,&EBML_ContextDocTypeReadVersion,1,1);
+	EbmlDocVer = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeVersion);
+	EbmlReadDocVer = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeReadVersion);
 
 	if (EL_Int(EbmlDocVer) > EL_Int(EbmlReadDocVer))
 		OutputError(9,T("The read DocType version %d is higher than the Doctype version %d"),(int)EL_Int(EbmlReadDocVer),(int)EL_Int(EbmlDocVer));
@@ -1033,7 +1033,7 @@ int main(int argc, const char *argv[])
 
                     if (Live)
                     {
-                        EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextDuration,0,0);
+                        EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextDuration);
                         if (EbmlHead)
                             Result |= OutputError(0x112,T("The live Segment has a duration set at %") TPRId64,EL_Pos(EbmlHead));
                     }
@@ -1060,7 +1060,7 @@ int main(int argc, const char *argv[])
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
 
-                    EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    EbmlHead = (ebml_master*)EBML_MasterFindChild(RTrackInfo,&MATROSKA_ContextTrackEntry);
                     TrackCount = 0;
                     while (EbmlHead)
                     {
@@ -1071,18 +1071,18 @@ int main(int argc, const char *argv[])
                     ArrayResize(&Tracks,TrackCount*sizeof(track_info),256);
                     ArrayZero(&Tracks);
 
-                    EbmlHead = (ebml_master*)EBML_MasterFindFirstElt(RTrackInfo,&MATROSKA_ContextTrackEntry,0,0);
+                    EbmlHead = (ebml_master*)EBML_MasterFindChild(RTrackInfo,&MATROSKA_ContextTrackEntry);
                     TrackCount = 0;
                     while (EbmlHead)
                     {
-                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackNumber,0,0);
+                        EbmlDocVer = EBML_MasterFindChild(EbmlHead,&MATROSKA_ContextTrackNumber);
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
                             TrackMax = max(TrackMax,(size_t)EL_Int(EbmlDocVer));
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EL_Int(EbmlDocVer);
                         }
-                        EbmlDocVer = EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextTrackType,0,0);
+                        EbmlDocVer = EBML_MasterFindChild(EbmlHead,&MATROSKA_ContextTrackType);
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
@@ -1093,7 +1093,7 @@ int main(int argc, const char *argv[])
 							}
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EL_Int(EbmlDocVer);
                         }
-                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindFirstElt(EbmlHead,&MATROSKA_ContextCodecID,0,0);
+                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindChild(EbmlHead,&MATROSKA_ContextCodecID);
                         EbmlHead = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo,(ebml_element*)EbmlHead,0,0);
                         ++TrackCount;
                     }
@@ -1314,8 +1314,8 @@ exit:
 	{
 		tchar_t App[MAXPATH];
 		App[0] = 0;
-		LibName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextMuxingApp,0,0);
-		AppName = (ebml_string*)EBML_MasterFindFirstElt(RSegmentInfo,&MATROSKA_ContextWritingApp,0,0);
+		LibName = (ebml_string*)EBML_MasterFindChild(RSegmentInfo,&MATROSKA_ContextMuxingApp);
+		AppName = (ebml_string*)EBML_MasterFindChild(RSegmentInfo,&MATROSKA_ContextWritingApp);
 		if (LibName)
 		{
 			EBML_StringGet(LibName,String,TSIZEOF(String));
