@@ -889,7 +889,7 @@ static void CleanCropValues(ebml_master *Track, int64_t Width, int64_t Height)
     }
 }
 
-static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachments)
+static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebml_master *Attachments)
 {
     ebml_master *Track, *CurTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -925,24 +925,37 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
 			continue;
 		}
 		
-		if (Profile==PROFILE_WEBM)
-		{
-	        // verify that we have only VP8 and Vorbis tracks
-			TrackType = (int)EBML_IntegerValue((ebml_integer*)Elt);
-			Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
-			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
-			if (!(TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))))
-			{
-				TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(Profile),TrackNum);
-				NodeDelete((node*)CurTrack);
-                continue;
-			}
-		}
-
         // clean the aspect ratio
         Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextVideo);
         if (Elt)
         {
+            if (SrcProfile==PROFILE_MATROSKA_V1 || SrcProfile==PROFILE_MATROSKA_V2 || SrcProfile==PROFILE_DIVX)
+            {
+                // clean the older StereoMode values
+                Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextStereoMode);
+                if (!Elt2)
+                    Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextOldStereoMode);
+                if (Elt2)
+                {
+                    Width = (int)EBML_IntegerValue((ebml_integer*)Elt2);
+                    if (Width!=TRACK_OLD_STEREOMODE_MONO && Width <= 3) // upper values are probably the new ones
+                    {
+                        *DstProfile = PROFILE_MATROSKA_V3;
+                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                        if (EBML_ElementIsType(Elt2, &MATROSKA_ContextOldStereoMode))
+                            // replace the old by a new
+                            Elt2->Context = &MATROSKA_ContextOldStereoMode;
+
+                        // TODO: replace the old values with the new ones
+                        if (Width==TRACK_OLD_STEREOMODE_BOTH)
+                        {
+                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                            EBML_IntegerSetValue(Elt2,TRACK_STEREO_MODE_SIDEBYSIDE_L);
+                        }
+                    }
+                }
+            }
+
             Width = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelWidth));
             Height = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelHeight));
 	        if (Width==0 || Height==0)
@@ -1055,6 +1068,20 @@ static int CleanTracks(ebml_master *Tracks, int Profile, ebml_master *Attachment
                     CleanCropValues(CurTrack, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
             }
         }
+
+		if (*DstProfile==PROFILE_WEBM)
+		{
+	        // verify that we have only VP8 and Vorbis tracks
+			TrackType = (int)EBML_IntegerValue((ebml_integer*)Elt);
+			Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
+			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
+			if (!(TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))))
+			{
+				TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*DstProfile),TrackNum);
+				NodeDelete((node*)CurTrack);
+                continue;
+			}
+		}
 
         // clean the output sampling freq
         Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextAudio);
@@ -1409,11 +1436,6 @@ int main(int argc, const char *argv[])
 	if (!DstProfile)
 		DstProfile = SrcProfile;
 
-	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_WEBM)
-		DocVersion=2;
-	if (DstProfile==PROFILE_MATROSKA_V3)
-		DocVersion=3;
-    
     if (DstProfile==PROFILE_WEBM)
     {
         UnOptimize = 1;
@@ -1558,7 +1580,7 @@ int main(int argc, const char *argv[])
 
 	if (RTrackInfo)
 	{
-		Result = CleanTracks(RTrackInfo, DstProfile, RAttachments);
+		Result = CleanTracks(RTrackInfo, SrcProfile, &DstProfile, RAttachments);
 		if (Result!=0)
 		{
 			TextWrite(StdErr,T("No Tracks left to use!\r\n"));
@@ -1619,6 +1641,11 @@ int main(int argc, const char *argv[])
     }
 
     // Doctype version
+	if (DstProfile==PROFILE_MATROSKA_V2 || DstProfile==PROFILE_WEBM)
+		DocVersion=2;
+	if (DstProfile==PROFILE_MATROSKA_V3)
+		DocVersion=3;
+    
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeVersion);
     if (!RLevel1)
         goto exit;

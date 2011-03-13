@@ -74,6 +74,25 @@ typedef int64_t    timecode_t; // in nanoseconds
 #define TRACK_TYPE_BUTTONS  18
 #define TRACK_TYPE_CONTROL  32
 
+#define TRACK_STEREO_MODE_MONO                 0
+#define TRACK_STEREO_MODE_SIDEBYSIDE_L         1
+#define TRACK_STEREO_MODE_TOPBOTTOM_R          2
+#define TRACK_STEREO_MODE_TOPBOTTOM_L          3
+#define TRACK_STEREO_MODE_CHECKBOARD_R         4
+#define TRACK_STEREO_MODE_CHECKBOARD_L         5
+#define TRACK_STEREO_MODE_INTERLEAVED_R        6
+#define TRACK_STEREO_MODE_INTERLEAVED_L        7
+#define TRACK_STEREO_MODE_COL_INTERLEAVED_L    8
+#define TRACK_STEREO_MODE_COL_INTERLEAVED_R    9
+#define TRACK_STEREO_MODE_ANAGLYPH_CYAN_RED   10
+#define TRACK_STEREO_MODE_SIDEBYSIDE_R        11
+#define TRACK_STEREO_MODE_ANAGLYPH_GREEN_MAG  12
+
+#define TRACK_OLD_STEREOMODE_MONO   0
+#define TRACK_OLD_STEREOMODE_RIGHT  1
+#define TRACK_OLD_STEREOMODE_LEFT   2
+#define TRACK_OLD_STEREOMODE_BOTH   3
+
 typedef struct matroska_block matroska_block;
 typedef struct matroska_cuepoint matroska_cuepoint;
 typedef struct matroska_cluster matroska_cluster;
