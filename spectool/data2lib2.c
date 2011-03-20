@@ -39,7 +39,7 @@ typedef struct table_extras
 
 } table_extras;
 
-static void AddElementSemantic(textwriter *CFile, SpecElement *elt, bool_t InRecursive)
+static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t InRecursive)
 {
     TextPrintf(CFile, T("    {%d, %d, &MATROSKA_Context%s, "), InRecursive?0:(elt->Mandatory?1:0), elt->Multiple?0:1, elt->Name);
     if (elt->InWebM && elt->MinVersion==1 && !elt->MaxVersion && elt->InDivX)
@@ -90,14 +90,14 @@ static bool_t IsValidElement(const SpecElement *elt)
 
 static void OutputElementDefinition(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
 {
-    SpecElement *elt = *pElt;
+    const SpecElement *elt = *pElt;
 
     if (pElt==EltEnd)
         return;
 
     if (elt->Type==EBML_MASTER)
     {
-        SpecElement **sub;
+        const SpecElement **sub;
         for (sub = pElt+1; sub!=EltEnd; ++sub)
         {
             if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
@@ -111,8 +111,6 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
     if (elt->Type != EBML_unknown && elt->Name[0])
     {
-        tchar_t IdString[32];
-
         if (elt->Level==-1 && !Extras->StartedGlobal)
         {
             Extras->StartedGlobal = 1;
@@ -136,7 +134,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
             if (elt->Type==EBML_MASTER)
             {
-                SpecElement **sub;
+                const SpecElement **sub;
 
                 // write the semantic
                 TextPrintf(CFile, T("\nconst ebml_semantic EBML_Semantic%s[] = {\n"), elt->Name);
@@ -249,14 +247,14 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
 static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
 {
-    SpecElement *elt = *pElt;
+    const SpecElement *elt = *pElt;
 
     if (pElt==EltEnd)
         return;
 
     if (elt->Type==EBML_MASTER)
     {
-        SpecElement **sub;
+        const SpecElement **sub;
         for (sub = pElt+1; sub!=EltEnd; ++sub)
         {
             if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
@@ -268,8 +266,6 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
 
     if (elt->Type != EBML_unknown && elt->Name[0])
     {
-        tchar_t IdString[32];
-
         if (elt->Level==-1 && !Extras->StartedGlobal)
         {
             Extras->StartedGlobal = 1;
@@ -288,9 +284,6 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
 
         if (Extras->PassedEBML)
         {
-            const tchar_t *s;
-            intptr_t value;
-
             TextPrintf(CFile, T("extern const ebml_context MATROSKA_Context%s;\n"), elt->Name);
             if (elt->Type==EBML_MASTER)
                 TextWrite(CFile, T("\n"));
