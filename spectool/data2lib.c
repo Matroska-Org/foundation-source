@@ -1,5 +1,5 @@
 /*
- * $Id: data2lib2.c 696 2011-03-13 13:42:25Z robux4 $
+ * $Id$
  * Copyright (c) 2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
@@ -59,18 +59,6 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
     if (pElt==EltEnd)
         return;
-
-    if (elt->Type==EBML_MASTER)
-    {
-        const SpecElement **sub;
-        for (sub = pElt+1; sub!=EltEnd; ++sub)
-        {
-            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
-                break;
-            if ((*sub)->Level== elt->Level+1)
-                OutputElementDefinition(sub, elt, EltEnd, CFile, Extras);
-        }
-    }
 
     //if (!IsValidElement(elt)) TextWrite(CFile, T("// not supported "));
 
@@ -210,6 +198,18 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 #endif
         }
     }
+
+    if (elt->Type==EBML_MASTER)
+    {
+        const SpecElement **sub;
+        for (sub = pElt+1; sub!=EltEnd; ++sub)
+        {
+            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
+                break;
+            if ((*sub)->Level== elt->Level+1)
+                OutputElementDefinition(sub, elt, EltEnd, CFile, Extras);
+        }
+    }
 }
 
 static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
@@ -333,10 +333,26 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("** Contact license@matroska.org if any conditions of this licensing are\n"));
     TextWrite(CFile, T("** not clear to you.\n"));
     TextWrite(CFile, T("**\n"));
-    TextWrite(CFile, T("**********************************************************************/\n"));
-    TextWrite(CFile, T("#include \"matroska/matroska.h\"\n"));
-    if (WithInclude) TextWrite(CFile, T("#include \"matroska/matroska_sem.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/matroska_internal.h\"\n"));
+    TextWrite(CFile, T("**********************************************************************/\n\n"));
+
+    TextWrite(CFile, T("#include \"matroska/KaxContexts.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxSegment.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxSeekHead.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxInfo.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxCluster.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxTracks.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxCues.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxAttachments.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxChapters.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxTags.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxInfoData.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxBlockData.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxTrackVideo.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxTrackAudio.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxContentEncoding.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxCuesData.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxAttached.h\"\n"));
+    //if (WithInclude) TextWrite(CFile, T("#include \"matroska/matroska_sem.h\"\n"));
     TextWrite(CFile, T("\n"));
 }
 
@@ -378,7 +394,7 @@ int main(void)
         CFile.Stream = OutputC;
         OutputCHeader(&CFile, 1);
 
-        TextWrite(&CFile, T("START_LIBMATROSKA_NAMESPACE\n\n"));
+        TextWrite(&CFile, T("START_LIBMATROSKA_NAMESPACE\n"));
         for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
             if ((element+1) == ARRAYEND(Elements,SpecElement*))
                 Extras.IsLast = 1;
