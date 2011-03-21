@@ -107,12 +107,12 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             }
 
             TextPrintf(CFile, T("DEFINE_MKX_"));
-            if (elt->Id==0xA3 || elt->Id==0xA1)
-                TextWrite(CFile, T("MATROSKA_BLOCK_CLASS, "));
-            else if (elt->Id==0xA0)
-                TextWrite(CFile, T("MATROSKA_BLOCKGROUP_CLASS, "));
-            else if (elt->Id==0x1F43B675)
-                TextWrite(CFile, T("MATROSKA_CLUSTER_CLASS, "));
+            if (elt->Id==0x3CB923 || elt->Id==0x3EB923 || elt->Id==0xA3 || elt->Id==0xA1 || elt->Id==0xA2)
+                TextWrite(CFile, T("BINARY_CONS"));
+            else if (elt->Id==0x1F43B675 || elt->Id == 0x1941A469 || elt->Id==0xA0 || elt->Id==0xAE || elt->Id == 0x61A7)
+                TextWrite(CFile, T("MASTER_CONS"));
+            else if (elt->Id==0xFB)
+                TextWrite(CFile, T("SINTEGER_CONS"));
             else switch (elt->Type)
             {
             case EBML_MASTER:
@@ -352,6 +352,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("#include \"matroska/KaxContentEncoding.h\"\n"));
     TextWrite(CFile, T("#include \"matroska/KaxCuesData.h\"\n"));
     TextWrite(CFile, T("#include \"matroska/KaxAttached.h\"\n"));
+    TextWrite(CFile, T("#include \"matroska/KaxTag.h\"\n"));
     //if (WithInclude) TextWrite(CFile, T("#include \"matroska/matroska_sem.h\"\n"));
     TextWrite(CFile, T("\n"));
 }
