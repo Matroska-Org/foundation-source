@@ -39,9 +39,30 @@ typedef struct table_extras
 
 } table_extras;
 
+static const tchar_t *GetCppName(const SpecElement *elt)
+{
+    if (elt->CppName[0])
+        return elt->CppName;
+    return elt->Name;
+}
+
+static const tchar_t *GetClassName(const SpecElement *elt)
+{
+    if (elt->Id==0x61A7)
+        return T("Attached");
+    if (elt->Id==0x447A)
+        return T("TagLangue");
+    if (elt->Id!=0x114D9B74 && elt->Id!=0x4DBB && elt->Id!=0xFA)
+    {
+        if (elt->CppName[0])
+            return elt->CppName;
+    }
+    return elt->Name;
+}
+
 static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t InRecursive)
 {
-    TextPrintf(CFile, T("DEFINE_SEMANTIC_ITEM(%s, %s, Kax%s"), InRecursive?T("false"):(elt->Mandatory?T("true"):T("false")), elt->Multiple?T("false"):T("true"), elt->Name);
+    TextPrintf(CFile, T("DEFINE_SEMANTIC_ITEM(%s, %s, Kax%s"), InRecursive?T("false"):(elt->Mandatory?T("true"):T("false")), elt->Multiple?T("false"):T("true"), GetClassName(elt));
     if (InRecursive)
         TextWrite(CFile, T(") // recursive\n"));
     else
@@ -51,13 +72,6 @@ static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t
 static bool_t IsValidElement(const SpecElement *elt)
 {
     return elt->InWebM || elt->MinVersion || elt->InDivX;
-}
-
-static const tchar_t *GetCppName(const SpecElement *elt)
-{
-    if (elt->CppName[0])
-        return elt->CppName;
-    return elt->Name;
 }
 
 static void OutputElementDefinition(const SpecElement **pElt, const SpecElement *parent, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
@@ -97,7 +111,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                 const SpecElement **sub;
 
                 // write the semantic
-                TextPrintf(CFile, T("\nDEFINE_START_SEMANTIC(Kax%s)\n"), elt->Name);
+                TextPrintf(CFile, T("\nDEFINE_START_SEMANTIC(Kax%s)\n"), GetClassName(elt));
                 if (elt->Recursive)
                     AddElementSemantic(CFile, elt, 1);
                 for (sub = pElt+1; sub!=EltEnd; ++sub) 
@@ -110,7 +124,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                         AddElementSemantic(CFile, *sub, 0);
                     }
                 }
-                TextPrintf(CFile, T("DEFINE_END_SEMANTIC(Kax%s)\n\n"), elt->Name);
+                TextPrintf(CFile, T("DEFINE_END_SEMANTIC(Kax%s)\n\n"), GetClassName(elt));
             }
 
             TextPrintf(CFile, T("DEFINE_MKX_"));
@@ -155,33 +169,33 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             case EBML_DATE:
                 s = elt->DefaultValue;
                 if (!elt->DefaultValue[0])
-                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt));
+                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt));
                 else if (ExprIsInt(&s,&value))
-                    TextPrintf(CFile, T("_DEF(Kax%s, 0x%X, %d, Kax%s, \"%s\", %d);\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt), value);
+                    TextPrintf(CFile, T("_DEF(Kax%s, 0x%X, %d, Kax%s, \"%s\", %d);\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt), value);
                 else
-                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt));
+                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt));
                 break;
             case EBML_FLOAT:
                 s = elt->DefaultValue;
                 if (!elt->DefaultValue[0])
-                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt));
+                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt));
                 else if (ExprIsInt(&s,&value))
-                    TextPrintf(CFile, T("_DEF(Kax%s, 0x%X, %d, Kax%s, \"%s\", %d);\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt), value);
+                    TextPrintf(CFile, T("_DEF(Kax%s, 0x%X, %d, Kax%s, \"%s\", %d);\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt), value);
                 else
-                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt));
+                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt));
                 break;
             case EBML_STRING:
             case EBML_UNICODE_STRING:
                 if (!elt->DefaultValue[0])
-                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt));
+                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt));
                 else
-                    TextPrintf(CFile, T("_DEF(Kax%s, 0x%X, %d, Kax%s, \"%s\", \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt), elt->DefaultValue);
+                    TextPrintf(CFile, T("_DEF(Kax%s, 0x%X, %d, Kax%s, \"%s\", \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt), elt->DefaultValue);
                 break;
             default:
                 if (parent==NULL)
-                    TextPrintf(CFile, T("_ORPHAN(Kax%s, 0x%X, %d, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetCppName(elt));
+                    TextPrintf(CFile, T("_ORPHAN(Kax%s, 0x%X, %d, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetCppName(elt));
                 else
-                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), elt->Name, elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), parent->Name, GetCppName(elt));
+                    TextPrintf(CFile, T("(Kax%s, 0x%X, %d, Kax%s, \"%s\");\n"), GetClassName(elt), elt->Id, elt->Id<0x100 ? 1 : (elt->Id<0x10000 ? 2 : (elt->Id<0x1000000 ? 3 : 4)), GetClassName(parent), GetCppName(elt));
                 break;
             }
         }
