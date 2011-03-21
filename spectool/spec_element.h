@@ -51,7 +51,8 @@ typedef enum {
 typedef struct SpecElement {
     node Base;
 
-    tchar_t Name[MAXPATH]; // verify it matches the ID
+    tchar_t Name[MAXPATH];
+    tchar_t CppName[MAXPATH];
     int Level;
     bool_t Recursive;
     int32_t Id;

@@ -95,6 +95,8 @@ void ReadSpecElement(SpecElement *elt, parser *p)
 
 			if (tcsisame_ascii(String,T("name")))
                 tcscpy_s(elt->Name, TSIZEOF(elt->Name), Value);
+			else if (tcsisame_ascii(String,T("cppname")))
+                tcscpy_s(elt->CppName, TSIZEOF(elt->CppName), Value);
             else if (tcsisame_ascii(String,T("level"))) {
                 ExprIsInt(&s,&intval);
                 elt->Level = intval;
