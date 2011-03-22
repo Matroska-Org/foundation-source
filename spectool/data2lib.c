@@ -50,6 +50,8 @@ static const tchar_t *GetClassName(const SpecElement *elt)
 {
     if (elt->Id==0x61A7)
         return T("Attached");
+    if (elt->Id==0x4660)
+        return T("MimeType");
     if (elt->Id==0x447A)
         return T("TagLangue");
     if (elt->Id!=0x114D9B74 && elt->Id!=0x4DBB && elt->Id!=0xFA)
