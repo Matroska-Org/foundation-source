@@ -1,7 +1,7 @@
 /*
  * DO NOT EDIT, GENERATED WITH DATA2LIB2
  *
- * $Id$
+ * $Id $
  * Copyright (c) 2008-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
@@ -155,14 +155,14 @@ const ebml_context MATROSKA_ContextReferenceFrame = {0xC8, EBML_MASTER_CLASS, 0,
 
 const ebml_semantic EBML_SemanticBlockGroup[] = {
     {1, 1, &MATROSKA_ContextBlock, 0},
-    {0, 0, &MATROSKA_ContextBlockVirtual, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextBlockVirtual, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextBlockAdditions, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextBlockDuration, 0},
     {1, 1, &MATROSKA_ContextReferencePriority, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextReferenceBlock, 0},
     {0, 1, &MATROSKA_ContextReferenceVirtual, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextCodecState, PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextSlices, PROFILE_DIVX},
+    {0, 1, &MATROSKA_ContextSlices, PROFILE_DIVX},
     {0, 1, &MATROSKA_ContextReferenceFrame, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
@@ -353,7 +353,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextTrackType, 0},
     {1, 1, &MATROSKA_ContextFlagEnabled, PROFILE_MATROSKA_V1|PROFILE_DIVX},
     {1, 1, &MATROSKA_ContextFlagDefault, 0},
-    {1, 0, &MATROSKA_ContextFlagForced, 0},
+    {1, 1, &MATROSKA_ContextFlagForced, 0},
     {1, 1, &MATROSKA_ContextFlagLacing, 0},
     {1, 1, &MATROSKA_ContextMinCache, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextMaxCache, PROFILE_WEBM},
