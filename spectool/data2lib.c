@@ -476,7 +476,6 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
         TextWrite(CFile, T("#include \"matroska/KaxInfoData.h\"\n"));
         TextWrite(CFile, T("#include \"matroska/KaxBlockData.h\"\n"));
         TextWrite(CFile, T("#include \"matroska/KaxCuesData.h\"\n"));
-        TextWrite(CFile, T("#include \"matroska/KaxTag.h\"\n"));
     }
     TextWrite(CFile, T("\n"));
 }
