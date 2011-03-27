@@ -1,7 +1,7 @@
 /*
  * DO NOT EDIT, GENERATED WITH DATA2LIB2
  *
- * $Id $
+ * $Id$
  * Copyright (c) 2008-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
@@ -248,7 +248,7 @@ const ebml_semantic EBML_SemanticVideo[] = {
     {0, 1, &MATROSKA_ContextAspectRatioType, 0},
     {0, 1, &MATROSKA_ContextColourSpace, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextGammaValue, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextFrameRate, 0},
+    {0, 1, &MATROSKA_ContextFrameRate, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextVideo = {0xE0, EBML_MASTER_CLASS, 0, 0, "Video", EBML_SemanticVideo, EBML_SemanticGlobals, NULL};
