@@ -117,7 +117,7 @@
   <element name="AspectRatioType" cppname="VideoAspectRatio" level="4" id="0x54B3" type="uinteger" minver="1" default="0">Specify the possible modifications to the aspect ratio (0: free resizing, 1: keep aspect ratio, 2: fixed).</element>
   <element name="ColourSpace" cppname="VideoColourSpace" level="4" id="0x2EB524" type="binary" minver="1" webm="0">Same value as in AVI (32 bits).</element>
   <element name="GammaValue" cppname="VideoGamma" level="4" id="0x2FB523" type="float" webm="0" range="&gt; 0">Gamma Value.</element>
-  <element name="FrameRate" cppname="VideoFrameRate" level="4" id="0x2383E3" type="float" minver="1" range="&gt; 0">Number of frames per second. <strong>Informational</strong> only.</element>
+  <element name="FrameRate" cppname="VideoFrameRate" level="4" id="0x2383E3" type="float" range="&gt; 0">Number of frames per second. <strong>Informational</strong> only.</element>
   <element name="Audio" cppname="TrackAudio" level="3" id="0xE1" type="master" minver="1">Audio settings.</element>
   <element name="SamplingFrequency" cppname="AudioSamplingFreq" level="4" id="0xB5" type="float" mandatory="1" minver="1" default="8000.0" range="&gt; 0">Sampling frequency in Hz.</element>
   <element name="OutputSamplingFrequency" cppname="AudioOutputSamplingFreq" level="4" id="0x78B5" type="float" minver="1" default="Sampling Frequency" range="&gt; 0">Real output sampling frequency in Hz (used for SBR techniques).</element>
