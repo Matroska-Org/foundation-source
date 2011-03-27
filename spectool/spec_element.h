@@ -62,6 +62,7 @@ typedef struct SpecElement {
     tchar_t Range[MAXPATH];
     tchar_t DefaultValue[32];
     int MinVersion, MaxVersion;
+    int ByteSize;
     bool_t InWebM;
     bool_t InDivX;
     tchar_t Description[MAXLINE];

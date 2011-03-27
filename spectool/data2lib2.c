@@ -341,7 +341,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("/*\n"));
     TextWrite(CFile, T(" * DO NOT EDIT, GENERATED WITH DATA2LIB2\n"));
     TextWrite(CFile, T(" *\n"));
-    TextPrintf(CFile, T(" * $Id $\n"));
+    TextPrintf(CFile, T(" * $Id$\n"));
     TextWrite(CFile, T(" * Copyright (c) 2008-2011, Matroska (non-profit organisation)\n"));
     TextWrite(CFile, T(" * All rights reserved.\n"));
     TextWrite(CFile, T(" *\n"));

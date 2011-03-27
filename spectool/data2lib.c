@@ -36,6 +36,7 @@ typedef struct table_extras
     bool_t IsLast;
     bool_t InTags;
     int CurrLevel;
+    int CurrProfile;
 
 } table_extras;
 
@@ -62,18 +63,62 @@ static const tchar_t *GetClassName(const SpecElement *elt)
     return elt->Name;
 }
 
-static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t InRecursive)
-{
-    TextPrintf(CFile, T("DEFINE_SEMANTIC_ITEM(%s, %s, Kax%s"), InRecursive?T("false"):(elt->Mandatory?T("true"):T("false")), elt->Multiple?T("false"):T("true"), GetClassName(elt));
-    if (InRecursive)
-        TextWrite(CFile, T(") // recursive\n"));
-    else
-        TextWrite(CFile, T(")\n"));
-}
-
 static bool_t IsValidElement(const SpecElement *elt)
 {
     return elt->InWebM || elt->MinVersion || elt->InDivX;
+}
+
+static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t InRecursive)
+{
+    TextPrintf(CFile, T("DEFINE_SEMANTIC_ITEM(%s, %s, Kax%s)"), InRecursive?T("false"):(elt->Mandatory?T("true"):T("false")), elt->Multiple?T("false"):T("true"), GetClassName(elt));
+    if (!IsValidElement(elt))
+        TextWrite(CFile, T(" // not supported\n"));
+    else if (!elt->MinVersion && elt->InDivX)
+        TextWrite(CFile, T(" // DivX specific\n"));
+    else if (InRecursive)
+        TextWrite(CFile, T(" // recursive\n"));
+    else
+        TextWrite(CFile, T("\n"));
+}
+
+static const tchar_t *GetClassType(const SpecElement *elt, bool_t Define)
+{
+    if (elt->Id==0x3CB923 || elt->Id==0x3EB923 || elt->Id==0xA3 || elt->Id==0xA1 || elt->Id==0xA2)
+        return T("BINARY_CONS");
+    else if (elt->Id==0x1F43B675 || elt->Id==0xA0 || elt->Id==0xAE)
+        return T("MASTER_CONS");
+    else if (Define && (elt->Id==0x61A7 || elt->Id==0x1941A469))
+        return T("MASTER_CONS");
+    else if (elt->Id==0xFB)
+        return T("SINTEGER_CONS");
+    else switch (elt->Type)
+    {
+    case EBML_MASTER:
+        return T("MASTER");
+        break;
+    case EBML_INTEGER:
+        return T("SINTEGER");
+        break;
+    case EBML_UNSIGNED_INTEGER:
+        return T("UINTEGER");
+        break;
+    case EBML_DATE:
+        return T("DATE    ");
+        break;
+    case EBML_FLOAT:
+        return T("FLOAT");
+        break;
+    case EBML_STRING:
+        return T("STRING");
+        break;
+    case EBML_UNICODE_STRING:
+        return T("UNISTRING");
+        break;
+    case EBML_BINARY:
+        return T("BINARY ");
+        break;
+    }
+    return NULL;
 }
 
 static void OutputElementDefinition(const SpecElement **pElt, const SpecElement *parent, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
@@ -87,6 +132,8 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
     if (elt->Type != EBML_unknown && elt->Name[0])
     {
+        const SpecElement **sub;
+
         if (elt->Level==-1 && !Extras->StartedGlobal)
         {
             Extras->StartedGlobal = 1;
@@ -108,11 +155,27 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             const tchar_t *s;
             intptr_t value;
 
+            if (!IsValidElement(elt))
+            {
+                if (Extras->CurrProfile != 2)
+                {
+                    Extras->CurrProfile = 2;
+                    TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
+                }
+            }
+            else if (!elt->MinVersion || Extras->CurrProfile < elt->MinVersion)
+            {
+                if (Extras->CurrProfile != 2)
+                {
+                    Extras->CurrProfile = 2;
+                    TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
+                }
+            }
+
             if (elt->Type==EBML_MASTER)
             {
-                const SpecElement **sub;
-
                 // write the semantic
+                int minProfile = Extras->CurrProfile;
                 TextPrintf(CFile, T("\nDEFINE_START_SEMANTIC(Kax%s)\n"), GetClassName(elt));
                 if (elt->Recursive)
                     AddElementSemantic(CFile, elt, 1);
@@ -122,47 +185,44 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                         break;
                     if ((*sub)->Level== elt->Level+1)
                     {
+                        if (!IsValidElement(*sub))
+                        {
+                            if (minProfile != 2)
+                            {
+                                minProfile = 2;
+                                TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
+                            }
+                        }
+                        else if (!(*sub)->MinVersion || minProfile < (*sub)->MinVersion)
+                        {
+                            if (minProfile != 2)
+                            {
+                                minProfile = 2;
+                                TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
+                            }
+                        }
+                        else if (minProfile > (*sub)->MinVersion)
+                        {
+                            minProfile = (*sub)->MinVersion;
+                            TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
+                        }
+
                         //if (!IsValidElement(*sub)) TextWrite(CFile, T("// "));
                         AddElementSemantic(CFile, *sub, 0);
                     }
                 }
+                    
+                if (minProfile > 1 && Extras->CurrProfile < 2)
+                {
+                    minProfile = 1;
+                    TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
+                }
                 TextPrintf(CFile, T("DEFINE_END_SEMANTIC(Kax%s)\n\n"), GetClassName(elt));
             }
 
-            TextPrintf(CFile, T("DEFINE_MKX_"));
-            if (elt->Id==0x3CB923 || elt->Id==0x3EB923 || elt->Id==0xA3 || elt->Id==0xA1 || elt->Id==0xA2)
-                TextWrite(CFile, T("BINARY_CONS"));
-            else if (elt->Id==0x1F43B675 || elt->Id == 0x1941A469 || elt->Id==0xA0 || elt->Id==0xAE || elt->Id == 0x61A7)
-                TextWrite(CFile, T("MASTER_CONS"));
-            else if (elt->Id==0xFB)
-                TextWrite(CFile, T("SINTEGER_CONS"));
-            else switch (elt->Type)
-            {
-            case EBML_MASTER:
-                TextWrite(CFile, T("MASTER"));
-                break;
-            case EBML_INTEGER:
-                TextWrite(CFile, T("SINTEGER"));
-                break;
-            case EBML_UNSIGNED_INTEGER:
-                TextWrite(CFile, T("UINTEGER"));
-                break;
-            case EBML_DATE:
-                TextWrite(CFile, T("DATE    "));
-                break;
-            case EBML_FLOAT:
-                TextWrite(CFile, T("FLOAT"));
-                break;
-            case EBML_STRING:
-                TextWrite(CFile, T("STRING"));
-                break;
-            case EBML_UNICODE_STRING:
-                TextWrite(CFile, T("UNISTRING"));
-                break;
-            case EBML_BINARY:
-                TextWrite(CFile, T("BINARY "));
-                break;
-            }
+            TextWrite(CFile, T("DEFINE_MKX_"));
+
+            TextWrite(CFile, GetClassType(elt, 1));
 
             switch (elt->Type)
             {
@@ -201,6 +261,13 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                 break;
             }
         }
+
+        sub = pElt+1;
+        if (sub!=EltEnd && (*sub)->MinVersion && Extras->CurrProfile > (*sub)->MinVersion)
+        {
+            Extras->CurrProfile = (*sub)->MinVersion;
+            TextPrintf(CFile, T("#endif\n"));
+        }
     }
 
     if (elt->Type==EBML_MASTER)
@@ -219,21 +286,10 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
 {
     const SpecElement *elt = *pElt;
+    const SpecElement **sub;
 
     if (pElt==EltEnd)
         return;
-
-    if (elt->Type==EBML_MASTER)
-    {
-        const SpecElement **sub;
-        for (sub = pElt+1; sub!=EltEnd; ++sub)
-        {
-            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
-                break;
-            if ((*sub)->Level== elt->Level+1)
-                OutputElementDeclaration(sub, EltEnd, CFile, Extras);
-        }
-    }
 
     if (elt->Type != EBML_unknown && elt->Name[0])
     {
@@ -253,11 +309,80 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
         }
         Extras->CurrLevel = elt->Level;
 
-        if (Extras->PassedEBML)
+        if (Extras->PassedEBML && elt->Id!=0xAE && elt->Id!=0xA0 && elt->Id!=0xA1 && elt->Id!=0xA2 && elt->Id!=0xA3 && elt->Id!=0xFB
+            && elt->Id!=0x1C53BB6B && elt->Id!=0x1F43B675 && elt->Id!=0x18538067 && elt->Id!=0xBB && elt->Id!=0xB7 && elt->Id!=0xDB
+            && elt->Id!=0x3CB923 && elt->Id!=0x3EB923 && elt->Id!=0x114D9B74 && elt->Id!=0x4DBB)
         {
-            TextPrintf(CFile, T("extern const ebml_context MATROSKA_Context%s;\n"), elt->Name);
-            if (elt->Type==EBML_MASTER)
+            if (!IsValidElement(elt))
+            {
+                if (Extras->CurrProfile != 2)
+                {
+                    Extras->CurrProfile = 2;
+                    TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
+                }
+            }
+            else if (!elt->MinVersion || Extras->CurrProfile < elt->MinVersion)
+            {
+                if (Extras->CurrProfile != 2)
+                {
+                    Extras->CurrProfile = 2;
+                    TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
+                }
+            }
+
+            TextWrite(CFile, T("DECLARE_MKX_"));
+            TextWrite(CFile, GetClassType(elt, 0));
+            TextPrintf(CFile, T("(Kax%s)\n"), GetClassName(elt));
+
+            switch (elt->Id)
+            {
+            case 0x53AB:
+                TextWrite(CFile, T("public:\n"));
+                TextWrite(CFile, T("\tvirtual bool ValidateSize() const {return IsFiniteSize() && GetSize() <= 4;}\n"));
+                break;
+            case 0x73A4:
+                TextWrite(CFile, T("#if defined(HAVE_EBML2)\n"));
+                TextWrite(CFile, T("public:\n"));
+                TextWrite(CFile, T("\tKaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);\n"));
+                TextWrite(CFile, T("#endif\n"));
+                break;
+            }
+
+            if (elt->ByteSize)
+            {
+                TextWrite(CFile, T("public:\n"));
+                TextPrintf(CFile, T("\tvirtual bool ValidateSize() const {return IsFiniteSize() && GetSize() == %d;}\n"), elt->ByteSize);
+            }
+            if (!IsValidElement(elt))
+            {
+                TextWrite(CFile, T("public:\n"));
+                TextWrite(CFile, T("\tfilepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault);\n"));
+            }
+
+            TextWrite(CFile, T("};\n"));
+
+            sub = pElt+1;
+            if (sub!=EltEnd && (*sub)->MinVersion && Extras->CurrProfile > (*sub)->MinVersion)
+            {
+                Extras->CurrProfile = (*sub)->MinVersion;
+                TextPrintf(CFile, T("#endif\n\n"));
+            }
+            else if (elt->Type==EBML_MASTER)
+                TextWrite(CFile, T("\n\n"));
+            else
                 TextWrite(CFile, T("\n"));
+        }
+    }
+
+    if (elt->Type==EBML_MASTER)
+    {
+        const SpecElement **sub;
+        for (sub = pElt+1; sub!=EltEnd; ++sub)
+        {
+            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
+                break;
+            if ((*sub)->Level== elt->Level+1)
+                OutputElementDeclaration(sub, EltEnd, CFile, Extras);
         }
     }
 }
@@ -339,25 +464,20 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("**********************************************************************/\n\n"));
 
-    TextWrite(CFile, T("#include \"matroska/KaxContexts.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxSegment.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxSeekHead.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxInfo.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxCluster.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxTracks.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxCues.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxAttachments.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxChapters.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxTags.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxInfoData.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxBlockData.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxTrackVideo.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxTrackAudio.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxContentEncoding.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxCuesData.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxAttached.h\"\n"));
-    TextWrite(CFile, T("#include \"matroska/KaxTag.h\"\n"));
-    //if (WithInclude) TextWrite(CFile, T("#include \"matroska/matroska_sem.h\"\n"));
+    if (WithInclude)
+    {
+        TextWrite(CFile, T("#include \"matroska/KaxContexts.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxSemantic.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxSegment.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxSeekHead.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxCluster.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxTracks.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxCues.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxInfoData.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxBlockData.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxCuesData.h\"\n"));
+        TextWrite(CFile, T("#include \"matroska/KaxTag.h\"\n"));
+    }
     TextWrite(CFile, T("\n"));
 }
 
@@ -371,7 +491,7 @@ int main(void)
 {
     parsercontext p;
     parser parseIn;
-    stream *Input = NULL,*OutputC = NULL/*,*OutputH = NULL*/;
+    stream *Input = NULL,*OutputC = NULL,*OutputH = NULL;
     array Elements;
     SpecElement **element;
     //tchar_t Element[MAXLINE], String[MAXLINE], Value[MAXLINE];
@@ -380,8 +500,8 @@ int main(void)
     StdAfx_Init((nodemodule*)&p);
 
     Input = StreamOpen(&p,T("specdata.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
-    OutputC = StreamOpen(&p,T("matroska_sem.cpp"),SFLAG_WRONLY|SFLAG_CREATE);
-    //OutputH = StreamOpen(&p,T("matroska_sem.h"),SFLAG_WRONLY|SFLAG_CREATE);
+    OutputC = StreamOpen(&p,T("KaxSemantic.cpp"),SFLAG_WRONLY|SFLAG_CREATE);
+    OutputH = StreamOpen(&p,T("KaxSemantic.h"),SFLAG_WRONLY|SFLAG_CREATE);
 
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
@@ -395,6 +515,7 @@ int main(void)
 
         memset(&Extras,0,sizeof(Extras));
         Extras.CurrLevel = -1;
+        Extras.CurrProfile = 1;
 
         CFile.Stream = OutputC;
         OutputCHeader(&CFile, 1);
@@ -410,17 +531,53 @@ int main(void)
                 break;
             }
         }
+
+        memset(&Extras,0,sizeof(Extras));
+        Extras.CurrLevel = -1;
+        Extras.CurrProfile = 1;
+        for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
+            if ((element+1) == ARRAYEND(Elements,SpecElement*))
+                Extras.IsLast = 1;
+            if ((*element)->Id == 0x18538067)
+                Extras.PassedEBML = 1;
+            if (Extras.PassedEBML)
+            {
+                if (!IsValidElement(*element))
+                {
+                    TextPrintf(&CFile, T("\nfilepos_t Kax%s::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault) {\n"), GetClassName(*element));
+                    TextWrite(&CFile, T("\tassert(false); // no you are not allowed to use this element !\n"));
+                    TextWrite(&CFile, T("\treturn 0;\n"));
+                    TextWrite(&CFile, T("}\n"));
+                }
+            }
+        }
+
         TextWrite(&CFile, T("\nEND_LIBMATROSKA_NAMESPACE\n"));
 
         memset(&Extras,0,sizeof(Extras));
         Extras.CurrLevel = -1;
 
-#if 0
+#if 1
         CFile.Stream = OutputH;
         OutputCHeader(&CFile, 0);
 
-        TextWrite(&CFile, T("#ifndef MATROSKA_SEMANTIC_H\n"));
-        TextWrite(&CFile, T("#define MATROSKA_SEMANTIC_H\n\n"));
+        TextWrite(&CFile, T("#ifndef LIBMATROSKA_SEMANTIC_H\n"));
+        TextWrite(&CFile, T("#define LIBMATROSKA_SEMANTIC_H\n\n"));
+
+        TextWrite(&CFile, T("#include \"matroska/KaxTypes.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlUInteger.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlSInteger.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlDate.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlFloat.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlString.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlUnicodeString.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlBinary.h\"\n"));
+        TextWrite(&CFile, T("#include \"ebml/EbmlMaster.h\"\n"));
+        TextWrite(&CFile, T("#include \"matroska/KaxDefines.h\"\n"));
+
+        TextWrite(&CFile, T("\nusing namespace LIBEBML_NAMESPACE;\n"));
+
+        TextWrite(&CFile, T("\nSTART_LIBMATROSKA_NAMESPACE\n\n"));
 
         for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
             if ((element+1) == ARRAYEND(Elements,SpecElement*))
@@ -428,12 +585,14 @@ int main(void)
             if ((*element)->Id == 0x18538067)
             {
                 Extras.PassedEBML = 1;
+                Extras.CurrProfile = 1;
                 OutputElementDeclaration(element, ARRAYEND(Elements,SpecElement*), &CFile, &Extras);
                 break;
             }
         }
 
-        TextWrite(&CFile, T("#endif // MATROSKA_SEMANTIC_H\n"));
+        TextWrite(&CFile, T("END_LIBMATROSKA_NAMESPACE\n"));
+        TextWrite(&CFile, T("\n#endif // LIBMATROSKA_SEMANTIC_H\n"));
 #endif
     }
 

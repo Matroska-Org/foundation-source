@@ -149,6 +149,10 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                 ExprIsInt(&s,&intval);
                 elt->MaxVersion = intval;
             }
+            else if (tcsisame_ascii(String,T("bytesize"))) {
+                ExprIsInt(&s,&intval);
+                elt->ByteSize = intval;
+            }
             else if (tcsisame_ascii(String,T("webm"))) {
                 ExprIsInt(&s,&intval);
                 elt->InWebM = intval!=0;
