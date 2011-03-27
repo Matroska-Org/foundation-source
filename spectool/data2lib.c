@@ -341,7 +341,7 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
                 TextWrite(CFile, T("\tvirtual bool ValidateSize() const {return IsFiniteSize() && GetSize() <= 4;}\n"));
                 break;
             case 0x73A4:
-                TextWrite(CFile, T("#if defined(HAVE_EBML2)\n"));
+                TextWrite(CFile, T("#if defined(HAVE_EBML2) || defined(HAS_EBML2)\n"));
                 TextWrite(CFile, T("public:\n"));
                 TextWrite(CFile, T("\tKaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);\n"));
                 TextWrite(CFile, T("#endif\n"));
