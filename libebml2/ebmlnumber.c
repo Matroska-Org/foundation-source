@@ -425,6 +425,7 @@ void EBML_IntegerSetValue(ebml_integer *Element, int64_t Value)
 int64_t EBML_IntegerValue(const ebml_integer *Element)
 {
 #if !defined(NDEBUG)
+    assert(Node_IsPartOf(Element,EBML_INTEGER_CLASS) || Node_IsPartOf(Element,EBML_SINTEGER_CLASS));
     assert(Element->Base.bValueIsSet);
 #endif
     return Element->Value;
