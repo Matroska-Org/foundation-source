@@ -156,6 +156,8 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             TextPrintf(CFile, T("const ebml_context MATROSKA_Context%s = {0x%X, "), elt->Name, elt->Id);
             if (elt->Id==0x4DBB)
                 TextWrite(CFile, T("MATROSKA_SEEKPOINT_CLASS, "));
+            else if (elt->Id==0xAE)
+                TextWrite(CFile, T("MATROSKA_TRACKENTRY_CLASS, "));
             else if (elt->Id==0x73A4 || elt->Id==0x3CB923 || elt->Id==0x3EB923)
                 TextWrite(CFile, T("MATROSKA_SEGMENTUID_CLASS, "));
             else if (elt->Id==0xA3 || elt->Id==0xA1)
