@@ -1514,7 +1514,7 @@ err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Fra
 }
 
 #if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
-static err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
 {
     err_t Err = ERR_NONE;
     z_stream stream;
@@ -2239,6 +2239,9 @@ META_START_CONTINUE(MATROSKA_SEEKPOINT_CLASS)
 META_CLASS(SIZE,sizeof(matroska_seekpoint))
 META_PARAM(TYPE,MATROSKA_SEEKPOINT_ELEMENT,TYPE_NODE)
 META_DATA(TYPE_NODE_REF,MATROSKA_SEEKPOINT_ELEMENT,matroska_seekpoint,Link)
+META_END_CONTINUE(EBML_MASTER_CLASS)
+
+META_START_CONTINUE(MATROSKA_TRACKENTRY_CLASS)
 META_END_CONTINUE(EBML_MASTER_CLASS)
 
 META_START_CONTINUE(MATROSKA_SEGMENTUID_CLASS)

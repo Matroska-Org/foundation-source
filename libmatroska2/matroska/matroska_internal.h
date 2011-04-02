@@ -74,5 +74,6 @@ struct matroska_block
 #define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
 #define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
 #define MATROSKA_ATTACHMENT_CLASS FOURCC('M','K','A','T')
+#define MATROSKA_TRACKENTRY_CLASS FOURCC('M','K','T','E')
 
 #endif /* LIBMATROSKA2_INTERNAL_H */

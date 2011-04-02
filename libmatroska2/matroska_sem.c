@@ -384,7 +384,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 1, &MATROSKA_ContextContentEncodings, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
-const ebml_context MATROSKA_ContextTrackEntry = {0xAE, EBML_MASTER_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTrackEntry = {0xAE, MATROSKA_TRACKENTRY_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTracks[] = {
     {1, 0, &MATROSKA_ContextTrackEntry, 0},

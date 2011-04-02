@@ -156,6 +156,10 @@ EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSe
 
 EBML_DLL matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode);
 
+#if defined(CONFIG_EBML_WRITING)
+EBML_DLL err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
+#endif
+
 EBML_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!
 
 EBML_DLL ebml_element *MATROSKA_BlockReadTrack(const matroska_block *Block);
