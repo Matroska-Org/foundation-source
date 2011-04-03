@@ -105,6 +105,12 @@ struct matroska_seekpoint
     ebml_element *Link;
 };
 
+struct matroska_trackentry
+{
+    ebml_master Base;
+    bool_t CodecPrivateCompressed;
+};
+
 static err_t BlockTrackChanged(matroska_block *Block)
 {
 	Block->Base.Base.bNeedDataSizeUpdate = 1;
@@ -882,7 +888,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
     err_t Err = ERR_NONE;
     ebml_element *Elt, *Elt2, *Header = NULL;
     uint8_t *InBuf;
-    int CompressionScope = 0;
+    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
 
     if (!Element->Base.Base.bValueIsSet)
     {
@@ -932,6 +938,9 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             return ERR_NOT_SUPPORTED;
 #endif
 
+        if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo && !(CompressionScope & MATROSKA_COMPR_SCOPE_BLOCK))
+            Header = NULL;
+
         Stream_Seek(Input,Element->FirstFrameLocation,SEEK_SET);
         if (Header)
             ArrayCopy(&Element->SizeListIn, &Element->SizeList);
@@ -939,7 +948,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
         {
         case LACING_NONE:
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo && (CompressionScope & MATROSKA_COMPR_SCOPE_BLOCK))
+            if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
             {
                 // zlib handling, read the buffer in temp memory
                 array TmpBuf;
@@ -1096,7 +1105,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
             for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 BufSize += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo && (CompressionScope & MATROSKA_COMPR_SCOPE_BLOCK))
+            if (Header && Header->Context==&MATROSKA_ContextContentCompAlgo)
             {
                 // zlib handling, read the buffer in temp memory
                 // get the ouput size, adjust the Element->SizeList value, write in Element->Data
@@ -1513,7 +1522,46 @@ err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Fra
     return ERR_NONE;
 }
 
-#if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
+#if defined(CONFIG_ZLIB)
+err_t UnCompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, array *OutBuf, size_t *FrameSize, size_t *ArrayOffset)
+{
+    z_stream stream;
+    int Res;
+    err_t Err = ERR_NONE;
+
+    memset(&stream,0,sizeof(stream));
+    Res = inflateInit(&stream);
+    if (Res != Z_OK)
+        Err = ERR_INVALID_DATA;
+    else
+    {
+        size_t Count;
+        stream.next_in = Cursor;
+        stream.avail_in = CursorSize;
+        stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + *ArrayOffset;
+        do {
+            Count = stream.next_out - ARRAYBEGIN(*OutBuf,uint8_t);
+            if (!ArrayResize(OutBuf, Count + 1024, 0))
+            {
+                Res = Z_MEM_ERROR;
+                break;
+            }
+            stream.avail_out = ARRAYCOUNT(*OutBuf,uint8_t) - Count;
+            stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + Count;
+            Res = inflate(&stream, Z_NO_FLUSH);
+            if (Res!=Z_STREAM_END && Res!=Z_OK)
+                break;
+        } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
+        *FrameSize = stream.total_out;
+        *ArrayOffset = *ArrayOffset + stream.total_out;
+        inflateEnd(&stream);
+        if (Res != Z_STREAM_END)
+            Err = ERR_INVALID_DATA;
+    }
+    return Err;
+}
+
+#if defined(CONFIG_EBML_WRITING)
 err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
 {
     err_t Err = ERR_NONE;
@@ -1522,41 +1570,41 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
     array TmpBuf;
     int Res;
 
-    ArrayInit(&TmpBuf);
     memset(&stream,0,sizeof(stream));
+    if (deflateInit(&stream, 9)!=Z_OK)
+        return ERR_INVALID_DATA;
     stream.next_in = (Bytef*)Cursor;
     stream.avail_in = CursorSize;
     Count = 0;
+    ArrayInit(&TmpBuf);
     stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t);
-    deflateInit(&stream, 9);
     do {
         Count = stream.next_out - ARRAYBEGIN(TmpBuf,uint8_t);
-        stream.avail_out = CursorSize; // add some bytes to the output
-        if (!ArrayResize(&TmpBuf,stream.avail_out + Count,0))
+        if (!ArrayResize(&TmpBuf,CursorSize + Count,0))
         {
             ArrayClear(&TmpBuf);
             Err = ERR_OUT_OF_MEMORY;
             break;
         }
+        stream.avail_out = ARRAYCOUNT(TmpBuf,uint8_t) - Count;
         stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t) + Count;
         Res = deflate(&stream, Z_FINISH);
     } while (stream.avail_out==0 && Res!=Z_STREAM_END);
 
     if (OutBuf && OutSize)
-    {
         // TODO: write directly in the output buffer
         memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), min(*OutSize, stream.total_out));
-        *OutSize = stream.total_out;
-    }
-    else if (OutSize)
-        *OutSize = stream.total_out;
     ArrayClear(&TmpBuf);
+
+    if (OutSize)
+        *OutSize = stream.total_out;
 
     deflateEnd(&stream);
 
     return Err;
 }
-#endif
+#endif // CONFIG_EBML_WRITING
+#endif // CONFIG_ZLIB
 
 static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header, int CompScope)
 {
@@ -1597,7 +1645,7 @@ static char GetBestLacingType(const matroska_block *Element)
     size_t i;
     int32_t DataSize;
     ebml_element *Elt, *Elt2, *Header = NULL;
-    int CompressionScope = 0;
+    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
 
 	if (ARRAYCOUNT(Element->SizeList,int32_t) <= 1)
 		return LACING_NONE;
@@ -1675,7 +1723,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     size_t ToWrite, Written, BlockHeadSize = 4;
     ebml_element *Elt, *Elt2, *Header = NULL;
     int32_t *i;
-    int CompressionScope = 0;
+    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
     assert(Element->Lacing != LACING_AUTO);
 
     if (Element->TrackNumber < 0x80)
@@ -1914,7 +1962,7 @@ static matroska_block *CopyBlockInfo(const matroska_block *Element, const void *
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
-    int CompressionScope = 0;
+    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
         ebml_element *Header = NULL;
@@ -2183,6 +2231,187 @@ static err_t CreateCluster(matroska_cluster *p)
     return ERR_NONE;
 }
 
+static err_t ReadTrackEntry(matroska_trackentry *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+{
+    err_t Result = INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope, DepthCheckCRC);
+    if (Result==ERR_NONE)
+    {
+        ebml_element *Encodings = EBML_MasterFindChild(Element,&MATROSKA_ContextContentEncodings);
+        if (Encodings)
+        {
+            ebml_element *Elt2 = EBML_MasterFindChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+            if (Elt2)
+            {
+                ebml_element *Elt =  EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
+                if (Elt)
+                {
+                    ebml_integer *Scope =  (ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
+                    Element->CodecPrivateCompressed = Scope && (EBML_IntegerValue(Scope) & MATROSKA_COMPR_SCOPE_PRIVATE)!=0;
+                }
+            }
+        }
+    }
+    return Result;
+}
+
+static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
+{
+    bool_t CodecPrivateCompressed = 0;
+    ebml_integer *Scope = NULL;
+    ebml_element *Encodings = EBML_MasterFindChild(Element,&MATROSKA_ContextContentEncodings);
+    if (Encodings)
+    {
+        ebml_element *Elt2 = EBML_MasterFindChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+        if (Elt2)
+        {
+            ebml_element *Elt =  EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
+            if (Elt)
+            {
+                Scope = (ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
+                CodecPrivateCompressed = Scope && (EBML_IntegerValue(Scope) & MATROSKA_COMPR_SCOPE_PRIVATE)!=0;
+            }
+        }
+    }
+
+    if (CodecPrivateCompressed != Element->CodecPrivateCompressed)
+    {
+        ebml_binary *CodecPrivate = (ebml_binary*)EBML_MasterFindChild(Element,&MATROSKA_ContextCodecPrivate);
+        if (!Element->CodecPrivateCompressed)
+        {
+            // compress the codec private
+            if (CodecPrivate)
+            {
+                size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
+                uint8_t *Compressed = malloc(CompressedSize);
+                if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE)
+                {
+                    if (EBML_BinarySetData(CodecPrivate, Compressed, CompressedSize)==ERR_NONE)
+                        Element->CodecPrivateCompressed = 1;
+                }
+                free(Compressed);
+            }
+            if (!Element->CodecPrivateCompressed)
+                EBML_IntegerSetValue(Scope, EBML_IntegerValue(Scope) ^ MATROSKA_COMPR_SCOPE_PRIVATE);
+        }
+        else
+        {
+            if (CodecPrivate)
+            {
+                size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
+                size_t Offset = 0;
+                array Compressed;
+
+                ArrayInit(&Compressed);
+                if (UnCompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize, &Offset)==ERR_NONE)
+                {
+                    if (EBML_BinarySetData(CodecPrivate, ARRAYBEGIN(Compressed,uint8_t), CompressedSize)==ERR_NONE)
+                        Element->CodecPrivateCompressed = 0;
+                }
+                ArrayClear(&Compressed);
+            }
+            else
+                Element->CodecPrivateCompressed = 0;
+            if (Element->CodecPrivateCompressed)
+            {
+                // TODO: add in the Compression header that the header is still compressed
+            }
+        }
+    }
+    return INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
+}
+
+static matroska_trackentry *CopyTrackEntry(const matroska_trackentry *Element, const void *Cookie)
+{
+    matroska_trackentry *Result = (matroska_trackentry*)INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->Copy(Element, Cookie);
+    if (Result)
+        Result->CodecPrivateCompressed = Element->CodecPrivateCompressed;
+    return Result;
+}
+
+
+int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry)
+{
+    ebml_element *Encodings, *Elt, *Elt2;
+    assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
+    Encodings = EBML_MasterFindChild(TrackEntry,&MATROSKA_ContextContentEncodings);
+    if (!Encodings)
+        return MATROSKA_BLOCK_COMPR_NONE;
+    Elt2 = EBML_MasterFindChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+    if (!Elt2)
+        return MATROSKA_BLOCK_COMPR_NONE;
+    Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
+    if (!(EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_COMPR_SCOPE_BLOCK))
+        return MATROSKA_BLOCK_COMPR_NONE;
+    Elt =  EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
+    if (!Elt)
+        return MATROSKA_BLOCK_COMPR_NONE;
+    Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
+    return (int)EBML_IntegerValue((ebml_integer*)Elt2);
+}
+
+bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope)
+{
+    // force zlib compression
+    bool_t HadEncoding;
+    ebml_element *Encodings, *Elt, *Elt2;
+    assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
+    // remove the previous compression and the new optimized one
+    Encodings = EBML_MasterFindChild(TrackEntry,&MATROSKA_ContextContentEncodings);
+    HadEncoding = Encodings!=NULL;
+    if (Encodings!=NULL)
+        NodeDelete((node*)Encodings);
+
+    if (Scope!=0)
+    {
+        Encodings = EBML_MasterGetChild((ebml_master*)TrackEntry,&MATROSKA_ContextContentEncodings);
+        Elt2 = EBML_MasterGetChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+
+        Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
+        EBML_IntegerSetValue((ebml_integer*)Elt, Scope);
+
+        Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
+        Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
+        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_ZLIB);
+    }
+    return HadEncoding;
+}
+
+bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize)
+{
+    bool_t HadEncoding;
+    ebml_element *Encodings, *Elt, *Elt2;
+    assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
+    // remove the previous compression and the new optimized one
+    Encodings = EBML_MasterFindChild(TrackEntry,&MATROSKA_ContextContentEncodings);
+    HadEncoding = Encodings!=NULL;
+    if (Encodings!=NULL)
+        NodeDelete((node*)Encodings);
+
+    if (Header && HeaderSize)
+    {
+        Encodings = EBML_MasterGetChild((ebml_master*)TrackEntry,&MATROSKA_ContextContentEncodings);
+        Elt2 = EBML_MasterGetChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+
+        Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
+        Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
+        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_HEADER);
+        Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompSettings);
+        EBML_BinarySetData((ebml_binary*)Elt2, Header, HeaderSize);
+    }
+    return HadEncoding;
+}
+
+bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry)
+{
+    ebml_element *Encodings = EBML_MasterFindChild(TrackEntry,&MATROSKA_ContextContentEncodings);
+    assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
+    if (!Encodings)
+        return 0;
+    NodeDelete((node*)Encodings);
+    return 1;
+}
+
+
 META_START(Matroska_Class,MATROSKA_BLOCK_CLASS)
 META_CLASS(SIZE,sizeof(matroska_block))
 META_CLASS(CREATE,CreateBlock)
@@ -2242,6 +2471,10 @@ META_DATA(TYPE_NODE_REF,MATROSKA_SEEKPOINT_ELEMENT,matroska_seekpoint,Link)
 META_END_CONTINUE(EBML_MASTER_CLASS)
 
 META_START_CONTINUE(MATROSKA_TRACKENTRY_CLASS)
+META_CLASS(SIZE,sizeof(matroska_trackentry))
+META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadTrackEntry)
+META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSizeTrackEntry)
+META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,CopyTrackEntry)
 META_END_CONTINUE(EBML_MASTER_CLASS)
 
 META_START_CONTINUE(MATROSKA_SEGMENTUID_CLASS)

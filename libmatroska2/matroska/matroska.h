@@ -49,6 +49,7 @@
 
 #define MATROSKA_VERSION  2
 
+#define MATROSKA_BLOCK_COMPR_NONE   -1
 #define MATROSKA_BLOCK_COMPR_ZLIB    0
 #define MATROSKA_BLOCK_COMPR_BZLIB   1
 #define MATROSKA_BLOCK_COMPR_LZO1X   2
@@ -105,6 +106,7 @@ typedef struct matroska_block matroska_block;
 typedef struct matroska_cuepoint matroska_cuepoint;
 typedef struct matroska_cluster matroska_cluster;
 typedef struct matroska_seekpoint matroska_seekpoint;
+typedef struct matroska_trackentry matroska_trackentry;
 
 typedef struct matroska_frame
 {
@@ -157,6 +159,10 @@ EBML_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *MetaSe
 EBML_DLL matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode);
 
 #if defined(CONFIG_EBML_WRITING)
+EBML_DLL int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry);
+EBML_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope);
+EBML_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize);
+EBML_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry);
 EBML_DLL err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
 #endif
 
