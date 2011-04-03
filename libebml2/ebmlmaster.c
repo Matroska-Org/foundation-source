@@ -32,13 +32,39 @@
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)
 {
     ebml_element *i;
-    i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
-    if (i)
-        if (EBML_MasterAppend(Element,i)!=ERR_NONE)
+#if !defined(NDEBUG)
+    // check if the sub Context is legal in this Element
+    bool_t IsLegal = 0;
+    const ebml_semantic * Semantic;
+    const ebml_context *ParentContext = Element->Base.Context;
+    for (Semantic=ParentContext->Semantic;Semantic->eClass;Semantic++)
+    {
+        if (Semantic->eClass->Id == Context->Id)
         {
-            NodeDelete((node*)i);
-            i = NULL;
+            IsLegal = 1;
+            break;
         }
+    }
+    if (!IsLegal)
+    {
+        for (Semantic=ParentContext->GlobalContext;Semantic->eClass;Semantic++)
+        {
+            if (Semantic->eClass->Id == Context->Id)
+            {
+                IsLegal = 1;
+                break;
+            }
+        }
+    }
+    if (!IsLegal)
+        return NULL;
+#endif
+    i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
+    if (i && EBML_MasterAppend(Element,i)!=ERR_NONE)
+    {
+        NodeDelete((node*)i);
+        i = NULL;
+    }
     return i;
 }
 
