@@ -1048,9 +1048,9 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                 }
                 Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextDisplayUnit);
                 if (EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_DAR)
-                    CleanCropValues(CurTrack, 0, 0);
+                    CleanCropValues((ebml_master*)Elt, 0, 0);
                 else
-                    CleanCropValues(CurTrack, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
+                    CleanCropValues((ebml_master*)Elt, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
             }
 
             if (SrcProfile==PROFILE_MATROSKA_V1 || SrcProfile==PROFILE_MATROSKA_V2 || SrcProfile==PROFILE_DIVX)
@@ -1288,7 +1288,7 @@ static void InitCommonHeader(array *TrackHeader)
     TrackHeader->_Begin = TABLE_MARKER;
 }
 
-static bool_t BlockIsCompressible(const matroska_block *Block)
+static bool_t BlockIsCompressed(const matroska_block *Block)
 {
     ebml_master *Track = (ebml_master*)MATROSKA_BlockReadTrack(Block);
     if (Track)
@@ -1325,7 +1325,7 @@ static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream
     if (MATROSKA_BlockReadData(Block,Input)!=ERR_NONE)
         return;
 
-    if (BlockIsCompressible(Block))
+    if (BlockIsCompressed(Block))
         return;
 
     FrameCount = MATROSKA_BlockGetFrameCount(Block);
@@ -2488,7 +2488,7 @@ int main(int argc, const char *argv[])
 			    }
                 
                 CodecPrivate = (ebml_binary*) EBML_MasterFindChild(RLevel1,&MATROSKA_ContextCodecPrivate);
-                if (CodecPrivate->Base.DataSize==0)
+                if (CodecPrivate && CodecPrivate->Base.DataSize==0)
                 {
                     NodeDelete((node*)CodecPrivate);
                     CodecPrivate = NULL;
@@ -2620,7 +2620,8 @@ int main(int argc, const char *argv[])
                         Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
                         if (EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_COMPR_SCOPE_BLOCK)
                         {
-                            Elt = EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompAlgo);
+                            Elt = EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
+                            Elt = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
                             if (EBML_IntegerValue((ebml_integer*)Elt)!=MATROSKA_BLOCK_COMPR_HEADER)
                                 ClustersNeedRead = 1;
                         }
