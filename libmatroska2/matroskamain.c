@@ -2256,6 +2256,7 @@ static err_t ReadTrackEntry(matroska_trackentry *Element, stream *Input, const e
 
 static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
 {
+#if defined(CONFIG_ZLIB)
     bool_t CodecPrivateCompressed = 0;
     ebml_integer *Scope = NULL;
     ebml_element *Encodings = EBML_MasterFindChild(Element,&MATROSKA_ContextContentEncodings);
@@ -2317,6 +2318,7 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
             }
         }
     }
+#endif
     return INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
 }
 
