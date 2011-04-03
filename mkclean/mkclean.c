@@ -2458,10 +2458,9 @@ int main(int argc, const char *argv[])
 
 	if (WTrackInfo)
 	{
-        array *HeaderData;
+        array *HeaderData = NULL;
         ebml_binary *CodecPrivate;
         ebml_master *Encodings;
-        ebml_master *Encoding;
         size_t TrackNum;
         tchar_t CodecID[MAXDATA];
 		// fix/clean the Lacing flag for each track
@@ -2470,7 +2469,10 @@ int main(int argc, const char *argv[])
 		{
             if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextTrackEntry))
             {
-			    Elt2 = EBML_MasterFindChild(RLevel1,&MATROSKA_ContextTrackNumber);
+                int encoding = MATROSKA_BLOCK_COMPR_NONE;
+                int zlib_scope = MATROSKA_COMPR_SCOPE_BLOCK;
+
+                Elt2 = EBML_MasterFindChild(RLevel1,&MATROSKA_ContextTrackNumber);
 			    if (!Elt2) continue;
                 TrackNum = (size_t)EBML_IntegerValue((ebml_integer*)Elt2);
 			    if (ARRAYBEGIN(WTracks,track_info)[TrackNum].IsLaced)
@@ -2496,121 +2498,68 @@ int main(int argc, const char *argv[])
 
                 Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextContentEncodings);
                 if (UnOptimize)
-                {
                     // remove the previous track compression
-					if (Encodings!=NULL)
-						ClustersNeedRead = 1;
-                    NodeDelete((node*)Encodings);
-                    Encodings = NULL;
-                }
-                else if (Optimize)
+                    encoding = MATROSKA_BLOCK_COMPR_NONE;
+                else if (!Optimize)
+                    // keep the same kind of encoding as before
+                    encoding = MATROSKA_TrackGetBlockCompression((matroska_trackentry*)RLevel1);
+                else
                 {
-                    int encoding = -1;
-
                     Elt = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextCodecID,1,0);
                     EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
-                    if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN")))
-                    {
-                        // force zlib compression
-                        // remove the previous compression and the new optimized one
-						if (Encodings!=NULL)
-							ClustersNeedRead = 1;
-                        NodeDelete((node*)Encodings);
-                        Encodings = (ebml_master*)EBML_MasterGetChild(RLevel1,&MATROSKA_ContextContentEncodings);
-                        Elt2 = EBML_MasterGetChild(Encodings,&MATROSKA_ContextContentEncoding);
-                        Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
-                        Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
+                    if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN"))
+                        || tcsisame_ascii(CodecID,T("V_UNCOMPRESSED"))|| tcsstr(CodecID,T("A_PCM"))==CodecID)
                         encoding = MATROSKA_BLOCK_COMPR_ZLIB;
-                        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_ZLIB);
-                    }
                     else
                     {
-                        HeaderData = ARRAYBEGIN(TrackMaxHeader,array)+TrackNum;
-                        if (ARRAYCOUNT(*HeaderData,uint8_t))
+                        // don't keep the zlib compression on compressed codecs
+                        //encoding = MATROSKA_TrackGetBlockCompression((matroska_trackentry*)RLevel1);
+                        //if (encoding == MATROSKA_BLOCK_COMPR_NONE || encoding == MATROSKA_BLOCK_COMPR_HEADER)
                         {
-                            // remove the previous compression and the new optimized one
-							if (Encodings!=NULL)
-								ClustersNeedRead = 1;
-                            NodeDelete((node*)Encodings);
-                            Encodings = (ebml_master*)EBML_MasterGetChild(RLevel1,&MATROSKA_ContextContentEncodings);
-                            Elt2 = EBML_MasterGetChild(Encodings,&MATROSKA_ContextContentEncoding);
-
-                            Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
-                            Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
-                            encoding = MATROSKA_BLOCK_COMPR_HEADER;
-                            EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_HEADER);
-                            Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompSettings);
-                            EBML_BinarySetData((ebml_binary*)Elt2,ARRAYBEGIN(*HeaderData,uint8_t),ARRAYCOUNT(*HeaderData,uint8_t));
-                        }
-                    }
-
-                    // see if we can add CodecPrivate too
-                    if (encoding != MATROSKA_BLOCK_COMPR_HEADER)
-                    {
-                        if (CodecPrivate==NULL)
-                        {
-                            if (Encodings!=NULL)
-                                Elt = EBML_MasterGetChild(Encodings,&MATROSKA_ContextContentEncodingScope);
-                            else
-                                Elt = NULL;
-                            if (Elt && EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_COMPR_SCOPE_PRIVATE) // the CodecPrivate is compressed
-                                EBML_IntegerSetValue((ebml_integer*)Elt,EBML_IntegerValue((ebml_integer*)Elt) ^ MATROSKA_COMPR_SCOPE_PRIVATE);
-                        }
-                        else
-                        {
-                            size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
-                            uint8_t *Compressed = malloc(CompressedSize);
-                            if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE
-                                && CompressedSize < CodecPrivate->Base.DataSize)
-                            {
-                                EBML_BinarySetData(CodecPrivate, Compressed, CompressedSize);
-                                Encodings = (ebml_master*)EBML_MasterGetChild(RLevel1,&MATROSKA_ContextContentEncodings);
-                                Elt2 = EBML_MasterFindFirstElt(Encodings,&MATROSKA_ContextContentEncoding,1,0);
-
-                                Elt =  EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
-                                if (Elt!=NULL)
-                                    EBML_IntegerSetValue((ebml_integer*)Elt, EBML_IntegerValue((ebml_integer*)Elt) | MATROSKA_COMPR_SCOPE_PRIVATE);
-                                else
-                                {
-                                    Elt =  EBML_MasterFindFirstElt((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope,1,0);
-                                    EBML_IntegerSetValue((ebml_integer*)Elt, MATROSKA_COMPR_SCOPE_PRIVATE);
-                                }
-
-                                Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
-                                Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
-                                encoding = MATROSKA_BLOCK_COMPR_ZLIB;
-                                EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_ZLIB);
-                            }
-                            free(Compressed);
+                            HeaderData = ARRAYBEGIN(TrackMaxHeader,array)+TrackNum;
+                            if (ARRAYCOUNT(*HeaderData,uint8_t))
+                                encoding = MATROSKA_BLOCK_COMPR_HEADER;
                         }
                     }
                 }
-				else
-				{
-					// turn bz2/lzo into zlib
-					if (Encodings!=NULL)
-					{
-						ebml_master *TmpElt = (ebml_master*)EBML_MasterGetChild(Encodings, &MATROSKA_ContextContentEncoding);
-						if (EBML_MasterChildren(TmpElt))
-						{
-							TmpElt = (ebml_master*)EBML_MasterGetChild(TmpElt, &MATROSKA_ContextContentCompression);
-							if (EBML_MasterChildren(TmpElt))
-							{
-								ebml_element *Algo = (ebml_element*)EBML_MasterGetChild(TmpElt, &MATROSKA_ContextContentCompAlgo);
-								if (Algo && EBML_IntegerValue((ebml_integer*)Algo)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Algo)!=MATROSKA_BLOCK_COMPR_ZLIB)
-								{
-									ClustersNeedRead = 1;
-									NodeDelete((node*)Encodings);
-									Elt2 = EBML_MasterGetChild(RLevel1,&MATROSKA_ContextContentEncodings);
-									Elt2 = EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncoding);
-									Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
-									Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
-									EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_BLOCK_COMPR_ZLIB);
-								}
-							}
-						}
-					}
-				}
+                if (encoding == MATROSKA_BLOCK_COMPR_NONE)
+                    zlib_scope = 0;
+
+                // see if we can add CodecPrivate too
+                if ((Optimize || encoding != MATROSKA_BLOCK_COMPR_NONE) && encoding != MATROSKA_BLOCK_COMPR_HEADER)
+                {
+                    if (CodecPrivate!=NULL)
+                    {
+                        size_t ExtraCompHeaderBytes = (encoding == MATROSKA_BLOCK_COMPR_NONE) ? 13 : 3; // extra bytes needed to add the comp header to the track
+                        size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
+                        uint8_t *Compressed = malloc(CompressedSize);
+                        if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE
+                            && (CompressedSize + ExtraCompHeaderBytes) < CodecPrivate->Base.DataSize)
+                        {
+                            encoding = MATROSKA_BLOCK_COMPR_ZLIB;
+                            zlib_scope |= MATROSKA_COMPR_SCOPE_PRIVATE;
+                        }
+                        free(Compressed);
+                    }
+                }
+
+                switch (encoding)
+                {
+                case MATROSKA_BLOCK_COMPR_ZLIB:
+                case MATROSKA_BLOCK_COMPR_BZLIB: // transform bzlib into zlib
+                case MATROSKA_BLOCK_COMPR_LZO1X: // transform lzo1x into zlib
+                    if (MATROSKA_TrackSetCompressionZlib((matroska_trackentry*)RLevel1, zlib_scope))
+						ClustersNeedRead = 1;
+                    break;
+                case MATROSKA_BLOCK_COMPR_HEADER:
+                    if (!HeaderData || MATROSKA_TrackSetCompressionHeader((matroska_trackentry*)RLevel1, ARRAYBEGIN(*HeaderData,uint8_t), ARRAYCOUNT(*HeaderData,uint8_t)))
+					    ClustersNeedRead = 1;
+                    break;
+                default:
+                    if (MATROSKA_TrackSetCompressionNone((matroska_trackentry*)RLevel1))
+					    ClustersNeedRead = 1;
+                    break;
+                }
 
                 Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextContentEncodings);
                 if (Encodings)
