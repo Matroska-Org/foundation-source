@@ -3,6 +3,7 @@ version 0.8.2:
     - add support for Codec Private zlib compression with --optimize (for Vorbis)
     - add support for zlib compression of A_PCM and V_UNCOMPRESS tracks when --optimize is set
     - fix a bogus aspect ratio fix
+    - use the generated semantic for libmatroska2 (no more mismatch with the specs)
 
 2011-03-13
 version 0.8.1:

@@ -1,7 +1,13 @@
+2011-03-13
+version 0.3.4:
+    - FlagForced, BlockVirtual and Slices should not be found multiple times at their level
+    - VideoFrameRate is not used in any profile
+    - add some support for some experimental elements from the generated specs
+
 2011-03-06
 version 0.3.3:
     - add support for Matroska v3
-    - fix some mismatches with the specfications (especially WebM)
+    - fix some mismatches with the specifications (especially WebM)
 
 2010-12-12
 version 0.3.2:
