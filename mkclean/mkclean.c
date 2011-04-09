@@ -1869,26 +1869,34 @@ int main(int argc, const char *argv[])
     s = Original;
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
-	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
-	if (Remux || Optimize || Live || UnOptimize || ARRAYCOUNT(Alternate3DTracks, block_info*))
-		tcscat_s(String,TSIZEOF(String),T(" "));
-	if (Remux)
-		tcscat_s(String,TSIZEOF(String),T("r"));
-	if (Optimize)
-		tcscat_s(String,TSIZEOF(String),T("o"));
-	if (Live)
-		tcscat_s(String,TSIZEOF(String),T("l"));
-	if (UnOptimize)
-		tcscat_s(String,TSIZEOF(String),T("u"));
-	if (ARRAYCOUNT(Alternate3DTracks, block_info*))
-    {
-		tcscat_s(String,TSIZEOF(String),T("3"));
-        Remux = 1;
-    }
-	if (s[0])
-		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
     if (Regression)
-        stprintf_s(String,TSIZEOF(String),T("mkclean regression from %s"),s);
+    {
+        if (s[0])
+            stprintf_s(String,TSIZEOF(String),T("mkclean regression from %s"),s);
+        else
+            stprintf_s(String,TSIZEOF(String),T("mkclean regression"));
+    }
+    else
+    {
+	    stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
+	    if (Remux || Optimize || Live || UnOptimize || ARRAYCOUNT(Alternate3DTracks, block_info*))
+		    tcscat_s(String,TSIZEOF(String),T(" "));
+	    if (Remux)
+		    tcscat_s(String,TSIZEOF(String),T("r"));
+	    if (Optimize)
+		    tcscat_s(String,TSIZEOF(String),T("o"));
+	    if (Live)
+		    tcscat_s(String,TSIZEOF(String),T("l"));
+	    if (UnOptimize)
+		    tcscat_s(String,TSIZEOF(String),T("u"));
+	    if (ARRAYCOUNT(Alternate3DTracks, block_info*))
+        {
+		    tcscat_s(String,TSIZEOF(String),T("3"));
+            Remux = 1;
+        }
+	    if (s[0])
+		    stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
+    }
     EBML_UniStringSetValue(AppName,String);
 	ExtraSizeDiff = tcslen(String) - ExtraSizeDiff + 2;
 
