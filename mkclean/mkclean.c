@@ -120,7 +120,18 @@ void DebugMessage(const tchar_t* Msg,...)
 }
 #endif
 
-#define EXTRA_SEEK_SPACE     22
+#define EXTRA_SEEK_SPACE       22
+#define MARKER3D         (block_info*)1
+
+typedef struct block_info
+{
+	matroska_block *Block;
+	timecode_t DecodeTime;
+	size_t FrameStart;
+
+} block_info;
+
+#define TABLE_MARKER (uint8_t*)1
 
 typedef struct track_info
 {
@@ -901,7 +912,7 @@ static bool_t HasTrackUID(ebml_master *Tracks, int TrackUID, const ebml_context 
     return 0;
 }
 
-static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebml_master *Attachments)
+static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebml_master *Attachments, array *Alternate3DTracks)
 {
     ebml_master *Track, *CurTrack, *OtherTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -936,6 +947,10 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
+        TrackType = (int)EBML_IntegerValue((ebml_integer*)Elt);
+
+        if (ARRAYCOUNT(*Alternate3DTracks, block_info*) >= (size_t)TrackNum && TrackType!=TRACK_TYPE_VIDEO)
+            ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackNum] = NULL;
 		
         // clean the aspect ratio
         Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextVideo);
@@ -1180,7 +1195,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, Width==TRACK_OLD_STEREOMODE_RIGHT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
                                         }
 
-                                        return CleanTracks(Tracks, SrcProfile, DstProfile, Attachments);
+                                        return CleanTracks(Tracks, SrcProfile, DstProfile, Attachments, Alternate3DTracks);
                                     }
                                 }
                             }
@@ -1195,8 +1210,6 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		if (*DstProfile==PROFILE_WEBM)
 		{
 	        // verify that we have only VP8 and Vorbis tracks
-            Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackType);
-			TrackType = (int)EBML_IntegerValue((ebml_integer*)Elt);
 			Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
 			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
 			if (!(TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8")) || (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))))
@@ -1249,7 +1262,18 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                 NodeDelete((node*)Elt2);
         }
     }
-    
+
+    // disable Alternate3DTracks handling if there is no matching track
+    TrackNum = -1;
+    for (TrackType=0; TrackType<ARRAYCOUNT(*Alternate3DTracks, block_info*); ++TrackType)
+        if (ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackType])
+        {
+            TrackNum = TrackType;
+            break;
+        }
+    if (TrackNum==-1)
+        ArrayClear(Alternate3DTracks);
+
     if (EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry)==NULL)
         return -19;
 
@@ -1271,16 +1295,6 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 
     return 0;
 }
-
-typedef struct block_info
-{
-	matroska_block *Block;
-	timecode_t DecodeTime;
-	size_t FrameStart;
-
-} block_info;
-
-#define TABLE_MARKER (uint8_t*)1
 
 static void InitCommonHeader(array *TrackHeader)
 {
@@ -1401,6 +1415,7 @@ int main(int argc, const char *argv[])
     size_t MaxTrackNum = 0;
     array TrackMaxHeader; // array of uint8_t (max common header)
     filepos_t TotalSize;
+    array Alternate3DTracks;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -1414,6 +1429,7 @@ int main(int argc, const char *argv[])
     ArrayInit(&WClusters);
     ArrayInit(&WTracks);
 	ArrayInit(&TrackMaxHeader);
+    ArrayInit(&Alternate3DTracks);
 	Clusters = &RClusters;
 
     StdErr = &_StdErr;
@@ -1461,6 +1477,20 @@ int main(int argc, const char *argv[])
 			TimeCodeScale = StringToInt(Path,0);
 			InputPathIndex = i+1;
 		}
+		else if (tcsisame_ascii(Path,T("--alt-3d")) && i+1<argc-1)
+		{
+            size_t TrackId;
+		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+            TrackId = StringToInt(Path,0);
+            if (ARRAYCOUNT(Alternate3DTracks, block_info*) < (TrackId+1))
+            {
+                size_t OldSize = ARRAYCOUNT(Alternate3DTracks, block_info*);
+			    ArrayResize(&Alternate3DTracks, (TrackId+1)*sizeof(block_info*),64);
+                memset(ARRAYBEGIN(Alternate3DTracks, block_info*)+OldSize, 0, (TrackId-OldSize+1)*sizeof(block_info*));
+            }
+            ARRAYBEGIN(Alternate3DTracks, block_info*)[TrackId] = MARKER3D;
+			InputPathIndex = i+1;
+		}
 		else if (tcsisame_ascii(Path,T("--unsafe"))) { Unsafe = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--optimize"))) { Optimize = 1; OptimizeVideo = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--optimize_nv"))) { Optimize = 1; OptimizeVideo = 0; InputPathIndex = i+1; }
@@ -1494,6 +1524,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --optimize_nv use all possible optimization for the output file, except video tracks\r\n"));
 		    TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
 		    TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
+            TextWrite(StdErr,T("  --alt-3d <t>  the track with ID <v> has alternate 3D fields (left first)\r\n"));
 		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
             TextWrite(StdErr,T("  --version     show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help        show this screen\r\n"));
@@ -1711,7 +1742,7 @@ int main(int argc, const char *argv[])
 
 	if (RTrackInfo)
 	{
-		Result = CleanTracks(RTrackInfo, SrcProfile, &DstProfile, RAttachments);
+		Result = CleanTracks(RTrackInfo, SrcProfile, &DstProfile, RAttachments, &Alternate3DTracks);
 		if (Result!=0)
 		{
 			TextWrite(StdErr,T("No Tracks left to use!\r\n"));
@@ -1839,7 +1870,7 @@ int main(int argc, const char *argv[])
     if (tcsnicmp_ascii(Original,T("mkclean "),8)==0)
         s += 14;
 	stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
-	if (Remux || Optimize || Live || UnOptimize)
+	if (Remux || Optimize || Live || UnOptimize || ARRAYCOUNT(Alternate3DTracks, block_info*))
 		tcscat_s(String,TSIZEOF(String),T(" "));
 	if (Remux)
 		tcscat_s(String,TSIZEOF(String),T("r"));
@@ -1849,6 +1880,11 @@ int main(int argc, const char *argv[])
 		tcscat_s(String,TSIZEOF(String),T("l"));
 	if (UnOptimize)
 		tcscat_s(String,TSIZEOF(String),T("u"));
+	if (ARRAYCOUNT(Alternate3DTracks, block_info*))
+    {
+		tcscat_s(String,TSIZEOF(String),T("3"));
+        Remux = 1;
+    }
 	if (s[0])
 		stcatprintf_s(String,TSIZEOF(String),T(" from %s"),s);
     if (Regression)
@@ -2908,6 +2944,7 @@ exit:
         NodeDelete((node*)*Cluster);
     for (MaxTrackNum=0;MaxTrackNum<ARRAYCOUNT(TrackMaxHeader,array);++MaxTrackNum)
         ArrayClear(ARRAYBEGIN(TrackMaxHeader,array)+MaxTrackNum);
+    ArrayClear(&Alternate3DTracks);
     ArrayClear(&TrackMaxHeader);
     ArrayClear(&WClusters);
     ArrayClear(&WTracks);
