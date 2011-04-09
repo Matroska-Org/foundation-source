@@ -407,10 +407,10 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 
 }
 
-static void ShowProgress(const ebml_element *RCluster, const ebml_element *RSegment)
+static void ShowProgress(const ebml_element *RCluster, filepos_t TotalSize)
 {
     if (!Quiet)
-        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),EBML_ElementDataSize(RSegment,0))+1);
+        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),TotalSize)+1);
 }
 
 static void EndProgress()
@@ -419,7 +419,7 @@ static void EndProgress()
         TextPrintf(StdErr,T("Progress %d/%d: 100%%\r\n"), CurrentPhase, TotalPhases);
 }
 
-static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, const ebml_master *RSegment)
+static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, filepos_t TotalSize)
 {
     matroska_cluster **Cluster;
     matroska_block *Block;
@@ -438,7 +438,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
             if (Block)
             {
                 MATROSKA_LinkCuePointBlock(Cue,Block);
-                ShowProgress((ebml_element*)(*Cluster),(ebml_element*)RSegment);
+                ShowProgress((ebml_element*)(*Cluster),TotalSize);
                 return Cluster;
             }
         }
@@ -450,7 +450,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
         if (Block)
         {
             MATROSKA_LinkCuePointBlock(Cue,Block);
-            ShowProgress((ebml_element*)(*Cluster),(ebml_element*)RSegment);
+            ShowProgress((ebml_element*)(*Cluster),TotalSize);
             return Cluster;
         }
     }
@@ -539,7 +539,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 	return 0;
 }
 
-static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegmentInfo, filepos_t StartPos, ebml_master *WSegment, const ebml_master *RSegment, bool_t ReLink, bool_t SafeClusters, stream *Input)
+static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegmentInfo, filepos_t StartPos, ebml_master *WSegment, filepos_t TotalSize, bool_t ReLink, bool_t SafeClusters, stream *Input)
 {
     matroska_cluster **Cluster;
     matroska_cuepoint *Cue;
@@ -555,7 +555,7 @@ static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegme
 		// link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
 		Cluster = NULL;
 		for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);Cue;Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
-			Cluster = LinkCueCluster(Cue,Clusters,Cluster,RSegment);
+			Cluster = LinkCueCluster(Cue,Clusters,Cluster,TotalSize);
 		EndProgress();
 	}
 
@@ -761,7 +761,7 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 	return Track;
 }
 
-static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master *Tracks, ebml_master *WSegmentInfo, ebml_element *RSegment)
+static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master *Tracks, ebml_master *WSegmentInfo, ebml_element *RSegment, filepos_t TotalSize)
 {
 	ebml_master *Track;
 	ebml_element *Elt;
@@ -787,7 +787,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
     ++CurrentPhase;
 	for (Cluster = ARRAYBEGIN(*Clusters,ebml_element*);Cluster != ARRAYEND(*Clusters,ebml_element*); ++Cluster)
 	{
-        ShowProgress((ebml_element*)(*Cluster),(ebml_element*)RSegment);
+        ShowProgress((ebml_element*)(*Cluster), TotalSize);
 		MATROSKA_LinkClusterWriteSegmentInfo((matroska_cluster*)*Cluster,WSegmentInfo);
 		for (Elt = EBML_MasterChildren(*Cluster); Elt; Elt = EBML_MasterNext(Elt))
 		{
@@ -1400,6 +1400,7 @@ int main(int argc, const char *argv[])
 	int64_t TimeCodeScale = 0;
     size_t MaxTrackNum = 0;
     array TrackMaxHeader; // array of uint8_t (max common header)
+    filepos_t TotalSize;
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
@@ -1512,6 +1513,9 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+    TotalSize = Stream_Seek(Input, 0, SEEK_END);
+    Stream_Seek(Input, 0, SEEK_SET);
+
     if (InputPathIndex==argc-1)
     {
         tchar_t Ext[MAXDATA];
@@ -1579,7 +1583,10 @@ int main(int argc, const char *argv[])
     if (!Live)
         ++TotalPhases;
 
-    RContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment); // avoid reading too far some dummy/void elements for this segment
+    if (EBML_ElementPositionEnd((ebml_element*)RSegment) != INVALID_FILEPOS_T)
+        TotalSize = EBML_ElementPositionEnd((ebml_element*)RSegment);
+
+    RContext.EndPosition = TotalSize; // avoid reading too far some dummy/void elements for this segment
 
     // locate the Segment Info, Track Info, Chapters, Tags, Attachments, Cues Clusters*
     RSegmentContext.Context = &MATROSKA_ContextSegment;
@@ -1591,7 +1598,7 @@ int main(int argc, const char *argv[])
     RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
     {
-        ShowProgress((ebml_element*)RLevel1,(ebml_element*)RSegment);
+        ShowProgress((ebml_element*)RLevel1, TotalSize);
         if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextInfo))
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
@@ -2607,7 +2614,7 @@ int main(int argc, const char *argv[])
 			RCues = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
             EBML_MasterUseChecksum(RCues,!Unsafe);
 			if (!Quiet) TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
-			CuesCreated = GenerateCueEntries(RCues,Clusters,WTrackInfo,WSegmentInfo,(ebml_element*)RSegment);
+			CuesCreated = GenerateCueEntries(RCues,Clusters,WTrackInfo,WSegmentInfo,(ebml_element*)RSegment, TotalSize);
 			if (!CuesCreated)
 			{
 				NodeDelete((node*)RCues);
@@ -2700,7 +2707,7 @@ int main(int argc, const char *argv[])
 		//  Compute the Cues size
 		if (WTrackInfo && RCues)
 		{
-            OptimizeCues(RCues,Clusters,WSegmentInfo,NextPos, WSegment, RSegment, !CuesCreated, !Unsafe, ClustersNeedRead?Input:NULL);
+            OptimizeCues(RCues,Clusters,WSegmentInfo,NextPos, WSegment, TotalSize, !CuesCreated, !Unsafe, ClustersNeedRead?Input:NULL);
 			EBML_ElementForcePosition((ebml_element*)RCues, NextPos);
 			NextPos += EBML_ElementFullSize((ebml_element*)RCues,0);
 		}
@@ -2806,7 +2813,7 @@ int main(int argc, const char *argv[])
     CurrentPhase = TotalPhases;
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
     {
-        ShowProgress((ebml_element*)*Cluster,(ebml_element*)RSegment);
+        ShowProgress((ebml_element*)*Cluster, TotalSize);
         CuesChanged = WriteCluster(*Cluster,Output,Input, ClusterSize, &PrevTimecode) || CuesChanged;
         if (!Unsafe)
             ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);

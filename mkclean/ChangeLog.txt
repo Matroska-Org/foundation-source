@@ -1,3 +1,7 @@
+2011-04-xx
+version 0.8.3:
+    - fix the progress display on segments with no size set (like live streams)
+
 2011-04-03
 version 0.8.2:
     - add support for Codec Private zlib compression with --optimize (for Vorbis)
