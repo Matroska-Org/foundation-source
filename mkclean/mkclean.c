@@ -1207,6 +1207,13 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             }
         }
 
+        if (ARRAYCOUNT(*Alternate3DTracks, block_info*) >= (size_t)TrackNum && ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackNum])
+        {
+            // force the proper StereoMode value
+            Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextStereoMode);
+            EBML_IntegerSetValue((ebml_integer*)Elt2, TRACK_STEREO_MODE_ALTERNATE_PACKED_L);
+        }
+
 		if (*DstProfile==PROFILE_WEBM)
 		{
 	        // verify that we have only VP8 and Vorbis tracks
@@ -1807,7 +1814,13 @@ int main(int argc, const char *argv[])
 		DocVersion=2;
 	if (DstProfile==PROFILE_MATROSKA_V3)
 		DocVersion=3;
-    
+
+    if (ARRAYCOUNT(Alternate3DTracks, block_info*) && DstProfile!=PROFILE_MATROSKA_V3)
+    {
+        TextPrintf(StdErr,T("Using --alt-3d in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),GetProfileId(PROFILE_MATROSKA_V3));
+        goto exit;
+    }
+
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeVersion);
     if (!RLevel1)
         goto exit;
