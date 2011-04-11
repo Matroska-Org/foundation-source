@@ -127,7 +127,7 @@ typedef struct block_info
 {
 	matroska_block *Block;
 	timecode_t DecodeTime;
-	size_t FrameStart;
+	size_t FrameStartIndex;
 
 } block_info;
 
@@ -2150,7 +2150,7 @@ int main(int argc, const char *argv[])
 
 		// fill TrackBlocks with all the Blocks per track
 		BlockInfo.DecodeTime = INVALID_TIMECODE_T;
-		BlockInfo.FrameStart = 0;
+		BlockInfo.FrameStartIndex = 0;
 
 		for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*);ClusterR!=ARRAYEND(RClusters,matroska_cluster*);++ClusterR)
 		{
@@ -2320,20 +2320,25 @@ int main(int argc, const char *argv[])
 
 						pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder];
 						if (pBlockInfo->DecodeTime > MainBlockEnd && *pTrackOrder!=MainTrack)
+                        {
+                            if (ARRAYCOUNT(Alternate3DTracks, block_info*) && ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder])
+                                ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder] = NULL;
 							break; // next track around this timecode
+                        }
 
-						if (pBlockInfo->FrameStart!=0)
+						if (pBlockInfo->FrameStartIndex!=0)
 						{
+                            // use the frames left from the previous block
 							if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
 							{
                                 Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
-								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+								for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 								{
-									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
 										break;
-									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
+									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 								}
 
@@ -2342,7 +2347,7 @@ int main(int argc, const char *argv[])
 								else
 									NodeDelete((node*)Block1);
 
-								if (pBlockInfo->FrameStart!=MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+								if (pBlockInfo->FrameStartIndex!=MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 									break; // next track
 								else
 								{
@@ -2356,11 +2361,11 @@ int main(int argc, const char *argv[])
 								Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextBlock);
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
-								for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+								for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 								{
-									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
 										break;
-									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
+									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 								}
 
@@ -2369,7 +2374,7 @@ int main(int argc, const char *argv[])
 								else
 									NodeDelete((node*)Elt);
 
-								if (pBlockInfo->FrameStart!=MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
+								if (pBlockInfo->FrameStartIndex!=MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 									break; // next track
 								else
 								{
@@ -2393,17 +2398,17 @@ int main(int argc, const char *argv[])
                                     Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
 							        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
-							        for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+							        for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 							        {
-								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
+								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
 									        break;
-								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
+								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 								        MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 							        }
 
 							        if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 							        {
-								        pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
+								        pBlockInfo->FrameStartIndex = 0; // all the frames are for the next Cluster
 								        NodeDelete((node*)Block1);
 							        }
 							        else
@@ -2423,17 +2428,17 @@ int main(int argc, const char *argv[])
 								    Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextBlock);
 							        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
-							        for (; pBlockInfo->FrameStart < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStart)
+							        for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 							        {
-								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStart) >= MasterEndTimecode)
+								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
 									        break;
-								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStart, &FrameData, 1);
+								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 								        MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
 							        }
 
 							        if (MATROSKA_BlockGetFrameCount(Block1)==MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 							        {
-								        pBlockInfo->FrameStart = 0; // all the frames are for the next Cluster
+								        pBlockInfo->FrameStartIndex = 0; // all the frames are for the next Cluster
 								        NodeDelete((node*)Elt);
 							        }
 							        else
@@ -2461,19 +2466,65 @@ int main(int argc, const char *argv[])
 
 						if (MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
 						{
-							if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+                            block_info *prevBlock = NULL;
+                            if (ARRAYCOUNT(Alternate3DTracks, block_info*) && ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder])
                             {
-							    Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
-                                if (Result == ERR_NONE)
-								    Result = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)pBlockInfo->Block);
+                                prevBlock = ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder];
+                                if (prevBlock==MARKER3D)
+                                {
+                                    ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder] = pBlockInfo;
+                                    prevBlock = NULL;
+                                }
+                                else if (MATROSKA_BlockGetFrameCount(prevBlock->Block) >= 2)
+                                {
+                                    ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder] = pBlockInfo;
+                                    prevBlock = NULL;
+                                }
+                                else
+                                {
+                                    Result = MATROSKA_BlockReadData(prevBlock->Block,Input);
+                                }
                             }
-							else
-							{
-                                assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextBlock));
-                                Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
-                                if (Result == ERR_NONE)
-                                    Result = EBML_MasterAppend((ebml_master*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
-							}
+
+                            if (prevBlock)
+                            {
+                                // add the first frame into the previous Block
+                                if (Result==ERR_NONE)
+                                {
+                                    Result = MATROSKA_BlockReadData(pBlockInfo->Block,Input);
+                                    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+                                    {
+                                        Block1 = (matroska_block*)pBlockInfo->Block;
+                                    }
+                                    else
+                                    {
+                                        Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
+								        Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextBlock);
+                                    }
+                                    assert(!Block1->IsKeyframe);
+						            MATROSKA_BlockGetFrame(Block1, pBlockInfo->FrameStartIndex, &FrameData, 1);
+                                    MATROSKA_BlockAppendFrame(prevBlock->Block, &FrameData, *Tst);
+                                    MATROSKA_BlockReleaseData(pBlockInfo->Block,0);
+                                }
+                                MATROSKA_BlockReleaseData(prevBlock->Block,0);
+                            }
+                            else
+                            {
+							    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+                                {
+						            Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
+                                    if (Result == ERR_NONE)
+							            Result = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)pBlockInfo->Block);
+                                }
+							    else
+							    {
+                                    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextBlock));
+                                    Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
+                                    if (Result == ERR_NONE)
+                                        Result = EBML_MasterAppend((ebml_master*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
+							    }
+                            }
+
 							if (Result != ERR_NONE)
 							{
 								if (Result==ERR_INVALID_DATA)
