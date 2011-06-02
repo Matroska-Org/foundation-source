@@ -1418,7 +1418,7 @@ int main(int argc, const char *argv[])
     bool_t CuesChanged;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Optimize = 0, OptimizeVideo = 1, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
     int InputPathIndex = 1;
-	int64_t TimeCodeScale = 0;
+	int64_t TimeCodeScale = 0, OldTimeCodeScale;
     size_t MaxTrackNum = 0;
     array TrackMaxHeader; // array of uint8_t (max common header)
     filepos_t TotalSize;
@@ -1712,9 +1712,11 @@ int main(int argc, const char *argv[])
 		Result = -10;
 		goto exit;
 	}
+    OldTimeCodeScale = EBML_IntegerValue((ebml_integer*)RLevel1);
     if (TimeCodeScale==0)
     {
-        TimeCodeScale = EBML_IntegerValue((ebml_integer*)RLevel1);
+        // avoid using a TimeCodeScale too small
+        TimeCodeScale = OldTimeCodeScale;
         while (TimeCodeScale < 100000)
             TimeCodeScale <<= 1;
     }
@@ -1724,10 +1726,18 @@ int main(int argc, const char *argv[])
     if (Live)
     {
 	    // remove MATROSKA_ContextDuration from Live streams
-	    EbmlHead = (ebml_master*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
-	    if (EbmlHead)
-		    NodeDelete((node*)EbmlHead);
-        EbmlHead = NULL;
+	    ebml_float *Duration = (ebml_master*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+	    if (Duration)
+		    NodeDelete((node*)Duration);
+    }
+    else if (TimeCodeScale && TimeCodeScale != OldTimeCodeScale)
+    {
+	    ebml_float *Duration = (ebml_master*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+        if (Duration)
+        {
+            double duration = EBML_FloatValue(Duration);
+            EBML_FloatSetValue(Duration, (duration * OldTimeCodeScale) / TimeCodeScale);
+        }
     }
 
     // reorder elements in WSegmentInfo

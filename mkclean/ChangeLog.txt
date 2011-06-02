@@ -1,5 +1,6 @@
-2011-04-xx
+2011-06-02
 version 0.8.3:
+    - fix the Segment duration when using --timecodescale
     - fix the progress display on segments with no size set (like live streams)
     - add -alt-3d to pack video frames by 2 when left/right eyes are coded sequentially in time (half duration frames)
 
