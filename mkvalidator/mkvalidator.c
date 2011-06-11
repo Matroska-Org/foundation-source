@@ -184,7 +184,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 		{
             EBML_ElementGetName(Elt,String,TSIZEOF(String));
 			EBML_IdToString(IdStr,TSIZEOF(IdStr),EBML_ElementClassID(SubElt));
-			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(")"),String,IdStr,EL_Pos(SubElt),EL_DataSize(SubElt));
+			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(" total %") TPRId64 T(")"),String,IdStr,EL_Pos(SubElt),EL_DataSize(SubElt), EBML_ElementFullSize(SubElt, 0));
 		}
 		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
 		{
@@ -404,11 +404,11 @@ struct profile_check
 static bool_t ProfileCallback(struct profile_check *check, int type, const tchar_t *ClassName, const ebml_element* Elt)
 {
     if (type==MASTER_CHECK_PROFILE_INVALID)
-		*check->Result |= OutputError(0x201,T("Invalid %s for profile '%s' in %s at %") TPRId64,ClassName,GetProfileName(check->ProfileMask),check->EltName,EL_Pos(check->Parent));
+		*check->Result |= OutputError(0x201,T("Invalid '%s' for profile '%s' in %s at %") TPRId64,ClassName,GetProfileName(check->ProfileMask),check->EltName,EL_Pos(check->Parent));
     else if (type==MASTER_CHECK_MISSING_MANDATORY)
-        *check->Result |= OutputError(0x200,T("Missing element %s in %s at %") TPRId64, ClassName,check->EltName,EL_Pos(check->Parent));
+        *check->Result |= OutputError(0x200,T("Missing element '%s' in %s at %") TPRId64, ClassName,check->EltName,EL_Pos(check->Parent));
     else if (type==MASTER_CHECK_MULTIPLE_UNIQUE)
-		*check->Result |= OutputError(0x202,T("Unique element %s in %s at %") TPRId64 T(" found more than once"), ClassName,check->EltName,EL_Pos(check->Parent));
+		*check->Result |= OutputError(0x202,T("Unique element '%s' in %s at %") TPRId64 T(" found more than once at %") TPRId64, ClassName,check->EltName,EL_Pos(check->Parent),EL_Pos(Elt));
     return 0; // don't remove anything
 }
 
@@ -624,7 +624,7 @@ static int CheckVideoStart()
 				    {
                         BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
 						if (BlockNum > ARRAYCOUNT(TrackKeyframe,bool_t))
-							OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster));
+							OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64 T(" in Block at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster),EL_Pos(GBlock));
                         else if (MATROSKA_BlockKeyframe((matroska_block*)GBlock))
                             ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                         else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
@@ -640,7 +640,7 @@ static int CheckVideoStart()
 		    {
                 BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
 				if (BlockNum > ARRAYCOUNT(TrackKeyframe,bool_t))
-                    OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster));
+                    OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64 T(" in SimpleBlock at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster),EL_Pos(Block));
                 else if (MATROSKA_BlockKeyframe((matroska_block*)Block))
                     ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
                 else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
