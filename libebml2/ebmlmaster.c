@@ -636,10 +636,10 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
                             break;
                         }
                     }
-                    if (s->Unique && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && EBML_MasterNextChild(Element,SubElt))
+                    if (s->Unique && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     {
 		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
-                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,i))
+                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
                         {
                             EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
 			                NodeDelete((node*)i);
