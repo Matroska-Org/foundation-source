@@ -1726,13 +1726,13 @@ int main(int argc, const char *argv[])
     if (Live)
     {
 	    // remove MATROSKA_ContextDuration from Live streams
-	    ebml_float *Duration = (ebml_master*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
 	    if (Duration)
 		    NodeDelete((node*)Duration);
     }
     else if (TimeCodeScale && TimeCodeScale != OldTimeCodeScale)
     {
-	    ebml_float *Duration = (ebml_master*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
         if (Duration)
         {
             double duration = EBML_FloatValue(Duration);
