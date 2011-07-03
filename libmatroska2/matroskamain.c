@@ -28,7 +28,9 @@
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
 #include "matroska/matroska_internal.h"
-#if defined(CONFIG_ZLIB)
+#if defined(HAVE_ZLIB)
+#include "zlib/zlib.h"
+#elif defined(CONFIG_ZLIB)
 #include "zlib.h"
 #endif
 #if defined(CONFIG_BZLIB)
