@@ -742,10 +742,11 @@ ASSERT_DLL void _Assert(const char* Exp, const char* File, int Line);
 #endif
 
 #include "config.h"
-#if !defined(COREMAKE_CONFIG_HELPER)
-#error build Core-C with COREMAKE_CONFIG_HELPER
-#endif
+#if defined(COREMAKE_CONFIG_HELPER)
 #include "config_helper.h"
+#else /* COREMAKE_CONFIG_HELPER */
+#include "confhelper.h"
+#endif /* COREMAKE_CONFIG_HELPER */
 
 #if defined(TARGET_IPHONE) && !defined(__ARM_NEON__)
 #undef CONFIG_NEON
