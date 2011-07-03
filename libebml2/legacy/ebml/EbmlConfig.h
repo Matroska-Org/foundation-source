@@ -29,7 +29,7 @@
 #ifndef _EBML2_EBML_CONFIG_H
 #define _EBML2_EBML_CONFIG_H
 
-#include "corec.h"
+#include "corec/corec.h"
 
 #define LIBEBML_NAMESPACE libebml
 

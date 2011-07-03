@@ -29,11 +29,11 @@
 #ifndef LIBEBML2_H
 #define LIBEBML2_H
 
-#include "node/node.h"
-#include "file/file.h"
+#include "corec/node/node.h"
+#include "corec/helpers/file/file.h"
 
 #if defined(CONFIG_EBML_UNICODE)
-#include "parser/parser.h"
+#include "corec/helpers/parser/parser.h"
 #endif
 
 #ifdef __cplusplus
