@@ -28,9 +28,9 @@
 
 #include "mkcleanreg_stdafx.h"
 #include "mkcleanreg_project.h"
-#include "parser/parser.h"
-#include "md5/md5.h"
-#include "system/ccsystem.h"
+#include "corec/helpers/parser/parser.h"
+#include "corec/helpers/md5/md5.h"
+#include "corec/helpers/system/ccsystem.h"
 
 /*!
  * \todo compare the extracted raw tracks MD5 to the original tracks
