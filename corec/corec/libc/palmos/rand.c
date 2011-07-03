@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "corec.h"
+#include "corec/corec.h"
 
 static unsigned int rndseed = 1;
 

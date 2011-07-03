@@ -27,8 +27,8 @@
  *
  ****************************************************************************/
 
-#include "system/ccsystem.h"
-#include "parser/parser.h"
+#include "ccsystem.h"
+#include "corec/helpers/parser/parser.h"
 
 #include <windows.h>
 

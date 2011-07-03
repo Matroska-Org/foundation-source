@@ -29,7 +29,7 @@
 
 #include "str.h"
 #if defined(COREC_PARSER)
-#include "parser/parser.h"
+#include "corec/helpers/parser/parser.h"
 #endif
 
 static INLINE int ascii_upper(int ch)

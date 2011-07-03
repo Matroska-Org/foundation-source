@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "corec.h"
+#include "corec/corec.h"
 
 #if defined(TARGET_PALMOS)
 

@@ -28,7 +28,7 @@
  ****************************************************************************/
 
 #include "charconvert.h"
-#include "str/str.h"
+#include "corec/str/str.h"
 
 static const uint16_t codepage_1250[128] = {
 0x20ac,0x0081,0x201a,0x0083,0x201e,0x2026,0x2020,0x2021,0x0088,0x2030,0x0160,0x2039,0x015a,0x0164,0x017d,0x0179,

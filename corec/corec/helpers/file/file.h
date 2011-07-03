@@ -30,8 +30,8 @@
 #ifndef __FILE_H
 #define __FILE_H
 
-#include "node/node.h"
-#include "date/date.h"
+#include "corec/node/node.h"
+#include "corec/helpers/date/date.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -94,7 +94,7 @@ static INLINE size_t FileBlockSize(filepos_t Start,filepos_t End)
     return (size_t)End;
 }
 
-#include "file/streams.h"
+#include "corec/helpers/file/streams.h"
 
 FILE_DLL stream *FileTemp(anynode*);
 FILE_DLL bool_t FileTempName(anynode*,tchar_t *Out, size_t OutLen);

@@ -30,7 +30,7 @@
 #ifndef COREC_SYSTEM_H
 #define COREC_SYSTEM_H
 
-#include "node/node.h"
+#include "corec/node/node.h"
 
 #ifdef __cplusplus
 extern "C" {

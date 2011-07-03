@@ -30,16 +30,16 @@
 #ifndef __NODE_H
 #define __NODE_H
 
-#include "corec.h"
+#include "corec/corec.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "array/array.h"
-#include "multithread/multithread.h"
-#include "str/str.h"
-#include "memheap.h"
+#include "corec/array/array.h"
+#include "corec/multithread/multithread.h"
+#include "corec/str/str.h"
+#include "corec/memheap.h"
 
 #if defined(NODE_EXPORTS)
 #define NODE_DLL DLLEXPORT
@@ -49,16 +49,16 @@ extern "C" {
 #define NODE_DLL
 #endif
 
-#include "node/nodebase.h"
-#include "node/nodetree.h"
-#include "node/nodetools.h"
+#include "nodebase.h"
+#include "nodetree.h"
+#include "nodetools.h"
 
 #ifdef __cplusplus
 }
 #endif
 
 #if defined(TARGET_SYMBIAN)
-#include "node/node_symbian.h"
+#include "node_symbian.h"
 #endif
 
 #endif /* __NODE_H */

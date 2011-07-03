@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "corec.h"
+#include "corec/corec.h"
 
 int vsprintf(tchar_t *s0, const tchar_t *fmt, va_list args)
 {

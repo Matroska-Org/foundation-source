@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "corec.h"
+#include "corec/corec.h"
 
 char *strdup(const char *s)
 {

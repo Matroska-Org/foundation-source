@@ -30,20 +30,20 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
-#include "file/file.h"
-#include "charconvert/charconvert.h"
+#include "corec/helpers/file/file.h"
+#include "corec/helpers/charconvert/charconvert.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "parser/dataheap.h"
-#include "parser/strtab.h"
-#include "parser/strtypes.h"
-#include "parser/hotkey.h"
-#include "parser/buffer.h"
-#include "parser/nodelookup.h"
-#include "parser/urlpart.h"
+#include "dataheap.h"
+#include "strtab.h"
+#include "strtypes.h"
+#include "hotkey.h"
+#include "buffer.h"
+#include "nodelookup.h"
+#include "urlpart.h"
 
 #define LANG_STRINGS_ID  FOURCC('L','N','G','S')
 

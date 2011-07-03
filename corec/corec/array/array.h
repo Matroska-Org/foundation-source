@@ -30,8 +30,8 @@
 #ifndef __ARRAY_H
 #define __ARRAY_H
 
-#include "corec.h"
-#include "memheap.h"
+#include "corec/corec.h"
+#include "corec/memheap.h"
 
 #ifdef __cplusplus
 extern "C" {

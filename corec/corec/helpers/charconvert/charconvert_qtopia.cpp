@@ -31,7 +31,7 @@
 #include <string>
 
 #include "charconvert.h"
-#include "str/str.h"
+#include "corec/str/str.h"
 
 #if defined(TARGET_QTOPIA)
 

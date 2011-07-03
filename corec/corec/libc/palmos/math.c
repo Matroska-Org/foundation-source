@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "corec.h"
+#include "corec/corec.h"
 
 double log(double a) { return 0; }
 double pow(double a,double b) { return 0; }

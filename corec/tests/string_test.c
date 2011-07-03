@@ -1,7 +1,7 @@
-#include "str/str.h"
+#include "corec/str/str.h"
 
 #if defined(UNICODE)
-#include "charconvert/charconvert.h"
+#include "corec/helpers/charconvert/charconvert.h"
 charconv *ToStr;
 charconv *FromStr;
 #endif

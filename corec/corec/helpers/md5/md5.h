@@ -30,7 +30,7 @@
 #ifndef __MD5_H
 #define __MD5_H
 
-#include "corec.h"
+#include "corec/corec.h"
 
 #ifdef __cplusplus
 extern "C" {

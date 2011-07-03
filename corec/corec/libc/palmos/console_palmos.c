@@ -1,4 +1,4 @@
-#include "corec.h"
+#include "corec/corec.h"
 #include "pace.h"
 
 extern int main(int,char**);

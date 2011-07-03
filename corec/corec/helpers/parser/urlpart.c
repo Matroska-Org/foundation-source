@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "parser/parser.h"
+#include "parser.h"
 
 #define	URLPART_ID        FOURCC('U','P','A','T')
 #define URLPART_URL       0x100
