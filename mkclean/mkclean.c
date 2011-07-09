@@ -1511,7 +1511,7 @@ int main(int argc, const char *argv[])
     
     if (argc < (1+InputPathIndex) || ShowVersion)
     {
-        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
+        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010-2011 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
             TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> [matroska_dst]\r\n"));
@@ -1533,7 +1533,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
             TextWrite(StdErr,T("  --alt-3d <t>  the track with ID <v> has alternate 3D fields (left first)\r\n"));
 		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
-            TextWrite(StdErr,T("  --version     show the version of mkvalidator\r\n"));
+            TextWrite(StdErr,T("  --version     show the version of mkclean\r\n"));
             TextWrite(StdErr,T("  --help        show this screen\r\n"));
         }
         Path[0] = 0;
