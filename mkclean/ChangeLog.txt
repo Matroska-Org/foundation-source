@@ -1,3 +1,7 @@
+2011-07-10
+version 0.8.4:
+    - fix the keyframe detection for WebM alt-ref frames (0 duration = non keyframe)
+
 2011-06-02
 version 0.8.3:
     - fix the Segment duration when using --timecodescale

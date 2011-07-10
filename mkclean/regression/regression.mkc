@@ -50,12 +50,12 @@
 "bad-stereo.mkv" "--remux --optimize"    1034784 fa1042ca209c3010cd656eccb4347827
 "bad-stereo.mkv" "--unsafe          "    1034976 68320a1b230fe06536dda806670bf284
 "bad-stereo.mkv" "--remux --unsafe  "    1034931 2bf99974a3f8c90cf21f1948b69e03e0
-"audio-only.mka" "                  "    2055631 33c0cdc1712bd4fbee472c3719d2250e
-"audio-only.mka" "--remux           "    2054226 907807bda71313c54b85c72af0fedd66
-"audio-only.mka" "--optimize        "    2044730 9a06024a0d274cb5bc447f5aa3922cc8
-"audio-only.mka" "--remux --optimize"    2043325 29e63ac9687848c50e3e129d619f41b6
-"audio-only.mka" "--unsafe          "    2052203 bf9e5465349523f30f468cac20bf8177
-"audio-only.mka" "--remux --unsafe  "    2051910 535b06885d28ce8221ebd1ff3b28dbf2
+"audio-only.mka" "                  "    2055631 192c4eff82a071955c62144a087d539b
+"audio-only.mka" "--remux           "    2054226 29789897bc45f3d8d831f1d6c7d59699
+"audio-only.mka" "--optimize        "    2044730 e825cfc8dc01e4e1a8582c96aaf9a2c3
+"audio-only.mka" "--remux --optimize"    2043325 8328b7d803215d19d90b3d2f98cfc875
+"audio-only.mka" "--unsafe          "    2052203 dd60ed6d9625f988fc566ce36b951500
+"audio-only.mka" "--remux --unsafe  "    2051910 506af34d56fa2e33f8bf49f55abe01a4
 "FTDcom30-WebM_640x480.webm" "--doctype 2 --optimize"    5079761 425689057fd14a6e32f3676429e73af0
 "FTDcom30-WebM_640x480_optimized.mkv" "--doctype 4       "    5081398 bf6789e54c81aa02401d1c1cd933aecf
 "odd-cues.mkv" "                  "   14621026 de4e33b7bc2abd60eff52e7fd953aa29
