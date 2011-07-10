@@ -1,5 +1,6 @@
-2011-06-xx
+2011-07-10
 version 0.3.5:
+    - fix the keyframe detection for WebM alt-ref frames (0 duration = non keyframe)
     - More detailed error messages
 
 2011-04-03
