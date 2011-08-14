@@ -334,6 +334,23 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 				if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
 					Result |= OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EL_Int(TrackNum),String);
 
+                // check that the audio frequencies are not 0
+                if (EL_Int(TrackType) == TRACK_TYPE_AUDIO)
+                {
+                    Elt = EBML_MasterGetChild(Track, &MATROSKA_ContextAudio);
+                    if (Elt==NULL)
+                        Result |= OutputWarning(0x309,T("Audio Track #%d has no audio settings"),(int)EL_Int(TrackNum));
+                    else
+                    {
+                        Elt2 = EBML_MasterFindChild(Elt, &MATROSKA_ContextOutputSamplingFrequency);
+                        if (Elt2 && EBML_FloatValue((ebml_float*)Elt2)==0)
+                            Result |= OutputError(0x30A,T("Audio Track #%d has a null output sampling frequency"),(int)EL_Int(TrackNum));
+                        Elt2 = EBML_MasterFindChild(Elt, &MATROSKA_ContextSamplingFrequency);
+                        if (Elt2 && EBML_FloatValue((ebml_float*)Elt2)==0)
+                            Result |= OutputError(0x30A,T("Audio Track #%d has a null sampling frequency"),(int)EL_Int(TrackNum));
+                    }
+                }
+
 				if (ProfileNum==PROFILE_WEBM)
 				{
 					if (EL_Int(TrackType) != TRACK_TYPE_AUDIO && EL_Int(TrackType) != TRACK_TYPE_VIDEO)

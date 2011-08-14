@@ -1,3 +1,7 @@
+2011-08-14
+version 0.3.6:
+    - verify that the audio sampling freq is not 0
+
 2011-07-10
 version 0.3.5:
     - fix the keyframe detection for WebM alt-ref frames (0 duration = non keyframe)
