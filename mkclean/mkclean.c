@@ -2649,9 +2649,22 @@ int main(int argc, const char *argv[])
                 }
                 if (encoding == MATROSKA_BLOCK_COMPR_NONE)
                     zlib_scope = 0;
+                else
+                {
+                    if (Encodings)
+                    {
+                        Elt = EBML_MasterFindChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+                        if (Elt)
+                        {
+                            Elt2 =  EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentEncodingScope);
+                            if (Elt2)
+                                zlib_scope = EBML_IntegerValue((ebml_integer*)Elt2);
+                        }
+                    }
+                }
 
                 // see if we can add CodecPrivate too
-                if ((Optimize || encoding != MATROSKA_BLOCK_COMPR_NONE) && encoding != MATROSKA_BLOCK_COMPR_HEADER)
+                if ((Optimize || encoding != MATROSKA_BLOCK_COMPR_NONE) && encoding != MATROSKA_BLOCK_COMPR_HEADER && zlib_scope != MATROSKA_COMPR_SCOPE_PRIVATE)
                 {
                     if (CodecPrivate!=NULL)
                     {

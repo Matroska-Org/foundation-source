@@ -1,4 +1,4 @@
-2011-08-14
+2011-08-15
 version 0.3.6:
     - verify that the audio sampling freq is not 0
 
