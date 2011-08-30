@@ -682,7 +682,7 @@ static int var_stscanf_s(const tchar_t* In, size_t *InLen, const tchar_t* Mask, 
 	int Sign;
     bool_t Long=0;
     size_t inlen = *InLen;
-	int v;
+	int64_t v;
 	int Width;
 	const tchar_t* In0;
 
@@ -746,7 +746,10 @@ static int var_stscanf_s(const tchar_t* In, size_t *InLen, const tchar_t* Mask, 
 				if (Sign) v=-v;
 				if (In != In0)
 				{
-					*va_arg(Arg,int*) = v;
+					if (Long)
+						*va_arg(Arg,int64_t*) = v;
+					else
+						*va_arg(Arg,int*) = v;
 					++n;
 				}
 				else
