@@ -604,6 +604,37 @@ static bool_t TrackIsVideo(int16_t TrackNum)
             TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackType);
             return EL_Int(TrackData) == TRACK_TYPE_VIDEO;
         }
+        // look for TrackNum in the next Track
+        Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
+    }
+    return 0;
+}
+
+static bool_t TrackNeedsKeyframe(int16_t TrackNum)
+{
+    ebml_element *TrackData;
+    ebml_master *Track = (ebml_master*)EBML_MasterFindChild(RTrackInfo, &MATROSKA_ContextTrackEntry);
+    while (Track)
+    {
+        TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackNumber);
+        if (EL_Int(TrackData) == TrackNum)
+        {
+            TrackData = EBML_MasterGetChild(Track, &MATROSKA_ContextTrackType);
+            switch (EL_Int(TrackData))
+            {
+            case TRACK_TYPE_VIDEO:
+                return 0;
+            case TRACK_TYPE_AUDIO:
+                {
+                    tchar_t CodecName[MAXDATA];
+                    ebml_string *CodecID = (ebml_string*)EBML_MasterGetChild(Track, &MATROSKA_ContextCodecID);
+                    EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
+                    return !tcsisame_ascii(CodecName,T("A_TRUEHD"));
+                }
+            default: return 1;
+            }
+        }
+        // look for TrackNum in the next Track
         Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
     }
     return 0;
@@ -730,7 +761,7 @@ static int CheckLacingKeyframe()
                         {
                             if (MATROSKA_BlockLaced((matroska_block*)GBlock) && !TrackIsLaced(BlockNum))
                                 Result |= OutputError(0xB0,T("Block at %") TPRId64 T(" track #%d is laced but the track is not"),EL_Pos(GBlock),(int)BlockNum);
-                            if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && !TrackIsVideo(BlockNum))
+                            if (!MATROSKA_BlockKeyframe((matroska_block*)GBlock) && TrackNeedsKeyframe(BlockNum))
                                 Result |= OutputError(0xB1,T("Block at %") TPRId64 T(" track #%d is not a keyframe"),EL_Pos(GBlock),(int)BlockNum);
 
                             for (Frame=0; Frame<MATROSKA_BlockGetFrameCount((matroska_block*)GBlock); ++Frame)
@@ -761,7 +792,7 @@ static int CheckLacingKeyframe()
                 {
                     if (MATROSKA_BlockLaced((matroska_block*)Block) && !TrackIsLaced(BlockNum))
                         Result |= OutputError(0xB0,T("SimpleBlock at %") TPRId64 T(" track #%d is laced but the track is not"),EL_Pos(Block),(int)BlockNum);
-                    if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && !TrackIsVideo(BlockNum))
+                    if (!MATROSKA_BlockKeyframe((matroska_block*)Block) && TrackNeedsKeyframe(BlockNum))
                         Result |= OutputError(0xB1,T("SimpleBlock at %") TPRId64 T(" track #%d is not a keyframe"),EL_Pos(Block),(int)BlockNum);
                     for (Frame=0; Frame<MATROSKA_BlockGetFrameCount((matroska_block*)Block); ++Frame)
                         ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((matroska_block*)Block,Frame);

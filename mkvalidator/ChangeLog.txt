@@ -1,3 +1,7 @@
+2011-09-xx
+version 0.3.7:
+    - allow TrueHD to have non-keyframes in the audio stream
+
 2011-08-15
 version 0.3.6:
     - verify that the audio sampling freq is not 0
