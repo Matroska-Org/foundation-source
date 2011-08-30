@@ -395,7 +395,7 @@ NOINLINE bool_t ParserIsFormat(parser* p,const tchar_t* Token, void *Value)
             if (Read>=Write)
                 return 0;
         }
-        tBuffer[j++] = (tchar_t)*p->Buffer.Read;
+        tBuffer[j] = (tchar_t)p->Buffer.Read[j++];
         i=j;
         if (!stscanf_s(tBuffer,&i,Token,Value))
             break;
