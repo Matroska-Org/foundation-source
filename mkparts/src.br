@@ -1,0 +1,27 @@
+# corec
+%(!ROOTPATH)corec %(PROJECT_NAME)-%(PROJECT_VERSION)/corec
+
+# libebml2
+%(!ROOTPATH)libebml2 %(PROJECT_NAME)-%(PROJECT_VERSION)/libebml2
+
+# libmatroska2
+%(!ROOTPATH)libmatroska2 %(PROJECT_NAME)-%(PROJECT_VERSION)/libmatroska2
+
+# %(PROJECT_NAME)
+%(!ROOTPATH)%(PROJECT_NAME) %(PROJECT_NAME)-%(PROJECT_VERSION)/%(PROJECT_NAME)
+%(!ROOTPATH)%(PROJECT_NAME)/default_config.h %(PROJECT_NAME)-%(PROJECT_VERSION)/config.h
+%(!ROOTPATH)%(PROJECT_NAME)/ChangeLog.txt %(PROJECT_NAME)-%(PROJECT_VERSION)/ChangeLog.txt
+%(!ROOTPATH)%(PROJECT_NAME)/ReadMe.txt %(PROJECT_NAME)-%(PROJECT_VERSION)/ReadMe.txt
+%(!ROOTPATH)root.proj %(PROJECT_NAME)-%(PROJECT_VERSION)/root.proj
+
+%(¯!BASE)configure %(PROJECT_NAME)-%(PROJECT_VERSION)/configure
+
+
+%(!ROOTPATH)corec/tools/coremake/coremake -
+*.br -
+*.vs -
+Makefile -
+*.vcproj -
+*.sln -
+*_project.h -
+*_stdafx.* -
