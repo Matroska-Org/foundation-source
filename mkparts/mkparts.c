@@ -157,10 +157,12 @@ static void CopyTo(stream *Input, stream *Output, filepos_t StartPos, filepos_t 
         Err = Stream_ReadOneOrMore(Input, Data, min(SizeToCopy, sizeof(Data)), &readSize);
         if (Err==ERR_NONE || Err == ERR_NEED_MORE_DATA)
         {
+            if (!Quiet) TextWrite(StdErr,T("."));
             Stream_Write(Output, Data, readSize, NULL);
             SizeToCopy -= readSize;
         }
     }
+    if (!Quiet) TextWrite(StdErr,T("\r\n"));
 }
 
 int main(int argc, const char *argv[])
