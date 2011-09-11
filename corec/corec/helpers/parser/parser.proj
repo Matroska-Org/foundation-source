@@ -2,6 +2,7 @@ GROUP parser
 {
   USE file
   USE charconvert
+  INCLUDE ..
   
   DEFINE COREC_PARSER
 
