@@ -469,7 +469,7 @@ const ebml_context MATROSKA_ContextChapterTimeEnd = {0x92, EBML_INTEGER_CLASS, 0
 const ebml_context MATROSKA_ContextChapterFlagHidden = {0x98, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "ChapterFlagHidden", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterFlagEnabled = {0x4598, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "ChapterFlagEnabled", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterSegmentUID = {0x6E67, EBML_BINARY_CLASS, 0, 0, "ChapterSegmentUID", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextChapterSegmentEditionUID = {0x6EBC, EBML_BINARY_CLASS, 0, 0, "ChapterSegmentEditionUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChapterSegmentEditionUID = {0x6EBC, EBML_INTEGER_CLASS, 0, 0, "ChapterSegmentEditionUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterPhysicalEquiv = {0x63C3, EBML_INTEGER_CLASS, 0, 0, "ChapterPhysicalEquiv", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterTrackNumber = {0x89, EBML_INTEGER_CLASS, 0, 0, "ChapterTrackNumber", NULL, EBML_SemanticGlobals, NULL};
 
