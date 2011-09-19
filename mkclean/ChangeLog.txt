@@ -1,3 +1,7 @@
+2011-09-xx
+version 0.8.6:
+    - correct DisplayUnit that appear to be in pixels but marked as Display Aspect Ratio (DAR)
+
 2011-08-15
 version 0.8.5:
     - fix the recompression of the CodecPrivate through successive mkclean calls

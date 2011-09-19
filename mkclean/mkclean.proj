@@ -3,7 +3,7 @@
 GROUP mkclean_base
 {
   PROJECT_NAME "mkclean"
-  PROJECT_VERSION  0.8.5
+  PROJECT_VERSION  0.8.6
   PROJECT_VENDOR   "Matroska"
   USE matroska2
   IF !CONFIG_EBML_UNICODE

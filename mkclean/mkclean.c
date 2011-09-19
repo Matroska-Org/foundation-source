@@ -970,6 +970,15 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             if (DisplayW || DisplayH)
             {
                 Elt2 = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextDisplayUnit);
+                if (Elt2 && EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_DAR)
+                {
+                    // if the output size appears in pixel, fix it
+                    if ((!DisplayW || Width==EBML_IntegerValue((ebml_integer*)DisplayW)) && (!DisplayH || Height==EBML_IntegerValue((ebml_integer*)DisplayH)))
+                        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_DISPLAY_UNIT_PIXEL);
+                    else
+                        CleanCropValues((ebml_master*)Elt, 0, 0);
+                }
+
                 if (!Elt2 || EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_PIXEL) // pixel AR
                 {
                     if (!DisplayW)
@@ -1062,9 +1071,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     }
                 }
                 Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextDisplayUnit);
-                if (EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_DAR)
-                    CleanCropValues((ebml_master*)Elt, 0, 0);
-                else
+                if (EBML_IntegerValue((ebml_integer*)Elt2)!=MATROSKA_DISPLAY_UNIT_DAR)
                     CleanCropValues((ebml_master*)Elt, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
             }
 
