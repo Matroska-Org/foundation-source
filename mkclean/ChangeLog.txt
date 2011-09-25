@@ -1,6 +1,6 @@
-2011-09-xx
+2011-09-25
 version 0.8.6:
-    - correct DisplayUnit that appear to be in pixels but marked as Display Aspect Ratio (DAR)
+    - correct DisplayUnit that appears to be in pixels but marked as Display Aspect Ratio (DAR)
 
 2011-08-15
 version 0.8.5:
