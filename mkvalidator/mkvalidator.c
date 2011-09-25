@@ -212,7 +212,8 @@ static int64_t gcd(int64_t a, int64_t b)
 static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 {
 	int Result = 0;
-	ebml_element *Unit, *Elt, *PixelW, *PixelH;
+	ebml_element *Elt, *PixelW, *PixelH;
+	ebml_integer *Unit;
 	ebml_master *Video;
 	Video = (ebml_master*)EBML_MasterFindChild(Track,&MATROSKA_ContextVideo);
 	if (!Video)
@@ -228,7 +229,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 		if (!PixelH)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,EL_Pos(Track));
 
-        Unit = EBML_MasterGetChild(Video,&MATROSKA_ContextDisplayUnit);
+        Unit = (ebml_integer*)EBML_MasterGetChild(Video,&MATROSKA_ContextDisplayUnit);
 		assert(Unit!=NULL);
 
 		Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextDisplayWidth);
@@ -287,6 +288,11 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
             Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropRight);
             if (Elt)
                 Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has right crop at %") TPRId64,TrackNum,EL_Pos(Elt));
+
+			if (PixelW && DisplayW == EL_Int(PixelW))
+				OutputWarning(0xE7,T("DisplayUnit seems to be pixels not aspect-ratio for Video track #%d %") TPRId64 T("px width from %") TPRId64,TrackNum,DisplayW,EL_Int(PixelW));
+			if (PixelH && DisplayH == EL_Int(PixelH))
+				OutputWarning(0xE7,T("DisplayUnit seems to be pixels not aspect-ratio for Video track #%d %") TPRId64 T("px height from %") TPRId64,TrackNum,DisplayH,EL_Int(PixelH));
         }
         else
         {
