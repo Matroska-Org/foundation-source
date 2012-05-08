@@ -34,6 +34,7 @@
 #include "matroska/matroska_sem.h"
 
 /*!
+ * \todo in non WebM files the Cluster timecode may not be (strictly) increasing
  * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
  * \todo verify that items with a limited set of values don't use other values
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
