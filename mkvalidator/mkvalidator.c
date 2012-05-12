@@ -34,7 +34,6 @@
 #include "matroska/matroska_sem.h"
 
 /*!
- * \todo don't test the first video keyframe if there is no keyframe in the Cluster
  * \todo verify the track timecode scale is not null
  * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
  * \todo verify that items with a limited set of values don't use other values
@@ -66,8 +65,8 @@ typedef struct track_info
 {
     int Num;
     int Kind;
-    ebml_string *CodecID;
     filepos_t DataLength;
+    ebml_string *CodecID;
 
 } track_info;
 
@@ -573,7 +572,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 	return Result;
 }
 
-static void LinkClusterBlocks()
+static void LinkClusterBlocks(void)
 {
 	matroska_cluster **Cluster;
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
@@ -645,7 +644,7 @@ static bool_t TrackNeedsKeyframe(int16_t TrackNum)
     return 0;
 }
 
-static int CheckVideoStart()
+static int CheckVideoStart(void)
 {
 	int Result = 0;
 	ebml_master **Cluster;
@@ -745,7 +744,7 @@ static int CheckPosSize(const ebml_element *RSegment)
 	return Result;
 }
 
-static int CheckLacingKeyframe()
+static int CheckLacingKeyframe(void)
 {
 	int Result = 0;
 	matroska_cluster **Cluster;
