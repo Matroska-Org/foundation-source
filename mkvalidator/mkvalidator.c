@@ -653,12 +653,16 @@ static int CheckVideoStart()
     int16_t BlockNum;
     timecode_t ClusterTimecode;
     array TrackKeyframe;
+	array TrackFirstKeyframePos;
 
 	for (Cluster=ARRAYBEGIN(RClusters,ebml_master*);Cluster!=ARRAYEND(RClusters,ebml_master*);++Cluster)
     {
         ArrayInit(&TrackKeyframe);
         ArrayResize(&TrackKeyframe,sizeof(bool_t)*(TrackMax+1),256);
         ArrayZero(&TrackKeyframe);
+        ArrayInit(&TrackFirstKeyframePos);
+        ArrayResize(&TrackFirstKeyframePos,sizeof(filepos_t)*(TrackMax+1),256);
+		ArrayZero(&TrackFirstKeyframePos);
 
         ClusterTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)*Cluster);
         if (ClusterTimecode==INVALID_TIMECODE_T)
@@ -678,12 +682,12 @@ static int CheckVideoStart()
                         BlockNum = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
 						if (BlockNum > ARRAYCOUNT(TrackKeyframe,bool_t))
 							OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64 T(" in Block at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster),EL_Pos(GBlock));
-                        else if (MATROSKA_BlockKeyframe((matroska_block*)GBlock))
-                            ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
-                        else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
-                        {
-                            OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,EL_Pos(*Cluster));
-                            ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+                        else if (TrackIsVideo(BlockNum))
+						{
+							if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && MATROSKA_BlockKeyframe((matroska_block*)GBlock))
+								ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+							if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum]==0)
+								ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum] = EL_Pos(*Cluster);
                         }
 					    break;
 				    }
@@ -694,16 +698,22 @@ static int CheckVideoStart()
                 BlockNum = MATROSKA_BlockTrackNum((matroska_block*)Block);
 				if (BlockNum > ARRAYCOUNT(TrackKeyframe,bool_t))
                     OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64 T(" in SimpleBlock at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster),EL_Pos(Block));
-                else if (MATROSKA_BlockKeyframe((matroska_block*)Block))
-                    ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
-                else if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && TrackIsVideo(BlockNum))
-                {
-                    OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,EL_Pos(*Cluster));
-                    ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+                else if (TrackIsVideo(BlockNum))
+				{
+					if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && MATROSKA_BlockKeyframe((matroska_block*)Block))
+						ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] = 1;
+					if (!ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum]==0)
+						ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum] = EL_Pos(*Cluster);
                 }
 		    }
 	    }
+		for (BlockNum=0;BlockNum<ARRAYCOUNT(TrackKeyframe,bool_t);++BlockNum)
+		{
+			if (ARRAYBEGIN(TrackKeyframe,bool_t)[BlockNum] && ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum]!=0)
+				OutputWarning(0xC0,T("First Block for video track #%d in Cluster at %") TPRId64 T(" is not a keyframe"),(int)BlockNum,ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum]);
+		}
         ArrayClear(&TrackKeyframe);
+        ArrayClear(&TrackFirstKeyframePos);
     }
 	return Result;
 }

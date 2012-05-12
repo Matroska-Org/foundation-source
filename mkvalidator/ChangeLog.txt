@@ -1,6 +1,7 @@
 2012-05-13
 version 0.4.0:
     - better differentiation between errors (will not play/not following specs) and warnings
+    - don't warn about a Cluster not starting with a keyframe if it has no keyframe
 
 2011-09-25
 version 0.3.7:
