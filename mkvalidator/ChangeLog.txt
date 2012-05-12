@@ -1,3 +1,7 @@
+2012-05-13
+version 0.4.0:
+    - better differentiation between errors (will not play/not following specs) and warnings
+
 2011-09-25
 version 0.3.7:
     - allow TrueHD to have non-keyframes in the audio stream

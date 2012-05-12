@@ -34,7 +34,8 @@
 #include "matroska/matroska_sem.h"
 
 /*!
- * \todo in non WebM files the Cluster timecode may not be (strictly) increasing
+ * \todo don't test the first video keyframe if there is no keyframe in the Cluster
+ * \todo verify the track timecode scale is not null
  * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
  * \todo verify that items with a limited set of values don't use other values
  * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
@@ -158,11 +159,9 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 	return -ErrCode;
 }
 
-static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
+static void OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 {
-    if (!Warnings)
-        return 0;
-    else
+    if (Warnings)
     {
 	    tchar_t Buffer[MAXLINE];
 	    va_list Args;
@@ -170,7 +169,6 @@ static int OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 	    vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	    va_end(Args);
 	    TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
-	    return -ErrCode;
     }
 }
 
@@ -185,7 +183,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 		{
             EBML_ElementGetName(Elt,String,TSIZEOF(String));
 			EBML_IdToString(IdStr,TSIZEOF(IdStr),EBML_ElementClassID(SubElt));
-			OutputError(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(" total %") TPRId64 T(")"),String,IdStr,EL_Pos(SubElt),EL_DataSize(SubElt), EBML_ElementFullSize(SubElt, 0));
+			OutputWarning(12,T("Unknown element in %s %s at %") TPRId64 T(" (size %") TPRId64 T(" total %") TPRId64 T(")"),String,IdStr,EL_Pos(SubElt),EL_DataSize(SubElt), EBML_ElementFullSize(SubElt, 0));
 		}
 		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
 		{
@@ -218,7 +216,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 	ebml_master *Video;
 	Video = (ebml_master*)EBML_MasterFindChild(Track,&MATROSKA_ContextVideo);
 	if (!Video)
-		Result = OutputWarning(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),EL_Pos(Track));
+		Result = OutputError(0xE0,T("Video track at %") TPRId64 T(" is missing a Video element"),EL_Pos(Track));
 	// check the DisplayWidth and DisplayHeight are correct
 	else
 	{
@@ -337,16 +335,16 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 				EBML_StringGet(CodecID,CodecName,TSIZEOF(CodecName));
 				tcscpy_s(String,TSIZEOF(String),CodecName);
 				if (tcscmp(tcsupr(String),CodecName)!=0)
-					Result |= OutputWarning(0x307,T("Track #%d codec '%s' should be uppercase"),(int)EL_Int(TrackNum),CodecName);
+					OutputWarning(0x307,T("Track #%d codec '%s' should be uppercase"),(int)EL_Int(TrackNum),CodecName);
 				if (tcslen(String)<3 || String[1]!='_' || (String[0]!='A' && String[0]!='V' && String[0]!='S' && String[0]!='B'))
-					Result |= OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EL_Int(TrackNum),String);
+					OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EL_Int(TrackNum),String);
 
                 // check that the audio frequencies are not 0
                 if (EL_Int(TrackType) == TRACK_TYPE_AUDIO)
                 {
                     Elt = EBML_MasterGetChild(Track, &MATROSKA_ContextAudio);
                     if (Elt==NULL)
-                        Result |= OutputWarning(0x309,T("Audio Track #%d has no audio settings"),(int)EL_Int(TrackNum));
+                        Result |= OutputError(0x309,T("Audio Track #%d has no audio settings"),(int)EL_Int(TrackNum));
                     else
                     {
                         Elt2 = EBML_MasterFindChild(Elt, &MATROSKA_ContextOutputSamplingFrequency);
@@ -552,25 +550,25 @@ static int CheckSeekHead(ebml_master *SeekHead)
 				Result |= OutputError(0x71,T("The SeekPoint at %") TPRId64 T(" references a Cluster not found at %") TPRId64,EL_Pos(RLevel1),Pos);
 		}
 		else
-			Result |= OutputWarning(0x860,T("The SeekPoint at %") TPRId64 T(" references an element that is not a known level 1 ID %s at %") TPRId64 T(")"),EL_Pos(RLevel1),IdString,Pos);
+			OutputWarning(0x860,T("The SeekPoint at %") TPRId64 T(" references an element that is not a known level 1 ID %s at %") TPRId64 T(")"),EL_Pos(RLevel1),IdString,Pos);
 		RLevel1 = (matroska_seekpoint*)EBML_MasterFindNextElt(SeekHead, (ebml_element*)RLevel1, 0, 0);
 	}
     if (SeekHead == RSeekHead)
     {
         if (!BSegmentInfo && RSegmentInfo)
-            Result |= OutputWarning(0x861,T("The SegmentInfo is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The SegmentInfo is not referenced in the main SeekHead"));
         if (!BTrackInfo && RTrackInfo)
-            Result |= OutputWarning(0x861,T("The TrackInfo is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The TrackInfo is not referenced in the main SeekHead"));
         if (!BCues && RCues)
-            Result |= OutputWarning(0x861,T("The Cues is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The Cues is not referenced in the main SeekHead"));
         if (!BTags && RTags)
-            Result |= OutputWarning(0x861,T("The Tags is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The Tags is not referenced in the main SeekHead"));
         if (!BChapters && RChapters)
-            Result |= OutputWarning(0x861,T("The Chapters is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The Chapters is not referenced in the main SeekHead"));
         if (!BAttachments && RAttachments)
-            Result |= OutputWarning(0x861,T("The Attachments is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The Attachments is not referenced in the main SeekHead"));
         if (!BSecondSeek && RSeekHead2)
-            Result |= OutputWarning(0x861,T("The secondary SeekHead is not referenced in the main SeekHead"));
+            OutputWarning(0x861,T("The secondary SeekHead is not referenced in the main SeekHead"));
     }
 	return Result;
 }
@@ -666,7 +664,7 @@ static int CheckVideoStart()
         if (ClusterTimecode==INVALID_TIMECODE_T)
             Result |= OutputError(0xC1,T("The Cluster at %") TPRId64 T(" has no timecode"),EL_Pos(*Cluster));
         else if (ClusterTime!=INVALID_TIMECODE_T && ClusterTime >= ClusterTimecode)
-            Result |= OutputError(0xC2,T("The timecode of the Cluster at %") TPRId64 T(" is not incrementing"),EL_Pos(*Cluster));
+			OutputWarning(0xC2,T("The timecode of the Cluster at %") TPRId64 T(" is not incrementing (may be intentional)"),EL_Pos(*Cluster));
         ClusterTime = ClusterTimecode;
 
 	    for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
@@ -841,7 +839,7 @@ static int CheckCueEntries(ebml_master *Cues)
 			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
 
 			if (TimecodeEntry < PrevTimecode && PrevTimecode != INVALID_TIMECODE_T)
-				Result |= OutputError(0x311,T("The Cues entry for timecode %") TPRId64 T(" ms is listed after entry %") TPRId64 T(" ms"),Scale64(TimecodeEntry,1,1000000),Scale64(PrevTimecode,1,1000000));
+				OutputWarning(0x311,T("The Cues entry for timecode %") TPRId64 T(" ms is listed after entry %") TPRId64 T(" ms"),Scale64(TimecodeEntry,1,1000000),Scale64(PrevTimecode,1,1000000));
 
 			// find a matching Block
 			for (Cluster = ARRAYBEGIN(RClusters,matroska_cluster*);Cluster != ARRAYEND(RClusters,matroska_cluster*); ++Cluster)
@@ -1001,13 +999,10 @@ int main(int argc, const char *argv[])
 		else if (EL_Int(EbmlReadDocVer)==1)
 	    	MatroskaProfile = PROFILE_MATROSKA_V1;
 		else
-			Result |= OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EL_Int(EbmlDocVer),(int)EL_Int(EbmlReadDocVer));
+			OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EL_Int(EbmlDocVer),(int)EL_Int(EbmlReadDocVer));
 	}
 	else if (tcscmp(String,T("webm"))==0)
 		MatroskaProfile = PROFILE_WEBM;
-
-	if (MatroskaProfile==0)
-		Result |= OutputError(11,T("Matroska profile not supported"));
 
     if (!Quiet) TextWrite(StdErr,T("."));
 
@@ -1047,7 +1042,7 @@ int main(int argc, const char *argv[])
         {
             if (Live)
             {
-                Result |= OutputError(0x170,T("The live stream has a SeekHead at %") TPRId64,EL_Pos(RLevel1));
+                OutputWarning(0x170,T("The live stream has a SeekHead at %") TPRId64,EL_Pos(RLevel1));
 			    RLevelX = (ebml_master*)EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
@@ -1062,7 +1057,7 @@ int main(int argc, const char *argv[])
 					RSeekHead2 = RLevel1;
                 }
 				else
-					Result |= OutputError(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
+					OutputWarning(0x101,T("Extra SeekHead found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				NodeTree_SetParent(RLevel1, RSegment, NULL);
 				VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 				Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
@@ -1078,7 +1073,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,1)==ERR_NONE)
 			{
 				if (RSegmentInfo != NULL)
-					Result |= OutputError(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
+					OutputWarning(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RSegmentInfo = RLevel1;
@@ -1090,7 +1085,7 @@ int main(int argc, const char *argv[])
                     {
                         EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextDuration);
                         if (EbmlHead)
-                            Result |= OutputError(0x112,T("The live Segment has a duration set at %") TPRId64,EL_Pos(EbmlHead));
+                            OutputWarning(0x112,T("The live Segment has a duration set at %") TPRId64,EL_Pos(EbmlHead));
                     }
                 }
 			}
@@ -1105,7 +1100,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,4)==ERR_NONE)
 			{
 				if (RTrackInfo != NULL)
-					Result |= OutputError(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
+					OutputWarning(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
                     size_t TrackCount;
@@ -1166,7 +1161,7 @@ int main(int argc, const char *argv[])
         {
             if (Live)
             {
-                Result |= OutputError(0x171,T("The live stream has Cues at %") TPRId64,EL_Pos(RLevel1));
+                OutputWarning(0x171,T("The live stream has Cues at %") TPRId64,EL_Pos(RLevel1));
 			    RLevelX = (ebml_master*)EBML_ElementSkipData((ebml_element*)RLevel1, Input, &RSegmentContext, NULL, 1);
                 NodeDelete((node*)RLevel1);
                 RLevel1 = NULL;
@@ -1174,7 +1169,7 @@ int main(int argc, const char *argv[])
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,3)==ERR_NONE)
 			{
 				if (RCues != NULL)
-					Result |= OutputError(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
+					OutputWarning(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RCues = RLevel1;
@@ -1201,7 +1196,7 @@ int main(int argc, const char *argv[])
             else if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,16)==ERR_NONE)
 			{
 				if (RChapters != NULL)
-					Result |= OutputError(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
+					OutputWarning(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(RLevel1));
 				else
 				{
 					RChapters = RLevel1;
@@ -1269,7 +1264,7 @@ int main(int argc, const char *argv[])
 			{
 				tchar_t Id[32];
 				EBML_IdToString(Id,TSIZEOF(Id),EBML_ElementClassID((ebml_element*)RLevel1));
-				Result |= OutputError(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64,Id,EL_Pos(RLevel1),EL_DataSize(RLevel1));
+				OutputWarning(0x80,T("Unknown element %s at %") TPRId64 T(" size %") TPRId64,Id,EL_Pos(RLevel1),EL_DataSize(RLevel1));
 			}
 			if (Node_IsPartOf(RLevel1,EBML_VOID_CLASS))
 			{
