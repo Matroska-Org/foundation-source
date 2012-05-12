@@ -107,12 +107,12 @@ typedef struct parser
 	buffer Buffer;
 	charconv* CC;
     charconv* EscapeCC;
+    tchar_t *BigLine;
     boolmem_t Element;
     boolmem_t ElementEof;
     boolmem_t URL;
     boolmem_t OwnCC;
     boolmem_t Error;
-    tchar_t *BigLine;
 
 } parser;
 

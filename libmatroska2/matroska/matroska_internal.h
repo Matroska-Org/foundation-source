@@ -45,14 +45,7 @@
 struct matroska_block
 {
     ebml_binary Base;
-    uint16_t TrackNumber;
-    int16_t LocalTimecode;
-    bool_t LocalTimecodeUsed;
 	timecode_t GlobalTimecode;
-    bool_t IsKeyframe;
-    bool_t IsDiscardable;
-    bool_t Invisible;
-    char Lacing;
     filepos_t FirstFrameLocation;
     array SizeList; // int32_t
     array SizeListIn; // int32_t
@@ -64,6 +57,13 @@ struct matroska_block
     ebml_master *WriteTrack;
     ebml_master *WriteSegInfo;
 #endif
+    bool_t IsKeyframe;
+    bool_t IsDiscardable;
+    bool_t Invisible;
+    bool_t LocalTimecodeUsed;
+    int16_t LocalTimecode;
+    uint16_t TrackNumber;
+    char Lacing;
 };
 
 #define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')

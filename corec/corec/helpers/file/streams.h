@@ -112,10 +112,10 @@ typedef struct stream
 typedef struct memstream
 {
 	stream Base;
-	size_t Pos;
-	size_t Size;
     filepos_t VirtualOffset;
 	const uint8_t* Ptr;
+	size_t Pos;
+	size_t Size;
 
 } memstream;
 
@@ -127,8 +127,8 @@ typedef struct streamdir
 {
 	tchar_t FileName[MAXPATH];
 	tchar_t DisplayName[MAXPATH];
-	int Type;					// from Exts, FTYPE_DIR for directory
 	filepos_t Size;				
+	int Type;					// from Exts, FTYPE_DIR for directory
 	datetime_t ModifiedDate;
 
 } streamdir;

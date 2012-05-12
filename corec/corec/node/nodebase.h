@@ -478,9 +478,6 @@ struct nodemodule
 {
     node Base;
     nodemodule* Next;
-	uint8_t Found;
-    uint8_t Config;
-    uint8_t Changed;
 	void* Module;
 	void* Db;
 	void* Func;
@@ -491,6 +488,9 @@ struct nodemodule
     array ClassRefs;
     void *LockRefs;
 #endif
+	uint8_t Found;
+    uint8_t Config;
+    uint8_t Changed;
 };
 
 struct nodecontext
@@ -520,7 +520,6 @@ struct nodecontext
     void (*LuaAddRef)(void* Cookie, int* Ref);
 #endif
 	void (*ReportError)(nodecontext*, node* Node, fourcc_t MsgClass, int MsgNo, va_list Args);
-    uint16_t AppId;
 #if defined(TARGET_PALMOS)
 	fourcc_t ProjFourCC;
 #endif
@@ -532,6 +531,7 @@ struct nodecontext
 #if defined(TARGET_SYMBIAN)
     void *FsSession;
 #endif
+    uint16_t AppId;
 };
 
 #define NODECONTEXT_CLASS		        FOURCC('N','C','T','X')
@@ -622,8 +622,8 @@ NODE_DLL datetime_t Node_GetDataDatetime(const node*, dataid Id);
 
 DLLEXPORT err_t DLLRegister(nodemodule*);
 DLLEXPORT void DLLUnRegister(nodemodule*);
-DLLEXPORT void DLLTest();
-DLLEXPORT void DLLTest2();
+DLLEXPORT void DLLTest(void);
+DLLEXPORT void DLLTest2(void);
 
 NODE_DLL bool_t Node_IsPartOf(const void*, fourcc_t PartOfClass);
 NODE_DLL err_t Node_Toggle(void* Node,dataid Id);

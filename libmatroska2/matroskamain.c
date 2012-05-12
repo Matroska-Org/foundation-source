@@ -121,8 +121,11 @@ static err_t BlockTrackChanged(matroska_block *Block)
 
 static err_t ClusterTimeChanged(matroska_cluster *Cluster)
 {
-    timecode_t ClusterTimecode, BlockTimecode;
+    timecode_t ClusterTimecode;
+#if defined(CONFIG_EBML_WRITING)
+    timecode_t BlockTimecode;
     ebml_element *Elt, *GBlock;
+#endif
 
 	Cluster->Base.Base.bNeedDataSizeUpdate = 1;
     ClusterTimecode = MATROSKA_ClusterTimecode(Cluster);
@@ -513,8 +516,10 @@ void MATROSKA_ClusterSort(matroska_cluster *Cluster)
 void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 {
 	ebml_integer *TimecodeElt;
+#if defined(CONFIG_EBML_WRITING)
     ebml_element *Elt, *GBlock;
     timecode_t BlockTimeCode;
+#endif
 
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
     Cluster->GlobalTimecode = Timecode;
@@ -921,7 +926,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
 
                 Elt2 = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentEncodingScope);
                 if (Elt2)
-                    CompressionScope = EBML_IntegerValue((ebml_integer*)Elt2);
+                    CompressionScope = (int)EBML_IntegerValue((ebml_integer*)Elt2);
 
                 Elt = EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextContentCompression);
                 if (!Elt)
