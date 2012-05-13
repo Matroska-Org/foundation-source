@@ -278,7 +278,7 @@ static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault,
 		    Element->Base.DataSize = 2;
 	    } else if (Element->Value <= 0x7FFFFF && Element->Value >= (-0x800000)) {
 		    Element->Base.DataSize = 3;
-	    } else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= (int64_t)(-0x80000000)) {
+	    } else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= -(int64_t)(0x80000000)) {
 		    Element->Base.DataSize = 4;
 	    } else if (Element->Value <= 0x7FFFFFFFFF && Element->Value >= (-0x8000000000)) {
 		    Element->Base.DataSize = 5;

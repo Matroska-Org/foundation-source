@@ -56,7 +56,7 @@ static err_t MemWrite(memstream* p, const void* Data, size_t Size, size_t* Writt
     if (Size + p->Pos > p->Size)
         return ERR_INVALID_PARAM;
     assert(p->Ptr!=NULL);
-    memcpy(p->Ptr + p->Pos, Data, Size);
+	memcpy((uint8_t*)p->Ptr + p->Pos, Data, Size);
     p->Pos += Size;
     *Written = Size;
     return ERR_NONE;
