@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2010-2011, Matroska (non-profit organisation)
+ * Copyright (c) 2010-2012, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -919,7 +919,7 @@ int main(int argc, const char *argv[])
 
     if (argc < 2 || ShowVersion)
     {
-        TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010-2011 Matroska Foundation\r\n"));
+        TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010-2012 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
             Result = OutputError(1,T("Usage: mkvalidator [options] <matroska_src>"));
