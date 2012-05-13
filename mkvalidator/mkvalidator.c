@@ -1092,9 +1092,9 @@ int main(int argc, const char *argv[])
 
                     if (Live)
                     {
-                        EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextDuration);
-                        if (EbmlHead)
-                            OutputWarning(0x112,T("The live Segment has a duration set at %") TPRId64,EL_Pos(EbmlHead));
+                        ebml_master *Elt = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextDuration);
+                        if (Elt)
+                            OutputWarning(0x112,T("The live Segment has a duration set at %") TPRId64,EL_Pos(Elt));
                     }
                 }
 			}
@@ -1113,51 +1113,52 @@ int main(int argc, const char *argv[])
 				else
 				{
                     size_t TrackCount;
+					ebml_master *Elt;
 
                     RTrackInfo = RLevel1;
 					NodeTree_SetParent(RLevel1, RSegment, NULL);
 					VoidAmount += CheckUnknownElements((ebml_element*)RLevel1);
 					Result |= CheckProfileViolation((ebml_element*)RLevel1, MatroskaProfile);
 
-                    EbmlHead = (ebml_master*)EBML_MasterFindChild(RTrackInfo,&MATROSKA_ContextTrackEntry);
+                    Elt = (ebml_master*)EBML_MasterFindChild(RTrackInfo,&MATROSKA_ContextTrackEntry);
                     TrackCount = 0;
-                    while (EbmlHead)
+                    while (Elt)
                     {
-                        EbmlHead = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo,(ebml_element*)EbmlHead,0,0);
+						Elt = (ebml_master*)EBML_MasterNextChild(RTrackInfo,Elt);
                         ++TrackCount;
                     }
 
                     ArrayResize(&Tracks,TrackCount*sizeof(track_info),256);
                     ArrayZero(&Tracks);
 
-                    EbmlHead = (ebml_master*)EBML_MasterFindChild(RTrackInfo,&MATROSKA_ContextTrackEntry);
+                    Elt = (ebml_master*)EBML_MasterFindChild(RTrackInfo,&MATROSKA_ContextTrackEntry);
                     TrackCount = 0;
-                    while (EbmlHead)
+                    while (Elt)
                     {
-                        EbmlDocVer = EBML_MasterFindChild(EbmlHead,&MATROSKA_ContextTrackNumber);
+                        EbmlDocVer = EBML_MasterFindChild(Elt,&MATROSKA_ContextTrackNumber);
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
                             TrackMax = max(TrackMax,(size_t)EL_Int(EbmlDocVer));
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EL_Int(EbmlDocVer);
                         }
-                        EbmlDocVer = EBML_MasterFindChild(EbmlHead,&MATROSKA_ContextTrackType);
+                        EbmlDocVer = EBML_MasterFindChild(Elt,&MATROSKA_ContextTrackType);
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
                             if (EL_Int(EbmlDocVer)==TRACK_TYPE_VIDEO)
 							{
-								Result |= CheckVideoTrack(EbmlHead, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
+								Result |= CheckVideoTrack(Elt, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
                                 HasVideo = 1;
 							}
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EL_Int(EbmlDocVer);
                         }
-                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindChild(EbmlHead,&MATROSKA_ContextCodecID);
-                        EbmlHead = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo,(ebml_element*)EbmlHead,0,0);
+                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (ebml_string*)EBML_MasterFindChild(Elt,&MATROSKA_ContextCodecID);
+                        Elt = (ebml_master*)EBML_MasterNextChild(RTrackInfo,Elt);
                         ++TrackCount;
                     }
                     EbmlDocVer = NULL;
-                    EbmlHead = NULL;
+                    Elt = NULL;
                 }
 			}
 			else
