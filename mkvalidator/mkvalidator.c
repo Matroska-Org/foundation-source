@@ -866,7 +866,11 @@ static int CheckCueEntries(ebml_master *Cues)
 	return Result;
 }
 
+#if defined(TARGET_WIN) && defined(UNICODE)
+int wmain(int argc, const wchar_t *argv[])
+#else
 int main(int argc, const char *argv[])
+#endif
 {
     int Result = 0;
     int ShowUsage = 0;
@@ -906,7 +910,11 @@ int main(int argc, const char *argv[])
 
 	for (i=1;i<argc;++i)
 	{
-	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+#if defined(TARGET_WIN) && defined(UNICODE)
+	    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[i]);
+#else
+		Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+#endif
 		if (tcsisame_ascii(Path,T("--no-warn"))) Warnings = 0;
 		else if (tcsisame_ascii(Path,T("--live"))) Live = 1;
 		else if (tcsisame_ascii(Path,T("--details"))) Details = 1;
@@ -935,7 +943,11 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#if defined(TARGET_WIN) && defined(UNICODE)
+    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#else
+	Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#endif
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
