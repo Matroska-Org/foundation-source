@@ -143,7 +143,11 @@ static void testFile(nodecontext *p, int LineNum,const tchar_t *File, tchar_t *M
         TextPrintf(StdErr,T("Success:0:%d: %s %s\r\n"),LineNum,File,MkParams);
 }
 
+#if defined(TARGET_WIN) && defined(UNICODE)
+int wmain(int argc, const wchar_t *argv[])
+#else
 int main(int argc, const char *argv[])
+#endif
 {
     parsercontext p;
     textwriter _StdErr;
@@ -187,10 +191,18 @@ int main(int argc, const char *argv[])
 
     for (i=1;i<argc;++i)
 	{
+#if defined(TARGET_WIN) && defined(UNICODE)
+	    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[i]);
+#else
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+#endif
 		if (tcsisame_ascii(Path,T("--version"))) { ShowVersion = 1; }
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; }
+#if defined(TARGET_WIN) && defined(UNICODE)
+        else if (tcsisame_ascii(Path,T("--mkclean"))) Node_FromWcs(&p,MkPath,TSIZEOF(MkPath),argv[++i]);
+#else
         else if (tcsisame_ascii(Path,T("--mkclean"))) Node_FromStr(&p,MkPath,TSIZEOF(MkPath),argv[++i]);
+#endif
         else if (tcsisame_ascii(Path,T("--keep"))) KeepOutput = 1;
         else if (tcsisame_ascii(Path,T("--quiet"))) {Quiet = 1; }
         else if (tcsisame_ascii(Path,T("--generate"))) {Generate = 1; }
@@ -217,7 +229,11 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+#if defined(TARGET_WIN) && defined(UNICODE)
+    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#else
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#endif
     if (!FileExists((nodecontext*)&p, Path))
     {
         TextPrintf(StdErr,T("The file with the list of regression files '%s' could not be found!\r\n"),Path);

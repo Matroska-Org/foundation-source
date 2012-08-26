@@ -1,3 +1,7 @@
+2012-08-26
+version 0.8.7:
+    - handle non-latin command-line characters on windows
+
 2011-09-25
 version 0.8.6:
     - correct DisplayUnit that appears to be in pixels but marked as Display Aspect Ratio (DAR)

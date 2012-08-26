@@ -1398,7 +1398,11 @@ static void WriteJunk(stream *Output, size_t Amount)
 		Stream_Write(Output,&Val,1,NULL);
 }
 
+#if defined(TARGET_WIN) && defined(UNICODE)
+int wmain(int argc, const wchar_t *argv[])
+#else
 int main(int argc, const char *argv[])
+#endif
 {
     int i,Result = 0;
     int ShowUsage = 0;
@@ -1450,7 +1454,11 @@ int main(int argc, const char *argv[])
     memset(StdErr,0,sizeof(_StdErr));
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
 
+#if defined(TARGET_WIN) && defined(UNICODE)
+    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[0]);
+#else
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[0]);
+#endif
     SplitPath(Path,NULL,0,String,TSIZEOF(String),NULL,0);
     UnOptimize = tcsisame_ascii(String,T("mkWDclean"));
     if (UnOptimize)
@@ -1459,13 +1467,21 @@ int main(int argc, const char *argv[])
 
 	for (i=1;i<argc;++i)
 	{
+#if defined(TARGET_WIN) && defined(UNICODE)
+	    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[i]);
+#else
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
+#endif
 		if (tcsisame_ascii(Path,T("--keep-cues"))) { KeepCues = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--remux"))) { Remux = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--live"))) { Live = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--doctype")) && i+1<argc-1)
 		{
+#if defined(TARGET_WIN) && defined(UNICODE)
+		    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
+#else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+#endif
 			if (tcsisame_ascii(Path,T("1")))
 				DstProfile = PROFILE_MATROSKA_V1;
 			else if (tcsisame_ascii(Path,T("2")))
@@ -1487,14 +1503,22 @@ int main(int argc, const char *argv[])
 		}
 		else if (tcsisame_ascii(Path,T("--timecodescale")) && i+1<argc-1)
 		{
+#if defined(TARGET_WIN) && defined(UNICODE)
+		    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
+#else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+#endif
 			TimeCodeScale = StringToInt(Path,0);
 			InputPathIndex = i+1;
 		}
 		else if (tcsisame_ascii(Path,T("--alt-3d")) && i+1<argc-1)
 		{
             size_t TrackId;
+#if defined(TARGET_WIN) && defined(UNICODE)
+		    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
+#else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+#endif
             TrackId = StringToInt(Path,0);
             if (ARRAYCOUNT(Alternate3DTracks, block_info*) < (TrackId+1))
             {
@@ -1548,7 +1572,11 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
+#if defined(TARGET_WIN) && defined(UNICODE)
+    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
+#else
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
+#endif
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
@@ -1578,7 +1606,11 @@ int main(int argc, const char *argv[])
             stcatprintf_s(Path,TSIZEOF(Path),T("clean.%s"),String);
     }
     else
+#if defined(TARGET_WIN) && defined(UNICODE)
+        Node_FromWcs(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#else
         Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+#endif
     Output = StreamOpen(&p,Path,SFLAG_WRONLY|SFLAG_CREATE);
     if (!Output)
     {
