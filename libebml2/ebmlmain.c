@@ -613,8 +613,17 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 				if (AllowDummyElt || !EBML_ElementIsDummy(Result)) {
                     assert(_SizeLength <= 8);
                     Result->SizeLength = (int8_t)_SizeLength;
-					
 					Result->DataSize = SizeFound;
+
+					if (AllowDummyElt && !EBML_ElementValidateSize(Result) && !EBML_ElementIsDummy(Result))
+					{
+						// the element has a good ID but wrong size, so replace with a dummy
+						NodeDelete((node*)Result);
+						Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL);
+						Result->SizeLength = (int8_t)_SizeLength;
+						Result->DataSize = SizeFound;
+					}
+
 					// LevelChange values
 					// -1 : global element
 					//  0 : child
