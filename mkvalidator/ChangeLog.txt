@@ -1,6 +1,7 @@
 2012-08-26
 version 0.4.1:
     - handle non-latin command-line characters on windows
+    - detect elements with bogus sizes
 
 2012-05-13
 version 0.4.0:
