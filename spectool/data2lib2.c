@@ -64,6 +64,12 @@ static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t
             hasData = 1;
             TextWrite(CFile, T("PROFILE_MATROSKA_V3"));
         }
+        if (!elt->MinVersion || elt->MinVersion>4 || (elt->MaxVersion && elt->MaxVersion<4)) {
+            if (hasData)
+                TextWrite(CFile, T("|"));
+            hasData = 1;
+            TextWrite(CFile, T("PROFILE_MATROSKA_V4"));
+        }
         if (!elt->InDivX) {
             if (hasData)
                 TextWrite(CFile, T("|"));
