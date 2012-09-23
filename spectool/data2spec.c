@@ -161,6 +161,18 @@ static void AddColumnHeader(textwriter *TBody)
 
     TextElementBegin(&Th, &Tr, T("th"));
     Th.InsideContent = 1;
+    TextAttribEx(&Th, T("title"), T("Version 4"), 0, TYPE_STRING);
+    TextElementBegin(&Abbr, &Th, T("abbr"));
+    Abbr.InsideContent = 1;
+    TextAttribEx(&Abbr, T("title"), T("Version 4"), 0, TYPE_STRING);
+    TextElementAppendData(&Abbr, T("4"));
+    TextElementEnd(&Abbr);
+    Th.InsideContent = 0;
+    Th.Deep = 0;
+    TextElementEnd(&Th);
+
+    TextElementBegin(&Th, &Tr, T("th"));
+    Th.InsideContent = 1;
     TextAttribEx(&Th, T("title"), T("WebM"), 0, TYPE_STRING);
     TextElementBegin(&Abbr, &Th, T("abbr"));
     Abbr.InsideContent = 1;
@@ -422,6 +434,19 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         }
         else
         if (!elt->MinVersion || elt->MinVersion > 3 || (elt->MaxVersion && elt->MaxVersion < 3)) {
+            TextAttribEx(&Tr, T("class"), T("flagnot"), 0, TYPE_STRING);
+            TextElementEnd(&Td);
+        }
+        else
+            TextElementEndData(&Td, T("*"));
+
+        // v4
+        TextElementBegin(&Td, &Tr, T("td"));
+        if (!elt->MinVersion && !elt->MaxVersion && !elt->InWebM) {
+            TextElementEnd(&Td);
+        }
+        else
+        if (!elt->MinVersion || elt->MinVersion > 4 || (elt->MaxVersion && elt->MaxVersion < 4)) {
             TextAttribEx(&Tr, T("class"), T("flagnot"), 0, TYPE_STRING);
             TextElementEnd(&Td);
         }
