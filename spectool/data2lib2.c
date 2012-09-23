@@ -26,6 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * A tool to generate the libmatroska2 semantic files
+ *  input: specdata.xml
+ *  output: matroska_sem.c / matroska_sem.h
+ */
+
 #include "data2lib2_stdafx.h"
 #include "spec_element.h"
 
@@ -382,11 +388,6 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
 }
 
 
-/**
- * A tool to format the table in the specs
- *  input: spec.xml
- *  output: table_spec.xml
- */
 int main(void)
 {
     parsercontext p;

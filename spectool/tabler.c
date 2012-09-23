@@ -26,6 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * A tool to format the table in the specs
+ *  input: spec.xml
+ *  output: table_spec.xml
+ */
+
 #include "tabler_stdafx.h"
 #ifndef CONFIG_EBML_UNICODE
 #define CONFIG_EBML_UNICODE
@@ -88,11 +94,6 @@ static void DumpLevel(parser *p, textwriter *parent)
     }
 }
 
-/**
- * A tool to format the table in the specs
- *  input: spec.xml
- *  output: table_spec.xml
- */
 int main(void)
 {
     parsercontext p;

@@ -26,6 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * A tool to format the table in the specs
+ *  input: specdata.xml
+ *  output: spec.xml
+ */
+
 #include "data2spec_stdafx.h"
 #include "spec_element.h"
 
@@ -493,11 +499,6 @@ META_CLASS(SIZE,sizeof(SpecElement))
 META_END(NODE_CLASS)
 
 
-/**
- * A tool to format the table in the specs
- *  input: spec.xml
- *  output: table_spec.xml
- */
 int main(void)
 {
     parsercontext p;

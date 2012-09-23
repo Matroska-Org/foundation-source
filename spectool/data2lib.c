@@ -26,6 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * A tool to generate the libmatroska semantic files
+ *  input: specdata.xml
+ *  output: KaxSemantic.cpp / KaxSemantic.h
+ */
+
 #include "data2lib2_stdafx.h"
 #include "spec_element.h"
 
@@ -481,11 +487,6 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
 }
 
 
-/**
- * A tool to format the table in the specs
- *  input: spec.xml
- *  output: table_spec.xml
- */
 int main(void)
 {
     parsercontext p;
@@ -537,13 +538,13 @@ int main(void)
         for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element) {
             if ((element+1) == ARRAYEND(Elements,SpecElement*))
                 Extras.IsLast = 1;
-            if ((*element)->Id == 0x18538067)
+            if ((*element)->Id == 0x18538067) // Segment
                 Extras.PassedEBML = 1;
             if (Extras.PassedEBML)
             {
-                if (!IsValidElement(*element))
+                if (!IsValidElement(*element) || (*element)->Id == 0x23314F) // TrackTimecodeScale
                 {
-                    TextPrintf(&CFile, T("\nfilepos_t Kax%s::RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault) {\n"), GetClassName(*element));
+                    TextPrintf(&CFile, T("\nfilepos_t Kax%s::RenderData(IOCallback & /* output */, bool /* bForceRender */, bool /* bSaveDefault */) {\n"), GetClassName(*element));
                     TextWrite(&CFile, T("\tassert(false); // no you are not allowed to use this element !\n"));
                     TextWrite(&CFile, T("\treturn 0;\n"));
                     TextWrite(&CFile, T("}\n"));
