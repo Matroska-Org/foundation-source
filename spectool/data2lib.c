@@ -542,7 +542,7 @@ int main(void)
                 Extras.PassedEBML = 1;
             if (Extras.PassedEBML)
             {
-                if (!IsValidElement(*element) || (*element)->Id == 0x23314F) // TrackTimecodeScale
+                if (!IsValidElement(*element) || (*element)->MaxVersion!=0)
                 {
                     TextPrintf(&CFile, T("\nfilepos_t Kax%s::RenderData(IOCallback & /* output */, bool /* bForceRender */, bool /* bSaveDefault */) {\n"), GetClassName(*element));
                     TextWrite(&CFile, T("\tassert(false); // no you are not allowed to use this element !\n"));
