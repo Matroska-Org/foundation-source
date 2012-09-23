@@ -52,6 +52,7 @@ extern const ebml_context MATROSKA_ContextChapterTranslateID;
 extern const ebml_context MATROSKA_ContextChapterTranslate;
 
 extern const ebml_context MATROSKA_ContextTimecodeScale;
+extern const ebml_context MATROSKA_ContextTimecodeScaleDenominator;
 extern const ebml_context MATROSKA_ContextDuration;
 extern const ebml_context MATROSKA_ContextDateUTC;
 extern const ebml_context MATROSKA_ContextTitle;
