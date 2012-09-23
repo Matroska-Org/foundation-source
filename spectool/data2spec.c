@@ -280,7 +280,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         else
 #endif
             TextAttribEx(&Tr, T("id"), elt->Name, 0, TYPE_STRING);
-        if (!elt->MinVersion && !elt->MaxVersion && !elt->InWebM)
+        if (elt->MaxVersion || (!elt->MinVersion && !elt->InWebM))
             stprintf_s(IdString,TSIZEOF(IdString),T("version2"));
         else if (elt->Level < 0)
             stprintf_s(IdString,TSIZEOF(IdString),T("level1"));
