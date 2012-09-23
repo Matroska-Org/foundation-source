@@ -1,3 +1,7 @@
+2012-xx-xx
+version 0.4.2:
+    - add support for Matroska v4 elements like CueDuration and CueRelativePosition
+
 2012-08-26
 version 0.4.1:
     - handle non-latin command-line characters on windows
