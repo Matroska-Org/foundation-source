@@ -359,7 +359,7 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
                 TextWrite(CFile, T("public:\n"));
                 TextPrintf(CFile, T("\tvirtual bool ValidateSize() const {return IsFiniteSize() && GetSize() == %d;}\n"), elt->ByteSize);
             }
-            if (!IsValidElement(elt))
+            if (!IsValidElement(elt) || elt->MaxVersion!=0)
             {
                 TextWrite(CFile, T("public:\n"));
                 TextWrite(CFile, T("\tfilepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault);\n"));
