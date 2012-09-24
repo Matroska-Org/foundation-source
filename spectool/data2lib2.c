@@ -415,6 +415,7 @@ int main(void)
         ReadLevel(&parseIn, &Elements);
 
         memset(&Extras,0,sizeof(Extras));
+        memset(&CFile,0,sizeof(CFile));
         Extras.CurrLevel = -1;
 
         CFile.Stream = OutputC;

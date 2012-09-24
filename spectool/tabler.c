@@ -113,6 +113,7 @@ int main(void)
     {
         textwriter outFile;
 
+        memset(&outFile,0,sizeof(outFile));
         outFile.Stream = Output;
         TextElementXML(&p, &outFile, T("table"));
 

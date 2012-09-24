@@ -548,6 +548,8 @@ int main(void)
         table_extras Extras;
 
         memset(&Extras,0,sizeof(Extras));
+        memset(&Table,0,sizeof(Table));
+        memset(&TBody,0,sizeof(TBody));
         Extras.CurrLevel = -1;
 
         ReadLevel(&parseIn, &Elements);
@@ -562,7 +564,7 @@ int main(void)
                 Extras.IsLast = 1;
             OutputElement(*element, &TBody, &Extras);
         }
-        
+
         TextElementEnd(&TBody);
         TextElementEnd(&Table);
     }
@@ -578,4 +580,3 @@ int main(void)
     ParserContext_Done(&p);
     return 0;
 }
-
