@@ -192,10 +192,10 @@ extern const ebml_context MATROSKA_ContextTrackEntry;
 extern const ebml_context MATROSKA_ContextTracks;
 
 extern const ebml_context MATROSKA_ContextCueTime;
-extern const ebml_context MATROSKA_ContextCueDuration;
 extern const ebml_context MATROSKA_ContextCueTrack;
 extern const ebml_context MATROSKA_ContextCueClusterPosition;
 extern const ebml_context MATROSKA_ContextCueRelativePosition;
+extern const ebml_context MATROSKA_ContextCueDuration;
 extern const ebml_context MATROSKA_ContextCueBlockNumber;
 extern const ebml_context MATROSKA_ContextCueCodecState;
 extern const ebml_context MATROSKA_ContextCueRefTime;

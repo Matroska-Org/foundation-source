@@ -394,10 +394,10 @@ const ebml_semantic EBML_SemanticTracks[] = {
 };
 const ebml_context MATROSKA_ContextTracks = {0x1654AE6B, EBML_MASTER_CLASS, 0, 0, "Tracks", EBML_SemanticTracks, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueTime = {0xB3, EBML_INTEGER_CLASS, 0, 0, "CueTime", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextCueDuration = {0xB2, EBML_INTEGER_CLASS, 0, 0, "CueDuration", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueTrack = {0xF7, EBML_INTEGER_CLASS, 0, 0, "CueTrack", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueClusterPosition = {0xF1, EBML_INTEGER_CLASS, 0, 0, "CueClusterPosition", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueRelativePosition = {0xF0, EBML_INTEGER_CLASS, 0, 0, "CueRelativePosition", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextCueDuration = {0xB2, EBML_INTEGER_CLASS, 0, 0, "CueDuration", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueBlockNumber = {0x5378, EBML_INTEGER_CLASS, 1, (intptr_t)1, "CueBlockNumber", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueCodecState = {0xEA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "CueCodecState", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCueRefTime = {0x96, EBML_INTEGER_CLASS, 0, 0, "CueRefTime", NULL, EBML_SemanticGlobals, NULL};
@@ -418,6 +418,7 @@ const ebml_semantic EBML_SemanticCueTrackPositions[] = {
     {1, 1, &MATROSKA_ContextCueTrack, 0},
     {1, 1, &MATROSKA_ContextCueClusterPosition, 0},
     {0, 1, &MATROSKA_ContextCueRelativePosition, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextCueDuration, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextCueBlockNumber, 0},
     {0, 1, &MATROSKA_ContextCueCodecState, PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextCueReference, PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
@@ -427,7 +428,6 @@ const ebml_context MATROSKA_ContextCueTrackPositions = {0xB7, EBML_MASTER_CLASS,
 
 const ebml_semantic EBML_SemanticCuePoint[] = {
     {1, 1, &MATROSKA_ContextCueTime, 0},
-    {0, 1, &MATROSKA_ContextCueDuration, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 0, &MATROSKA_ContextCueTrackPositions, 0},
     {0, 0, NULL ,0} // end of the table
 };
