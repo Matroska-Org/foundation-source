@@ -489,8 +489,8 @@ const ebml_context MATROSKA_ContextChapLanguage = {0x437C, EBML_STRING_CLASS, 1,
 const ebml_context MATROSKA_ContextChapCountry = {0x437E, EBML_STRING_CLASS, 0, 0, "ChapCountry", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterDisplay[] = {
-    {1, 1, &MATROSKA_ContextChapString, PROFILE_WEBM},
-    {1, 0, &MATROSKA_ContextChapLanguage, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextChapString, 0},
+    {1, 0, &MATROSKA_ContextChapLanguage, 0},
     {0, 0, &MATROSKA_ContextChapCountry, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
@@ -516,9 +516,9 @@ const ebml_semantic EBML_SemanticChapProcess[] = {
 const ebml_context MATROSKA_ContextChapProcess = {0x6944, EBML_MASTER_CLASS, 0, 0, "ChapProcess", EBML_SemanticChapProcess, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterAtom[] = {
-    {0, 0, &MATROSKA_ContextChapterAtom, PROFILE_WEBM}, // recursive
-    {1, 1, &MATROSKA_ContextChapterUID, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextChapterTimeStart, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextChapterAtom, 0}, // recursive
+    {1, 1, &MATROSKA_ContextChapterUID, 0},
+    {1, 1, &MATROSKA_ContextChapterTimeStart, 0},
     {0, 1, &MATROSKA_ContextChapterTimeEnd, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterFlagHidden, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterFlagEnabled, PROFILE_WEBM},
@@ -526,7 +526,7 @@ const ebml_semantic EBML_SemanticChapterAtom[] = {
     {0, 1, &MATROSKA_ContextChapterSegmentEditionUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterPhysicalEquiv, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterTrack, PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapterDisplay, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextChapterDisplay, 0},
     {0, 0, &MATROSKA_ContextChapProcess, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
@@ -537,13 +537,13 @@ const ebml_semantic EBML_SemanticEditionEntry[] = {
     {1, 1, &MATROSKA_ContextEditionFlagHidden, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextEditionFlagDefault, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextEditionFlagOrdered, PROFILE_WEBM},
-    {1, 0, &MATROSKA_ContextChapterAtom, PROFILE_WEBM},
+    {1, 0, &MATROSKA_ContextChapterAtom, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextEditionEntry = {0x45B9, EBML_MASTER_CLASS, 0, 0, "EditionEntry", EBML_SemanticEditionEntry, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapters[] = {
-    {1, 0, &MATROSKA_ContextEditionEntry, PROFILE_WEBM},
+    {1, 0, &MATROSKA_ContextEditionEntry, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextChapters = {0x1043A770, EBML_MASTER_CLASS, 0, 0, "Chapters", EBML_SemanticChapters, EBML_SemanticGlobals, NULL};
@@ -601,7 +601,7 @@ const ebml_semantic EBML_SemanticSegment[] = {
     {0, 0, &MATROSKA_ContextTracks, 0},
     {0, 1, &MATROSKA_ContextCues, 0},
     {0, 1, &MATROSKA_ContextAttachments, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapters, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChapters, 0},
     {0, 0, &MATROSKA_ContextTags, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
