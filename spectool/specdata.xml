@@ -185,6 +185,7 @@
   <element name="EditionFlagOrdered" level="3" id="0x45DD" type="uinteger" minver="1" webm="0" default="0" range="0-1">Specify if the chapters can be defined multiple times and the order to play them is enforced. (1 bit)</element>
   <element name="ChapterAtom" level="3" recursive="1" id="0xB6" type="master" mandatory="1" multiple="1" minver="1" webm="1">Contains the atom information to use as the chapter atom (apply to all tracks).</element>
   <element name="ChapterUID" level="4" id="0x73C4" type="uinteger" mandatory="1" minver="1" webm="1" range="not 0">A unique ID to identify the Chapter.</element>
+  <element name="ChapterStringUID" level="4" id="0x5654" type="utf-8" mandatory="0" minver="3" webm="1">A unique string ID to identify the Chapter. Use for <a href="http://dev.w3.org/html5/webvtt/#webvtt-cue-identifier">WebVTT cue identifier storage</a>.</element>
   <element name="ChapterTimeStart" level="4" id="0x91" type="uinteger" mandatory="1" minver="1" webm="1">Timecode of the start of Chapter (not scaled).</element>
   <element name="ChapterTimeEnd" level="4" id="0x92" type="uinteger" minver="1" webm="0">Timecode of the end of Chapter (timecode excluded, not scaled).</element>
   <element name="ChapterFlagHidden" level="4" id="0x98" type="uinteger" mandatory="1" minver="1" webm="0" default="0" range="0-1">If a chapter is hidden (1), it should not be available to the user interface (but still to Control Tracks). (1 bit)</element>

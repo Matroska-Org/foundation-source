@@ -227,6 +227,7 @@ extern const ebml_context MATROSKA_ContextEditionFlagHidden;
 extern const ebml_context MATROSKA_ContextEditionFlagDefault;
 extern const ebml_context MATROSKA_ContextEditionFlagOrdered;
 extern const ebml_context MATROSKA_ContextChapterUID;
+extern const ebml_context MATROSKA_ContextChapterStringUID;
 extern const ebml_context MATROSKA_ContextChapterTimeStart;
 extern const ebml_context MATROSKA_ContextChapterTimeEnd;
 extern const ebml_context MATROSKA_ContextChapterFlagHidden;

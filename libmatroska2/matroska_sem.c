@@ -470,6 +470,7 @@ const ebml_context MATROSKA_ContextEditionFlagHidden = {0x45BD, EBML_BOOLEAN_CLA
 const ebml_context MATROSKA_ContextEditionFlagDefault = {0x45DB, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagDefault", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextEditionFlagOrdered = {0x45DD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagOrdered", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterUID = {0x73C4, EBML_INTEGER_CLASS, 0, 0, "ChapterUID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChapterStringUID = {0x5654, EBML_UNISTRING_CLASS, 0, 0, "ChapterStringUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterTimeStart = {0x91, EBML_INTEGER_CLASS, 0, 0, "ChapterTimeStart", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterTimeEnd = {0x92, EBML_INTEGER_CLASS, 0, 0, "ChapterTimeEnd", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapterFlagHidden = {0x98, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "ChapterFlagHidden", NULL, EBML_SemanticGlobals, NULL};
@@ -518,6 +519,7 @@ const ebml_context MATROSKA_ContextChapProcess = {0x6944, EBML_MASTER_CLASS, 0, 
 const ebml_semantic EBML_SemanticChapterAtom[] = {
     {0, 0, &MATROSKA_ContextChapterAtom, 0}, // recursive
     {1, 1, &MATROSKA_ContextChapterUID, 0},
+    {0, 1, &MATROSKA_ContextChapterStringUID, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX},
     {1, 1, &MATROSKA_ContextChapterTimeStart, 0},
     {0, 1, &MATROSKA_ContextChapterTimeEnd, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterFlagHidden, PROFILE_WEBM},
