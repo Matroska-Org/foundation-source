@@ -65,7 +65,6 @@ const ebml_semantic EBML_SemanticChapterTranslate[] = {
 };
 const ebml_context MATROSKA_ContextChapterTranslate = {0x6924, EBML_MASTER_CLASS, 0, 0, "ChapterTranslate", EBML_SemanticChapterTranslate, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTimecodeScale = {0x2AD7B1, EBML_INTEGER_CLASS, 1, (intptr_t)1000000, "TimecodeScale", NULL, EBML_SemanticGlobals, NULL};
-const ebml_context MATROSKA_ContextTimecodeScaleDenominator = {0x2AD7B2, EBML_INTEGER_CLASS, 1, (intptr_t)1000000000, "TimecodeScaleDenominator", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextDuration = {0x4489, EBML_FLOAT_CLASS, 0, 0, "Duration", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextDateUTC = {0x4461, EBML_DATE_CLASS, 0, 0, "DateUTC", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTitle = {0x7BA9, EBML_UNISTRING_CLASS, 0, 0, "Title", NULL, EBML_SemanticGlobals, NULL};
@@ -82,7 +81,6 @@ const ebml_semantic EBML_SemanticInfo[] = {
     {0, 0, &MATROSKA_ContextSegmentFamily, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextChapterTranslate, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTimecodeScale, 0},
-    {1, 1, &MATROSKA_ContextTimecodeScaleDenominator, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextDuration, 0},
     {0, 1, &MATROSKA_ContextDateUTC, 0},
     {0, 1, &MATROSKA_ContextTitle, PROFILE_WEBM},
