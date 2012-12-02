@@ -221,7 +221,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->StartedGlobal = 1;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
-            TextAttribEx(&Td, T("colspan"), T("13"), 0, TYPE_STRING);
+            TextAttribEx(&Td, T("colspan"), T("14"), 0, TYPE_STRING);
             TextElementAppendData(&Td, T("Global elements (used everywhere in the format)"));
             TextElementEnd(&Td);
             TextElementEnd(&Tr);
@@ -237,7 +237,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->InTags = 0;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
-            TextAttribEx(&Td, T("colspan"), T("13"), 0, TYPE_STRING);
+            TextAttribEx(&Td, T("colspan"), T("14"), 0, TYPE_STRING);
             if (elt->Id == 0x1A45DFA3) {
                 TextAttribEx(&Td, T("id"), T("LevelEBML"), 0, TYPE_STRING);
                 TextElementAppendData(&Td, T("EBML Header"));
