@@ -1,0 +1,8 @@
+#define QTOPIA_PHONE
+#defien QTOPIA_CORE 
+#define STIP strip
+#define STRIPFLAGS -s -x
+#define CCFLAGS -DNDEBUG -O3 -DTARGET_QTOPIA -DQTOPIA_CORE -DQTOPIA_PHONE -DQT_SHARED -pipe -m32 -march=i486 -msse -mmmx -Wno-multichar -fno-exceptions
+#define SHFLAGS -shared -Wl,--strip-all
+
+#include "kdevelop_qtopia_x86.inc"

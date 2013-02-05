@@ -1,0 +1,56 @@
+#include "clean.build"
+
+FOR EACH WORKSPACE
+
+  REMOVE %(¯PATH)%(NAME).ncb
+  REMOVE %(¯PATH)%(NAME)_wins.ncb
+  REMOVE %(¯PATH)%(NAME).suo
+  REMOVE %(¯PATH)%(NAME).opt
+  REMOVE %(¯PATH)%(NAME)_wins.opt
+  REMOVE %(¯PATH)%(NAME).vcb
+  REMOVE %(¯PATH)%(NAME).vco
+  REMOVE %(¯PATH)%(NAME).kdevelop
+  REMOVE %(¯PATH)%(NAME).kdevelop.pcs
+  REMOVE %(¯PATH)%(NAME).kdevses
+
+  FOR EACH USE
+    FOR EACH COMPILE
+      REMOVE %(NAME).%(>NAME)
+    ENDFOR
+  ENDFOR
+
+ENDFOR
+
+REMOVE %(¯)root.kdevelop.pcs
+REMOVE %(¯)root.kdevses
+REMOVE %(¯)configure
+REMOVE %(¯)configure.in
+
+FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP
+
+  REMOVE %(¯PATH)%(NAME)_win32.aps
+  REMOVE %(¯PATH)%(NAME).aps
+  REMOVE %(¯PATH)%(NAME).vcproj.*.user
+  REMOVE %(¯PATH)%(NAME).vcproj.user
+  REMOVE %(!ROOTPATH)%(PATH)%(NAME).csproj.*.user
+  REMOVE %(!ROOTPATH)%(PATH)%(NAME).csproj.user
+  REMOVE %(¯PATH)%(NAME).vcl
+  REMOVE %(¯PATH)*.pbxuser
+  REMOVE %(¯PATH)*.mode1
+  REMOVE %(¯PATH)*.*~
+  REMOVEDIR %(BUILDPATH)../kdevelop
+  REMOVEDIR %(BUILDPATH)../carbide
+  REMOVEDIR %(BUILDPATH)../carbide_12
+  REMOVEDIR %(BUILDPATH)../carbide_20
+  REMOVE %(¯PATH)%(NAME).qrc
+  REMOVEDIR %(PATH)Deb_WINSCW
+
+  FOR EACH SOURCE
+    IF %(>NAME)==rc
+      REMOVE %(¯PATH)%(<NAME).aps
+    ENDIF
+  ENDFOR
+
+ENDFOR
+
+#include "clean.build"

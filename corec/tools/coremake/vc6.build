@@ -1,0 +1,15 @@
+MSDEV = MSDEV.EXE
+
+#define TARGET_WIN32
+#define TARGET_WIN
+#define IX86
+#define COMPILER_MSVC6
+
+PLATFORMLIB = win32_x86
+
+#define OUTPUT_EXE %(NAME).exe
+#define OUTPUT_DLL %(NAME).dll
+#define OUTPUT_LIB %(NAME).lib
+#define OUTPUT_CON %(NAME).exe
+
+#include "vc6.inc"

@@ -1,0 +1,15 @@
+#################################
+####  NOT READY - DO NOT USE ####
+#################################
+
+#define TARGET_OSX
+#define IX86
+#define PPC
+
+PLATFORMLIB = osx_u
+SVNDIR = osx_univers
+SDK = /Developer/SDKs/MacOSX10.4u.sdk
+
+CCFLAGS=%(CCFLAGS) -arch i386 -arch ppc -faltivec
+
+#include "gcc_osx.inc"

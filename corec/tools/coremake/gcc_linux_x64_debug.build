@@ -1,0 +1,30 @@
+#define TARGET_LINUX
+#define IX64
+#define IX86_64
+#define RESOURCE_COREC
+#define DEBUG
+
+PLATFORMLIB = linux_x64
+SVNDIR = linux_x64
+
+#define OUTPUT_EXE     %(NAME)
+#define OUTPUT_CON     %(NAME)
+#define OUTPUT_DLL     lib%(NAME).so
+#define OUTPUT_DLL_LIB lib%(NAME).so
+#define OUTPUT_LIB     lib%(NAME).a
+
+//#define CC gcc
+//#define CXX g++
+//#define AR ar
+#define ASM yasm
+//#define STRIP strip
+//#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -DDEBUG -ggdb -m64 -Wno-multichar -fPIC -save-temps -DRESOURCE_COREC
+#define ASMFLAGS -f elf64
+#define LFLAGS
+#define SHFLAGS -shared
+
+#include "gcc.inc"

@@ -1,0 +1,16 @@
+#define MIPS
+
+#define CC mipsel-linux-gcc
+#define CXX mipsel-linux-g++
+#define AR mipsel-linux-ar
+#define STRIP mipsel-linux-strip
+#define STRIPFLAGS -s -x
+
+#define QTOPIA_CORE
+#define CCFLAGS -DMIPS -DTARGET_DESKTOP -DTARGET_QTOPIA -DQTOPIA_CORE -DQT_SHARED -Wno-multichar -msoft-float -mno-explicit-relocs -fomit-frame-pointer -fsigned-char -march=mips32 -O2 -fvisibility=hidden
+#define SFLAGS -DMIPS -DTARGET_DESKTOP -DTARGET_QTOPIA -DQTOPIA_CORE -DQT_SHARED -Wno-multichar -msoft-float -mno-explicit-relocs -fomit-frame-pointer -fsigned-char -march=mips32 -O2 -D_HIDDEN
+#define LFLAGS
+#define SHFLAGS -shared -Wl,--strip-all
+#define CXXFLAGS -fno-rtti
+
+#include "gcc_qtopia.inc"

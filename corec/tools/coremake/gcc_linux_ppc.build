@@ -1,0 +1,28 @@
+#define TARGET_LINUX
+#define POWERPC
+#define PPC
+
+PLATFORMLIB = linux_ppc
+SVNDIR = linux_ppc
+
+#define OUTPUT_EXE     %(NAME)
+#define OUTPUT_CON     %(NAME)
+#define OUTPUT_DLL     lib%(NAME).so
+#define OUTPUT_DLL_LIB lib%(NAME).so
+#define OUTPUT_LIB     lib%(NAME).a
+
+//#define CC gcc
+//#define CXX g++
+//#define AR ar
+#define ASM as
+#define STRIP strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -O3 -Wno-multichar -fPIC -fno-strict-aliasing -maltivec -mabi=altivec -fvisibility=hidden
+#define ASMFLAGS -f elf -D_HIDDEN
+#define LFLAGS
+#define SHFLAGS -shared -Wl,--strip-all
+
+#include "gcc.inc"

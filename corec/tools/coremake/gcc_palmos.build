@@ -1,0 +1,25 @@
+#define TARGET_PALMOS
+#define ARM
+
+PLATFORMLIB = palm_arm
+SVNDIR = palm_arm
+
+#define OUTPUT_EXE %(NAME).prc
+#define OUTPUT_DLL %(NAME).prc
+#define OUTPUT_LIB lib%(NAME).a
+
+#define CC arm-tcpmp-palmos-gcc
+#define CXX arm-tcpmp-palmos-g++
+#define AR arm-tcpmp-palmos-ar
+#define CXX_HOST g++
+#define CC_M68K m68k-palmos-gcc
+
+#define CCFLAGS -DARM -D__GLIBC__ -pipe -Wno-multichar -fshort-enums -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -march=armv4 -mtune=xscale
+#define SFLAGS -DARM -D__GLIBC__ -pipe -Wno-multichar -fshort-enums -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -mcpu=iwmmxt -mtune=xscale
+#define LFLAGS -Wl,--split-by-file=63000 -Wl,--emit-relocs -nostartfiles
+
+#define CFLAGS_M68K -pipe -O3 -mnoshort
+#define LFLAGS_M68K -L/usr/local/share/palmdev/sdk/lib/m68k-palmos-coff -lPalmOSGlue -lc -lgcc
+
+#include "gcc.inc"
+

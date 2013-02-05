@@ -1,0 +1,11 @@
+#define OSX_UNIVERSAL
+#define IX86
+#define IX86_64
+#define POWERPC
+
+SDK = macosx10.5
+FRAMEWORK_PATH = /
+GCC_VERSION = 4.2
+XCODECOMPATVERSION = 3.2
+
+#include "xcode.inc"

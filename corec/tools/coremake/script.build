@@ -1,0 +1,40 @@
+#define TARGET_SCRIPT
+#define NO_STDAFX
+#define NO_PROJECT
+
+#define OUTPUT_EXE %(NAME).dll
+#define OUTPUT_EXE %(NAME).exe
+#define OUTPUT_DLL %(NAME).dll
+#define OUTPUT_LIB %(NAME).lib
+#define OUTPUT_CON %(NAME).exe
+
+CONFIG
+
+FOR EACH WORKSPACE
+  FOR EACH USE
+    FOR EACH COMPILE
+      BUILDSTR = 
+      IF %(CONFIG_CUSTOMER)
+        BUILDSTR = %(CONFIG_CUSTOMER)
+      ENDIF
+      IF %(CONFIG_TEST_EXPIRE)
+        IF %(BUILDSTR)
+          BUILDSTR = %(BUILDSTR)_%(CONFIG_TEST_EXPIRE)
+        ELSE
+          BUILDSTR = %(CONFIG_TEST_EXPIRE)
+        ENDIF
+      ENDIF
+      IF %(PROJECT_BUILD)
+        IF %(BUILDSTR)
+          BUILDSTR = %(BUILDSTR)_r%(PROJECT_BUILD)
+        ELSE
+          BUILDSTR = r%(PROJECT_BUILD)
+        ENDIF
+      ENDIF
+      COMPILE %(NAME) %(¯NAME)
+    ENDFOR
+    IF %(DOXYGEN)
+      COMPILE %(DOXYGEN) "%(PATH)%(`PROJECT_NAME).doxyfile"
+    ENDIF
+  ENDFOR
+ENDFOR

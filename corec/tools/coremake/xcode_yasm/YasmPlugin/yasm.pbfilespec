@@ -1,0 +1,11 @@
+(
+	{
+        Identifier = sourcecode.yasm;
+        BasedOn = sourcecode;
+        Extensions = (yasm);
+        Name = "Yasm assembly files";
+        ComputerLanguage = asm.i386;
+        Language = "xcode.lang.asm.i386";
+        AppliesToBuildRules = yes;
+    },
+)

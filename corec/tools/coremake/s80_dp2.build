@@ -1,0 +1,17 @@
+#define TARGET_SYMBIAN
+#define SERIES80
+#define ARM
+#define COMPILER_GCC
+
+PLATFORMLIB = symbian_s80_dp2
+
+TARGDEFINE = SERIES80
+TARGDEFINE2 = __SERIES80__
+TARGPLATFORM = ARMI
+TARGMODE = UREL
+TARGCPU = armi
+DEVICES_ID = Series80_DP2_0_SDK:com.nokia.Series80
+
+TARGSIS = (0x101F8ED2),0,0,0,{"Series80ProductID"}
+
+#include "symbian.inc"

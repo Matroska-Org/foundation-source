@@ -1,0 +1,16 @@
+#define ARM
+
+#define CC arm-none-linux-gnueabi-gcc
+#define CXX arm-none-linux-gnueabi-g++
+#define AR arm-none-linux-gnueabi-ar
+#define STRIP arm-none-linux-gnueabi-strip
+#define STRIPFLAGS -s -x
+
+#define QTOPIA_CORE
+#define CCFLAGS -DARM -DTARGET_DESKTOP -DTARGET_QTOPIA -DQTOPIA_CORE -DQT_SHARED -Wno-multichar -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -march=armv4t -mtune=xscale -fvisibility=hidden
+#define SFLAGS -DARM -DTARGET_DESKTOP -DTARGET_QTOPIA -DQTOPIA_CORE -DQT_SHARED -Wno-multichar -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -mcpu=iwmmxt -mtune=xscale -D_HIDDEN
+#define LFLAGS
+#define SHFLAGS -shared -Wl,--strip-all
+#define CXXFLAGS -fno-rtti
+
+#include "gcc_qtopia.inc"

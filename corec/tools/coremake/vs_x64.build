@@ -1,0 +1,26 @@
+DEVENV = "%VS80COMNTOOLS%..\IDE\devenv.exe"
+
+#define TARGET_WIN64
+#define TARGET_WIN
+#define IX86_64
+
+PLATFORMLIB = win32_x64
+
+VSBUILDER = Studio 2005
+VSVERSION = 8.00
+COMPILERVERSION = 8.00
+CSPROJVERSION = 8.0.50727
+TARGNAME = x64
+TARGDEPLOY = 0
+TARGDEF = WIN64
+TARGMACHINE = 17
+TARG64 = 1
+TARGEXESUBSYSTEM = 2
+SVNDIR=msvc8\x64
+VSPDB=vc80.pdb
+TARGARCH=amd64
+
+//MANIFEST_DEBUG_DEP=type=&apos;win64&apos; name=&apos;Microsoft.VC80.DebugCRT&apos; version=&apos;8.0.50608.0&apos; processorArchitecture=&apos;amd64&apos; publicKeyToken=&apos;1fc8b3b9a1e18e3b&apos;
+//MANIFEST_RELEASE_DEP=type=&apos;win64&apos; name=&apos;Microsoft.VC80.CRT&apos; version=&apos;8.0.50608.0&apos; processorArchitecture=&apos;amd64&apos; publicKeyToken=&apos;1fc8b3b9a1e18e3b&apos;
+
+#include "vs.inc"

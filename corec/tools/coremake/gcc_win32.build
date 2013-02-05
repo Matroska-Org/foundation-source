@@ -1,0 +1,33 @@
+#define TARGET_WIN32
+#define TARGET_WIN
+#define IX86
+#define HOST_WIN32
+
+PLATFORMLIB = win32_x86
+SVNDIR = mingw32
+
+#define OUTPUT_EXE     %(NAME).exe
+#define OUTPUT_CON     %(NAME).exe
+#define OUTPUT_DLL     %(NAME).dll
+#define OUTPUT_DLL_LIB %(NAME).dll.a
+#define OUTPUT_DLL_DEF %(NAME).def
+#define OUTPUT_LIB     lib%(NAME).a
+
+#define CC gcc
+#define CXX g++
+#define WINDRES windres
+#define ASM yasm
+#define NASM nasmw
+#define STRIP strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -mthreads -D__MINGW32__ -D_WIN32 -D_M_IX86 -O3 -fomit-frame-pointer -march=i686 -msse -mmmx -mno-cygwin
+#define CFLAGS -Wdeclaration-after-statement
+#define ASMFLAGS -f win32 -D_WIN32
+#define NASMFLAGS -f win32 -D_WIN32
+#define LFLAGS -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
+#define SHFLAGS -shared -Wl,--strip-all -Wl,--enable-stdcall-fixup -Wl,--output-def,%(¯!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_DLL_DEF) -Wl,--out-implib,%(!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_DLL_LIB)
+
+#include "gcc.inc"

@@ -1,0 +1,12 @@
+#define TARGET_IPHONE
+#define TARGET_IPHONE_SDK
+#define TARGET_IPHONE_DEVICE
+#define ARM
+#define TARGET_ALWAYS_STATIC
+
+SDK = iphoneos3.0
+GCC_VERSION = 4.2
+XCODECOMPATVERSION = 3.1
+ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)"
+
+#include "xcode.inc"

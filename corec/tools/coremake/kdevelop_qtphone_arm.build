@@ -1,0 +1,11 @@
+#define STRIP arm-none-linux-gnueabi-strip
+#define STRIPFLAGS -s -x
+
+#define QTOPIA_PHONE
+#define QTOPIA_CORE 
+#define CCFLAGS -DNDEBUG -DARM -DTARGET_QTOPIA -DQTOPIA_CORE -DQTOPIA_PHONE -DQT_SHARED -Wno-multichar -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -march=armv4t -mtune=xscale
+#define SFLAGS -DNDEBUG -DARM -DTARGET_QTOPIA -DQTOPIA_CORE -DQTOPIA_PHONE -DQT_SHARED -Wno-multichar -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -mcpu=iwmmxt -mtune=xscale
+#define SHFLAGS -shared -Wl,--strip-all
+#define CXXFLAGS -fno-rtti
+
+#include "kdevelop_qtopia_arm.inc"

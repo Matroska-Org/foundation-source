@@ -1,0 +1,15 @@
+#define TARGET_SYMBIAN
+#define SERIES60
+#define SERIES60_1ST
+#define IX86
+
+PLATFORMLIB = symbian_s60_1st_wins
+
+TARGDEFINE = SERIES60
+TARGDEFINE2 = __SERIES60_10__
+TARGPLATFORM = WINS
+TARGMODE = UDEB
+TARGCPU = wins
+DEVICES_ID = S60_1st:com.nokia.series60
+
+#include "symbian.inc"

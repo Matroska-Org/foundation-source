@@ -1,0 +1,13 @@
+#define TARGET_OSX
+#define IX86
+#define PIC
+
+PLATFORMLIB = osx_x86
+SVNDIR = osx_x86
+SDK = /Developer/SDKs/MacOSX10.4u.sdk
+
+CCFLAGS=%(CCFLAGS) -arch i386 -fPIC -mmacosx-version-min=10.4
+ASMFLAGS = -f macho -D_MACHO -D_PIC
+
+#include "gcc_osx.inc"
+

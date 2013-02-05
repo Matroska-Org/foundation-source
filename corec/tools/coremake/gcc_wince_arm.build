@@ -1,0 +1,29 @@
+#define TARGET_WINCE
+#define TARGET_WIN
+#define ARM
+#define HOST_WIN32
+
+PLATFORMLIB = wince_arm
+SVNDIR = mingw32ce
+
+#define OUTPUT_EXE     %(NAME).exe
+#define OUTPUT_CON     %(NAME).exe
+#define OUTPUT_DLL     %(NAME).dll
+#define OUTPUT_DLL_LIB %(NAME).dll.a
+#define OUTPUT_DLL_DEF %(NAME).def
+#define OUTPUT_LIB     lib%(NAME).a
+
+#define CC arm-mingw32ce-gcc
+#define CXX arm-mingw32ce-g++
+#define WINDRES arm-mingw32ce-windres
+#define STRIP arm-mingw32ce-strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -mthreads -O3 -fomit-frame-pointer -mno-cygwin
+#define CFLAGS -Wdeclaration-after-statement
+#define LFLAGS -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
+#define SHFLAGS -shared -Wl,--strip-all -Wl,--enable-stdcall-fixup -Wl,--output-def,%(¯!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_DLL_DEF) -Wl,--out-implib,%(!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_DLL_LIB)
+
+#include "gcc.inc"

@@ -1,0 +1,4 @@
+CCFLAGS = -march=armv7-a -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon
+//ANDROID_ABI = armeabi-v7a
+
+#include "android_arm.inc"

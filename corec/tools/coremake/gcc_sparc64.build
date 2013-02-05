@@ -1,0 +1,22 @@
+#define TARGET_LINUX
+#define SPARC64
+
+PLATFORMLIB = linux_sparc
+SVNDIR = linux_sparc64
+
+#define OUTPUT_EXE %(NAME)
+#define OUTPUT_CON %(NAME)
+#define OUTPUT_DLL lib%(NAME).so
+#define OUTPUT_LIB lib%(NAME).a
+
+//#define CC gcc
+//#define CXX g++
+//#define AR ar
+#define STRIP strip
+#define STRIPFLAGS -s
+
+#define CCFLAGS -O3 -mcpu=v9 -m64 -Wno-multichar 
+#define LFLAGS -mcpu=v9 -m64
+#define SHFLAGS -shared -Wl,--strip-all
+
+#include "gcc.inc"

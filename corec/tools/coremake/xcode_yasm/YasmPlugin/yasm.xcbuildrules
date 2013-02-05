@@ -1,0 +1,8 @@
+
+(
+	{
+	Name = "Yasm Assembler Source Rule";
+	FileType = "sourcecode.yasm";
+	CompilerSpec = "com.corecodec.compilers.yasm";
+	}
+)

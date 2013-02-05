@@ -1,0 +1,27 @@
+DEVENV = "%VS90COMNTOOLS%..\IDE\devenv.exe"
+
+#define TARGET_WIN32
+#define TARGET_WIN
+#define IX86
+#define COMPILER_MSVC_EXPRESS
+
+PLATFORMLIB = win32_x86
+
+VSBUILDER = Studio 2008
+VSVERSION = 9.00
+COMPILERVERSION = 9.00
+CSPROJVERSION = 9.0.30729
+TARGNAME = Win32
+TARGDEPLOY = 0
+TARGDEF = WIN32
+TARGDEF += COMPILER_MSVC_EXPRESS
+TARGMACHINE = 1
+TARGEXESUBSYSTEM = 2
+SVNDIR=msvc9\win32
+VSPDB=vc90.pdb
+TARGARCH=x86
+
+//MANIFEST_DEBUG_DEP=type=&apos;win32&apos; name=&apos;Microsoft.VC80.DebugCRT&apos; version=&apos;8.0.50608.0&apos; processorArchitecture=&apos;x86&apos; publicKeyToken=&apos;1fc8b3b9a1e18e3b&apos;
+//MANIFEST_RELEASE_DEP=type=&apos;win32&apos; name=&apos;Microsoft.VC80.CRT&apos; version=&apos;8.0.50608.0&apos; processorArchitecture=&apos;x86&apos; publicKeyToken=&apos;1fc8b3b9a1e18e3b&apos;
+
+#include "vs.inc"

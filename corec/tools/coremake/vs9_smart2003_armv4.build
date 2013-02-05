@@ -1,0 +1,42 @@
+DEVENV = "%VS90COMNTOOLS%..\IDE\devenv.exe"
+
+#define TARGET_WINCE
+#define TARGET_WINCE_2003
+#define TARGET_WIN
+#define TARGET_SMARTPHONE
+#define ARM
+
+#define NO_RUNTIME_CHECK
+#define MSVC_SEE_DEPRECATE
+
+PLATFORMLIB = wince_armv4
+
+//CABWIZ  = "$(VSInstallDir)\Windows CE Tools\wce420\SMARTPHONE 2003\Tools\CabwizSP.exe"
+CABWIZ = "$(VSInstallDir)\SmartDevices\SDK\SDKTools\cabwiz.exe"
+//CABWIZCLI = /compress
+CABNAME = Smartphone
+CABCPU  = 2577
+CABUNSUPPORTED = "Jupiter","HPC","HPC Pro","Pocket PC","Palm PC2","Palm PC"
+
+VSBUILDER = Studio 2008
+VSVERSION = 9.00
+COMPILERVERSION = 9.00
+CSPROJVERSION = 9.0.30729
+TARGNAME = Smartphone 2003 (ARMV4)
+TARGDEPLOY = 1
+TARGDEF  = $(ARCHFAM)
+TARGDEF += $(_ARCHFAM_)
+TARGDEF += _WIN32_WCE=$(CEVER)
+TARGDEF += UNDER_CE=$(CEVER)
+TARGDEF += WINCE
+TARGDEF += SMARTPHONE2003_UI_MODEL
+TARGDEF += $(PLATFORMDEFINES)
+TARGLFLAGS = /subsystem:windowsce,4.20
+//TARGLFLAGS = /subsystem:windowsce,3.00
+TARGMACHINE = 3
+TARGCOMPILEARCH = 0
+TARGEXESUBSYSTEM = 8
+SVNDIR=msvc9\smart_armv4
+VSPDB=vc90.pdb
+
+#include "vs.inc"

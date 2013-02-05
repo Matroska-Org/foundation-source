@@ -1,0 +1,3 @@
+CCFLAGS = -march=armv5te -mtune=xscale
+
+#include "android_arm.inc"

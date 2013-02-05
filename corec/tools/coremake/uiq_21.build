@@ -1,0 +1,17 @@
+#define TARGET_SYMBIAN
+#define UIQ
+#define ARM
+#define COMPILER_GCC
+
+PLATFORMLIB = symbian_uiq_21
+
+TARGDEFINE = UIQ
+TARGDEFINE2 = __UIQ__
+TARGPLATFORM = ARMI
+TARGMODE = UREL
+TARGCPU = armi
+DEVICES_ID = UIQ_21:com.symbian.UIQ
+
+TARGSIS = (0x101F617B),2,0,0,{"UIQ20ProductID"}
+
+#include "symbian.inc"

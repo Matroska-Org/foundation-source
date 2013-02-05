@@ -1,0 +1,10 @@
+EVC     = "%ProgramFiles%\Microsoft eMbedded Tools\Common\EVC\Bin\EVC.EXE"
+EVC_SDK = Pocket PC 2002
+
+CABWIZ  = "%ProgramFiles%\Microsoft eMbedded Tools\EVB\CABWIZ.EXE"
+CABNAME = PocketPC
+CABCPU  = 2577
+CABUNSUPPORTED = "Smartphone"
+TARGDEFINE = POCKETPC2003_UI_MODEL
+
+#include "evc_arm.build"

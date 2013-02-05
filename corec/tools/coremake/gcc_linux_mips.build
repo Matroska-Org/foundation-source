@@ -1,0 +1,27 @@
+#define TARGET_LINUX
+#define MIPS
+#define RESOURCE_COREC
+
+PLATFORMLIB = linux_mips
+SVNDIR = linux_mips
+
+#define OUTPUT_EXE     %(NAME)
+#define OUTPUT_CON     %(NAME)
+#define OUTPUT_DLL     lib%(NAME).so
+#define OUTPUT_DLL_LIB lib%(NAME).so
+#define OUTPUT_LIB     lib%(NAME).a
+
+#define CC mipsel-linux-gcc
+#define CXX mipsel-linux-g++
+#define AR mipsel-linux-ar
+#define STRIP mipsel-linux-strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -DMIPS -Wno-multichar -mno-explicit-relocs -fomit-frame-pointer -fsigned-char -march=mips32 -O2 -fvisibility=hidden -DRESOURCE_COREC
+#define SFLAGS -DMIPS -Wno-multichar -mno-explicit-relocs -fomit-frame-pointer -fsigned-char -march=mips32 -O2 -D_HIDDEN
+#define SHFLAGS -shared -Wl,--strip-all
+#define CXXFLAGS -fno-rtti
+
+#include "gcc.inc"

@@ -1,0 +1,3 @@
+CCFLAGS = -march=armv6 -mtune=arm1176jzf-s
+
+#include "android_arm.inc"

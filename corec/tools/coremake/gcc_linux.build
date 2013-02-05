@@ -1,0 +1,28 @@
+#define TARGET_LINUX
+#define IX86
+#define RESOURCE_COREC
+
+PLATFORMLIB = linux_x86
+SVNDIR = linux_x86
+
+#define OUTPUT_EXE     %(NAME)
+#define OUTPUT_CON     %(NAME)
+#define OUTPUT_DLL     lib%(NAME).so
+#define OUTPUT_DLL_LIB lib%(NAME).so
+#define OUTPUT_LIB     lib%(NAME).a
+
+//#define CC gcc
+//#define CXX g++
+//#define AR ar
+#define ASM yasm
+#define STRIP strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -O3 -m32 -march=i486 -msse -mmmx -Wno-multichar -fvisibility=hidden -DRESOURCE_COREC
+#define ASMFLAGS -f elf -D_HIDDEN
+#define LFLAGS
+#define SHFLAGS -shared -Wl,--strip-all
+
+#include "gcc.inc"

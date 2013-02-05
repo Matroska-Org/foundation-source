@@ -1,0 +1,28 @@
+#define TARGET_WINCE
+#define TARGET_WIN
+#define ARM
+
+PLATFORMLIB = wince_armv4i
+
+TARGID = WCE ARMV4I
+TARGCODE = 0xa5
+TARGCPU = "{DC70F430-E78B-494F-A9D5-62ADC56443B8}"
+TARGCC = clarm.exe
+TARGDEFINE = STANDARDSHELL_UI_MODEL
+TARGDEFINE += THUMB
+TARGDEFINE += _THUMB_
+TARGDEFINE += ARM
+TARGDEFINE += _ARM_
+TARGDEFINE += ARMV4I
+TARGCFLAGS = /QRarch4T /QRinterwork-return
+TARGLFLAGS = /MACHINE:THUMB
+TARGASM = armasm -cpu xscale "$(InputPath)" "$(IntDir)/$(InputName).obj" -list "$(IntDir)/$(InputName).lst"
+
+EVC     = "%ProgramFiles%\Microsoft eMbedded C++ 4.0\Common\EVC\Bin\evc.exe"
+EVC_SDK = STANDARDSDK_420
+
+CABWIZ  = "%ProgramFiles%\Windows CE Tools\wce420\POCKET PC 2003\Tools\Cabwiz.exe"
+CABNAME = WinCE
+CABCPU  = 2577
+
+#include "evc.inc"

@@ -1,0 +1,14 @@
+#define TARGET_SYMBIAN
+#define SERIES90
+#define IX86
+
+PLATFORMLIB = symbian_s90_7710_wins
+
+TARGDEFINE = SERIES90
+TARGDEFINE2 = __SERIES90__
+TARGPLATFORM = WINS
+TARGMODE = UDEB
+TARGCPU = wins
+DEVICES_ID = NOKIA_7710:com.nokia.Nokia7710
+
+#include "symbian.inc"

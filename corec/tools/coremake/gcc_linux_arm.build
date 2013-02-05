@@ -1,0 +1,26 @@
+#define TARGET_LINUX
+#define ARM
+#define RESOURCE_COREC
+
+PLATFORMLIB = linux_arm
+SVNDIR = linux_arm
+
+#define OUTPUT_EXE     %(NAME)
+#define OUTPUT_CON     %(NAME)
+#define OUTPUT_DLL     lib%(NAME).so
+#define OUTPUT_DLL_LIB lib%(NAME).so
+#define OUTPUT_LIB     lib%(NAME).a
+
+#define CC arm-none-linux-gnueabi-gcc
+#define CXX arm-none-linux-gnueabi-g++
+#define AR arm-none-linux-gnueabi-ar
+#define STRIP arm-none-linux-gnueabi-strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -DARM -Wno-multichar -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -march=armv4t -mtune=xscale -fvisibility=hidden -DRESOURCE_COREC
+#define SFLAGS -DARM -Wno-multichar -O3 -mno-apcs-frame -fomit-frame-pointer -fsigned-char -mcpu=iwmmxt -mtune=xscale -D_HIDDEN
+#define SHFLAGS -shared -Wl,--strip-all
+
+#include "gcc.inc"

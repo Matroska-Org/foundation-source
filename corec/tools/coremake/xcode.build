@@ -1,0 +1,8 @@
+#define POWERPC
+
+SDK = /Developer/SDKs/MacOSX10.3.9.sdk
+FRAMEWORK_PATH = /
+GCC_VERSION = 4.0
+XCODECOMPATVERSION = 2.4
+
+#include "xcode.inc"

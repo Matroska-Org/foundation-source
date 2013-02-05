@@ -1,0 +1,161 @@
+FOR EACH WORKSPACE
+
+  REMOVE %(¯PATH)Makefile
+  REMOVE %(¯PATH)GNUmakefile
+  REMOVE %(¯PATH)Makefile.evc
+  REMOVE %(¯PATH)Makefile.vc6
+  REMOVE %(¯PATH)Makefile.vs
+  REMOVE %(¯PATH)bld.inf
+  REMOVE %(¯PATH)make.bat
+  REMOVE %(¯PATH)abld.bat
+  REMOVE %(¯PATH)%(NAME).dsw
+  REMOVE %(¯PATH)%(NAME)_wins.dsw
+  REMOVE %(¯PATH)%(NAME).sln
+  REMOVE %(¯PATH)%(NAME).vcw
+  REMOVE %(¯PATH)%(NAME).log
+  REMOVE %(¯PATH)%(NAME)_nsi.log  
+  REMOVE %(¯PATH)%(NAME).log.tmp
+  REMOVE %(¯PATH)%(NAME).kdevelop_gdbscript
+  REMOVEDIR %(¯PATH)%(NAME).xcodeproj
+  
+  FOR EACH USE
+    IF (%(TYPE)==EXE) || (%(TYPE)==DLL)
+      REMOVE %(¯../PATH)%(NAME).plist
+    ENDIF
+    IF %(PMDOC)!=""
+      REMOVEDIR %(¯PATH)%(NAME).pmdoc
+    ENDIF
+  ENDFOR
+
+ENDFOR
+
+REMOVE %(¯)Makefile.cvs
+REMOVE %(¯)libtool
+REMOVE %(¯)aclocal.m4
+REMOVE %(¯)config.h.in
+REMOVE %(¯)config.status
+REMOVE %(¯)config.log
+REMOVE %(¯)Doxyfile
+REMOVEDIR %(¯)autom4te.cache
+REMOVE %(¯)root.kdevelop
+
+ALLDIRS = ./
+
+FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP,EXE_JAVA
+
+  x = %(PATH)
+  WHILE "%(x)"!="./"
+    ../ALLDIRS += %(|x)
+    x = %(?x)
+  ENDWHILE
+
+  REMOVE %(¯PATH)%(NAME)_stdafx.c
+  REMOVE %(¯PATH)%(NAME)_stdafx.h
+  REMOVE %(¯PATH)%(NAME)_win32.rc
+  REMOVE %(¯PATH)%(NAME)_win32.nsi
+  REMOVE %(¯PATH)%(NAME)_project.h
+  REMOVE %(¯PATH)%(NAME)_host.h
+  REMOVE %(¯PATH)%(NAME)_split.sh
+  REMOVE %(¯PATH)%(NAME)_palmos.rcp
+  REMOVE %(¯PATH)%(NAME)_palmos.def
+  REMOVE %(¯PATH)%(NAME)_wince.inf
+  REMOVE %(¯PATH)%(NAME)_wince.ini
+  REMOVE %(¯PATH)%(NAME)_rsg.h
+  REMOVE %(¯PATH)%(NAME).dsp
+  REMOVE %(¯PATH)%(NAME).vcproj
+  REMOVE %(¯PATH)%(NAME).icproj
+  REMOVE %(!ROOTPATH)%(PATH)%(NAME).csproj
+  REMOVEDIR %(!ROOTPATH)%(PATH)%(NAME)/obj
+  REMOVE %(¯PATH)%(NAME)_cab.vddproj
+  REMOVE %(¯PATH)%(NAME).mak
+  REMOVE %(¯PATH)%(NAME).tmp.pro
+  REMOVE %(¯PATH)%(NAME).vcp
+  REMOVE %(¯PATH)%(NAME).mmp
+  REMOVE %(¯PATH)%(NAME).mmp.bak
+  REMOVE %(¯PATH)%(NAME).GCCE
+  REMOVE %(¯PATH)%(NAME).uid.cpp
+  REMOVE %(¯PATH)%(NAME).plg
+  REMOVE %(¯PATH)%(NAME).desktop
+  REMOVE %(¯PATH)%(PROJECT_NAME).doxyfile
+  REMOVE %(¯PATH)%(NAME)-SymbianOS-properties.xml
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/%(NAME).mmp
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/.project
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/.cdtbuild
+  REMOVEDIR %(BUILDPATH)../carbide/%(PATH)%(NAME)/.settings
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/bld.inf
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/.cdtproject
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/.rnd
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/%(PROJECT_PATH).mifdef
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/%(PROJECT_PATH).pkg
+  REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/.settings/.carbide_build_settings
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/%(NAME).mmp
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/.project
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/.cdtbuild
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/bld.inf
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/.cdtproject
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/.rnd
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/%(PROJECT_PATH).mifdef
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/%(PROJECT_PATH).pkg
+  REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/.settings/.carbide_build_settings
+  REMOVEDIR %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/.settings
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/%(NAME).mmp
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.project
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.cdtbuild
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/bld.inf
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.cproject
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.rnd
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/%(PROJECT_PATH).mifdef
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/%(PROJECT_PATH).pkg
+  REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.settings/.carbide_build_settings
+  REMOVEDIR %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.settings
+  REMOVE %(¯BUILDDIR)build_ndk.sh
+  REMOVE %(¯BUILDDIR).classpath
+  REMOVE %(¯BUILDDIR).project
+  REMOVE %(¯BUILDDIR)default.properties
+  REMOVE %(¯BUILDDIR)AndroidManifest.xml
+  REMOVE %(¯BUILDDIR).settings/org.eclipse.jdt.core.prefs
+  REMOVEDIR %(¯BUILDDIR).settings
+  REMOVEDIR %(¯BUILDDIR)gen
+  REMOVEDIR %(¯BUILDDIR)res
+  REMOVEDIR %(¯BUILDDIR)libs
+
+  IF "%(PRECOMPILED_HEADER)"!=""
+    REMOVE %(!PATH)%(PRECOMPILED_HEADER).gch
+    REMOVE %(¯PATH)%(PRECOMPILED_HEADER).gch.%(NAME)
+  ENDIF
+
+  IF "%(PROJECT_PATH)"=="" 
+    PROJECT_PATH = %(NAME)
+  ENDIF
+
+  FOR EACH PROJECT_PATH
+    REMOVE %(¯PATH)%(NAME).pkg
+    REMOVE %(¯PATH)%(NAME).rss
+    REMOVE %(BUILDPATH)../carbide/%(PATH)%(NAME)/%(NAME).rss
+    REMOVE %(BUILDPATH)../carbide_12/%(PATH)%(NAME)/%(NAME).rss
+    REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/%(NAME).rss
+    REMOVE %(¯PATH)%(NAME)_icon.mak
+    REMOVE %(¯PATH)%(NAME)_dll.txt
+    REMOVE %(¯PATH)%(NAME)_aif.rss
+    REMOVE %(¯PATH)%(NAME)_reg.rss
+    REMOVE %(¯PATH)%(NAME)_caption.rss
+    REMOVE %(¯PATH)%(NAME)_backup.xml
+  ENDFOR
+
+ENDFOR
+
+FOR EACH LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP
+  REMOVEDIR %(PATH)obj
+ENDFOR
+
+FOR EACH ALLDIRS
+  REMOVEDIR %(NAME).deps
+  REMOVEDIR %(NAME).libs
+  REMOVE %(NAME)Makefile
+  REMOVE %(NAME)GNUmakefile
+  REMOVE %(NAME)Makefile.in
+  REMOVE %(NAME)Makefile.am
+ENDFOR
+
+REMOVEDIR release
+REMOVEDIR build

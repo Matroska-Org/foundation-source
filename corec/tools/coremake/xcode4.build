@@ -1,0 +1,11 @@
+#define OSX_UNIVERSAL
+#define IX86
+#define IX86_64
+#define XCODE4
+
+SDK = macosx10.6
+FRAMEWORK_PATH = /
+GCC_VERSION = com.apple.compilers.llvm.clang.1_0
+XCODECOMPATVERSION = 3.2
+
+#include "xcode.inc"

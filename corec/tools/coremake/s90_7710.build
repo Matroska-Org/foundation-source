@@ -1,0 +1,17 @@
+#define TARGET_SYMBIAN
+#define SERIES90
+#define ARM
+#define COMPILER_GCC
+
+PLATFORMLIB = symbian_s90_7710
+
+TARGDEFINE = SERIES90
+TARGDEFINE2 = __SERIES90__
+TARGPLATFORM = ARMI
+TARGMODE = UREL
+TARGCPU = armi
+DEVICES_ID = NOKIA_7710:com.nokia.Nokia7710
+
+TARGSIS = (0x101FBE05),0,0,0,{"Series90ProductID"}
+
+#include "symbian.inc"

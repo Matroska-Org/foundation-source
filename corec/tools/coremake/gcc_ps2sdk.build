@@ -1,0 +1,37 @@
+#define TARGET_PS2SDK
+#define MIPS
+#define RESOURCE_COREC
+
+PLATFORMLIB = ps2sdk
+SVNDIR = ps2sdk
+
+#define OUTPUT_EXE     %(NAME).elf
+#define OUTPUT_CON     %(NAME).elf
+#define OUTPUT_DLL     lib%(NAME).so
+#define OUTPUT_DLL_LIB lib%(NAME).so
+#define OUTPUT_LIB     lib%(NAME).a
+
+#define CC ee-gcc
+#define CXX ee-gcc
+#define AR ee-ar
+#define STRIP ee-strip
+#define STRIPFLAGS -s -x
+
+#define GLIBC
+
+#define CCFLAGS -O2 -G0 -ffast-math -Wno-multichar 
+#define LFLAGS -mno-crt0
+#define SHFLAGS -shared -Wl,--strip-all
+#define CORERCFLAGS -w -a 16
+
+#define IOP_CC iop-gcc
+#define IOP_CXX iop-gcc
+#define IOP_AR iop-ar
+#define IOP_STRIP
+#define IOP_CCFLAGS -O2 -G0 -fno-builtin -Wno-multichar
+#define IOP_SHFLAGS -s
+#define IOP_LFLAGS -nostdlib
+
+#define DVP_AS dvp-as
+
+#include "gcc.inc"

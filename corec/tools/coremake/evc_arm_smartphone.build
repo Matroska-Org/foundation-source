@@ -1,0 +1,12 @@
+#define TARGET_SMARTPHONE
+
+EVC     = "%ProgramFiles%\Microsoft eMbedded Tools\Common\EVC\Bin\EVC.EXE"
+EVC_SDK = Smartphone 2002
+
+CABWIZ  = "%ProgramFiles%\Windows CE Tools\wce420\SMARTPHONE 2003\Tools\CabwizSP.exe"
+CABNAME = Smartphone
+CABCPU  = 2577
+CABUNSUPPORTED = "Jupiter","HPC","HPC Pro","Pocket PC","Palm PC2","Palm PC"
+TARGDEFINE = SMARTPHONE2003_UI_MODEL
+
+#include "evc_arm.build"

@@ -1,0 +1,58 @@
+{
+	Type = Compiler;
+	Identifier = "com.corecodec.compilers.yasm";
+	Name = Yasm;
+	Vendor = C0R3;
+	Description = "Assemble Using Yasm";
+	CommandLine = "/usr/local/coremake/bin/yasm $(InputFile) [options] -o $(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o";
+	RuleName = "Yasm $(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o $(InputFile)";
+	ExecDescription = "Assemble $(InputFile)";
+	Architectures = (
+		i386,
+	);
+	Languages = (
+		"asm.i386",
+	);
+	InputFileTypes = (
+		"sourcecode.yasm",
+	);
+	SynthesizeBuildRule = Yes;
+	Outputs = (
+		"$(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o",
+	);
+	CommandOutputParser = "XCGccCommandOutputParser";
+	Options = (
+		{
+			Name = "NASM_OUTPUT_FILE_FORMAT";
+			Type = String;
+			DefaultValue = macho;
+			"CommandLinePrefixFlag" = "-f";
+		},
+		{
+			Name = "NASM_PREINCLUDE_FILE";
+			Type = String;
+			Category = BuildOptions;
+			DefaultValue = "";
+			CommandLineFlag = "-P";
+		},
+		{
+			Name = "HEADER_SEARCH_PATHS";
+			Type = PathList;
+			DefaultValue = "";
+			"CommandLinePrefixFlag" = "-I";
+		},
+		{
+			Name = "NASM_OTHER_FLAGS";
+			Type = StringList;
+			Category = BuildOptions;
+			DefaultValue = "";
+			"CommandLinePrefixFlag" = "";
+		},
+		{
+			Name = "build_file_compiler_flags";
+			Type = StringList;
+			DefaultValue = "";
+			"CommandLinePrefixFlag" = "";
+		},
+	);
+}
