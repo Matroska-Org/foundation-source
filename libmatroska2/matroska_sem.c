@@ -217,6 +217,7 @@ const ebml_semantic EBML_SemanticTrackTranslate[] = {
 const ebml_context MATROSKA_ContextTrackTranslate = {0x6624, EBML_MASTER_CLASS, 0, 0, "TrackTranslate", EBML_SemanticTrackTranslate, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextFlagInterlaced = {0x9A, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagInterlaced", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextStereoMode = {0x53B8, EBML_INTEGER_CLASS, 1, (intptr_t)0, "StereoMode", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextAlphaMode = {0x53C0, EBML_INTEGER_CLASS, 1, (intptr_t)0, "AlphaMode", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextOldStereoMode = {0x53B9, EBML_INTEGER_CLASS, 0, 0, "OldStereoMode", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextPixelWidth = {0xB0, EBML_INTEGER_CLASS, 0, 0, "PixelWidth", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextPixelHeight = {0xBA, EBML_INTEGER_CLASS, 0, 0, "PixelHeight", NULL, EBML_SemanticGlobals, NULL};
@@ -235,6 +236,7 @@ const ebml_context MATROSKA_ContextFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0
 const ebml_semantic EBML_SemanticVideo[] = {
     {1, 1, &MATROSKA_ContextFlagInterlaced, PROFILE_MATROSKA_V1|PROFILE_DIVX},
     {0, 1, &MATROSKA_ContextStereoMode, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX},
+    {0, 1, &MATROSKA_ContextAlphaMode, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX},
     {0, 1, &MATROSKA_ContextOldStereoMode, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextPixelWidth, 0},
     {1, 1, &MATROSKA_ContextPixelHeight, 0},

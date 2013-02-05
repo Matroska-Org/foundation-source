@@ -128,6 +128,7 @@ extern const ebml_context MATROSKA_ContextTrackTranslate;
 
 extern const ebml_context MATROSKA_ContextFlagInterlaced;
 extern const ebml_context MATROSKA_ContextStereoMode;
+extern const ebml_context MATROSKA_ContextAlphaMode;
 extern const ebml_context MATROSKA_ContextOldStereoMode;
 extern const ebml_context MATROSKA_ContextPixelWidth;
 extern const ebml_context MATROSKA_ContextPixelHeight;
