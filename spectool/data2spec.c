@@ -35,6 +35,8 @@
 #include "data2spec_stdafx.h"
 #include "spec_element.h"
 
+#define WITH_V4 0
+
 typedef struct table_extras
 {
     bool_t StartedGlobal;
@@ -159,6 +161,7 @@ static void AddColumnHeader(textwriter *TBody)
     Th.Deep = 0;
     TextElementEnd(&Th);
 
+#if defined(WITH_V4)
     TextElementBegin(&Th, &Tr, T("th"));
     Th.InsideContent = 1;
     TextAttribEx(&Th, T("title"), T("Version 4"), 0, TYPE_STRING);
@@ -170,6 +173,7 @@ static void AddColumnHeader(textwriter *TBody)
     Th.InsideContent = 0;
     Th.Deep = 0;
     TextElementEnd(&Th);
+#endif
 
     TextElementBegin(&Th, &Tr, T("th"));
     Th.InsideContent = 1;
@@ -221,7 +225,11 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->StartedGlobal = 1;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
+#if defined(WITH_V4)
             TextAttribEx(&Td, T("colspan"), T("14"), 0, TYPE_STRING);
+#else
+            TextAttribEx(&Td, T("colspan"), T("13"), 0, TYPE_STRING);
+#endif
             TextElementAppendData(&Td, T("Global elements (used everywhere in the format)"));
             TextElementEnd(&Td);
             TextElementEnd(&Tr);
@@ -237,7 +245,11 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             Extras->InTags = 0;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
+#if defined(WITH_V4)
             TextAttribEx(&Td, T("colspan"), T("14"), 0, TYPE_STRING);
+#else
+            TextAttribEx(&Td, T("colspan"), T("13"), 0, TYPE_STRING);
+#endif
             if (elt->Id == 0x1A45DFA3) {
                 TextAttribEx(&Td, T("id"), T("LevelEBML"), 0, TYPE_STRING);
                 TextElementAppendData(&Td, T("EBML Header"));
@@ -440,6 +452,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         else
             TextElementEndData(&Td, T("*"));
 
+#if defined(WITH_V4)
         // v4
         TextElementBegin(&Td, &Tr, T("td"));
         if (!elt->MinVersion && !elt->MaxVersion && !elt->InWebM) {
@@ -452,6 +465,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         }
         else
             TextElementEndData(&Td, T("*"));
+#endif
 
         // webm
         TextElementBegin(&Td, &Tr, T("td"));
