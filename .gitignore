@@ -1,4 +1,8 @@
-
-# /corec/tools/
-
-# /mkclean/
+*_stdafx.[ch]
+*_project.h
+*.mak
+*.a
+GNUmakefile
+/build/
+/release/
+/spectool/spec.xml
