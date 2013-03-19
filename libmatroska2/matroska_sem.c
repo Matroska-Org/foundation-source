@@ -190,6 +190,7 @@ const ebml_context MATROSKA_ContextFlagLacing = {0x9C, EBML_BOOLEAN_CLASS, 1, (i
 const ebml_context MATROSKA_ContextMinCache = {0x6DE7, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MinCache", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextMaxCache = {0x6DF8, EBML_INTEGER_CLASS, 0, 0, "MaxCache", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextDefaultDuration = {0x23E383, EBML_INTEGER_CLASS, 0, 0, "DefaultDuration", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration = {0x234E7A, EBML_INTEGER_CLASS, 0, 0, "DefaultDecodedFieldDuration", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackTimecodeScale = {0x23314F, EBML_FLOAT_CLASS, 1, (intptr_t)1.0, "TrackTimecodeScale", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackOffset = {0x537F, EBML_SINTEGER_CLASS, 1, (intptr_t)0, "TrackOffset", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextMaxBlockAdditionID = {0x55EE, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MaxBlockAdditionID", NULL, EBML_SemanticGlobals, NULL};
@@ -360,6 +361,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextMinCache, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextMaxCache, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextDefaultDuration, 0},
+    {0, 1, &MATROSKA_ContextDefaultDecodedFieldDuration, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTrackTimecodeScale, PROFILE_MATROSKA_V4|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTrackOffset, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextMaxBlockAdditionID, PROFILE_WEBM},

@@ -107,6 +107,7 @@ extern const ebml_context MATROSKA_ContextFlagLacing;
 extern const ebml_context MATROSKA_ContextMinCache;
 extern const ebml_context MATROSKA_ContextMaxCache;
 extern const ebml_context MATROSKA_ContextDefaultDuration;
+extern const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration;
 extern const ebml_context MATROSKA_ContextTrackTimecodeScale;
 extern const ebml_context MATROSKA_ContextTrackOffset;
 extern const ebml_context MATROSKA_ContextMaxBlockAdditionID;
