@@ -124,6 +124,7 @@ extern const ebml_context MATROSKA_ContextCodecDownloadURL;
 extern const ebml_context MATROSKA_ContextCodecDecodeAll;
 extern const ebml_context MATROSKA_ContextTrackOverlay;
 extern const ebml_context MATROSKA_ContextCodecDelay;
+extern const ebml_context MATROSKA_ContextSeekPreRoll;
 extern const ebml_context MATROSKA_ContextTrackTranslateEditionUID;
 extern const ebml_context MATROSKA_ContextTrackTranslateCodec;
 extern const ebml_context MATROSKA_ContextTrackTranslateTrackID;

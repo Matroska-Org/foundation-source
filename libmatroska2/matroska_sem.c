@@ -208,6 +208,7 @@ const ebml_context MATROSKA_ContextCodecDownloadURL = {0x26B240, EBML_STRING_CLA
 const ebml_context MATROSKA_ContextCodecDecodeAll = {0xAA, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "CodecDecodeAll", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackOverlay = {0x6FAB, EBML_INTEGER_CLASS, 0, 0, "TrackOverlay", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCodecDelay = {0x56AA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "CodecDelay", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextSeekPreRoll = {0x56BB, EBML_INTEGER_CLASS, 1, (intptr_t)0, "SeekPreRoll", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackTranslateEditionUID = {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackTranslateCodec = {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackTranslateTrackID = {0x66A5, EBML_BINARY_CLASS, 0, 0, "TrackTranslateTrackID", NULL, EBML_SemanticGlobals, NULL};
@@ -380,6 +381,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextCodecDecodeAll, PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextTrackOverlay, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextCodecDelay, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
+    {1, 1, &MATROSKA_ContextSeekPreRoll, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
     {0, 0, &MATROSKA_ContextTrackTranslate, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextVideo, 0},
     {0, 1, &MATROSKA_ContextAudio, 0},
