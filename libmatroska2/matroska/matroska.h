@@ -38,7 +38,7 @@
 #define MATROSKA_DLL
 #endif
 
-#define CONTEXT_LIBMATROSKA_VERSION  0x401
+#define CONTEXT_LIBMATROSKA_VERSION  0x00402
 
 // if a profile is set in ebml_semantic.DisabledProfile that means the element is not available for that profile
 #define PROFILE_MATROSKA_V1          1
