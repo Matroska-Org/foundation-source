@@ -462,9 +462,9 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("** \n"));
     TextWrite(CFile, T("** You should have received a copy of the GNU Lesser General Public\n"));
     TextWrite(CFile, T("** License along with this library; if not, write to the Free Software\n"));
-    TextWrite(CFile, T("** Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"));
+    TextWrite(CFile, T("** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA\n"));
     TextWrite(CFile, T("**\n"));
-    TextWrite(CFile, T("** See http://www.matroska.org/license/lgpl/ for LGPL licensing information.**\n"));
+    TextWrite(CFile, T("** See http://www.gnu.org/licenses/lgpl-2.1.html for LGPL licensing information.**\n"));
     TextWrite(CFile, T("** Contact license@matroska.org if any conditions of this licensing are\n"));
     TextWrite(CFile, T("** not clear to you.\n"));
     TextWrite(CFile, T("**\n"));
