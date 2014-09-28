@@ -287,6 +287,10 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
                 TextAttribEx(&Td, T("id"), T("Tagging"), 0, TYPE_STRING);
                 TextElementAppendData(&Td, T("Tagging"));
             }
+            else if (elt->Id == 0x1043A770) {
+                TextAttribEx(&Td, T("id"), T("Chapters"), 0, TYPE_STRING);
+                TextElementAppendData(&Td, T("Chapters"));
+            }
             TextElementEnd(&Td);
             TextElementEnd(&Tr);
         }
