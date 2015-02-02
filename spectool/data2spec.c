@@ -40,6 +40,7 @@
 typedef struct table_extras
 {
     bool_t StartedGlobal;
+    bool_t StartedSegment;
     bool_t PassedEBML;
     bool_t IsLast;
     bool_t InTags;
@@ -214,7 +215,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         tchar_t IdString[32];
         textwriter Tr, Td, Abbr;
 
-        if (elt->Level==0/*!Extras->HadColumnHeader*/)
+        if ((elt->Level==0) || ((elt->Level==1) && Extras->StartedSegment)/*!Extras->HadColumnHeader*/)
         {
             //Extras->HadColumnHeader = 1;
             AddColumnHeader(TBody);
@@ -222,6 +223,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
 
         if (elt->Level==-1 && !Extras->StartedGlobal)
         {
+            AddColumnHeader(TBody);
             Extras->StartedGlobal = 1;
             TextElementBegin(&Tr, TBody, T("tr"));
             TextElementBegin(&Td, &Tr, T("th"));
@@ -257,6 +259,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             else if (elt->Id == 0x18538067) {
                 TextAttribEx(&Td, T("id"), T("LevelSegment"), 0, TYPE_STRING);
                 TextElementAppendData(&Td, T("Segment"));
+                Extras->StartedSegment = 1;
             }
             else if (elt->Id == 0x114D9B74) {
                 TextAttribEx(&Td, T("id"), T("MetaSeekInformation"), 0, TYPE_STRING);
