@@ -344,7 +344,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
 
         TextElementBegin(&Td, &Tr, T("td"));
         if (elt->Mandatory)
-            TextElementEndData(&Td, T("*"));
+            TextElementEndData(&Td, T("mand."));
         else {
             TextAttribEx(&Tr, T("class"), T("unset"), 0, TYPE_STRING);
             TextElementEndData(&Td, T("-"));
@@ -352,7 +352,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
 
         TextElementBegin(&Td, &Tr, T("td"));
         if (elt->Multiple)
-            TextElementEndData(&Td, T("*"));
+            TextElementEndData(&Td, T("mult."));
         else {
             TextAttribEx(&Tr, T("class"), T("unset"), 0, TYPE_STRING);
             TextElementEndData(&Td, T("-"));
