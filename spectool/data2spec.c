@@ -487,7 +487,6 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         TextElementBegin(&Td, &Tr, T("td"));
         if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("& "),T("&amp; "));
         if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("<br/>"),T("<br>\n")); // Drupal doesn't like <br/>
-        if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("http://www.matroska.org/technical/specs/"),T(""));
         TextElementEndData(&Td, elt->Description);
 
         TextElementEnd(&Tr);
