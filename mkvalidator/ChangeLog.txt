@@ -1,3 +1,7 @@
+2015-03-25
+    - Fix bug comparing DocType and read DocType versions the wrong way around:
+      read DocType must be smaller than or equal to DocType
+
 2012-xx-xx
 version 0.4.2:
     - add support for Matroska v4 elements like CueDuration and CueRelativePosition

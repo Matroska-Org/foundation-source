@@ -1007,8 +1007,8 @@ int main(int argc, const char *argv[])
 	EbmlDocVer = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeVersion);
 	EbmlReadDocVer = EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeReadVersion);
 
-	if (EL_Int(EbmlDocVer) > EL_Int(EbmlReadDocVer))
-		OutputError(9,T("The read DocType version %d is higher than the Doctype version %d"),(int)EL_Int(EbmlReadDocVer),(int)EL_Int(EbmlDocVer));
+	if (EL_Int(EbmlReadDocVer) > EL_Int(EbmlDocVer))
+		OutputError(9,T("The DocType version %d is higher than the read Doctype version %d"),(int)EL_Int(EbmlDocVer),(int)EL_Int(EbmlReadDocVer));
 
 	if (tcscmp(String,T("matroska"))==0)
 	{
