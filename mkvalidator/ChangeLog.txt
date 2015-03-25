@@ -1,4 +1,5 @@
 2015-03-25
+version 0.5.0:
     - Use DocType and not read DocType as the profile to check elements against
     - Fix bug comparing DocType and read DocType versions the wrong way around:
       read DocType must be smaller than or equal to DocType
