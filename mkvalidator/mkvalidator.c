@@ -1014,13 +1014,13 @@ int main(int argc, const char *argv[])
 	{
         if (DivX)
 			MatroskaProfile = PROFILE_DIVX;
-        else if (EL_Int(EbmlReadDocVer)==4)
+        else if (EL_Int(EbmlDocVer)==4)
 		    MatroskaProfile = PROFILE_MATROSKA_V4;
-        else if (EL_Int(EbmlReadDocVer)==3)
+        else if (EL_Int(EbmlDocVer)==3)
 		    MatroskaProfile = PROFILE_MATROSKA_V3;
-        else if (EL_Int(EbmlReadDocVer)==2)
+        else if (EL_Int(EbmlDocVer)==2)
 		    MatroskaProfile = PROFILE_MATROSKA_V2;
-		else if (EL_Int(EbmlReadDocVer)==1)
+		else if (EL_Int(EbmlDocVer)==1)
 	    	MatroskaProfile = PROFILE_MATROSKA_V1;
 		else
 			OutputError(10,T("Unknown Matroska profile %d/%d"),(int)EL_Int(EbmlDocVer),(int)EL_Int(EbmlReadDocVer));
