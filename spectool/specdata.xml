@@ -8,7 +8,7 @@
   <element name="DocType" level="1" id="0x4282" type="string" mandatory="1" default="matroska" minver="1">A string that describes the type of document that follows this EBML header. 'matroska' in our case or 'webm' for webm files.</element>
   <element name="DocTypeVersion" level="1" id="0x4287" type="uinteger" mandatory="1" default="1" minver="1">The version of DocType interpreter used to create the file.</element>
   <element name="DocTypeReadVersion" level="1" id="0x4285" type="uinteger" mandatory="1" default="1" minver="1">The minimum DocType version an interpreter has to support to read this file.</element>
-  <element name="Void" level="-1" id="0xEC" type="binary" minver="1">Used to void damaged data, to avoid unexpected behaviors when using damaged data. The content is discarded. Also used to reserve space in a sub-element for later use.</element>
+  <element name="Void" level="-1" id="0xEC" type="binary" multiple="1" minver="1">Used to void damaged data, to avoid unexpected behaviors when using damaged data. The content is discarded. Also used to reserve space in a sub-element for later use.</element>
   <element name="CRC-32" level="-1" id="0xBF" type="binary" minver="1" webm="0">The CRC is computed on all the data of the Master element it's in. The CRC element should be the first in it's parent master for easier reading. All level 1 elements should include a CRC-32. The CRC in use is the IEEE CRC32 Little Endian</element>
   <element name="SignatureSlot" level="-1" id="0x1B538667" type="master" multiple="1" webm="0">Contain signature of some (coming) elements in the stream.</element>
   <element name="SignatureAlgo" level="1" id="0x7E8A" type="uinteger" webm="0">Signature algorithm used (1=RSA, 2=elliptic).</element>
