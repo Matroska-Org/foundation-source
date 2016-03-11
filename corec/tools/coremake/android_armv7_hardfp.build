@@ -1,3 +1,6 @@
+CCFLAGS = -march=armv7-a -mtune=cortex-a8 -mfloat-abi=hard -mfpu=neon -D_NDK_MATH_NO_SOFTFP=1
+ANDROID_ABI = armeabi-v7a-hard
+
 #define TARGARCH arm
 #define TARGARCH_ABI arm
 #define TARGOPTIM release
@@ -10,7 +13,7 @@ ANDROID_ARCH = arch-arm
 ANDROID_GCC_PREFIX = arm-linux-androideabi
 ANDROID_GCC_VERSION = 4.8
 ANDROID_GCC = %(ANDROID_GCC_PREFIX)-%(ANDROID_GCC_VERSION)
-ANDROID_GCC_LIB = gcc/%(ANDROID_GCC_PREFIX)/%(ANDROID_GCC_VERSION)/libgcc.a
+ANDROID_GCC_LIB = gcc/%(ANDROID_GCC_PREFIX)/%(ANDROID_GCC_VERSION)/armv7-a/hard/libgcc.a
 ANDROID_TOOL_DIR = %(ANDROID_GCC)
 
 #include "android.inc"

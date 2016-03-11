@@ -1,3 +1,4 @@
-CCFLAGS = -march=armv6 -mtune=arm1176jzf-s
+CCFLAGS = -march=armv6 -mtune=arm1176jzf-s -msoft-float
+ANDROID_ABI = armeabi
 
 #include "android_arm.inc"

@@ -1,7 +1,6 @@
 #define TARGET_OSX
 
 ASMFLAGS = -f macho -D_MACHO
-PLATFORMLIB = osx_ppc
 
 #define OUTPUT_EXE %(NAME)
 #define OUTPUT_DLL %(NAME).so
@@ -49,11 +48,7 @@ FOR EACH WORKSPACE
   PRINTNL 	archiveVersion = 1;
   PRINTNL 	classes = {
   PRINTNL 	};
-  IF "%(XCODECOMPATVERSION)"=="2.4"
-    PRINTNL 	objectVersion = 42;
-  ELSE
-    PRINTNL	objectVersion = 45;
-  ENDIF
+  PRINTNL	objectVersion = 45;
   PRINTNL 	objects = {
   PRINTNL 
   PRINTNL /* Begin PBXBuildFile section */
@@ -187,6 +182,8 @@ FOR EACH WORKSPACE
           SOURCEASM = sourcecode.asm.arm
           IF DEFINED(CONFIG_NEON) && %(cpu)==neon
             SOURCEASM = sourcecode.asm.gaspp
+          ELIF DEFINED(CONFIG_NEON) && %(cpu)==neon64
+            SOURCEASM = sourcecode.asm.gaspp64
           ENDIF
         ENDIF
         PRINTNL		%(XCODEUID) /* %(!;NAME) */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = %(SOURCEASM); name = %(!;NAME); path = %(!;NAME); sourceTree = "<group>"; };
@@ -622,10 +619,6 @@ FOR EACH WORKSPACE
     IF %(FAVOR_MAX_SPEED)
       PRINTNL 				GCC_OPTIMIZATION_LEVEL = 3;
       PRINTNL 				OTHER_CFLAGS = "-fomit-frame-pointer";
-      IFNDEF XCODE4
-        PRINTNL				OTHER_CFLAGS_ppc = "-maltivec";
-        PRINTNL				OTHER_CPLUSPLUSFLAGS_ppc = "-maltivec";
-      ENDIF
       PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-fomit-frame-pointer";
       PRINTNL				DEPLOYMENT_POSTPROCESSING = YES;
       PRINTNL				STRIP_INSTALLED_PRODUCT = YES;
@@ -645,6 +638,7 @@ FOR EACH WORKSPACE
     ENDIF
     IF %(ASMFLAGS)!=""
       PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
+      PRINTNL				HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )";
     ENDIF
     PRINTNL 				GCC_PREPROCESSOR_DEFINITIONS = (
     PRINTNL 					NDEBUG,
@@ -706,17 +700,9 @@ FOR EACH WORKSPACE
       PRINTNL 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
     ENDIF
     PRINTNL 			};
-    IFDEF OSX_UNIVERSAL
-      PRINTNL 			name = "Release Universal";
-    ELSE
-      PRINTNL 			name = "Release";
-    ENDIF
+    PRINTNL 			name = "Release";
     PRINTNL 		};
-    IFDEF OSX_UNIVERSAL
-      PRINTNL 		%(XCODEGRPUID4) /* Debug other */ = {
-    ELSE
-      PRINTNL 		%(XCODEGRPUID4) /* Debug */ = {
-    ENDIF
+    PRINTNL 		%(XCODEGRPUID4) /* Debug */ = {
     PRINTNL 			isa = XCBuildConfiguration;
     PRINTNL 			buildSettings = {
     PRINTNL 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -725,16 +711,10 @@ FOR EACH WORKSPACE
     ENDIF
     IF %(FAVOR_MAX_SPEED_DEBUG)
       PRINTNL 				GCC_OPTIMIZATION_LEVEL = 3;
-      IFDEF XCODE4
-        PRINTNL 				OTHER_CFLAGS = "-fomit-frame-pointer";
-        PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-fomit-frame-pointer";
-      ELSE
-        PRINTNL 				OTHER_CFLAGS = "-fomit-frame-pointer -maltivec";
-        PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-fomit-frame-pointer -maltivec";
-      ENDIF
+      PRINTNL 				OTHER_CFLAGS = "-fomit-frame-pointer";
+      PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-fomit-frame-pointer";
     ELSE
       PRINTNL 				GCC_OPTIMIZATION_LEVEL = 0;
-      //PRINTNL 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
     ENDIF
     IFDEF TARGET_IPHONE
         PRINTNL				GCC_THUMB_SUPPORT = NO;
@@ -808,143 +788,28 @@ FOR EACH WORKSPACE
       PRINTNL 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
     ENDIF
     PRINTNL 			};
-    IFDEF OSX_UNIVERSAL
-      IFDEF IX86_64
-        PRINTNL 			name = "Debug x86_64";
-      ELSE
-        PRINTNL 			name = "Debug ppc";
-      ENDIF
-    ELSE
-      PRINTNL 			name = Debug;
-    ENDIF
+    PRINTNL 			name = Debug;
     PRINTNL 		};
-    IFDEF OSX_UNIVERSAL
-      PRINTNL 		%(_XCODEGRPUID8) /* Debug i386 */ = {
-      PRINTNL 			isa = XCBuildConfiguration;
-      PRINTNL 			buildSettings = {
-      PRINTNL 				GCC_C_LANGUAGE_STANDARD = gnu99;
-      IF (%(TYPE)!=DLL)
-        PRINTNL 				GCC_DYNAMIC_NO_PIC = YES;
-      ENDIF
-      IF %(FAVOR_MAX_SPEED_DEBUG)
-        PRINTNL 				GCC_OPTIMIZATION_LEVEL = 3;
-        PRINTNL 				OTHER_CFLAGS = "-fomit-frame-pointer";
-        PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-fomit-frame-pointer";
-      ELSE
-        PRINTNL 				GCC_OPTIMIZATION_LEVEL = 0;
-        //PRINTNL 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-      ENDIF
-      IF %(ASMFLAGS)!=""
-        PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
-      ENDIF
-      IF %(DEFINE) || %(DEFINE_DEBUG)
-        PRINTNL 				GCC_PREPROCESSOR_DEFINITIONS = (
-        FOR EACH DEFINE
-          PRINTNL 					"%(NAME)",
-        ENDFOR
-        FOR EACH DEFINE_DEBUG
-          PRINTNL 					"%(NAME)",
-        ENDFOR
-        PRINTNL 				);
-      ENDIF
-      IF %(USE) || %(LIBS) || %(LIBS_DEBUG) || %(LIBINCLUDE) || %(LIBINCLUDE_DEBUG) || %(ABSLIBINCLUDE) || %(ABSLIBINCLUDE_DEBUG)
-        PRINTNL 				OTHER_LDFLAGS = (
-        FOR EACH LIBINCLUDE
-          PRINTNL 					"-L%(!;NAME)",
-        ENDFOR
-        FOR EACH LIBINCLUDE_DEBUG
-          PRINTNL 					"-L%(!;NAME)",
-        ENDFOR
-        FOR EACH ABSLIBINCLUDE
-          PRINTNL 					"-L%(NAME)",
-        ENDFOR
-        FOR EACH ABSLIBINCLUDE_DEBUG
-          PRINTNL 					"-L%(NAME)",
-        ENDFOR
-        IF (%(TYPE)!=LIB)
-           FOR EACH USEBUILT
-             PRINTNL 					"-l%(NAME)",
-           ENDFOR
-           FOR EACH LIBS
-             PRINTNL 					"-l%(NAME)",
-           ENDFOR
-           FOR EACH LIBS_DEBUG
-             PRINTNL 					"-l%(NAME)",
-           ENDFOR
-        ENDIF
-        PRINTNL 				);
-      ENDIF
-      PRINTNL 				OBJROOT = %(!;§BUILDPATH);
-      IF (%(TYPE)==EXE) && (%(PROJECT_PATH)!="")
-        PRINTNL 				PRODUCT_NAME = %(PROJECT_PATH);
-      ELSE
-        PRINTNL 				PRODUCT_NAME = %(NAME);
-      ENDIF
-      PRINTNL 				SYMROOT = %(¯!;§OUTPUTPATH);
-      IF %(INCLUDE) || %(INCLUDE_DEBUG) || %(SYSINCLUDE) || %(ABSINCLUDE_DEBUG) || %(ABSINCLUDE) || %(CONFIG_INCLUDE)
-      PRINTNL 				USER_HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )%(!;@INCLUDE_DEBUG:%=% )%(!;@SYSINCLUDE:%=% )%(ABSINCLUDE_DEBUG:%=% )%(ABSINCLUDE:%=% )%(!;@CONFIG_INCLUDE:%=% )";
-      ENDIF
-      IF %(HAS_REZ)
-        PRINTNL 				OTHER_REZFLAGS = "-d ppc_$(ppc) -d i386_$(i386)";
-      ENDIF
-      IF (%(TYPE)==EXE) || (%(TYPE)==DLL)
-        IF %(OSX_DLL_TYPE)=="Bundle"
-          PRINTNL 				WRAPPER_EXTENSION = component;
-        ENDIF
-        PRINTNL 				INFOPLIST_FILE = %(NAME).plist;
-      ENDIF
-      IF %(PRECOMPILED_HEADER)
-        PRINTNL 				GCC_PREFIX_HEADER = "%(!;PATH)%(PRECOMPILED_HEADER)";
-        PRINTNL 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-      ENDIF
-      PRINTNL 			};
-      PRINTNL 			name = "Debug i386";
-      PRINTNL 		};
-    ENDIF
   ENDFOR
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 		00277BB40B5E830800EA36F7 /* Debug other */ = {
-  ELSE
-    PRINTNL 		00277BB40B5E830800EA36F7 /* Debug */ = {
-  ENDIF
+  PRINTNL 		00277BB40B5E830800EA36F7 /* Debug */ = {
   PRINTNL 			isa = XCBuildConfiguration;
   PRINTNL 			buildSettings = {
   IF %(ARCHS)
     PRINTNL 				ARCHS = %(ARCHS);
   ELSE
-    IFDEF IX86_64
-      PRINTNL 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-    ELSE
-      PRINTNL 				ARCHS = ppc;
-    ENDIF
+    PRINTNL 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
   ENDIF
-//  PRINTNL 				BUILD_VARIANTS = debug;
-  PRINTNL 				GCC_MODEL_TUNING = G5;
   PRINTNL 				COPY_PHASE_STRIP = NO;
-  IFNDEF XCODE4
-    PRINTNL 				GCC_ALTIVEC_EXTENSIONS = YES;
-  ENDIF
+  PRINTNL 				GCC_ALTIVEC_EXTENSIONS = YES;
   PRINTNL 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
   PRINTNL 				GCC_WARN_UNUSED_VARIABLE = YES;
   PRINTNL 				GCC_VERSION = "%(GCC_VERSION)";
   PRINTNL 				ONLY_LINK_ESSENTIAL_SYMBOLS = YES;
-//  PRINTNL 				ZERO_LINK = YES;
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 				PREBINDING = NO;
-  ENDIF
   PRINTNL 				SYMROOT = %(¯!;§OUTPUTPATH);
   PRINTNL 				OBJROOT = %(!;§BUILDPATH);
-  IFDEF OSX_UNIVERSAL
-    IFDEF XCODE4
-      PRINTNL 				OTHER_CFLAGS = "-force_cpusubtype_ALL";
-      PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-force_cpusubtype_ALL";
-    ELSE
-      PRINTNL 				OTHER_CFLAGS = "-force_cpusubtype_ALL -maltivec";
-      PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-force_cpusubtype_ALL -maltivec";
-    ENDIF
-  ENDIF
   IF %(ASMFLAGS)!=""
     PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
+    PRINTNL				HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )";
   ENDIF
   IF %(SDK)
     PRINTNL 				SDKROOT = %(SDK);
@@ -973,120 +838,28 @@ FOR EACH WORKSPACE
     PRINTNL					);
   ENDIF
   PRINTNL 			};
-  IFDEF OSX_UNIVERSAL
-    IFDEF IX86_64
-      PRINTNL 			name = "Debug x86_64";
-    ELSE
-      PRINTNL 			name = "Debug ppc";
-    ENDIF
-  ELSE
-    PRINTNL 			name = Debug;
-  ENDIF
+  PRINTNL 			name = Debug;
   PRINTNL 		};
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 		00177BB40B5E830800EA36F7 /* Debug i386 */ = {
-    PRINTNL 			isa = XCBuildConfiguration;
-    PRINTNL 			buildSettings = {
-    IF %(ARCHS)
-      PRINTNL 				ARCHS = %(ARCHS);
-    ELSE
-      PRINTNL 				ARCHS = i386;
-    ENDIF
-//    PRINTNL 				BUILD_VARIANTS = debug;
-    PRINTNL 				GCC_MODEL_TUNING = G5;
-    PRINTNL 				COPY_PHASE_STRIP = NO;
-    IFNDEF XCODE4
-      PRINTNL 				GCC_ALTIVEC_EXTENSIONS = YES;
-    ENDIF
-    PRINTNL 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-    PRINTNL 				GCC_WARN_UNUSED_VARIABLE = YES;
-    PRINTNL 				GCC_VERSION = "%(GCC_VERSION)";
-    PRINTNL 				ONLY_LINK_ESSENTIAL_SYMBOLS = YES;
-//    PRINTNL 				ZERO_LINK = YES;
-    IFDEF OSX_UNIVERSAL
-      PRINTNL 				PREBINDING = NO;
-    ENDIF
-    PRINTNL 				SYMROOT = %(¯!;§OUTPUTPATH);
-    PRINTNL 				OBJROOT = %(!;§BUILDPATH);
-    PRINTNL 				OTHER_CFLAGS = "-force_cpusubtype_ALL";
-    PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-force_cpusubtype_ALL";
-    IF %(ASMFLAGS)!=""
-      PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
-    ENDIF
-    IFNDEF XCODE4
-      PRINTNL 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
-    ENDIF
-    IF %(SDK_PATH)
-      PRINTNL 				USER_HEADER_SEARCH_PATHS = %(SDK_PATH)/include;
-    ENDIF
-    IF %(CC_PREFIX)
-      PRINTNL 				CC = "%(CC_PREFIX)gcc";
-      PRINTNL 				CXX = "%(CC_PREFIX)gcc";
-      PRINTNL 				LD = "%(CC_PREFIX)gcc";
-      PRINTNL 				STRIP = "%(CC_PREFIX)strip";
-    ENDIF
-    IF %(FRAMEWORK_PATH) || %(HAS_PRIVATE_FRAMEWORK)
-      PRINTNL 				FRAMEWORK_SEARCH_PATHS =  (
-      PRINTNL					"$(inherited)",
-      IF %(FRAMEWORK_PATH)
-        PRINTNL					%(FRAMEWORK_PATH),
-      ENDIF
-      IF %(HAS_PRIVATE_FRAMEWORK)
-        PRINTNL					"\"$(SDKROOT)$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks\"",
-      ENDIF
-      PRINTNL					);
-    ENDIF
-    PRINTNL 			};
-    PRINTNL 			name = "Debug i386";
-    PRINTNL 		};
-  ENDIF
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 		00377BB50B5E830800EA36F7 /* Release Universal */ = {
-  ELSE
-    PRINTNL		00377BB50B5E830800EA36F7 /* Release */ = {
-  ENDIF
+  PRINTNL		00377BB50B5E830800EA36F7 /* Release */ = {
   PRINTNL 			isa = XCBuildConfiguration;
   PRINTNL 			buildSettings = {
   IF %(ARCHS)
     PRINTNL 				ARCHS = %(ARCHS);
   ELSE
-    IFDEF OSX_UNIVERSAL
-      IFDEF IX86_64
-        PRINTNL 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-      ELSE
-        PRINTNL 				ARCHS = (
-        PRINTNL 					i386,
-        PRINTNL 					ppc,
-        PRINTNL 				);
-      ENDIF
-    ELSE
-      PRINTNL 				ARCHS = ppc;
-    ENDIF
+    PRINTNL 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
   ENDIF
-  PRINTNL 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+  PRINTNL 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
   PRINTNL 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-  PRINTNL 				GCC_MODEL_TUNING = G5;
-//  PRINTNL 				COPY_PHASE_STRIP = YES;
   PRINTNL 				DEPLOYMENT_POSTPROCESSING = YES;
-  IFNDEF XCODE4
-    PRINTNL 				GCC_ALTIVEC_EXTENSIONS = YES;
-  ENDIF
   PRINTNL 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
   PRINTNL 				GCC_WARN_UNUSED_VARIABLE = YES;
   PRINTNL 				GCC_VERSION = "%(GCC_VERSION)";
-  PRINTNL 				DEAD_CODE_STRIPPING = YES;
-//  PRINTNL 				ZERO_LINK = YES;
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 				PREBINDING = NO;
-  ENDIF
+  PRINTNL 				DEAD_CODE_STRIPPING = NO;
   PRINTNL 				SYMROOT = %(¯!;§OUTPUTPATH);
   PRINTNL 				OBJROOT = %(!;§BUILDPATH);
-//  PRINTNL 				OTHER_CFLAGS = "-force_cpusubtype_ALL -maltivec";
-//  PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-force_cpusubtype_ALL -maltivec";
-  PRINTNL 				OTHER_CFLAGS = "-force_cpusubtype_ALL";
-  PRINTNL 				OTHER_CPLUSPLUSFLAGS = "-force_cpusubtype_ALL";
   IF %(ASMFLAGS)!=""
     PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
+    PRINTNL				HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )";
   ENDIF
   IF %(SDK)
     PRINTNL 				SDKROOT = %(SDK);
@@ -1115,11 +888,7 @@ FOR EACH WORKSPACE
     PRINTNL					);
   ENDIF
   PRINTNL 			};
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 			name = "Release Universal";
-  ELSE
-    PRINTNL 			name = "Release";
-  ENDIF
+  PRINTNL 			name = "Release";
   PRINTNL 		};
   PRINTNL /* End XCBuildConfiguration section */
   PRINTNL 
@@ -1128,21 +897,11 @@ FOR EACH WORKSPACE
     PRINTNL 		%(XCODEGRPUID5) /* Build configuration list for PBXNativeTarget "%(NAME)" */ = {
     PRINTNL 			isa = XCConfigurationList;
     PRINTNL 			buildConfigurations = (
-    IFDEF OSX_UNIVERSAL
-      PRINTNL 				%(_XCODEGRPUID4) /* Release Universal */,
-      PRINTNL 				%(XCODEGRPUID4) /* Debug other */,
-      PRINTNL 				%(_XCODEGRPUID8) /* Debug i386 */,
-    ELSE
-      PRINTNL 				%(_XCODEGRPUID4) /* Release */,
-      PRINTNL 				%(XCODEGRPUID4) /* Debug */,
-    ENDIF
+    PRINTNL 				%(_XCODEGRPUID4) /* Release */,
+    PRINTNL 				%(XCODEGRPUID4) /* Debug */,
     PRINTNL 			);
     PRINTNL 			defaultConfigurationIsVisible = 0;
-    IFDEF OSX_UNIVERSAL
-      PRINTNL 			defaultConfigurationName = "Release Universal";
-    ELSE
-      PRINTNL 			defaultConfigurationName = Release;
-    ENDIF
+    PRINTNL 			defaultConfigurationName = Release;
     PRINTNL 		};
   ENDFOR
   IFDEF USE_MAKEFILE
@@ -1152,21 +911,11 @@ FOR EACH WORKSPACE
   ENDIF
   PRINTNL 			isa = XCConfigurationList;
   PRINTNL 			buildConfigurations = (
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 				00377BB50B5E830800EA36F7 /* Release Universal */,
-    PRINTNL 				00177BB40B5E830800EA36F7 /* Debug i386 */,
-    PRINTNL 				00277BB40B5E830800EA36F7 /* Debug other */,
-  ELSE
-    PRINTNL 				00377BB50B5E830800EA36F7 /* Release */,
-    PRINTNL 				00277BB40B5E830800EA36F7 /* Debug */,
-  ENDIF
+  PRINTNL 				00377BB50B5E830800EA36F7 /* Release */,
+  PRINTNL 				00277BB40B5E830800EA36F7 /* Debug */,
   PRINTNL 			);
   PRINTNL 			defaultConfigurationIsVisible = 0;
-  IFDEF OSX_UNIVERSAL
-    PRINTNL 			defaultConfigurationName = "Release Universal";
-  ELSE
-    PRINTNL 			defaultConfigurationName = Release;
-  ENDIF
+  PRINTNL 			defaultConfigurationName = Release;
   PRINTNL 		};
   PRINTNL /* End XCConfigurationList section */
   PRINTNL 	};

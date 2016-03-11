@@ -2,7 +2,7 @@
 
 #define ASM yasm
 
-#define ASMFLAGS -f elf
+#define ASMFLAGS -f elf32
 #define LFLAGS
 
 #define TARGET_LINUX

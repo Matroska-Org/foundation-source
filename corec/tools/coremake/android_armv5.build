@@ -1,3 +1,4 @@
-CCFLAGS = -march=armv5te -mtune=xscale
+CCFLAGS = -march=armv5te -mtune=xscale -msoft-float
+ANDROID_ABI = armeabi
 
 #include "android_arm.inc"

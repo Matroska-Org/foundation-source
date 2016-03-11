@@ -1,6 +1,6 @@
                      CoreMake USAGE DOCUMENTATION
                      
-             $Id: readme.txt 143 2008-02-11 06:32:23Z robux4 $
+             $Id$
 
 *** INTRODUCTION ***
 CoreMake is a meta-makefile processor that turns .proj files into makefiles

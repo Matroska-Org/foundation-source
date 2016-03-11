@@ -41,7 +41,7 @@ REMOVE %(¯)root.kdevelop
 
 ALLDIRS = ./
 
-FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP,EXE_JAVA
+FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP,EXE_ANDROID,DLL_ANDROID
 
   x = %(PATH)
   WHILE "%(x)"!="./"
@@ -108,16 +108,6 @@ FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP,EXE_JAV
   REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/%(PROJECT_PATH).pkg
   REMOVE %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.settings/.carbide_build_settings
   REMOVEDIR %(BUILDPATH)../carbide_20/%(PATH)%(NAME)/.settings
-  REMOVE %(¯BUILDDIR)build_ndk.sh
-  REMOVE %(¯BUILDDIR).classpath
-  REMOVE %(¯BUILDDIR).project
-  REMOVE %(¯BUILDDIR)default.properties
-  REMOVE %(¯BUILDDIR)AndroidManifest.xml
-  REMOVE %(¯BUILDDIR).settings/org.eclipse.jdt.core.prefs
-  REMOVEDIR %(¯BUILDDIR).settings
-  REMOVEDIR %(¯BUILDDIR)gen
-  REMOVEDIR %(¯BUILDDIR)res
-  REMOVEDIR %(¯BUILDDIR)libs
 
   IF "%(PRECOMPILED_HEADER)"!=""
     REMOVE %(!PATH)%(PRECOMPILED_HEADER).gch
@@ -142,6 +132,32 @@ FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP,EXE_JAV
     REMOVE %(¯PATH)%(NAME)_backup.xml
   ENDFOR
 
+ENDFOR
+
+FOR EACH EXE_ANDROID,DLL_ANDROID
+  REMOVE %(¯BUILDDIR)ndk-build/jni/Android.mk
+  REMOVE %(¯BUILDDIR)ndk-build/jni/Application.mk
+  REMOVE %(¯BUILDDIR)build_ndk.sh
+  REMOVE %(¯BUILDDIR).classpath
+  REMOVE %(¯BUILDDIR).project
+  REMOVE %(¯BUILDDIR)default.properties
+  REMOVE %(¯BUILDDIR)project.properties
+  REMOVE %(¯BUILDDIR)AndroidManifest.xml
+  REMOVE %(¯BUILDDIR).settings/org.eclipse.jdt.core.prefs
+  REMOVE %(¯BUILDDIR)export.map
+  REMOVEDIR %(¯BUILDDIR).settings
+  REMOVEDIR %(¯BUILDDIR)gen
+  REMOVEDIR %(¯BUILDDIR)res
+  REMOVE %(¯PATH)build_ndk.sh
+  REMOVE %(¯PATH).classpath
+  REMOVE %(¯PATH).project
+  REMOVE %(¯PATH)project.properties
+  REMOVE %(¯PATH)AndroidManifest.xml
+  REMOVE %(¯PATH).settings/org.eclipse.jdt.core.prefs
+  REMOVE %(¯PATH)export.map
+  REMOVEDIR %(¯PATH).settings
+  REMOVEDIR %(¯PATH)gen
+  REMOVEDIR %(¯PATH)res
 ENDFOR
 
 FOR EACH LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP

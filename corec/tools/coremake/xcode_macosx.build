@@ -1,9 +1,8 @@
 #define IX86
 
-SDK = macosx10.5
+SDK = macosx
 FRAMEWORK_PATH = /
-GCC_VERSION = 4.2
+GCC_VERSION = com.apple.compilers.llvm.clang.1_0
 XCODECOMPATVERSION = 3.2
-ARCHS = "i386"
 
 #include "xcode.inc"

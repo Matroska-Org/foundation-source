@@ -7,14 +7,10 @@
 	CommandLine = "/usr/local/coremake/bin/yasm $(InputFile) [options] -o $(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o";
 	RuleName = "Yasm $(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o $(InputFile)";
 	ExecDescription = "Assemble $(InputFile)";
-	Architectures = (
-		i386,
-	);
-	Languages = (
-		"asm.i386",
-	);
+	Architectures = (i386);
+	Languages = (asm.i386);
 	InputFileTypes = (
-		"sourcecode.yasm",
+		sourcecode.yasm
 	);
 	SynthesizeBuildRule = Yes;
 	Outputs = (
@@ -35,11 +31,11 @@
 			DefaultValue = "";
 			CommandLineFlag = "-P";
 		},
-		{
-			Name = "HEADER_SEARCH_PATHS";
-			Type = PathList;
-			DefaultValue = "";
-			"CommandLinePrefixFlag" = "-I";
+       		{   	
+			Name = USER_HEADER_SEARCH_PATHS;
+            		Type = PathList;
+            		DefaultValue = "";
+           		CommandLinePrefixFlag = "-I";
 		},
 		{
 			Name = "NASM_OTHER_FLAGS";

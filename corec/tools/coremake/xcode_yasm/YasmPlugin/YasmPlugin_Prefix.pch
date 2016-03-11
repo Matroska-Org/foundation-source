@@ -1,5 +1,5 @@
 //
-// Prefix header for all source files of the 'ArmAppleDarwin' target in the 'ArmAppleDarwin' project.
+// Prefix header for all source files of the 'YasmPlugin' target in the 'YasmPlugin' project.
 //
 
 #ifdef __OBJC__

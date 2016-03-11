@@ -21,7 +21,7 @@ SVNDIR = linux_x86
 #define GLIBC
 
 #define CCFLAGS -O3 -m32 -march=i486 -msse -mmmx -Wno-multichar -fvisibility=hidden -DRESOURCE_COREC
-#define ASMFLAGS -f elf -D_HIDDEN
+#define ASMFLAGS -f elf32 -D_HIDDEN
 #define LFLAGS
 #define SHFLAGS -shared -Wl,--strip-all
 
