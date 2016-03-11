@@ -30,8 +30,8 @@ GROUP(!HAVE_ZLIB) zlib
 
   DEFINE(COMPILER_GCC && (IX86 || IX86_64) && !TARGET_OSX) ASMV
   SOURCE(COMPILER_GCC && IX86 && !TARGET_OSX) contrib/asm686/match.S
-  SOURCE(COMPILER_GCC && IX86_64 && !TARGET_OSX) contrib/gcc_gvmat64/gvmat64.S
-  SOURCE(COMPILER_GCC && IX86_64 && !TARGET_OSX) contrib/amd64/amd64-match.S
+  //SOURCE(COMPILER_GCC && IX86_64 && !TARGET_OSX) contrib/gcc_gvmat64/gvmat64.S
+  //SOURCE(COMPILER_GCC && IX86_64 && !TARGET_OSX) contrib/amd64/amd64-match.S
   
   HEADER crc32.h
   HEADER inffast.h
