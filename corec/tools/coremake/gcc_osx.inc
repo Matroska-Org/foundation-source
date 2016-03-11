@@ -31,7 +31,7 @@ CCFLAGS = %(CCFLAGS) -pipe -O3
 IF %(SDK_PATH)
   CCFLAGS = -I%(SDK_PATH)/include %(CCFLAGS)
 ENDIF
-//#define ASMFLAGS -f elf
+//#define ASMFLAGS -f elf32
 //#define LFLAGS
 //#define LDFLAGS -Wl,-dynamic,-search_paths_first
 //#define FFSLDFLAGS -Wl,-bind_at_load

@@ -1,8 +1,10 @@
 #!/bin/sh
 
-curl -O http://www.tortall.net/projects/yasm/releases/yasm-1.0.1.tar.gz
-tar -xvzf yasm-1.0.1.tar.gz
-pushd yasm-1.0.1
+VERSION=1.3.0
+
+curl -O http://www.tortall.net/projects/yasm/releases/yasm-$VERSION.tar.gz
+tar -xvzf yasm-$VERSION.tar.gz
+pushd yasm-$VERSION
 ./configure
 make
 popd
@@ -11,7 +13,7 @@ popd
 mkdir -p base/usr/local/coremake/bin
 
 #copy yasm to destination directory
-cp yasm-1.0.1/yasm base/usr/local/coremake/bin/
+cp yasm-$VERSION/yasm base/usr/local/coremake/bin/
 
 #build the Xcode plugin
 pushd YasmPlugin

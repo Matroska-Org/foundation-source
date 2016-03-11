@@ -14,7 +14,7 @@ FOR EACH WORKSPACE
     FOR EACH USE
       IF %(TYPE)==EXE && defined(NO_MAKE_EXE)
         // do nothing
-      ELIF %(TYPE)==EXE_JAVA && defined(NO_MAKE_EXE_JAVA)
+      ELIF %(TYPE)==EXE_ANDROID && defined(NO_MAKE_EXE_JAVA)
         // do nothing
       ELSE
         ../ALL_NAMES += %(NAME)
@@ -79,7 +79,7 @@ FOR EACH LIB,DLL,EXE,CON
   ENDIF
 ENDFOR
 
-FOR EACH LIB,DLL,EXE,CON,EXE_JAVA
+FOR EACH LIB,DLL,EXE,CON,EXE_ANDROID,DLL_ANDROID
 
   IF defined(TARGET_PALMOS) && (%(TYPE)==exe)
     SOURCE_M68K += %(¯PATH)%(NAME)_palmos.rcp

@@ -63,7 +63,7 @@ ENDIF
 IF (%(NASM)!="")
   PRINTNL NASM = %(NASM)
 ENDIF
-IF (%(AR)!="")
+IF ("%(AR)"!="")
   PRINTNL AR = %(AR)
 ENDIF
 IF ("%(CCENV)"!="")
@@ -95,11 +95,11 @@ IF %(CFLAGS)!=""
   PRINTNL CFLAGS += %(CFLAGS)
 ENDIF
 IF "%(UI_FORM_QT4)"!=""
-  PRINTNL CCFLAGS += -I %(!BUILDPATH)%(PATH)GeneratedFiles
+  PRINTNL CCFLAGS += -I $(BUILD)GeneratedFiles
 ENDIF
 PRINTNL CXXFLAGS += %(CXXFLAGS) -fno-for-scope
 IF %(ASMFLAGS)!="" || %(DEFINE)!=""
-  PRINTNL ASMFLAGS += %(ASMFLAGS) %(DEFINE:%=-D%)
+  PRINTNL ASMFLAGS += %(ASMFLAGS) %(DEFINE:%=-D%) %(@INCLUDE:%=-I%)
 ENDIF
 PRINTNL NASMFLAGS += %(NASMFLAGS) %(DEFINE:%=-D%) %(@INCLUDE:%=-I%) %(@CONFIG_INCLUDE:%=-I '%')
 PRINTNL SFLAGS += %(SFLAGS) %(DEFINE:%=-D%) %(@INCLUDE:%=-I%) %(@CONFIG_INCLUDE:%=-I '%')
@@ -133,7 +133,7 @@ ENDIF
 
 IF defined(TARGET_ANDROID)
   IF %(LIBS)!=""
-    PRINTNL LFLAGS += %(@LIBS:%=%(§CONFIG_ANDROID_NDK)/build/platforms/android-4/arch-arm/usr/lib/lib%.so)
+    PRINTNL LFLAGS += %(@LIBS:%=%(§CONFIG_ANDROID_NDK)/platforms/android-4/arch-arm/usr/lib/lib%.so)
   ENDIF
 ENDIF
 
@@ -229,22 +229,22 @@ IFDEF TARGET_PS2SDK
   ENDIF
 ENDIF
 FOR EACH RESOURCE_QT4
-    PRINTNL SOURCE += %(!BUILDPATH)%(PATH)GeneratedFiles/qrc_%(~<!NAME).cpp
+    PRINTNL SOURCE += $(BUILD)GeneratedFiles/qrc_%(~<!NAME).cpp
 ENDFOR
 FOR EACH HEADER_QT4
-    PRINTNL SOURCE += %(!BUILDPATH)%(PATH)GeneratedFiles/moc_%(~<!NAME).cpp
+    PRINTNL SOURCE += $(BUILD)GeneratedFiles/moc_%(~<!NAME).cpp
 ENDFOR
 PRINTNL 
 
 
 FOR EACH UI_FORM_QT4
-    PRINTNL GENERATED += %(!BUILDPATH)%(PATH)GeneratedFiles/ui_%(~<!NAME).h
+    PRINTNL GENERATED += $(BUILD)GeneratedFiles/ui_%(~<!NAME).h
 ENDFOR
 FOR EACH RESOURCE_QT4
-    PRINTNL GENERATED += %(!BUILDPATH)%(PATH)GeneratedFiles/qrc_%(~<!NAME).cpp
+    PRINTNL GENERATED += $(BUILD)GeneratedFiles/qrc_%(~<!NAME).cpp
 ENDFOR
 FOR EACH HEADER_QT4
-    PRINTNL GENERATED += %(!BUILDPATH)%(PATH)GeneratedFiles/moc_%(~<!NAME).cpp
+    PRINTNL GENERATED += $(BUILD)GeneratedFiles/moc_%(~<!NAME).cpp
 ENDFOR
 IF "%(PRECOMPILED_HEADER)"!=""
   PRINTNL GENERATED += %(!PATH)%(PRECOMPILED_HEADER).gch
@@ -260,6 +260,7 @@ PRINTNL
 
 PRINTNL ifeq ($(DEBUG),1)
 // TODO: should alter the temporary files and destination file paths since it's not the same build
+PRINTNL  CCFLAGS += -g -O0
 PRINTNL else
 PRINTNL  CCFLAGS += -DNDEBUG
 PRINTNL  SFLAGS += -DNDEBUG
@@ -471,7 +472,11 @@ ELSE
       //-Wl,-Map=%(¯!OUTPUTPATH)%(+OUTPUT_DIR)%(NAME).map
     ENDIF
     IF "%(STRIP)"
+      PRINTNL ifeq ($(DEBUG),1)
+      PRINTNL # no stripping
+      PRINTNL else
       PRINTNL 	$(hide)$(STRIP) %(STRIPFLAGS) $@
+      PRINTNL endif
     ENDIF
     IF %(TYPE)==dll && defined(TARGET_ANDROID)
       PRINTNL 	$(hide)mkdir -p %(!BUILDDIR)libs/%(ANDROID_ABI)
@@ -722,33 +727,33 @@ IF defined(TARGET_PS2SDK)
 ENDIF
 IF "%(UI_FORM_QT4)"!=""
   FOR EACH UI_FORM_QT4
-    PRINTNL %(!BUILDPATH)%(PATH)GeneratedFiles/ui_%.h: %(!NAME)
+    PRINTNL $(BUILD)GeneratedFiles/ui_%(~<!NAME).h: %(!NAME)
+//    PRINTNL $(BUILD)GeneratedFiles/ui_%.h: %.ui
+    PRINTNL 	$(hide)echo UICing $<
+    PRINTNL 	$(hide)mkdir -p $(BUILD)GeneratedFiles/$(*D)
+    PRINTNL 	$(hide)"$(QTDIR)/bin/uic" -o $@ $<
+    PRINTNL 
   ENDFOR
-//    PRINTNL %(!BUILDPATH)%(PATH)GeneratedFiles/ui_%.h: %.ui
-  PRINTNL 	$(hide)echo UICing $<
-  PRINTNL 	$(hide)mkdir -p %(!BUILDPATH)%(PATH)GeneratedFiles/$(*D)
-  PRINTNL 	$(hide)"$(QTDIR)/bin/uic" -o $@ $<
-  PRINTNL 
 ENDIF
 IF "%(RESOURCE_QT4)"!=""
   FOR EACH RESOURCE_QT4
-    PRINTNL %(!BUILDPATH)%(PATH)GeneratedFiles/qrc_%.cpp: %(!NAME)
+    PRINTNL $(BUILD)GeneratedFiles/qrc_%(~<!NAME).cpp: %(!NAME)
+//    PRINTNL $(BUILD)GeneratedFiles/qrc_%.cpp: %.qrc
+    PRINTNL 	$(hide)echo RCCing $<
+    PRINTNL 	$(hide)mkdir -p $(BUILD)GeneratedFiles/$(*D)
+    PRINTNL 	$(hide)"$(QTDIR)/bin/rcc" -name $< -o $@ $<
+    PRINTNL 
   ENDFOR
-//    PRINTNL %(!BUILDPATH)%(PATH)GeneratedFiles/qrc_%.cpp: %.qrc
-  PRINTNL 	$(hide)echo RCCing $<
-  PRINTNL 	$(hide)mkdir -p $(BUILD)GeneratedFiles/$(*D)
-  PRINTNL 	$(hide)"$(QTDIR)/bin/rcc" -name $< -o $@ $<
-  PRINTNL 
 ENDIF
 IF "%(HEADER_QT4)"!=""
   FOR EACH HEADER_QT4
-    PRINTNL %(!BUILDPATH)%(PATH)GeneratedFiles/moc_%.cpp: %(!NAME)
+    PRINTNL $(BUILD)GeneratedFiles/moc_%(~<!NAME).cpp: %(!NAME)
+//    PRINTNL $(BUILD)GeneratedFiles/moc_%.cpp: %.h
+    PRINTNL 	$(hide)echo MOCing $<
+    PRINTNL 	$(hide)mkdir -p $(BUILD)GeneratedFiles/$(*D)
+    PRINTNL 	$(hide)"$(QTDIR)/bin/moc" %(@INCLUDE:%=-I '%') %(@SYSINCLUDE:%=-I '%')  %(@CONFIG_INCLUDE:%=-I '%') $< -o $@
+    PRINTNL 
   ENDFOR
-//    PRINTNL %(!BUILDPATH)%(PATH)GeneratedFiles/moc_%.cpp: %.h
-  PRINTNL 	$(hide)echo MOCing $<
-  PRINTNL 	$(hide)mkdir -p $(BUILD)GeneratedFiles/$(*D)
-  PRINTNL 	$(hide)"$(QTDIR)/bin/moc" %(@INCLUDE:%=-I '%') %(@SYSINCLUDE:%=-I '%')  %(@CONFIG_INCLUDE:%=-I '%') $< -o $@
-  PRINTNL 
 ENDIF
 IF "%(PRECOMPILED_HEADER)"!=""
   PRINTNL %(!ROOTPATH)%.%(>PRECOMPILED_HEADER).gch: %(!ROOTPATH)%.%(>PRECOMPILED_HEADER)

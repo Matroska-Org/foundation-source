@@ -2,9 +2,7 @@ IF %(TYPE)==DLL || %(TYPE)==LIB
   PRINTNL 
   PRINTNL include $(CLEAR_VARS)
   PRINTNL LOCAL_MODULE := %(NAME)
-  PRINTNL TARGET_ARCH := %(TARGARCH)
-  PRINTNL TARGET_ARCH_ABI := %(TARGARCH_ABI)
-  IFNDEF ARM_THUMB
+  IF %(TARGARCH)=="arm"
     PRINTNL LOCAL_ARM_MODE := arm
   ENDIF
   PRINTNL LOCAL_SRC_FILES := \
@@ -65,19 +63,23 @@ IF %(TYPE)==DLL || %(TYPE)==LIB
     PRINTNL 
   ENDIF
   
-  // the include folders are relative to the root of the NDK
-  DIRPUSH %(!CONFIG_ANDROID_NDK)
-  PRINTNL LOCAL_C_INCLUDES := \
+  // the include folders are relative to project root
   FOR EACH INCLUDE
-    PRINTNL     %(!§NAME) \
+    ../USERINCLUDE += %(|NAME)
   ENDFOR
-  FOR EACH CONFIG_INCLUDE
-    IF %(FOR_LAST)
-      PRINTNL     %(!§NAME)
-    ELSE
+  FOR EACH EXPINCLUDE
+    ../USERINCLUDE += %(|NAME)
+  ENDFOR
+  FOR EACH SUBINCLUDE
+    ../USERINCLUDE += %(|NAME)
+  ENDFOR
+
+  DIRPUSH ..
+  PRINTNL LOCAL_C_INCLUDES := \
+  FOR EACH USERINCLUDE
       PRINTNL     %(!§NAME) \
-    ENDIF
   ENDFOR
+  PRINTNL     %(@&CONFIG_INCLUDE:%= %)
   DIRPOP
   PRINTNL 
 
@@ -86,6 +88,22 @@ IF %(TYPE)==DLL || %(TYPE)==LIB
   ENDIF
   
   IF %(TYPE)==DLL
+    IF %(LIBS)!=""
+      PRINTNL LOCAL_LDLIBS += \
+      FOR EACH LIBS
+        IF %(NAME)!=""
+          IF %(FOR_LAST)
+            PRINTNL     -l%(NAME)
+          ELSE
+            PRINTNL     -l%(NAME) \
+          ENDIF
+        ENDIF
+      ENDFOR
+      PRINTNL 
+    ENDIF
+    
+    PRINTNL LOCAL_LDFLAGS += -nostdlib
+    
     PRINTNL include $(BUILD_SHARED_LIBRARY)
   ELSE
     PRINTNL include $(BUILD_STATIC_LIBRARY)

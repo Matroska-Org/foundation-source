@@ -42,16 +42,12 @@ IFDEF TARGET_IPHONE_SDK
 
 ENDIF // TARGET_IPHONE_SDK
 
-IFDEF TARGET_IPHONE_SDK
-    IFDEF CONFIG_BACKGROUND_AUDIO
-	PRINTNL	<key>UIBackgroundModes</key>
-	PRINTNL	<array>
-	PRINTNL	    <string>audio</string>
-	PRINTNL	</array>
-    ENDIF
-ENDIF
 PRINTNL 	<key>CFBundleDevelopmentRegion</key>
 PRINTNL 	<string>English</string>
+IF %(PROJECT_NAME)
+  PRINTNL 	<key>CFBundleDisplayName</key>
+  PRINTNL 	<string>%(PROJECT_NAME)</string>
+ENDIF
 IF %(HAS_EXTENSIONS)
   PRINTNL 	<key>CFBundleDocumentTypes</key>
   PRINTNL 	<array>
@@ -205,5 +201,19 @@ FOR EACH PLIST_KEY
   PRINTNL 	<key>%(NAME)</key>
   PRINTNL 	<string>%(STRING)</string>
 ENDFOR
+IFDEF TARGET_IPHONE
+  PRINTNL 	<key>LSRequiresIPhoneOS</key>
+  PRINTNL 	<true/>
+  IFDEF CONFIG_ITUNES_SHARING
+    PRINTNL		<key>UIFileSharingEnabled</key>
+    PRINTNL		<true/>
+  ENDIF
+  IFDEF CONFIG_BACKGROUND_AUDIO
+	PRINTNL		<key>UIBackgroundModes</key>
+	PRINTNL		<array>
+	PRINTNL	    	<string>audio</string>
+	PRINTNL		</array>
+    ENDIF
+ENDIF
 PRINTNL </dict>
 PRINTNL </plist>
