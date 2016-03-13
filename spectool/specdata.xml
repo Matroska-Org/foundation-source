@@ -18,7 +18,7 @@
   <element name="SignatureElements" level="1" id="0x7E5B" type="master" webm="0">Contains elements that will be used to compute the signature.</element>
   <element name="SignatureElementList" level="2" id="0x7E7B" type="master" multiple="1" webm="0">A list consists of a number of consecutive elements that represent one case where data is used in signature. Ex: <i>Cluster|Block|BlockAdditional</i> means that the BlockAdditional of all Blocks in all Clusters is used for encryption.</element>
   <element name="SignedElement" level="3" id="0x6532" type="binary" multiple="1" webm="0">An element ID whose data will be used to compute the signature.</element>
-  <element name="Segment" level="0" id="0x18538067" type="master" mandatory="1" multiple="1" minver="1">This element contains all other top-level (level 1) elements. Typically a Matroska file is composed of 1 segment.</element>
+  <element name="Segment" level="0" id="0x18538067" type="master" mandatory="1" multiple="0" minver="1">This element contains all other top-level (level 1) elements. Typically a Matroska file is composed of 1 segment.</element>
   <element name="SeekHead" cppname="SeekHeader" level="1" id="0x114D9B74" type="master" multiple="1" minver="1">Contains the <a href="http://www.matroska.org/technical/specs/notes.html#Position_References">position</a> of other level 1 elements.</element>
   <element name="Seek" cppname="SeekPoint" level="2" id="0x4DBB" type="master" mandatory="1" multiple="1" minver="1">Contains a single seek entry to an EBML element.</element>
   <element name="SeekID" level="3" id="0x53AB" type="binary" mandatory="1" minver="1">The binary ID corresponding to the element name.</element>
