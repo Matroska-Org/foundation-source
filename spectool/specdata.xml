@@ -15,14 +15,14 @@
   <element name="SignatureHash" level="1" id="0x7E9A" type="uinteger" webm="0">Hash algorithm used (1=SHA1-160, 2=MD5).</element>
   <element name="SignaturePublicKey" level="1" id="0x7EA5" type="binary" webm="0">The public key to use with the algorithm (in the case of a PKI-based signature).</element>
   <element name="Signature" level="1" id="0x7EB5" type="binary" webm="0">The signature of the data (until a new.</element>
-  <element name="SignatureElements" level="1" id="0x7E5B" type="master" webm="0">Contains elements that will be used to compute the signature.</element>
-  <element name="SignatureElementList" level="2" id="0x7E7B" type="master" multiple="1" webm="0">A list consists of a number of consecutive elements that represent one case where data is used in signature. Ex: <i>Cluster|Block|BlockAdditional</i> means that the BlockAdditional of all Blocks in all Clusters is used for encryption.</element>
-  <element name="SignedElement" level="3" id="0x6532" type="binary" multiple="1" webm="0">An element ID whose data will be used to compute the signature.</element>
-  <element name="Segment" level="0" id="0x18538067" type="master" mandatory="1" multiple="0" minver="1">This element contains all other top-level (level 1) elements. Typically a Matroska file is composed of 1 segment.</element>
-  <element name="SeekHead" cppname="SeekHeader" level="1" id="0x114D9B74" type="master" multiple="1" minver="1">Contains the <a href="http://www.matroska.org/technical/specs/notes.html#Position_References">position</a> of other level 1 elements.</element>
-  <element name="Seek" cppname="SeekPoint" level="2" id="0x4DBB" type="master" mandatory="1" multiple="1" minver="1">Contains a single seek entry to an EBML element.</element>
-  <element name="SeekID" level="3" id="0x53AB" type="binary" mandatory="1" minver="1">The binary ID corresponding to the element name.</element>
-  <element name="SeekPosition" level="3" id="0x53AC" type="uinteger" mandatory="1" minver="1">The <a href="http://www.matroska.org/technical/specs/notes.html#Position_References">position</a> of the element in the segment in octets (0 = first level 1 element).</element>
+  <element name="SignatureElements" level="1" id="0x7E5B" type="master" webm="0">Contains Elements that will be used to compute the signature.</element>
+  <element name="SignatureElementList" level="2" id="0x7E7B" type="master" multiple="1" webm="0">A list consists of a number of consecutive Elements that represent one case where data is used in signature. Ex: <i>Cluster|Block|BlockAdditional</i> means that the BlockAdditional of all Blocks in all Clusters is used for encryption.</element>
+  <element name="SignedElement" level="3" id="0x6532" type="binary" multiple="1" webm="0">An Element ID whose data will be used to compute the signature.</element>
+  <element name="Segment" level="0" id="0x18538067" type="master" mandatory="1" multiple="0" minver="1">The Root Element that contains all other Top-Level Elements (Elements defined only at Level 1). A Matroska file is composed of 1 Segment.</element>
+  <element name="SeekHead" cppname="SeekHeader" level="1" id="0x114D9B74" type="master" multiple="1" minver="1">Contains the <a href="http://www.matroska.org/technical/specs/notes.html#Position_References">position</a> of other Top-Level Elements.</element>
+  <element name="Seek" cppname="SeekPoint" level="2" id="0x4DBB" type="master" mandatory="1" multiple="1" minver="1">Contains a single seek entry to an EBML Element.</element>
+  <element name="SeekID" level="3" id="0x53AB" type="binary" mandatory="1" minver="1">The binary ID corresponding to the Element name.</element>
+  <element name="SeekPosition" level="3" id="0x53AC" type="uinteger" mandatory="1" minver="1">The <a href="http://www.matroska.org/technical/specs/notes.html#Position_References">position</a> of the Element in the Segment in octets (0 = first level 1 Element).</element>
   <element name="Info" level="1" id="0x1549A966" type="master" mandatory="1" multiple="1" minver="1">Contains miscellaneous general information and statistics on the file.</element>
   <element name="SegmentUID" level="2" id="0x73A4" type="binary" minver="1" webm="0" range="not 0" bytesize="16">A randomly generated unique ID to identify the current segment between many others (128 bits).</element>
   <element name="SegmentFilename" level="2" id="0x7384" type="utf-8" minver="1" webm="0">A filename corresponding to this segment.</element>
@@ -43,7 +43,7 @@
   <element name="Title" level="2" id="0x7BA9" type="utf-8" minver="1" webm="0">General name of the segment.</element>
   <element name="MuxingApp" level="2" id="0x4D80" type="utf-8" mandatory="1" minver="1">Muxing application or library ("libmatroska-0.4.3").</element>
   <element name="WritingApp" level="2" id="0x5741" type="utf-8" mandatory="1" minver="1">Writing application ("mkvmerge-0.3.3").</element>
-  <element name="Cluster" level="1" id="0x1F43B675" type="master" multiple="1" minver="1">The lower level element containing the (monolithic) Block structure.</element>
+  <element name="Cluster" level="1" id="0x1F43B675" type="master" multiple="1" minver="1">The Top-Level Element containing the (monolithic) Block structure.</element>
   <element name="Timecode" cppname="ClusterTimecode" level="2" id="0xE7" type="uinteger" mandatory="1" minver="1">Absolute timestamp of the cluster (based on TimecodeScale).</element>
   <element name="SilentTracks" cppname="ClusterSilentTracks" level="2" id="0x5854" type="master" minver="1" webm="0">The list of tracks that are not used in that part of the stream. It is useful when using overlay tracks on seeking. Then you should decide what track to use.</element>
   <element name="SilentTrackNumber" cppname="ClusterSilentTrackNumber" level="3" id="0x58D7" type="uinteger" multiple="1" minver="1" webm="0">One of the track number that are not used from now on in the stream. It could change later if not specified as silent in a further Cluster.</element>
@@ -74,7 +74,7 @@
   <element name="ReferenceOffset" level="4" id="0xC9" type="uinteger" multiple="0" mandatory="1" minver="0" webm="0" divx="1"><a href="http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW">DivX trick track extenstions</a></element>
   <element name="ReferenceTimeCode" level="4" id="0xCA" type="uinteger" multiple="0" mandatory="1" minver="0" webm="0" divx="1"><a href="http://developer.divx.com/docs/divx_plus_hd/format_features/Smooth_FF_RW">DivX trick track extenstions</a></element>
   <element name="EncryptedBlock" level="2" id="0xAF" type="binary" multiple="1" webm="0">Similar to <a href="http://www.matroska.org/technical/specs/index.html#SimpleBlock">SimpleBlock</a> but the data inside the Block are Transformed (encrypt and/or signed). (see <a href="http://www.matroska.org/technical/specs/index.html#encryptedblock_structure">EncryptedBlock Structure</a>)</element>
-  <element name="Tracks" level="1" id="0x1654AE6B" type="master" multiple="1" minver="1">A top-level block of information with many tracks described.</element>
+  <element name="Tracks" level="1" id="0x1654AE6B" type="master" multiple="1" minver="1">A Top-Level Element of information with many tracks described.</element>
   <element name="TrackEntry" level="2" id="0xAE" type="master" mandatory="1" multiple="1" minver="1">Describes a track with all elements.</element>
   <element name="TrackNumber" level="3" id="0xD7" type="uinteger" mandatory="1" minver="1" range="not 0">The track number as used in the Block Header (using more than 127 tracks is not encouraged, though the design allows an unlimited number).</element>
   <element name="TrackUID" level="3" id="0x73C5" type="uinteger" mandatory="1" minver="1" range="not 0">A unique ID to identify the Track. This should be kept the same when making a direct stream copy of the Track to another file.</element>
@@ -158,7 +158,7 @@ between two successive fields at the output of the decoding process (see <a href
   <element name="ContentSigKeyID" level="6" id="0x47E4" type="binary" minver="1" webm="0">This is the ID of the private key the data was signed with.</element>
   <element name="ContentSigAlgo" level="6" id="0x47E5" type="uinteger" minver="1" webm="0" default="0">The algorithm used for the signature. A value of '0' means that the contents have not been signed but only encrypted. Predefined values:<br/> 1 - RSA</element>
   <element name="ContentSigHashAlgo" level="6" id="0x47E6" type="uinteger" minver="1" webm="0" default="0">The hash algorithm used for the signature. A value of '0' means that the contents have not been signed but only encrypted. Predefined values:<br/> 1 - SHA1-160<br/> 2 - MD5</element>
-  <element name="Cues" level="1" id="0x1C53BB6B" type="master" minver="1">A top-level element to speed seeking access. All entries are local to the segment. Should be mandatory for non <a href="http://www.matroska.org/technical/streaming/index.hmtl">"live" streams</a>.</element>
+  <element name="Cues" level="1" id="0x1C53BB6B" type="master" minver="1">A Top-Level Element to speed seeking access. All entries are local to the segment. Should be mandatory for non <a href="http://www.matroska.org/technical/streaming/index.hmtl">"live" streams</a>.</element>
   <element name="CuePoint" level="2" id="0xBB" type="master" mandatory="1" multiple="1" minver="1">Contains all information relative to a seek point in the segment.</element>
   <element name="CueTime" level="3" id="0xB3" type="uinteger" mandatory="1" minver="1">Absolute timestamp according to the segment time base.</element>
   <element name="CueTrackPositions" level="3" id="0xB7" type="master" mandatory="1" multiple="1" minver="1">Contain positions for different tracks corresponding to the timestamp.</element>
