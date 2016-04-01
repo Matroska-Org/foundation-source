@@ -344,12 +344,12 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
             {
             case 0x53AB:
                 TextWrite(CFile, T("public:\n"));
-                TextWrite(CFile, T("\tvirtual bool ValidateSize() const {return IsFiniteSize() && GetSize() <= 4;}\n"));
+                TextWrite(CFile, T("  virtual bool ValidateSize() const {return IsFiniteSize() && GetSize() <= 4;}\n"));
                 break;
             case 0x73A4:
                 TextWrite(CFile, T("#if defined(HAVE_EBML2) || defined(HAS_EBML2)\n"));
                 TextWrite(CFile, T("public:\n"));
-                TextWrite(CFile, T("\tKaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);\n"));
+                TextWrite(CFile, T("  KaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);\n"));
                 TextWrite(CFile, T("#endif\n"));
                 break;
             }
@@ -357,12 +357,12 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
             if (elt->ByteSize)
             {
                 TextWrite(CFile, T("public:\n"));
-                TextPrintf(CFile, T("\tvirtual bool ValidateSize() const {return IsFiniteSize() && GetSize() == %d;}\n"), elt->ByteSize);
+                TextPrintf(CFile, T("  virtual bool ValidateSize() const {return IsFiniteSize() && GetSize() == %d;}\n"), elt->ByteSize);
             }
             if (!IsValidElement(elt) || elt->MaxVersion!=0)
             {
                 TextWrite(CFile, T("public:\n"));
-                TextWrite(CFile, T("\tfilepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault);\n"));
+                TextWrite(CFile, T("  filepos_t RenderData(IOCallback & output, bool bForceRender, bool bSaveDefault);\n"));
             }
 
             TextWrite(CFile, T("};\n"));
@@ -442,24 +442,24 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
 {
     TextWrite(CFile, T("/**********************************************************************\n"));
     TextWrite(CFile, T("**  DO NOT EDIT, GENERATED WITH DATA2LIB\n"));
-    TextWrite(CFile, T("** \n"));
+    TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("**  libmatroska : parse Matroska files, see http://www.matroska.org/\n"));
-    TextWrite(CFile, T("** \n"));
+    TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("**  Copyright (c) 2002-2010, Matroska (non-profit organisation)\n"));
     TextWrite(CFile, T("**  All rights reserved.\n"));
-    TextWrite(CFile, T("** \n"));
+    TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("** This file is part of libmatroska.\n"));
     TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("** This library is free software; you can redistribute it and/or\n"));
     TextWrite(CFile, T("** modify it under the terms of the GNU Lesser General Public\n"));
     TextWrite(CFile, T("** License as published by the Free Software Foundation; either\n"));
     TextWrite(CFile, T("** version 2.1 of the License, or (at your option) any later version.\n"));
-    TextWrite(CFile, T("** \n"));
+    TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("** This library is distributed in the hope that it will be useful,\n"));
     TextWrite(CFile, T("** but WITHOUT ANY WARRANTY; without even the implied warranty of\n"));
     TextWrite(CFile, T("** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n"));
     TextWrite(CFile, T("** Lesser General Public License for more details.\n"));
-    TextWrite(CFile, T("** \n"));
+    TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("** You should have received a copy of the GNU Lesser General Public\n"));
     TextWrite(CFile, T("** License along with this library; if not, write to the Free Software\n"));
     TextWrite(CFile, T("** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA\n"));
@@ -546,8 +546,8 @@ int main(void)
                 if (!IsValidElement(*element) || (*element)->MaxVersion!=0)
                 {
                     TextPrintf(&CFile, T("\nfilepos_t Kax%s::RenderData(IOCallback & /* output */, bool /* bForceRender */, bool /* bSaveDefault */) {\n"), GetClassName(*element));
-                    TextWrite(&CFile, T("\tassert(false); // no you are not allowed to use this element !\n"));
-                    TextWrite(&CFile, T("\treturn 0;\n"));
+                    TextWrite(&CFile, T("  assert(false); // no you are not allowed to use this element !\n"));
+                    TextWrite(&CFile, T("  return 0;\n"));
                     TextWrite(&CFile, T("}\n"));
                 }
             }
