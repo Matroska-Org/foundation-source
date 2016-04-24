@@ -238,6 +238,63 @@ const ebml_context MATROSKA_ContextAspectRatioType = {0x54B3, EBML_INTEGER_CLASS
 const ebml_context MATROSKA_ContextColourSpace = {0x2EB524, EBML_BINARY_CLASS, 0, 0, "ColourSpace", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextGammaValue = {0x2FB523, EBML_FLOAT_CLASS, 0, 0, "GammaValue", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextFrameRate = {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "FrameRate", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextMatrixCoefficients = {0x55B1, EBML_INTEGER_CLASS, 1, (intptr_t)2, "MatrixCoefficients", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextBitsPerChannel = {0x55B2, EBML_INTEGER_CLASS, 1, (intptr_t)0, "BitsPerChannel", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChromaSubsamplingHorz = {0x55B3, EBML_INTEGER_CLASS, 0, 0, "ChromaSubsamplingHorz", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChromaSubsamplingVert = {0x55B4, EBML_INTEGER_CLASS, 0, 0, "ChromaSubsamplingVert", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextCbSubsamplingHorz = {0x55B5, EBML_INTEGER_CLASS, 0, 0, "CbSubsamplingHorz", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextCbSubsamplingVert = {0x55B6, EBML_INTEGER_CLASS, 0, 0, "CbSubsamplingVert", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChromaSitingHorz = {0x55B7, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ChromaSitingHorz", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChromaSitingVert = {0x55B8, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ChromaSitingVert", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextRange = {0x55B9, EBML_INTEGER_CLASS, 1, (intptr_t)0, "Range", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTransferCharacteristics = {0x55BA, EBML_INTEGER_CLASS, 1, (intptr_t)2, "TransferCharacteristics", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaries = {0x55BB, EBML_INTEGER_CLASS, 1, (intptr_t)2, "Primaries", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextMaxCLL = {0x55BC, EBML_INTEGER_CLASS, 0, 0, "MaxCLL", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextMaxFALL = {0x55BD, EBML_INTEGER_CLASS, 0, 0, "MaxFALL", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaryRChromaticityX = {0x55D1, EBML_FLOAT_CLASS, 0, 0, "PrimaryRChromaticityX", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaryRChromaticityY = {0x55D2, EBML_FLOAT_CLASS, 0, 0, "PrimaryRChromaticityY", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaryGChromaticityX = {0x55D3, EBML_FLOAT_CLASS, 0, 0, "PrimaryGChromaticityX", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaryGChromaticityY = {0x55D4, EBML_FLOAT_CLASS, 0, 0, "PrimaryGChromaticityY", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaryBChromaticityX = {0x55D5, EBML_FLOAT_CLASS, 0, 0, "PrimaryBChromaticityX", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextPrimaryBChromaticityY = {0x55D6, EBML_FLOAT_CLASS, 0, 0, "PrimaryBChromaticityY", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextWhitePointChromaticityX = {0x55D7, EBML_FLOAT_CLASS, 0, 0, "WhitePointChromaticityX", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextWhitePointChromaticityY = {0x55D8, EBML_FLOAT_CLASS, 0, 0, "WhitePointChromaticityY", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextLuminanceMax = {0x55D9, EBML_FLOAT_CLASS, 0, 0, "LuminanceMax", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextLuminanceMin = {0x55DA, EBML_FLOAT_CLASS, 0, 0, "LuminanceMin", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticMasteringMetadata[] = {
+    {0, 1, &MATROSKA_ContextPrimaryRChromaticityX, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrimaryRChromaticityY, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrimaryGChromaticityX, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrimaryGChromaticityY, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrimaryBChromaticityX, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrimaryBChromaticityY, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextWhitePointChromaticityX, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextWhitePointChromaticityY, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextLuminanceMax, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextLuminanceMin, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextMasteringMetadata = {0x55D0, EBML_MASTER_CLASS, 0, 0, "MasteringMetadata", EBML_SemanticMasteringMetadata, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticColour[] = {
+    {0, 1, &MATROSKA_ContextMatrixCoefficients, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextBitsPerChannel, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChromaSubsamplingHorz, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChromaSubsamplingVert, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextCbSubsamplingHorz, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextCbSubsamplingVert, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChromaSitingHorz, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChromaSitingVert, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextRange, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextTransferCharacteristics, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrimaries, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextMaxCLL, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextMaxFALL, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextMasteringMetadata, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextColour = {0x55B0, EBML_MASTER_CLASS, 0, 0, "Colour", EBML_SemanticColour, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticVideo[] = {
     {1, 1, &MATROSKA_ContextFlagInterlaced, PROFILE_MATROSKA_V1|PROFILE_DIVX},
@@ -258,6 +315,7 @@ const ebml_semantic EBML_SemanticVideo[] = {
     {0, 1, &MATROSKA_ContextColourSpace, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextGammaValue, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextFrameRate, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextColour, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextVideo = {0xE0, EBML_MASTER_CLASS, 0, 0, "Video", EBML_SemanticVideo, EBML_SemanticGlobals, NULL};
