@@ -148,6 +148,33 @@ extern const ebml_context MATROSKA_ContextAspectRatioType;
 extern const ebml_context MATROSKA_ContextColourSpace;
 extern const ebml_context MATROSKA_ContextGammaValue;
 extern const ebml_context MATROSKA_ContextFrameRate;
+extern const ebml_context MATROSKA_ContextMatrixCoefficients;
+extern const ebml_context MATROSKA_ContextBitsPerChannel;
+extern const ebml_context MATROSKA_ContextChromaSubsamplingHorz;
+extern const ebml_context MATROSKA_ContextChromaSubsamplingVert;
+extern const ebml_context MATROSKA_ContextCbSubsamplingHorz;
+extern const ebml_context MATROSKA_ContextCbSubsamplingVert;
+extern const ebml_context MATROSKA_ContextChromaSitingHorz;
+extern const ebml_context MATROSKA_ContextChromaSitingVert;
+extern const ebml_context MATROSKA_ContextRange;
+extern const ebml_context MATROSKA_ContextTransferCharacteristics;
+extern const ebml_context MATROSKA_ContextPrimaries;
+extern const ebml_context MATROSKA_ContextMaxCLL;
+extern const ebml_context MATROSKA_ContextMaxFALL;
+extern const ebml_context MATROSKA_ContextPrimaryRChromaticityX;
+extern const ebml_context MATROSKA_ContextPrimaryRChromaticityY;
+extern const ebml_context MATROSKA_ContextPrimaryGChromaticityX;
+extern const ebml_context MATROSKA_ContextPrimaryGChromaticityY;
+extern const ebml_context MATROSKA_ContextPrimaryBChromaticityX;
+extern const ebml_context MATROSKA_ContextPrimaryBChromaticityY;
+extern const ebml_context MATROSKA_ContextWhitePointChromaticityX;
+extern const ebml_context MATROSKA_ContextWhitePointChromaticityY;
+extern const ebml_context MATROSKA_ContextLuminanceMax;
+extern const ebml_context MATROSKA_ContextLuminanceMin;
+extern const ebml_context MATROSKA_ContextMasteringMetadata;
+
+extern const ebml_context MATROSKA_ContextColour;
+
 extern const ebml_context MATROSKA_ContextVideo;
 
 extern const ebml_context MATROSKA_ContextSamplingFrequency;
