@@ -364,12 +364,12 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
 					{
 						if (EL_Int(TrackType) == TRACK_TYPE_AUDIO)
 						{
-							if (!tcsisame_ascii(CodecName,T("A_VORBIS")))
+							if (!tcsisame_ascii(CodecName,T("A_VORBIS")) && !tcsisame_ascii(CodecName,T("A_OPUS")))
 								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(int)EL_Int(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
 						else if (EL_Int(TrackType) == TRACK_TYPE_VIDEO)
 						{
-							if (!tcsisame_ascii(CodecName,T("V_VP8")))
+							if (!tcsisame_ascii(CodecName,T("V_VP8")) && !tcsisame_ascii(CodecName,T("V_VP9")))
 								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(int)EL_Int(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
 					}
