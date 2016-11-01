@@ -433,8 +433,15 @@ static void ReadLevel(parser *p, array *Elements)
     }
 }
 
+static err_t CreateSpecElement(SpecElement *Element)
+{
+    Element->MaxOccurrence = SIZE_MAX;
+    return ERR_NONE;
+}
+
 META_START(SpecElement_Class,SPEC_ELEMENT_CLASS)
 META_CLASS(SIZE,sizeof(SpecElement))
+META_CLASS(CREATE,CreateSpecElement)
 META_END(NODE_CLASS)
 
 
