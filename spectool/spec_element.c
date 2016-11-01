@@ -26,6 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
+
 #include "spec_element.h"
 
 void ReadElementText(parser *p, tchar_t *Out, size_t OutLen)
@@ -81,6 +83,54 @@ void ReadElementText(parser *p, tchar_t *Out, size_t OutLen)
 	}
 }
 
+void LinkElementParents(array *Elements)
+{
+    SpecElement **element;
+    for (element=ARRAYBEGIN(*Elements,SpecElement*); element!=ARRAYEND(*Elements,SpecElement*);++element) {
+        if (tcsnicmp_ascii((*element)->Path, "1*1(", 4)==0)
+        {
+            if ((*element)->MinOccurrence != 1)
+                fprintf(stderr, "minOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+            if ((*element)->MaxOccurrence != 1)
+                fprintf(stderr, "maxOccurs (%d) mismatched in '%s with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+        }
+        else if (tcsnicmp_ascii((*element)->Path, "1*(", 3)==0)
+        {
+            if ((*element)->MinOccurrence != 1)
+                fprintf(stderr, "minOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+            if ((*element)->MaxOccurrence != SIZE_MAX)
+                fprintf(stderr, "maxOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+        }
+        else if (tcsnicmp_ascii((*element)->Path, "0*1(", 4)==0)
+        {
+            if ((*element)->MinOccurrence != 0)
+                fprintf(stderr, "minOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+            if ((*element)->MaxOccurrence != 1)
+                fprintf(stderr, "maxOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+        }
+        else if (tcsnicmp_ascii((*element)->Path, "0*2(", 4)==0)
+        {
+            if ((*element)->MinOccurrence != 0)
+                fprintf(stderr, "minOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+            if ((*element)->MaxOccurrence != 2)
+                fprintf(stderr, "maxOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+        }
+        else if (tcsnicmp_ascii((*element)->Path, "0*(", 3)==0)
+        {
+            if ((*element)->MinOccurrence != 0)
+                fprintf(stderr, "minOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+            if ((*element)->MaxOccurrence != SIZE_MAX)
+                fprintf(stderr, "maxOccurs (%d) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+        }
+        else
+        {
+            fprintf(stderr, "did not parse element '%s' path %s\n", (*element)->Name, (*element)->Path);
+        }
+        (*element)->Mandatory = (*element)->MinOccurrence > 1;
+        (*element)->Multiple = (*element)->MaxOccurrence > 1;
+    }
+}
+
 void ReadSpecElement(SpecElement *elt, parser *p)
 {
     tchar_t String[MAXDATA], Value[MAXLINE];
@@ -97,6 +147,9 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                 tcscpy_s(elt->Name, TSIZEOF(elt->Name), Value);
 			else if (tcsisame_ascii(String,T("cppname")))
                 tcscpy_s(elt->CppName, TSIZEOF(elt->CppName), Value);
+            else if (tcsisame_ascii(String,T("path"))) {
+                tcscpy_s(elt->Path, TSIZEOF(elt->Path), Value);
+            }
             else if (tcsisame_ascii(String,T("level"))) {
                 ExprIsInt(&s,&intval);
                 elt->Level = intval;
@@ -149,9 +202,17 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                 ExprIsInt(&s,&intval);
                 elt->MaxVersion = intval;
             }
-            else if (tcsisame_ascii(String,T("bytesize"))) {
+            else if (tcsisame_ascii(String,T("size"))) {
                 ExprIsInt(&s,&intval);
                 elt->ByteSize = intval;
+            }
+            else if (tcsisame_ascii(String,T("minOccurs"))) {
+                ExprIsInt(&s,&intval);
+                elt->MinOccurrence = intval;
+            }
+            else if (tcsisame_ascii(String,T("maxOccurs"))) {
+                ExprIsInt(&s,&intval);
+                elt->MaxOccurrence = intval;
             }
             else if (tcsisame_ascii(String,T("webm"))) {
                 ExprIsInt(&s,&intval);
@@ -178,6 +239,7 @@ void ReadSpecElement(SpecElement *elt, parser *p)
             elt->InWebM=0;
     }
 
+    /* TODO Read <documentation> */
     ReadElementText(p, elt->Description, TSIZEOF(elt->Description));
 }
 

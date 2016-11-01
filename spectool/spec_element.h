@@ -53,6 +53,7 @@ typedef struct SpecElement {
 
     tchar_t Name[MAXPATH];
     tchar_t CppName[MAXPATH];
+    tchar_t Path[MAXPATH];
     int Level;
     bool_t Recursive;
     int32_t Id;
@@ -71,5 +72,6 @@ typedef struct SpecElement {
 
 void ReadElementText(parser *p, tchar_t *Out, size_t OutLen);
 void ReadSpecElement(SpecElement *elt, parser *p);
+void LinkElementParents(array *Elements);
 
 #endif /* SPEC_ELEMENT_H */
