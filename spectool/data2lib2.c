@@ -317,9 +317,11 @@ static void ReadLevel(parser *p, array *Elements)
         {
             if (tcsisame_ascii(Element,T("element")))
             {
+                size_t ss = ARRAYCOUNT(*Elements,SpecElement *);
                 SpecElement *Dumper = (SpecElement*)NodeCreate(p->Context, SPEC_ELEMENT_CLASS);
                 ReadSpecElement(Dumper, p);
                 ArrayAppend(Elements, &Dumper, sizeof(Dumper), 128);
+
             }
             else
 			{
@@ -345,8 +347,15 @@ static void ReadLevel(parser *p, array *Elements)
     }
 }
 
+static err_t CreateSpecElement(SpecElement *Element)
+{
+    Element->MaxOccurrence = SIZE_MAX;
+    return ERR_NONE;
+}
+
 META_START(SpecElement_Class,SPEC_ELEMENT_CLASS)
 META_CLASS(SIZE,sizeof(SpecElement))
+META_CLASS(CREATE,CreateSpecElement)
 META_END(NODE_CLASS)
 
 
@@ -356,7 +365,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T(" * DO NOT EDIT, GENERATED WITH DATA2LIB2\n"));
     TextWrite(CFile, T(" *\n"));
     TextPrintf(CFile, T(" * $Id$\n"));
-    TextWrite(CFile, T(" * Copyright (c) 2008-2011, Matroska (non-profit organisation)\n"));
+    TextWrite(CFile, T(" * Copyright (c) 2008-2016, Matroska (non-profit organisation)\n"));
     TextWrite(CFile, T(" * All rights reserved.\n"));
     TextWrite(CFile, T(" *\n"));
     TextWrite(CFile, T(" * Redistribution and use in source and binary forms, with or without\n"));
@@ -400,14 +409,14 @@ int main(void)
     ParserContext_Init(&p,NULL,NULL,NULL);
     StdAfx_Init((nodemodule*)&p);
 
-    Input = StreamOpen(&p,T("specdata.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    Input = StreamOpen(&p,T("ebml_matroska.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     OutputC = StreamOpen(&p,T("matroska_sem.c"),SFLAG_WRONLY|SFLAG_CREATE);
     OutputH = StreamOpen(&p,T("matroska_sem.h"),SFLAG_WRONLY|SFLAG_CREATE);
 
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
 
-    if (ParserStreamXML(&parseIn, Input, &p, T("table"), 0)==ERR_NONE)
+    if (ParserStreamXML(&parseIn, Input, &p, T("EBMLSchema"), 0)==ERR_NONE)
     {
         textwriter CFile;
         table_extras Extras;
@@ -416,6 +425,7 @@ int main(void)
 
         memset(&Extras,0,sizeof(Extras));
         memset(&CFile,0,sizeof(CFile));
+        LinkElementParents(&Elements);
         Extras.CurrLevel = -1;
 
         CFile.Stream = OutputC;

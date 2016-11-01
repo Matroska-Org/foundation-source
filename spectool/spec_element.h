@@ -59,6 +59,7 @@ typedef struct SpecElement {
     ebml_type Type;
     bool_t Mandatory;
     bool_t Multiple;
+    size_t MinOccurrence, MaxOccurrence;
     tchar_t Range[MAXPATH];
     tchar_t DefaultValue[32];
     int MinVersion, MaxVersion;
