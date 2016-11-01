@@ -222,7 +222,10 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                 ExprIsInt(&s,&intval);
                 elt->InDivX = intval!=0;
             }
-		}
+            else {
+                fprintf(stderr, "unknown attribute %s\n", String);
+            }
+        }
 	}
     if (elt->InDivX==-1)
     {
