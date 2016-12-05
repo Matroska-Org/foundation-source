@@ -1223,22 +1223,22 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             EBML_IntegerSetValue((ebml_integer*)Elt2, TRACK_STEREO_MODE_ALTERNATE_PACKED_L);
         }
 
-		if (*DstProfile==PROFILE_WEBM)
-		{
-	        // verify that we have only VP8, VP9, Opus and Vorbis tracks
-			Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
-			EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
-			if (!((TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8"))) ||
-			      (TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP9")))
-			      (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS")))
-			      (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_OPUS")))
-			    ))
-			{
-				TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*DstProfile),TrackNum);
-				NodeDelete((node*)CurTrack);
+        if (*DstProfile==PROFILE_WEBM)
+        {
+            // verify that we have only VP8, VP9, Opus and Vorbis tracks
+            Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
+            EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
+            if (!((TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8"))) ||
+                  (TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP9"))) ||
+                  (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_VORBIS"))) ||
+                  (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_OPUS")))
+                ))
+            {
+                TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*DstProfile),TrackNum);
+                NodeDelete((node*)CurTrack);
                 continue;
-			}
-		}
+            }
+        }
 
         // clean the output sampling freq
         Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextAudio);
