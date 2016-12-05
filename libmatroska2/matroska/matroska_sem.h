@@ -129,6 +129,7 @@ extern const ebml_context MATROSKA_ContextTrackTranslateEditionUID;
 extern const ebml_context MATROSKA_ContextTrackTranslateCodec;
 extern const ebml_context MATROSKA_ContextTrackTranslateTrackID;
 extern const ebml_context MATROSKA_ContextTrackTranslate;
+extern const ebml_context MATROSKA_ContextProjection;
 
 extern const ebml_context MATROSKA_ContextFlagInterlaced;
 extern const ebml_context MATROSKA_ContextFieldOrder;
@@ -172,6 +173,11 @@ extern const ebml_context MATROSKA_ContextWhitePointChromaticityY;
 extern const ebml_context MATROSKA_ContextLuminanceMax;
 extern const ebml_context MATROSKA_ContextLuminanceMin;
 extern const ebml_context MATROSKA_ContextMasteringMetadata;
+extern const ebml_context MATROSKA_ContextProjectionType;
+extern const ebml_context MATROSKA_ContextProjectionPrivate;
+extern const ebml_context MATROSKA_ContextProjectionPoseYaw;
+extern const ebml_context MATROSKA_ContextProjectionPosePitch;
+extern const ebml_context MATROSKA_ContextProjectionPoseRoll;
 
 extern const ebml_context MATROSKA_ContextColour;
 

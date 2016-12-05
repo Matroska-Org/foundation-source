@@ -296,6 +296,22 @@ const ebml_semantic EBML_SemanticColour[] = {
 };
 const ebml_context MATROSKA_ContextColour = {0x55B0, EBML_MASTER_CLASS, 0, 0, "Colour", EBML_SemanticColour, EBML_SemanticGlobals, NULL};
 
+const ebml_context MATROSKA_ContextProjectionType = {0x7671, EBML_INTEGER_CLASS, 1, 0, "ProjectionType", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextProjectionPrivate = {0x7672, EBML_BINARY_CLASS, 0, 0, "ProjectionPrivate", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextProjectionPoseYaw = {0x7673, EBML_FLOAT_CLASS, 1, 0, "ProjectionPoseYaw", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextProjectionPosePitch = {0x7674, EBML_FLOAT_CLASS, 1, 0, "ProjectionPosePitch", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextProjectionPoseRoll = {0x7675, EBML_FLOAT_CLASS, 1, 0, "ProjectionPoseRoll", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticProjection[] = {
+    {1, 1, &MATROSKA_ContextProjectionType, PROFILE_MATROSKA_V4|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextProjectionPrivate, PROFILE_MATROSKA_V4|PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextProjectionPoseYaw, PROFILE_MATROSKA_V4|PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextProjectionPosePitch, PROFILE_MATROSKA_V4|PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextProjectionPoseRoll, PROFILE_MATROSKA_V4|PROFILE_WEBM},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextProjection = {0x7670, EBML_MASTER_CLASS, 0, 0, "Projection", EBML_SemanticProjection, EBML_SemanticGlobals, NULL};
+
 const ebml_semantic EBML_SemanticVideo[] = {
     {1, 1, &MATROSKA_ContextFlagInterlaced, PROFILE_MATROSKA_V1|PROFILE_DIVX},
     {1, 1, &MATROSKA_ContextFieldOrder, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
@@ -316,6 +332,7 @@ const ebml_semantic EBML_SemanticVideo[] = {
     {0, 1, &MATROSKA_ContextGammaValue, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextFrameRate, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextColour, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextProjection, PROFILE_MATROSKA_V4|PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextVideo = {0xE0, EBML_MASTER_CLASS, 0, 0, "Video", EBML_SemanticVideo, EBML_SemanticGlobals, NULL};
