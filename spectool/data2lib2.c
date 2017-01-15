@@ -35,6 +35,8 @@
 #include "data2lib2_stdafx.h"
 #include "spec_element.h"
 
+#include <stdio.h>
+
 typedef struct table_extras
 {
     bool_t StartedGlobal;
@@ -410,6 +412,11 @@ int main(void)
     StdAfx_Init((nodemodule*)&p);
 
     Input = StreamOpen(&p,T("ebml_matroska.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    if (Input == NULL)
+    {
+        fprintf(stderr, "missing source file ebml_matroska.xml\n");
+        return -1;
+    }
     OutputC = StreamOpen(&p,T("matroska_sem.c"),SFLAG_WRONLY|SFLAG_CREATE);
     OutputH = StreamOpen(&p,T("matroska_sem.h"),SFLAG_WRONLY|SFLAG_CREATE);
 
