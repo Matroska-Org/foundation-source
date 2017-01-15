@@ -312,18 +312,13 @@ static void ReadLevel(parser *p, array *Elements)
     tchar_t Element[MAXDATA], String[MAXDATA], Value[MAXLINE];
 
     for (;;) {
-        if (ParserElementContent(p,Value,TSIZEOF(Value)) && Value[0])
-        {
-        }
-        else if (ParserIsElementNested(p, Element, TSIZEOF(Element)))
+        if (ParserIsElementNested(p, Element, TSIZEOF(Element)))
         {
             if (tcsisame_ascii(Element,T("element")))
             {
-                size_t ss = ARRAYCOUNT(*Elements,SpecElement *);
                 SpecElement *Dumper = (SpecElement*)NodeCreate(p->Context, SPEC_ELEMENT_CLASS);
                 ReadSpecElement(Dumper, p);
                 ArrayAppend(Elements, &Dumper, sizeof(Dumper), 128);
-
             }
             else
 			{
