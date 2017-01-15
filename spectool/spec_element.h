@@ -49,7 +49,7 @@ typedef enum {
 } ebml_type;
 
 typedef struct SpecElement {
-    node Base;
+    nodetree Base;
 
     tchar_t Name[MAXPATH];
     tchar_t CppName[MAXPATH];

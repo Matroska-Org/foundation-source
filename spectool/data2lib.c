@@ -441,7 +441,7 @@ static err_t CreateSpecElement(SpecElement *Element)
 META_START(SpecElement_Class,SPEC_ELEMENT_CLASS)
 META_CLASS(SIZE,sizeof(SpecElement))
 META_CLASS(CREATE,CreateSpecElement)
-META_END(NODE_CLASS)
+META_END(NODETREE_CLASS)
 
 
 static void OutputCHeader(textwriter *CFile, bool_t WithInclude)

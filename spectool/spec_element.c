@@ -83,39 +83,56 @@ void ReadElementText(parser *p, tchar_t *Out, size_t OutLen)
 	}
 }
 
+static SpecElement *FindElementParent(array *Elements, SpecElement* element)
+{
+    tchar_t ParentPath[MAXPATH];
+    SpecElement **parent;
+    if (element->Level == 0)
+        return NULL;
+    tchar_t *parent_end;
+    tcscpy_s(ParentPath, TSIZEOF(ParentPath), element->Path);
+    parent_end = wcsrchr(ParentPath, '\\');
+    *parent_end = '\0';
+    for (parent = ARRAYBEGIN(*Elements, SpecElement*); parent != ARRAYEND(*Elements, SpecElement*); ++parent) {
+        if (tcsisame_ascii((*parent)->Path, ParentPath))
+            return *parent;
+    }
+    return NULL;
+}
+
 void LinkElementParents(array *Elements)
 {
     SpecElement **element;
     for (element=ARRAYBEGIN(*Elements,SpecElement*); element!=ARRAYEND(*Elements,SpecElement*);++element) {
-        if (tcsnicmp_ascii((*element)->Path, "1*1(", 4)==0)
+        if (tcsnicmp_ascii((*element)->Path, T("1*1("), 4)==0)
         {
             if ((*element)->MinOccurrence != 1)
                 fprintf(stderr, "minOccurs (%d instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != 1)
                 fprintf(stderr, "maxOccurs (%d instead of 1) mismatched in '%s with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
-        else if (tcsnicmp_ascii((*element)->Path, "1*(", 3)==0)
+        else if (tcsnicmp_ascii((*element)->Path, T("1*("), 3)==0)
         {
             if ((*element)->MinOccurrence != 1)
                 fprintf(stderr, "minOccurs (%d instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != SIZE_MAX)
                 fprintf(stderr, "maxOccurs (%d instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
-        else if (tcsnicmp_ascii((*element)->Path, "0*1(", 4)==0)
+        else if (tcsnicmp_ascii((*element)->Path, T("0*1("), 4)==0)
         {
             if ((*element)->MinOccurrence != 0)
                 fprintf(stderr, "minOccurs (%d instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != 1)
                 fprintf(stderr, "maxOccurs (%d instead of 1) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
-        else if (tcsnicmp_ascii((*element)->Path, "0*2(", 4)==0)
+        else if (tcsnicmp_ascii((*element)->Path, T("0*2("), 4)==0)
         {
             if ((*element)->MinOccurrence != 0)
                 fprintf(stderr, "minOccurs (%d instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != 2)
                 fprintf(stderr, "maxOccurs (%d instead of 2) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
-        else if (tcsnicmp_ascii((*element)->Path, "0*(", 3)==0)
+        else if (tcsnicmp_ascii((*element)->Path, T("0*("), 3)==0)
         {
             if ((*element)->MinOccurrence != 0)
                 fprintf(stderr, "minOccurs (%d instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
@@ -128,6 +145,29 @@ void LinkElementParents(array *Elements)
         }
         (*element)->Mandatory = (*element)->MinOccurrence > 1;
         (*element)->Multiple = (*element)->MaxOccurrence > 1;
+        tchar_t *parent_end = wcsrchr((*element)->Path, ')');
+        *parent_end = '\0';
+        parent_end = wcschr((*element)->Path, '(');
+        tcscpy_s((*element)->Path, TSIZEOF((*element)->Path), parent_end+1);
+
+        const tchar_t *separator_lookup = (*element)->Path;
+        (*element)->Level = -1;
+        while ((separator_lookup = wcschr(separator_lookup, '\\')) != NULL)
+        {
+            (*element)->Level++;
+            separator_lookup++;
+        }
+
+        if ((*element)->Level > 0)
+        {
+            SpecElement *Parent = FindElementParent(Elements, *element);
+            if (Parent == NULL)
+                fprintf(stderr, "did not find a parent for element '%s' path %s\n", (*element)->Name, (*element)->Path);
+            else
+            {
+                NodeTree_SetParent((SpecElement*)(*element), Parent, NULL);
+            }
+        }
     }
 }
 
@@ -254,10 +294,13 @@ void ReadSpecElement(SpecElement *elt, parser *p)
         }
         /* /documentation */
         ParserIsElement(p, String, TSIZEOF(String));
-        ParserElementSkip(p);
-        ParserSkipAfter(p, '>');
-        /* /element */
-        ParserIsElement(p, String, TSIZEOF(String));
+        while (!tcsisame_ascii(String, T("/element")))
+        {
+            ParserElementSkip(p);
+            ParserSkipAfter(p, '>');
+            /* /element */
+            ParserIsElement(p, String, TSIZEOF(String));
+        }
         ParserElementSkip(p);
     }
 }
