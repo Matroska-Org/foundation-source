@@ -922,7 +922,11 @@ err_t ParserStreamXML(parser* p, stream* s, parsercontext* Context, const tchar_
     {
         if (Context)
             ParserCC(p,Context->FromUTF8, 0);
-        if (ParserIsRootElement(p, FoundRoot, TSIZEOF(FoundRoot)))
+        if (!ParserIsRootElement(p, FoundRoot, TSIZEOF(FoundRoot)))
+        {
+            Result = ERR_INVALID_DATA;
+        }
+        else
         {
             if (tcsisame_ascii(FoundRoot,Root) && !NeedRootAttribs)
                 ParserElementSkip(p);
