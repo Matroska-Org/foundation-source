@@ -222,6 +222,10 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                 ExprIsInt(&s,&intval);
                 elt->InDivX = intval!=0;
             }
+            else if (tcsisame_ascii(String,T("unknownsizeallowed"))) {
+                ExprIsInt(&s,&intval);
+                elt->CanUnknownSize = intval!=0;
+            }
             else {
                 fprintf(stderr, "unknown attribute %s\n", String);
             }
