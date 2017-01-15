@@ -246,7 +246,19 @@ void ReadSpecElement(SpecElement *elt, parser *p)
             elt->InWebM=0;
     }
 
-    /* TODO Read <documentation> */
-    ReadElementText(p, elt->Description, TSIZEOF(elt->Description));
+    /* Read <documentation> */
+    if (ParserIsElement(p, Value, TSIZEOF(Value)))
+    {
+        if (tcsisame_ascii(Value, T("documentation"))) {
+            ParserElementContent(p, elt->Description, TSIZEOF(elt->Description));
+        }
+        /* /documentation */
+        ParserIsElement(p, String, TSIZEOF(String));
+        ParserElementSkip(p);
+        ParserSkipAfter(p, '>');
+        /* /element */
+        ParserIsElement(p, String, TSIZEOF(String));
+        ParserElementSkip(p);
+    }
 }
 
