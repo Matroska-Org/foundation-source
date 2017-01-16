@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2011, Matroska (non-profit organisation)
+ * Copyright (c) 2011-2017, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
     if (elt->Type != EBML_unknown && elt->Name[0])
     {
-        const SpecElement **sub;
+        const SpecElement *sub = NULL;
 
         if (elt->Level==-1 && !Extras->StartedGlobal)
         {
@@ -182,42 +182,39 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
             if (elt->Type==EBML_MASTER)
             {
+                nodetree* i;
                 // write the semantic
                 int minProfile = Extras->CurrProfile;
                 TextPrintf(CFile, T("\nDEFINE_START_SEMANTIC(Kax%s)\n"), GetClassName(elt));
                 if (elt->Recursive)
                     AddElementSemantic(CFile, elt, 1);
-                for (sub = pElt+1; sub!=EltEnd; ++sub) 
+                for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
                 {
-                    if ((*sub)->Level<= elt->Level)
-                        break;
-                    if ((*sub)->Level== elt->Level+1)
+                    sub = (SpecElement *)i;
+                    if (!IsValidElement(sub))
                     {
-                        if (!IsValidElement(*sub))
+                        if (minProfile != 2)
                         {
-                            if (minProfile != 2)
-                            {
-                                minProfile = 2;
-                                TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
-                            }
+                            minProfile = 2;
+                            TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
                         }
-                        else if (!(*sub)->MinVersion || minProfile < (*sub)->MinVersion)
-                        {
-                            if (minProfile != 2)
-                            {
-                                minProfile = 2;
-                                TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
-                            }
-                        }
-                        else if (minProfile > (*sub)->MinVersion)
-                        {
-                            minProfile = (*sub)->MinVersion;
-                            TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
-                        }
-
-                        //if (!IsValidElement(*sub)) TextWrite(CFile, T("// "));
-                        AddElementSemantic(CFile, *sub, 0);
                     }
+                    else if (!sub->MinVersion || minProfile < sub->MinVersion)
+                    {
+                        if (minProfile != 2)
+                        {
+                            minProfile = 2;
+                            TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
+                        }
+                    }
+                    else if (minProfile > sub->MinVersion)
+                    {
+                        minProfile = sub->MinVersion;
+                        TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
+                    }
+
+                    //if (!IsValidElementsub) TextWrite(CFile, T("// "));
+                    AddElementSemantic(CFile, sub, 0);
                 }
                     
                 if (minProfile > 1 && Extras->CurrProfile < 2)
@@ -270,23 +267,20 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             }
         }
 
-        sub = pElt+1;
-        if (sub!=EltEnd && (*sub)->MinVersion && Extras->CurrProfile > (*sub)->MinVersion)
+        sub = sub ? (SpecElement*)NodeTree_Next(sub) : NULL;
+        if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
         {
-            Extras->CurrProfile = (*sub)->MinVersion;
+            Extras->CurrProfile = sub->MinVersion;
             TextPrintf(CFile, T("#endif\n"));
         }
     }
 
     if (elt->Type==EBML_MASTER)
     {
-        const SpecElement **sub;
-        for (sub = pElt+1; sub!=EltEnd; ++sub)
+        nodetree* i;
+        for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
         {
-            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
-                break;
-            if ((*sub)->Level== elt->Level+1)
-                OutputElementDefinition(sub, elt, EltEnd, CFile, Extras);
+            OutputElementDefinition(&(SpecElement*)i, elt, EltEnd, CFile, Extras);
         }
     }
 }
@@ -294,7 +288,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement **EltEnd, textwriter *CFile, table_extras *Extras)
 {
     const SpecElement *elt = *pElt;
-    const SpecElement **sub;
+    const SpecElement *sub;
 
     if (pElt==EltEnd)
         return;
@@ -369,10 +363,10 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
 
             TextWrite(CFile, T("};\n"));
 
-            sub = pElt+1;
-            if (sub!=EltEnd && (*sub)->MinVersion && Extras->CurrProfile > (*sub)->MinVersion)
+            sub = (SpecElement*)NodeTree_Next(elt);
+            if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
             {
-                Extras->CurrProfile = (*sub)->MinVersion;
+                Extras->CurrProfile = sub->MinVersion;
                 TextPrintf(CFile, T("#endif\n\n"));
             }
             else if (elt->Type==EBML_MASTER)
@@ -384,13 +378,10 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
 
     if (elt->Type==EBML_MASTER)
     {
-        const SpecElement **sub;
-        for (sub = pElt+1; sub!=EltEnd; ++sub)
+        nodetree* i;
+        for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
         {
-            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
-                break;
-            if ((*sub)->Level== elt->Level+1)
-                OutputElementDeclaration(sub, EltEnd, CFile, Extras);
+            OutputElementDeclaration(&(SpecElement *)i, EltEnd, CFile, Extras);
         }
     }
 }
@@ -451,7 +442,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("**  libmatroska : parse Matroska files, see http://www.matroska.org/\n"));
     TextWrite(CFile, T("**\n"));
-    TextWrite(CFile, T("**  Copyright (c) 2002-2010, Matroska (non-profit organisation)\n"));
+    TextWrite(CFile, T("**  Copyright (c) 2002-2017, Matroska (non-profit organisation)\n"));
     TextWrite(CFile, T("**  All rights reserved.\n"));
     TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("** This file is part of libmatroska.\n"));
@@ -517,7 +508,7 @@ int main(void)
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
 
-    if (ParserStreamXML(&parseIn, Input, &p, T("table"), 0)==ERR_NONE)
+    if (ParserStreamXML(&parseIn, Input, &p, T("EBMLSchema"), 0)==ERR_NONE)
     {
         textwriter CFile;
         table_extras Extras;
@@ -526,6 +517,7 @@ int main(void)
 
         memset(&Extras,0,sizeof(Extras));
         memset(&CFile,0,sizeof(CFile));
+        LinkElementParents(&Elements);
         Extras.CurrLevel = -1;
         Extras.CurrProfile = 1;
 
