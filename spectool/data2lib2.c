@@ -111,13 +111,10 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
     if (elt->Type==EBML_MASTER)
     {
-        const SpecElement **sub;
-        for (sub = pElt+1; sub!=EltEnd; ++sub)
+        nodetree* i;
+        for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
         {
-            if ((*sub)->Level<= elt->Level && (*sub)->Level>=0)
-                break;
-            if ((*sub)->Level== elt->Level+1)
-                OutputElementDefinition(sub, EltEnd, CFile, Extras);
+            OutputElementDefinition(&(SpecElement *)i, EltEnd, CFile, Extras);
         }
     }
 
@@ -148,21 +145,15 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
             if (elt->Type==EBML_MASTER)
             {
-                const SpecElement **sub;
-
                 // write the semantic
                 TextPrintf(CFile, T("\nconst ebml_semantic EBML_Semantic%s[] = {\n"), elt->Name);
                 if (elt->Recursive)
                     AddElementSemantic(CFile, elt, 1);
-                for (sub = pElt+1; sub!=EltEnd; ++sub) 
+                nodetree* i;
+                for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
                 {
-                    if ((*sub)->Level<= elt->Level)
-                        break;
-                    if ((*sub)->Level== elt->Level+1)
-                    {
-                        //if (!IsValidElement(*sub)) TextWrite(CFile, T("// "));
-                        AddElementSemantic(CFile, *sub, 0);
-                    }
+                    //if (!IsValidElement(*sub)) TextWrite(CFile, T("// "));
+                    AddElementSemantic(CFile, (SpecElement*)i, 0);
                 }
                 TextWrite(CFile, T("    {0, 0, NULL ,0} // end of the table\n};\n"));
             }
