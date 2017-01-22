@@ -91,7 +91,9 @@ static SpecElement *FindElementParent(array *Elements, SpecElement* element)
         return NULL;
     tchar_t *parent_end;
     tcscpy_s(ParentPath, TSIZEOF(ParentPath), element->Path);
-    parent_end = wcsrchr(ParentPath, '\\');
+    parent_end = wcschr(ParentPath, '(');
+    if (!parent_end)
+        parent_end = wcsrchr(ParentPath, '\\');
     *parent_end = '\0';
     for (parent = ARRAYBEGIN(*Elements, SpecElement*); parent != ARRAYEND(*Elements, SpecElement*); ++parent) {
         if (tcsisame_ascii((*parent)->Path, ParentPath))
@@ -147,6 +149,23 @@ void LinkElementParents(array *Elements)
         *parent_end = '\0';
         parent_end = wcschr((*element)->Path, '(');
         tcscpy_s((*element)->Path, TSIZEOF((*element)->Path), parent_end+1);
+
+        if ((*element)->Recursive) {
+            parent_end = wcsstr((*element)->Path, T("))"));
+            if (!parent_end)
+                fprintf(stderr, "recursive part not set in element '%s' path %s\n", (*element)->Name, (*element)->Path);
+            else if (parent_end[2] != '\0')
+                fprintf(stderr, "unnknown recursive part in element '%s' path %s\n", (*element)->Name, (*element)->Path);
+            else {
+                *parent_end = '\0';
+                parent_end = wcsstr((*element)->Path, T("(1*("));
+                if (!parent_end)
+                    fprintf(stderr, "recursive part not understood in element '%s' path %s\n", (*element)->Name, (*element)->Path);
+                else {
+                    tcscpy_s(parent_end, tcslen(parent_end), parent_end + 4);
+                }
+            }
+        }
 
         const tchar_t *separator_lookup = (*element)->Path;
         (*element)->Level = -1;
