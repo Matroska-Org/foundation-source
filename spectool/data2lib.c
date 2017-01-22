@@ -333,7 +333,7 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
             }
             else if (Extras->CurrProfile > elt->MinVersion)
             {
-                TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
+                TextPrintf(CFile, T("#endif\n\n"));
                 Extras->CurrProfile = elt->MinVersion;
             }
 
@@ -369,11 +369,11 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
             TextWrite(CFile, T("};\n"));
 
             sub = (SpecElement*)NodeTree_Next(elt);
-            /*if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
+            if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
             {
                 Extras->CurrProfile = sub->MinVersion;
-                TextPrintf(CFile, T("#endif\n\n"));
-            }*/
+                TextPrintf(CFile, T("#endif\n"));
+            }
             if (elt->Type==EBML_MASTER)
                 TextWrite(CFile, T("\n\n"));
             else
