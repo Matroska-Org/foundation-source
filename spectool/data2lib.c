@@ -71,6 +71,11 @@ static const tchar_t *GetClassName(const SpecElement *elt)
     return elt->Name;
 }
 
+static bool_t IsValidElementStrict(const SpecElement *elt)
+{
+    return elt->InWebM || elt->MinVersion;
+}
+
 static bool_t IsValidElement(const SpecElement *elt)
 {
     return elt->InWebM || elt->MinVersion || elt->InDivX;
@@ -163,7 +168,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             const tchar_t *s;
             intptr_t value;
 
-            if (!IsValidElement(elt))
+            if (!IsValidElementStrict(elt))
             {
                 if (Extras->CurrProfile != 2)
                 {
@@ -171,13 +176,15 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                     TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
                 }
             }
-            else if (!elt->MinVersion || Extras->CurrProfile < elt->MinVersion)
+            else if (Extras->CurrProfile < elt->MinVersion && Extras->CurrProfile != 2)
             {
-                if (Extras->CurrProfile != 2)
-                {
-                    Extras->CurrProfile = 2;
-                    TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
-                }
+                Extras->CurrProfile = 2;
+                TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
+            }
+            else if (Extras->CurrProfile > elt->MinVersion)
+            {
+                TextPrintf(CFile, T("#endif\n"));
+                Extras->CurrProfile = elt->MinVersion;
             }
 
             if (elt->Type==EBML_MASTER)
@@ -191,7 +198,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                 for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
                 {
                     sub = (SpecElement *)i;
-                    if (!IsValidElement(sub))
+                    if (!IsValidElementStrict(sub))
                     {
                         if (minProfile != 2)
                         {
@@ -199,27 +206,23 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
                             TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
                         }
                     }
-                    else if (!sub->MinVersion || minProfile < sub->MinVersion)
+                    else if (minProfile < sub->MinVersion && minProfile != 2)
                     {
-                        if (minProfile != 2)
-                        {
-                            minProfile = 2;
-                            TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
-                        }
+                        minProfile = 2;
+                        TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), minProfile);
                     }
                     else if (minProfile > sub->MinVersion)
                     {
-                        minProfile = sub->MinVersion;
                         TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
+                        minProfile = sub->MinVersion;
                     }
 
                     //if (!IsValidElementsub) TextWrite(CFile, T("// "));
                     AddElementSemantic(CFile, sub, 0);
                 }
                     
-                if (minProfile > 1 && Extras->CurrProfile < 2)
+                if (minProfile > Extras->CurrProfile)
                 {
-                    minProfile = 1;
                     TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
                 }
                 TextPrintf(CFile, T("DEFINE_END_SEMANTIC(Kax%s)\n\n"), GetClassName(elt));
@@ -267,7 +270,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
             }
         }
 
-        sub = sub ? (SpecElement*)NodeTree_Next(sub) : NULL;
+        //sub = sub ? (SpecElement*)NodeTree_Next(elt) : NULL;
         if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
         {
             Extras->CurrProfile = sub->MinVersion;
@@ -315,7 +318,7 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
             && elt->Id!=0x1C53BB6B && elt->Id!=0x1F43B675 && elt->Id!=0x18538067 && elt->Id!=0xBB && elt->Id!=0xB7 && elt->Id!=0xDB
             && elt->Id!=0x3CB923 && elt->Id!=0x3EB923 && elt->Id!=0x114D9B74 && elt->Id!=0x4DBB)
         {
-            if (!IsValidElement(elt))
+            if (!IsValidElementStrict(elt))
             {
                 if (Extras->CurrProfile != 2)
                 {
@@ -323,13 +326,15 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
                     TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
                 }
             }
-            else if (!elt->MinVersion || Extras->CurrProfile < elt->MinVersion)
+            else if (Extras->CurrProfile < elt->MinVersion && Extras->CurrProfile != 2)
             {
-                if (Extras->CurrProfile != 2)
-                {
-                    Extras->CurrProfile = 2;
-                    TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
-                }
+                Extras->CurrProfile = 2;
+                TextPrintf(CFile, T("#if MATROSKA_VERSION >= %d\n"), Extras->CurrProfile);
+            }
+            else if (Extras->CurrProfile > elt->MinVersion)
+            {
+                TextPrintf(CFile, T("#endif // MATROSKA_VERSION\n"));
+                Extras->CurrProfile = elt->MinVersion;
             }
 
             TextWrite(CFile, T("DECLARE_MKX_"));
@@ -364,12 +369,12 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
             TextWrite(CFile, T("};\n"));
 
             sub = (SpecElement*)NodeTree_Next(elt);
-            if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
+            /*if (sub && sub->MinVersion && Extras->CurrProfile > sub->MinVersion)
             {
                 Extras->CurrProfile = sub->MinVersion;
                 TextPrintf(CFile, T("#endif\n\n"));
-            }
-            else if (elt->Type==EBML_MASTER)
+            }*/
+            if (elt->Type==EBML_MASTER)
                 TextWrite(CFile, T("\n\n"));
             else
                 TextWrite(CFile, T("\n"));
