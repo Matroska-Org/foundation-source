@@ -6,3 +6,16 @@ GNUmakefile
 /build/
 /release/
 /spectool/spec.xml
+*.exe
+
+*.config
+*.creator
+*.files
+*.includes
+*.user
+
+*.sln
+*.vcproj
+*.vcxproj
+*.filters
+*.vs
