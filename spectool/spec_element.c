@@ -294,6 +294,20 @@ void ReadSpecElement(SpecElement *elt, parser *p)
         else
             elt->InWebM=0;
     }
+    if (elt->Type == EBML_FLOAT && elt->DefaultValue[0])
+    {
+        if (tcsisame_ascii(elt->DefaultValue, T("0x1p+0"))) {
+            tcscpy_s(elt->DefaultValue, TSIZEOF(elt->DefaultValue), T("1.0"));
+        }
+        else if (tcsisame_ascii(elt->DefaultValue, T("0x0p+0"))) {
+            tcscpy_s(elt->DefaultValue, TSIZEOF(elt->DefaultValue), T("0.0"));
+        }
+        else if (tcsisame_ascii(elt->DefaultValue, T("0x1.f4p+12"))) {
+            tcscpy_s(elt->DefaultValue, TSIZEOF(elt->DefaultValue), T("8000.0"));
+        }
+        else
+            fprintf(stderr, "default float value not handled %s\n", elt->DefaultValue);
+    }
 
     /* Read <documentation> */
     if (ParserIsElement(p, Value, TSIZEOF(Value)))
