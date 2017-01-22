@@ -58,8 +58,6 @@ typedef struct SpecElement {
     bool_t Recursive;
     int32_t Id;
     ebml_type Type;
-    bool_t Mandatory;
-    bool_t Multiple;
     bool_t CanUnknownSize;
     size_t MinOccurrence, MaxOccurrence;
     tchar_t Range[MAXPATH];

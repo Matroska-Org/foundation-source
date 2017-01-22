@@ -99,10 +99,10 @@ static void FillSpecElement(SpecElement *elt, parser *p)
                             elt->Id = 0;
 					    break;
                     case 3:
-                        elt->Mandatory = tcschr(Value,'*')!=NULL;
+                        elt->MinOccurrence = tcschr(Value,'*')!=NULL?1:0;
                         break;
                     case 4:
-                        elt->Multiple = tcschr(Value,'*')!=NULL;
+                        elt->MaxOccurrence = tcschr(Value,'*')!=NULL?SIZE_MAX:0;
                         break;
                     case 5:
 						tcscpy_s(elt->Range, TSIZEOF(elt->Range), Value);
@@ -195,10 +195,10 @@ static void OutputElement(SpecElement *elt, textwriter *parent)
 
         TextAttribEx(&child, T("type"), GetTypeString(elt->Type), 0, TYPE_STRING);
 
-        if (elt->Mandatory)
-            TextAttribEx(&child, T("mandatory"), &elt->Mandatory, sizeof(elt->Mandatory), TYPE_BOOLEAN);
-        if (elt->Multiple)
-            TextAttribEx(&child, T("multiple"), &elt->Multiple, sizeof(elt->Multiple), TYPE_BOOLEAN);
+        if (elt->MinOccurrence)
+            TextAttribEx(&child, T("mandatory"), &elt->MinOccurrence, sizeof(elt->MinOccurrence), TYPE_BOOLEAN);
+        if (elt->MaxOccurrence)
+            TextAttribEx(&child, T("multiple"), &elt->MaxOccurrence, sizeof(elt->MaxOccurrence), TYPE_BOOLEAN);
 
         if (elt->MinVersion)
             TextAttribEx(&child, T("minver"), &elt->MinVersion, sizeof(elt->MinVersion), TYPE_INT);

@@ -143,8 +143,6 @@ void LinkElementParents(array *Elements)
         {
             fprintf(stderr, "did not parse element '%s' path %s\n", (*element)->Name, (*element)->Path);
         }
-        (*element)->Mandatory = (*element)->MinOccurrence > 1;
-        (*element)->Multiple = (*element)->MaxOccurrence > 1;
         tchar_t *parent_end = wcsrchr((*element)->Path, ')');
         *parent_end = '\0';
         parent_end = wcschr((*element)->Path, '(');
@@ -221,14 +219,6 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                     elt->Type = EBML_BINARY;
                 else
                     elt->Type = EBML_unknown;
-            }
-            else if (tcsisame_ascii(String,T("mandatory"))) {
-                ExprIsInt(&s,&intval);
-                elt->Mandatory = intval!=0;
-            }
-            else if (tcsisame_ascii(String,T("multiple"))) {
-                ExprIsInt(&s,&intval);
-                elt->Multiple = intval!=0;
             }
             else if (tcsisame_ascii(String,T("default")))
                 tcscpy_s(elt->DefaultValue, TSIZEOF(elt->DefaultValue), Value);
