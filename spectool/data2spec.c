@@ -343,7 +343,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         TextElementEndData(&Td, IdString);
 
         TextElementBegin(&Td, &Tr, T("td"));
-        if (elt->Mandatory)
+        if (elt->MinOccurrence > 0)
             TextElementEndData(&Td, T("mand."));
         else {
             TextAttribEx(&Tr, T("class"), T("unset"), 0, TYPE_STRING);
@@ -351,7 +351,7 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
         }
 
         TextElementBegin(&Td, &Tr, T("td"));
-        if (elt->Multiple)
+        if (elt->MaxOccurrence>1)
             TextElementEndData(&Td, T("mult."));
         else {
             TextAttribEx(&Tr, T("class"), T("unset"), 0, TYPE_STRING);

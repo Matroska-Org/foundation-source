@@ -49,7 +49,7 @@ typedef struct table_extras
 
 static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t InRecursive)
 {
-    TextPrintf(CFile, T("    {%d, %d, &MATROSKA_Context%s, "), InRecursive?0:(elt->Mandatory?1:0), elt->Multiple?0:1, elt->Name);
+    TextPrintf(CFile, T("    {%d, %d, &MATROSKA_Context%s, "), InRecursive?0:(elt->MinOccurrence>0?1:0), elt->MaxOccurrence>1?0:1, elt->Name);
     if (elt->InWebM && elt->MinVersion==1 && !elt->MaxVersion && elt->InDivX)
         TextWrite(CFile, T("0"));
     else {

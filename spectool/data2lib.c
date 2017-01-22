@@ -78,7 +78,7 @@ static bool_t IsValidElement(const SpecElement *elt)
 
 static void AddElementSemantic(textwriter *CFile, const SpecElement *elt, bool_t InRecursive)
 {
-    TextPrintf(CFile, T("DEFINE_SEMANTIC_ITEM(%s, %s, Kax%s)"), InRecursive?T("false"):(elt->Mandatory?T("true"):T("false")), elt->Multiple?T("false"):T("true"), GetClassName(elt));
+    TextPrintf(CFile, T("DEFINE_SEMANTIC_ITEM(%s, %s, Kax%s)"), InRecursive?T("false"):(elt->MinOccurrence > 0 ?T("true"):T("false")), elt->MaxOccurrence>1?T("false"):T("true"), GetClassName(elt));
     if (!IsValidElement(elt))
         TextWrite(CFile, T(" // not supported\n"));
     else if (!elt->MinVersion && elt->InDivX)
