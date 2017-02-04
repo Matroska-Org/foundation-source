@@ -1,4 +1,14 @@
-CFLAGS += -DUNIX_SHELL
+ifeq ($(OS),Windows_NT)
+    ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
+        CC := x86_64-pc-msys-gcc
+    else
+        ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+            CC := x86_64-pc-msys-gcc
+        else
+            CC := i686-pc-msys-gcc
+        endif
+    endif
+endif
 
 all: coremake corerc
 # make has all the default built-ins to build this for the current system
