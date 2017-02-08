@@ -3940,14 +3940,14 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
             item* i;
 
 			s += 2;
-            in_generated = *s=='¯';
+            in_generated = *s==(char)0xAF; // ¯
             if (in_generated) ++s;
-            if (*s=='¯' && ++in_generated) ++s;
+            if (*s==(char)0xAF && ++in_generated) ++s;
             nodrive = *s==':';
             if (nodrive) ++s;
             count = *s=='=';
             if (count) ++s;
-			dos = *s=='~';
+            dos = *s==(char)0x7E; // ~
 			if (dos) ++s;
 			fourcc = *s=='\'';
 			if (fourcc) ++s;
@@ -3959,15 +3959,15 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 			if (filefourcc) ++s;
 			fileext = *s=='>';
 			if (fileext) ++s;
-            only_abspath = *s=='º';
+            only_abspath = *s==(char)0xBA; // º
 			if (only_abspath) ++s;
-            only_relpath = *s=='º';
+            only_relpath = *s==(char)0xBA; // º
             if (only_relpath) { ++s; only_abspath=0; }
             relpath = *s=='!';
 			if (relpath) ++s;
-			escape = *s=='`';
+            escape = *s==(char)0x60; // `
 			if (escape) ++s;
-			while (*s=='`' && ++escape) ++s;
+			while (*s==(char)0x60 && ++escape) ++s;
 			upper = *s=='^';
 			if (upper) ++s;
 			filepath = *s=='/';
@@ -3978,7 +3978,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
             while (*s==';' && ++levelup) s++;
 			delend = *s=='@';
 			if (delend) { ++s; relpath=1; }
-			deltrail = *s=='§';
+            deltrail = *s==(char)0xA7; // §
 			if (deltrail) ++s;
 			addend = *s=='+';
 			if (addend) { ++s; }
@@ -3988,7 +3988,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
             if (reverse) ++s;
             getused = *s=='*';
             if (getused) ++s;
-            findfile = *s=='÷';
+            findfile = *s==(char)0xF7; // ÷
             if (findfile) ++s;
             quote = *s=='&';
             if (quote) ++s;
