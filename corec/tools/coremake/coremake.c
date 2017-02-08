@@ -2082,6 +2082,8 @@ int getpri(item* p)
 int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd);
 void create_missing_dirs(const char *path);
 void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags);
+void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos);
+int build_parse(item* p, reader* file, int sub, int skip, build_pos* pos0);
 
 void preprocess_stdafx_includes(item* p,int lib)
 {
@@ -4682,6 +4684,85 @@ void getarg(char* s, const char** in)
     *s = 0;
 }
 
+void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos)
+{
+    char tmpstr[MAX_LINE];
+    reader r;
+
+    reader_init(&r);
+    getarg(r.filename,&src);
+    pathunix(r.filename);
+    getabspath(r.filename,flags,"",FLAG_PATH_SOURCE);
+    r.r.f = fopen(r.filename,"r");
+    r.r.flags = flags;
+    r.pos = r.line;
+    r.r.filename_kind = FLAG_PATH_SOURCE;
+
+    // TODO: in verbose mode we should issue a warning if the file is not found
+
+    if (r.r.f)
+    {
+        item *src;
+        char backup[MAX_PATH];
+        FILE* backupfile = build;
+        int backupflags = buildflags[curr_build];
+        strcpy(backup,buildpath[curr_build]);
+        strcpy(buildpath[curr_build], dst);
+        getabspath(buildpath[curr_build],FLAG_PATH_GENERATED|(ispathabs(buildpath[curr_build])?FLAG_PATH_SET_ABSOLUTE:0),"",FLAG_PATH_GENERATED);
+        simplifypath(buildpath[curr_build],0);
+        buildflags[curr_build] = FLAG_PATH_GENERATED;
+
+        // check that the src and dst files are different
+        if (stricmp(r.filename,buildpath[curr_build])==0)
+        {
+            char *ext = strrchr(buildpath[curr_build],'.');
+            if (!ext)
+                strcat(buildpath[curr_build],".compiled");
+            else
+                strins(ext,ext,NULL);
+            printf("*warning: COMPILE '%s' already exists, using '%s'\r\n",r.filename,buildpath[curr_build]);
+        }
+
+        create_missing_dirs(buildpath[curr_build]);
+        build = fopen(buildpath[curr_build],"w+");
+
+        if (build)
+        {
+            while (reader_line(&r))
+            {
+                const char* eval = r.line;
+                evalspace(&eval);
+                if (stricmp(eval,"%%BEGIN")==0)
+                {
+                    reader_line(&r);
+                    build_parse(p,&r,16,0,pos);
+                }
+                else
+                {
+                    reader_tokeneval(&r,0,-1,pos,1);
+                    fputs(r.token,build);
+                    fputc(10,build);
+                }
+            }
+
+            fclose(build);
+        }
+
+        fclose(r.r.f);
+
+        tmpstr[0] = 0;
+        strins(tmpstr, r.filename, getfilename(r.filename));
+        item_delete(item_find(pos->p, "base"));
+        src = item_get(item_get(pos->p, "base", 0), tmpstr, 1);
+        set_path_type(src, FLAG_PATH_SOURCE);
+
+        build = backupfile;
+        strcpy(buildpath[curr_build],backup);
+        buildflags[curr_build] = backupflags;
+    }
+    reader_free(&r);
+}
+
 void build_file(item* p,const char* filename, int reader_flags);
 int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 {
@@ -4976,79 +5057,11 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			int flags = reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-	            reader r;
+                char src[MAX_LINE];
                 const char* s = file->token;
-                reader_init(&r);
-	            getarg(r.filename,&s);
-	            pathunix(r.filename);
-                getabspath(r.filename,flags,"",FLAG_PATH_SOURCE);
-	            r.r.f = fopen(r.filename,"r");
-                r.r.flags = flags;
-	            r.pos = r.line;
-                r.r.filename_kind = FLAG_PATH_SOURCE;
-
-                // TODO: in verbose mode we should issue a warning if the file is not found
-
-                if (r.r.f)
-                {
-                    item *src;
-                    char backup[MAX_PATH];
-                    FILE* backupfile = build;
-                    int backupflags = buildflags[curr_build];
-                    strcpy(backup,buildpath[curr_build]);
-                    getarg(buildpath[curr_build],&s);
-                    getabspath(buildpath[curr_build],FLAG_PATH_GENERATED|(ispathabs(buildpath[curr_build])?FLAG_PATH_SET_ABSOLUTE:0),"",FLAG_PATH_GENERATED);
-                    simplifypath(buildpath[curr_build],0);
-                    buildflags[curr_build] = FLAG_PATH_GENERATED;
-
-                    // check that the src and dst files are different
-                    if (stricmp(r.filename,buildpath[curr_build])==0)
-                    {
-                        char *ext = strrchr(buildpath[curr_build],'.');
-                        if (!ext)
-                            strcat(buildpath[curr_build],".compiled");
-                        else
-                            strins(ext,ext,NULL);
-                        printf("*warning: COMPILE '%s' already exists, using '%s'\r\n",r.filename,buildpath[curr_build]);
-                    }
-
-                    create_missing_dirs(buildpath[curr_build]);
-                    build = fopen(buildpath[curr_build],"w+");
-
-					tmpstr[0]=0;
-					strins(tmpstr,r.filename,getfilename(r.filename));
-                    item_delete(item_find(pos.p,"base"));
-                    src = item_get(item_get(pos.p,"base",0),tmpstr,1);
-                    set_path_type(src,FLAG_PATH_SOURCE);
-
-                    if (build)
-                    {
-	                    while (reader_line(&r))
-                        {
-                            const char* eval = r.line;
-                            evalspace(&eval);
-                            if (stricmp(eval,"%%BEGIN")==0)
-                            {
-                                reader_line(&r);
-				                build_parse(p,&r,16,0,&pos);
-                            }
-                            else
-                            {
-                                reader_tokeneval(&r,0,-1,&pos,1);
-                                fputs(r.token,build);
-                                fputc(10,build);
-                            }
-                        }
-
-                        fclose(build);
-                    }
-
-                    fclose(r.r.f);
-                    build = backupfile;
-                    strcpy(buildpath[curr_build],backup);
-                    buildflags[curr_build] = backupflags;
-                }
-                reader_free(&r);
+                getarg(src, &s);
+                getarg(tmpstr, &s);
+                compile_file(p, src, tmpstr, flags, &pos, 0);
             }
         }
 		else
