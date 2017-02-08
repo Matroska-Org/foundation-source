@@ -24,7 +24,7 @@ SVNDIR = mingw32
 #define GLIBC
 
 #define CCFLAGS -mthreads -D__MINGW32__ -D__GLIBC__ -D_WIN32 -D_M_IX86 -O3 -fomit-frame-pointer -march=i686 -msse -mmmx
-#define CFLAGS -Wdeclaration-after-statement
+//#define CFLAGS -Wdeclaration-after-statement
 #define ASMFLAGS -f win32 -D_WIN32
 #define NASMFLAGS -f win32 -D_WIN32
 #define LFLAGS -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
