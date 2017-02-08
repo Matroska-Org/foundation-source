@@ -2221,7 +2221,7 @@ void preprocess_automake(item* p)
             src = item_get(item_get(*child, "source", 0), file, 1);
             set_path_type(src, FLAG_PATH_GENERATED);
 
-            compile_file(src, (src_am->child[i])->value, file, 0, &compile_pos, 1);
+            compile_file(src, (src_am->child[i])->value, file, FLAG_PATH_GENERATED, &compile_pos, 1);
         }
     }
 }
