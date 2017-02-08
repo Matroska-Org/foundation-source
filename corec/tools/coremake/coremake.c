@@ -1573,7 +1573,8 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 					   stricmp(file->token,"source")==0 ||
 					   stricmp(file->token, "sourcedir") == 0 ||
 					   stricmp(file->token,"compile")==0 ||
-					   stricmp(file->token,"linkfile")==0 ||
+                       stricmp(file->token,"sourceam") == 0 ||
+                       stricmp(file->token,"linkfile")==0 ||
 					   stricmp(file->token,"crt0")==0 ||
 					   stricmp(file->token,"symbian_cert")==0 ||
 					   stricmp(file->token,"symbian_key")==0 ||
@@ -2184,6 +2185,44 @@ void preprocess_stdafx_includes(item* p,int lib)
             set_path_type(src,FLAG_PATH_GENERATED);
         }
 	}
+}
+
+void preprocess_automake(item* p)
+{
+    item** child;
+    if (!p) return;
+    for (child = p->child; child != p->childend; ++child)
+    {
+        size_t i;
+        char gen_path[MAX_PATH];
+        item* path = getvalue(item_get(*child, "path", 0));
+        item* src_am = item_get(*child, "sourceam", 0);
+
+        if (!path)
+            continue;
+
+        strcpy(gen_path, path->value);
+        strip_path_abs(gen_path, path->flags);
+        getabspath(gen_path, FLAG_PATH_GENERATED, "", FLAG_PATH_GENERATED);
+
+        for (i = 0; i<item_childcount(src_am); ++i)
+        {
+            /* add automake compiled files */
+            item *src;
+            build_pos compile_pos;
+            compile_pos.p = src_am;
+            compile_pos.prev = NULL;
+
+            char file[MAX_PATH], *s = strdup((src_am->child[i])->value);
+            truncfilename(s);
+            sprintf(file, "%s%s", gen_path, s);
+            free(s);
+            src = item_get(item_get(*child, "source", 0), file, 1);
+            set_path_type(src, FLAG_PATH_GENERATED);
+
+            compile_file(src, (src_am->child[i])->value, file, 0, &compile_pos, 1);
+        }
+    }
 }
 
 void preprocess_stdafx(item* p,int lib)
@@ -3528,12 +3567,17 @@ void preprocess_sort(item* p)
     }
 }
 
+static const char *all_targets[] = {
+    "lib","exe","con","dll","lib_csharp","exe_csharp","con_csharp","dll_csharp","exe_android","dll_android", NULL
+};
+
 void preprocess(item* p)
 {
 	item* i;
     item* con_to_exe;
     char config_path[MAX_PATH];
     item *config_file;
+    size_t target;
 
 	i = getvalue(item_find(p,"platformlib"));
     if (i)
@@ -3757,6 +3801,9 @@ void preprocess(item* p)
 	preprocess_sort(item_find(p,"exe_android"));
 	preprocess_sort(item_find(p,"dll_android"));
 	preprocess_sort_workspace(item_find(p,"workspace"));
+
+    for (target = 0; all_targets[target]; target++)
+        preprocess_automake(item_find(p, all_targets[target]));
 }
 
 #define MAX_PUSHED_PATH  8
