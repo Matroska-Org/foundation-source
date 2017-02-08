@@ -3851,7 +3851,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 	for (;*s;++s)
 	{
 		char* s0 = s;
-        if ((extra_cmd & CMD_COREMAKE) && s[0]=='%' && s[1]=='%')
+        if ((extra_cmd != CMD_AUTOMAKE) && s[0]=='%' && s[1]=='%')
         {
             s +=2;
             s = getname(s,name);
@@ -3904,7 +3904,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
                 continue;
             }
         }
-		if ((extra_cmd & CMD_COREMAKE) && s[0]=='%' && s[1]=='(')
+		if ((extra_cmd != CMD_AUTOMAKE) && s[0]=='%' && s[1]=='(')
 		{
             int in_generated;
             int count;
