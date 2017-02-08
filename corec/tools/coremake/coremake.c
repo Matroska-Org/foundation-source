@@ -173,7 +173,7 @@ struct build_pos
 #define FLAG_REMOVED               0x40
 #define FLAG_PROCESSED             0x80
 #define FLAG_ATTRIB                0x100
-#define FLAG_READY                 0x200
+#define FLAG_TOKEN_READY           0x200
 #define FLAG_CONFIG_FILE_SET       0x400
 
 char src_root[MAX_PATH] = "";
@@ -938,32 +938,32 @@ int reader_read(reader* p)
 	}
 
 	p->pos = s;
-	p->r.flags |= FLAG_READY;
+	p->r.flags |= FLAG_TOKEN_READY;
 	return 1;
 }
 
 int reader_eof(reader* p)
 {
-	if (p->r.flags & FLAG_READY)
+	if (p->r.flags & FLAG_TOKEN_READY)
 		return 0;
 	return !reader_read(p);
 }
 
 int reader_istoken(reader* p,const char* token)
 {
-	if (!(p->r.flags & FLAG_READY) && !reader_read(p))
+	if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
 		return 0;
 
 	if (stricmp(p->token,token)!=0)
 		return 0;
 
-	p->r.flags &= ~FLAG_READY;
+	p->r.flags &= ~FLAG_TOKEN_READY;
 	return 1;
 }
 
 int reader_istoken_n(reader* p,const char* token, int n)
 {
-	if (!(p->r.flags & FLAG_READY) && !reader_read(p))
+	if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
 		return 0;
 
 	if (strnicmp(p->token,token,n)!=0)
@@ -976,14 +976,14 @@ void reader_token_skip(reader* p, int n)
 {
     strdel(p->token,p->token+n);
     if (!p->token[0])
-    	p->r.flags &= ~FLAG_READY;
+    	p->r.flags &= ~FLAG_TOKEN_READY;
 }
 
 int reader_tokenline(reader* p,int onespace)
 {
 	char* s = p->pos;
 
-	assert(!(p->r.flags & FLAG_READY));
+	assert(!(p->r.flags & FLAG_TOKEN_READY));
 
     if (onespace >= 0)
     {
@@ -1002,9 +1002,9 @@ int reader_tokenline(reader* p,int onespace)
 
 void reader_token(reader* p)
 {
-	if (!(p->r.flags & FLAG_READY) && !reader_read(p))
+	if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
 		syntax(p);
-	p->r.flags &= ~FLAG_READY;
+	p->r.flags &= ~FLAG_TOKEN_READY;
 }
 
 void reader_name(reader* p)
