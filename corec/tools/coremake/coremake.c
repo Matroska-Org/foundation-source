@@ -4348,7 +4348,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
             else if (strcmp(name, "VERSION") == 0)
                 strcpy(name, "PROJECT_VERSION");
             else if (strcmp(name, "VERSION_EXTRA") == 0)
-                name[0] = '\0';
+                strcpy(name, "0");
             else
                 printf("unknown automake field %s\r\n", name);
 
