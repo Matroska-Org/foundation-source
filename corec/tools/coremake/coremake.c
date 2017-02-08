@@ -1005,7 +1005,8 @@ int reader_tokenline(reader* p,int onespace)
 
 void reader_token(reader* p)
 {
-	if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
+	if (((p->r.flags & FLAG_TOKEN_READY) != FLAG_TOKEN_READY) && !reader_read(p))
+	//if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
 		syntax(p);
 	p->r.flags &= ~FLAG_TOKEN_READY;
 }
