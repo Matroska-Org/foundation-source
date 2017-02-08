@@ -1,0 +1,10 @@
+List of known commands in .proj files
+
+- SOURCE a source file, in various programming languages
+- SOURCEAM an automake file that needs to be processed and added to the list of source files
+- COMPILE generate a file based on the source file
+
+In coremake compiled files
+%%BEGIN / %%END define a section to be interpreted using the coremake syntax, not the generated one
+%%<command> process the coremake <command> instead of outputing the line
+%(variable) replace the coremake variable with its value in the generated file
