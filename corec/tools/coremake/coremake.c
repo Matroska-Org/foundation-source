@@ -1,7 +1,7 @@
 /*
   $Id$
 
-  Copyright (c) 2006-2010, CoreCodec, Inc.
+  Copyright (c) 2006-2016, CoreCodec, Inc.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -175,6 +175,9 @@ struct build_pos
 #define FLAG_ATTRIB                0x100
 #define FLAG_TOKEN_READY           0x200
 #define FLAG_CONFIG_FILE_SET       0x400
+
+#define CMD_COREMAKE                1
+#define CMD_AUTOMAKE                2
 
 char src_root[MAX_PATH] = "";
 char proj_root[MAX_PATH] = "";
@@ -2082,7 +2085,7 @@ int getpri(item* p)
 int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd);
 void create_missing_dirs(const char *path);
 void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags);
-void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos);
+void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake);
 int build_parse(item* p, reader* file, int sub, int skip, build_pos* pos0);
 
 void preprocess_stdafx_includes(item* p,int lib)
@@ -3854,7 +3857,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 	for (;*s;++s)
 	{
 		char* s0 = s;
-        if (extra_cmd && s[0]=='%' && s[1]=='%')
+        if ((extra_cmd & CMD_COREMAKE) && s[0]=='%' && s[1]=='%')
         {
             s +=2;
             s = getname(s,name);
@@ -3907,7 +3910,7 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
                 continue;
             }
         }
-		if (s[0]=='%' && s[1]=='(')
+		if ((extra_cmd & CMD_COREMAKE) && s[0]=='%' && s[1]=='(')
 		{
             int in_generated;
             int count;
@@ -4334,6 +4337,46 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 			s = strins(s,name,NULL);
 			--s;
 		}
+        if ((extra_cmd & CMD_AUTOMAKE) && s[0] == '@')
+        {
+            item* i = pos->p, *ii = i, *j, *i2;
+
+            /* parse the name */
+            s += 1;
+            s = getname(s, name);
+            /* translate automake version numbers to coremake version numbers */
+            if (strcmp(name, "VERSION_MAJOR") == 0)
+                strcpy(name, "PROJECT_VERSION_MAJOR");
+            else if (strcmp(name, "VERSION_MINOR") == 0)
+                strcpy(name, "PROJECT_VERSION_MINOR");
+            else if (strcmp(name, "VERSION_REVISION") == 0)
+                strcpy(name, "PROJECT_VERSION_REVISION");
+            else if (strcmp(name, "VERSION") == 0)
+                strcpy(name, "PROJECT_VERSION");
+            else if (strcmp(name, "VERSION_EXTRA") == 0)
+                name[0] = '\0';
+            else
+                printf("unknown automake field %s\r\n", name);
+
+            j = item_find(ii, name);
+            for (i2 = ii; !skip && !j && i2->parent;)
+            {
+                // search in parents
+                i2 = i2->parent;
+                j = item_find(i2, name);
+            }
+
+            if (j)
+                strcpy(name, (*j->child)->value);
+
+            if (*s != '@')
+                syntax(error);
+            ++s;
+
+            s = strdel(s0, s);
+            s = strins(s, name, NULL);
+            --s;
+        }
 	}
     return result;
 }
@@ -4684,7 +4727,7 @@ void getarg(char* s, const char** in)
     *s = 0;
 }
 
-void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos)
+void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake)
 {
     char tmpstr[MAX_LINE];
     reader r;
