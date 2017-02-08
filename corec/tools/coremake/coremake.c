@@ -4822,14 +4822,14 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
             {
                 const char* eval = r.line;
                 evalspace(&eval);
-                if (stricmp(eval,"%%BEGIN")==0)
+                if (!automake && stricmp(eval, "%%BEGIN") == 0)
                 {
                     reader_line(&r);
                     build_parse(p,&r,16,0,pos);
                 }
                 else
                 {
-                    reader_tokeneval(&r,0,-1,pos,1);
+                    reader_tokeneval(&r, 0, -1, pos, automake ? CMD_AUTOMAKE : CMD_COREMAKE);
                     fputs(r.token,build);
                     fputc(10,build);
                 }
