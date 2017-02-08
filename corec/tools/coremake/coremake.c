@@ -3567,8 +3567,24 @@ void preprocess_sort(item* p)
     }
 }
 
-static const char *all_targets[] = {
-    "lib","exe","con","dll","lib_csharp","exe_csharp","con_csharp","dll_csharp","exe_android","dll_android", NULL
+struct target_def {
+    const char *name;
+    const char *output_name;
+    int is_lib;
+};
+
+static struct target_def all_targets[] = {
+    { "exe",         "output_exe", 0 },
+    { "con",         "output_con", 0 },
+    { "dll",         "output_dll", 0 },
+    { "lib",         "output_lib", 1 },
+    { "exe_csharp",  "output_exe", 0 },
+    { "con_csharp",  "output_con", 0 },
+    { "dll_csharp",  "output_dll", 0 },
+    { "lib_csharp",  "output_lib", 1 },
+    { "exe_android", "output_android", 0 },
+    { "dll_android", "output_android_lib", 1 },
+    { NULL, NULL, 0}
 };
 
 void preprocess(item* p)
@@ -3658,8 +3674,8 @@ void preprocess(item* p)
         }
     }
 
-    for (target = 0; all_targets[target]; target++)
-	    preprocess_group(item_find(p, all_targets[target]));
+    for (target = 0; all_targets[target].name; target++)
+	    preprocess_group(item_find(p, all_targets[target].name));
 	preprocess_group(item_find(p,"workspace"));
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
@@ -3691,8 +3707,8 @@ void preprocess(item* p)
         }
     }
 
-    for (target = 0; all_targets[target]; target++)
-	    preprocess_presort(item_find(p, all_targets[target]));
+    for (target = 0; all_targets[target].name; target++)
+	    preprocess_presort(item_find(p, all_targets[target].name));
 
     preprocess_builtlib(item_find(p,"project"));
     preprocess_builtlib(item_find(p,"lib"));
@@ -3705,65 +3721,35 @@ void preprocess(item* p)
 	preprocess_usemerge(item_find(p,"exe_android"));
 
     // the .build (or .inc) file needs to define these
-	preprocess_outputname(item_find(p,"lib"),"output_lib");
-	preprocess_outputname(item_find(p,"exe"),"output_exe");
-	preprocess_outputname(item_find(p,"con"),"output_con");
-	preprocess_outputname(item_find(p,"dll"),"output_dll");
-	preprocess_outputname(item_find(p,"lib_csharp"),"output_lib");
-	preprocess_outputname(item_find(p,"exe_csharp"),"output_exe");
-	preprocess_outputname(item_find(p,"con_csharp"),"output_con");
-	preprocess_outputname(item_find(p,"dll_csharp"),"output_dll");
-	preprocess_outputname(item_find(p,"exe_android"),"output_android");
-	preprocess_outputname(item_find(p,"dll_android"),"output_android_lib");
+    for (target = 0; all_targets[target].name; target++)
+	    preprocess_outputname(item_find(p, all_targets[target].name), all_targets[target].output_name);
 
-	preprocess_stdafx_includes(item_find(p,"con"),0);
-	preprocess_stdafx_includes(item_find(p,"exe"),0);
-	preprocess_stdafx_includes(item_find(p,"dll"),0);
-	preprocess_stdafx_includes(item_find(p,"lib"),1);
-	preprocess_stdafx_includes(item_find(p,"con_csharp"),0);
-	preprocess_stdafx_includes(item_find(p,"exe_csharp"),0);
-	preprocess_stdafx_includes(item_find(p,"dll_csharp"),0);
-	preprocess_stdafx_includes(item_find(p,"lib_csharp"),1);
-	preprocess_stdafx_includes(item_find(p,"exe_android"),0);
+    for (target = 0; all_targets[target].name; target++)
+        preprocess_stdafx_includes(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 //	preprocess_stdafx_includes(item_find(p,"dll_android"),0);
 
-	preprocess_dependency_init(item_find(p,"lib"),1);
-	preprocess_dependency_init(item_find(p,"exe"),0);
-	preprocess_dependency_init(item_find(p,"con"),0);
-	preprocess_dependency_init(item_find(p,"dll"),0);
-	preprocess_dependency_init(item_find(p,"lib_csharp"),1);
-	preprocess_dependency_init(item_find(p,"exe_csharp"),0);
-	preprocess_dependency_init(item_find(p,"con_csharp"),0);
-	preprocess_dependency_init(item_find(p,"dll_csharp"),0);
-	preprocess_dependency_init(item_find(p,"exe_android"),0);
-	preprocess_dependency_init(item_find(p,"dll_android"),0);
+    for (target = 0; all_targets[target].name; target++)
+        preprocess_dependency_init(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 
-    for (target = 0; all_targets[target]; target++)
-        preprocess_dependency(item_find(p, all_targets[target]));
+    for (target = 0; all_targets[target].name; target++)
+        preprocess_dependency(item_find(p, all_targets[target].name));
 
-	preprocess_stdafx(item_find(p,"con"),0);
-	preprocess_stdafx(item_find(p,"exe"),0);
-	preprocess_stdafx(item_find(p,"dll"),0);
-	preprocess_stdafx(item_find(p,"lib"),1);
-	preprocess_stdafx(item_find(p,"con_csharp"),0);
-	preprocess_stdafx(item_find(p,"exe_csharp"),0);
-	preprocess_stdafx(item_find(p,"dll_csharp"),0);
-	preprocess_stdafx(item_find(p,"lib_csharp"),1);
-	preprocess_stdafx(item_find(p,"exe_android"),0);
+    for (target = 0; all_targets[target].name; target++)
+	    preprocess_stdafx(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 //	preprocess_stdafx(item_find(p,"dll_android"),1);
 
-    for (target = 0; all_targets[target]; target++)
-        preprocess_workspace_init(item_find(p, all_targets[target]));
+    for (target = 0; all_targets[target].name; target++)
+        preprocess_workspace_init(item_find(p, all_targets[target].name));
 	preprocess_workspace(item_get(p,"workspace",0));
 
 	preprocess_condend(p);
 
-    for (target = 0; all_targets[target]; target++)
-        preprocess_sort(item_find(p, all_targets[target]));
+    for (target = 0; all_targets[target].name; target++)
+        preprocess_sort(item_find(p, all_targets[target].name));
 	preprocess_sort_workspace(item_find(p,"workspace"));
 
-    for (target = 0; all_targets[target]; target++)
-        preprocess_automake(item_find(p, all_targets[target]));
+    for (target = 0; all_targets[target].name; target++)
+        preprocess_automake(item_find(p, all_targets[target].name));
 }
 
 #define MAX_PUSHED_PATH  8
