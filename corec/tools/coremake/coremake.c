@@ -3658,16 +3658,8 @@ void preprocess(item* p)
         }
     }
 
-	preprocess_group(item_find(p,"lib"));
-	preprocess_group(item_find(p,"exe"));
-	preprocess_group(item_find(p,"con"));
-	preprocess_group(item_find(p,"dll"));
-	preprocess_group(item_find(p,"lib_csharp"));
-	preprocess_group(item_find(p,"exe_csharp"));
-	preprocess_group(item_find(p,"con_csharp"));
-	preprocess_group(item_find(p,"dll_csharp"));
-	preprocess_group(item_find(p,"exe_android"));
-	preprocess_group(item_find(p,"dll_android"));
+    for (target = 0; all_targets[target]; target++)
+	    preprocess_group(item_find(p, all_targets[target]));
 	preprocess_group(item_find(p,"workspace"));
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
@@ -3699,16 +3691,8 @@ void preprocess(item* p)
         }
     }
 
-	preprocess_presort(item_find(p,"lib"));
-	preprocess_presort(item_find(p,"con"));
-	preprocess_presort(item_find(p,"exe"));
-	preprocess_presort(item_find(p,"dll"));
-	preprocess_presort(item_find(p,"lib_csharp"));
-	preprocess_presort(item_find(p,"con_csharp"));
-	preprocess_presort(item_find(p,"exe_csharp"));
-	preprocess_presort(item_find(p,"dll_csharp"));
-	preprocess_presort(item_find(p,"exe_android"));
-	preprocess_presort(item_find(p,"dll_android"));
+    for (target = 0; all_targets[target]; target++)
+	    preprocess_presort(item_find(p, all_targets[target]));
 
     preprocess_builtlib(item_find(p,"project"));
     preprocess_builtlib(item_find(p,"lib"));
@@ -3754,16 +3738,8 @@ void preprocess(item* p)
 	preprocess_dependency_init(item_find(p,"exe_android"),0);
 	preprocess_dependency_init(item_find(p,"dll_android"),0);
 
-	preprocess_dependency(item_find(p,"lib"));
-	preprocess_dependency(item_find(p,"con"));
-	preprocess_dependency(item_find(p,"exe"));
-	preprocess_dependency(item_find(p,"dll"));
-	preprocess_dependency(item_find(p,"lib_csharp"));
-	preprocess_dependency(item_find(p,"con_csharp"));
-	preprocess_dependency(item_find(p,"exe_csharp"));
-	preprocess_dependency(item_find(p,"dll_csharp"));
-	preprocess_dependency(item_find(p,"exe_android"));
-	preprocess_dependency(item_find(p,"dll_android"));
+    for (target = 0; all_targets[target]; target++)
+        preprocess_dependency(item_find(p, all_targets[target]));
 
 	preprocess_stdafx(item_find(p,"con"),0);
 	preprocess_stdafx(item_find(p,"exe"),0);
@@ -3776,30 +3752,14 @@ void preprocess(item* p)
 	preprocess_stdafx(item_find(p,"exe_android"),0);
 //	preprocess_stdafx(item_find(p,"dll_android"),1);
 
-	preprocess_workspace_init(item_find(p,"lib"));
-	preprocess_workspace_init(item_find(p,"exe"));
-	preprocess_workspace_init(item_find(p,"con"));
-	preprocess_workspace_init(item_find(p,"dll"));
-	preprocess_workspace_init(item_find(p,"lib_csharp"));
-	preprocess_workspace_init(item_find(p,"exe_csharp"));
-	preprocess_workspace_init(item_find(p,"con_csharp"));
-	preprocess_workspace_init(item_find(p,"dll_csharp"));
-	preprocess_workspace_init(item_find(p,"exe_android"));
-	preprocess_workspace_init(item_find(p,"dll_android"));
+    for (target = 0; all_targets[target]; target++)
+        preprocess_workspace_init(item_find(p, all_targets[target]));
 	preprocess_workspace(item_get(p,"workspace",0));
 
 	preprocess_condend(p);
 
-	preprocess_sort(item_find(p,"lib"));
-	preprocess_sort(item_find(p,"con"));
-	preprocess_sort(item_find(p,"exe"));
-	preprocess_sort(item_find(p,"dll"));
-	preprocess_sort(item_find(p,"lib_csharp"));
-	preprocess_sort(item_find(p,"con_csharp"));
-	preprocess_sort(item_find(p,"exe_csharp"));
-	preprocess_sort(item_find(p,"dll_csharp"));
-	preprocess_sort(item_find(p,"exe_android"));
-	preprocess_sort(item_find(p,"dll_android"));
+    for (target = 0; all_targets[target]; target++)
+        preprocess_sort(item_find(p, all_targets[target]));
 	preprocess_sort_workspace(item_find(p,"workspace"));
 
     for (target = 0; all_targets[target]; target++)
