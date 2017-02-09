@@ -4340,17 +4340,13 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
             s = getname(s, name);
             /* translate automake version numbers to coremake version numbers */
             if (strcmp(name, "VERSION_MAJOR") == 0)
-                strcpy(name, "PROJECT_VERSION_MAJOR");
+                strcpy(name, "PACKAGE_VERSION_MAJOR");
             else if (strcmp(name, "VERSION_MINOR") == 0)
-                strcpy(name, "PROJECT_VERSION_MINOR");
+                strcpy(name, "PACKAGE_VERSION_MINOR");
             else if (strcmp(name, "VERSION_REVISION") == 0)
-                strcpy(name, "PROJECT_VERSION_REVISION");
-            else if (strcmp(name, "VERSION") == 0)
-                strcpy(name, "PROJECT_VERSION");
+                strcpy(name, "PACKAGE_VERSION_REVISION");
             else if (strcmp(name, "VERSION_EXTRA") == 0)
-                strcpy(name, "0");
-            else
-                printf("unknown automake field %s\r\n", name);
+                strcpy(name, "PACKAGE_VERSION_EXTRA");
 
             j = item_find(ii, name);
             for (i2 = ii; !skip && !j && i2->parent;)
@@ -4359,6 +4355,11 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
                 i2 = i2->parent;
                 j = item_find(i2, name);
             }
+            if (!j)
+                j = item_find(getconfig(pos->p), name);
+
+            if (!j)
+                printf("unknown automake field %s\r\n", name);
 
             if (j)
                 strcpy(name, (*j->child)->value);
