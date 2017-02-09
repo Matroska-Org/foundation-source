@@ -1,10 +1,39 @@
 List of known commands in .proj files
 
-- SOURCE a source file, in various programming languages
-- SOURCEAM an automake file that needs to be processed and added to the list of source files
-- COMPILE generate a file based on the source file
+Project outputs
+- CON <name>
+  a console based program
+- EXE <name>
+  a GUI based program
+- LIB <name>
+  a static library
+- DLL <name>
+  a dynamic library
+
+Project commands
+- SOURCE <filename> ({class <BaseCoremakeClass>})
+  a source file, in various programming languages
+- SOURCEAM <filename>
+  an automake file that needs to be processed and added to the list of source files
+- COMPILE <filename>
+  generate a file based on the source file
+- NO_STDAFX .
+  do not generate and build the std_afx files needed by Core-C
+- NO_PROJECT .
+  do not generate the project.h file for the project
+- OUTPUT_DIR <directory>
+  set the output directory where the built project will be (by default all output are in the same release output directory)
+- DEFINE define
+  set a #define for the all the compiled files in the project
+- CONFIG_FILE <filename>
+  define the configuration file to use (usually config.h)
 
 In coremake compiled files
-%%BEGIN / %%END define a section to be interpreted using the coremake syntax, not the generated one
-%%<command> process the coremake <command> instead of outputing the line
-%(variable) replace the coremake variable with its value in the generated file
+- CONFIG
+  read the config.h file
+- %%BEGIN / %%END
+  define a section to be interpreted using the coremake syntax, not the generated one
+- %%<command>
+  process the coremake <command> instead of outputing the line
+- %(variable)
+  replace the coremake variable with its value in the generated file
