@@ -924,7 +924,23 @@ int reader_read(reader* p)
 					++s;
 				break;
 			}
-			else
+            else
+            if (*s == '<')
+            {
+                int i;
+                ++s;
+                for (i = 0; *s && s[0] != '>'; ++s, ++i)
+                {
+                    if (s[0] == '>')
+                        ++s;
+                    p->token[i] = *s;
+                }
+                p->token[i] = 0;
+                if (*s == '>')
+                    ++s;
+                break;
+            }
+            else
 			if (*s)
 			{
 				p->token[0] = *(s++);
