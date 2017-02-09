@@ -175,6 +175,7 @@ struct build_pos
 #define FLAG_ATTRIB                0x100
 #define FLAG_TOKEN_READY           0x200
 #define FLAG_CONFIG_FILE_SET       0x400
+#define FLAG_NO_INCLUDE            0x800
 
 #define CMD_COREMAKE                1
 #define CMD_AUTOMAKE                2
@@ -1624,7 +1625,8 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
             attrib = filename ||
 					   stricmp(file->token,"register_cab")==0 ||
                        stricmp(file->token,"reg")==0 ||
-					   stricmp(file->token,"class")==0; // we need this because priority would mess up conditions
+					   stricmp(file->token,"class")==0 ||
+                       stricmp(file->token, "no_include") == 0; // we need this because priority would mess up conditions
 
 			if (stricmp(file->token,"config")==0)
 			{
@@ -4860,8 +4862,8 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		{
             reader_token(file);
 			reader_filename(file,FLAG_PATH_COREMAKE);
-			if (!skip)
-				build_file(p,file->token,FLAG_PATH_COREMAKE);
+            if (!skip && !(file->r.flags & FLAG_NO_INCLUDE))
+                build_file(p, file->token, FLAG_PATH_COREMAKE);
 		}
 		else
 		if (is_sharped && reader_istoken(file,"undef"))
@@ -4918,8 +4920,9 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 				item* config = getroot(p,"config_file");
 				if (getvalue(config))
                 {
+                    item* no_include = item_find(*config->child, "no_include");
                     set_path_type(config,FLAG_PATH_GENERATED);
-					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED);
+					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED | (no_include?FLAG_NO_INCLUDE:0));
                 }
 				config = item_get(getconfig(p),"COREMAKE_CONFIG_HELPER",0);
 				if (config && config->flags & FLAG_DEFINED)

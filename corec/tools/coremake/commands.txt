@@ -29,8 +29,8 @@ Project commands
   set the output directory where the built project will be (by default all output are in the same release output directory)
 - DEFINE define
   set a #define for the all the compiled files in the project
-- CONFIG_FILE <filename>
-  define the configuration file to use (usually config.h)
+- CONFIG_FILE <filename> ({ NO_INCLUDE .})
+  define the configuration file to use (usually config.h) optionally forbid following includes from the config.h
 - USE <project_name>
   link the current with the designated project
 
