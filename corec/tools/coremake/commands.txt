@@ -15,8 +15,12 @@ Project commands
   a source file, in various programming languages
 - SOURCEAM <filename>
   an automake file that needs to be processed and added to the list of source files
+- HEADER <filename>
+  add a header to the project, useful to see it in your IDE
 - COMPILE <filename>
   generate a file based on the source file
+- INCLUDE <directory>
+  add a directory, relative to the project directory, to the list of include directories
 - NO_STDAFX .
   do not generate and build the std_afx files needed by Core-C
 - NO_PROJECT .
@@ -27,6 +31,8 @@ Project commands
   set a #define for the all the compiled files in the project
 - CONFIG_FILE <filename>
   define the configuration file to use (usually config.h)
+- USE <project_name>
+  link the current with the designated project
 
 In coremake compiled files
 - CONFIG
