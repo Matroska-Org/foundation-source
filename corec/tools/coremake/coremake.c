@@ -367,6 +367,7 @@ struct target_def {
 };
 
 static struct target_def all_targets[] = {
+    { "group",       NULL,         0 },
     { "exe",         "output_exe", 0 },
     { "con",         "output_con", 0 },
     { "dll",         "output_dll", 0 },
@@ -3707,7 +3708,8 @@ void preprocess(item* p)
     }
 
     for (target = 0; all_targets[target].name; target++)
-	    preprocess_group(item_find(p, all_targets[target].name));
+        if (all_targets[target].output_name)
+	        preprocess_group(item_find(p, all_targets[target].name));
 	preprocess_group(item_find(p,"workspace"));
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
@@ -3740,7 +3742,8 @@ void preprocess(item* p)
     }
 
     for (target = 0; all_targets[target].name; target++)
-	    preprocess_presort(item_find(p, all_targets[target].name));
+        if (all_targets[target].output_name)
+	        preprocess_presort(item_find(p, all_targets[target].name));
 
     preprocess_builtlib(item_find(p,"project"));
     preprocess_builtlib(item_find(p,"lib"));
@@ -3754,34 +3757,42 @@ void preprocess(item* p)
 
     // the .build (or .inc) file needs to define these
     for (target = 0; all_targets[target].name; target++)
-	    preprocess_outputname(item_find(p, all_targets[target].name), all_targets[target].output_name);
+        if (all_targets[target].output_name)
+	        preprocess_outputname(item_find(p, all_targets[target].name), all_targets[target].output_name);
 
     for (target = 0; all_targets[target].name; target++)
-        preprocess_stdafx_includes(item_find(p, all_targets[target].name), all_targets[target].is_lib);
+        if (all_targets[target].output_name)
+            preprocess_stdafx_includes(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 //	preprocess_stdafx_includes(item_find(p,"dll_android"),0);
 
     for (target = 0; all_targets[target].name; target++)
-        preprocess_dependency_init(item_find(p, all_targets[target].name), all_targets[target].is_lib);
+        if (all_targets[target].output_name)
+            preprocess_dependency_init(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 
     for (target = 0; all_targets[target].name; target++)
-        preprocess_dependency(item_find(p, all_targets[target].name));
+        if (all_targets[target].output_name)
+            preprocess_dependency(item_find(p, all_targets[target].name));
 
     for (target = 0; all_targets[target].name; target++)
-	    preprocess_stdafx(item_find(p, all_targets[target].name), all_targets[target].is_lib);
+        if (all_targets[target].output_name)
+	        preprocess_stdafx(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 //	preprocess_stdafx(item_find(p,"dll_android"),1);
 
     for (target = 0; all_targets[target].name; target++)
-        preprocess_workspace_init(item_find(p, all_targets[target].name));
+        if (all_targets[target].output_name)
+            preprocess_workspace_init(item_find(p, all_targets[target].name));
 	preprocess_workspace(item_get(p,"workspace",0));
 
 	preprocess_condend(p);
 
     for (target = 0; all_targets[target].name; target++)
-        preprocess_sort(item_find(p, all_targets[target].name));
+        if (all_targets[target].output_name)
+            preprocess_sort(item_find(p, all_targets[target].name));
 	preprocess_sort_workspace(item_find(p,"workspace"));
 
     for (target = 0; all_targets[target].name; target++)
-        preprocess_automake(item_find(p, all_targets[target].name));
+        if (all_targets[target].output_name)
+            preprocess_automake(item_find(p, all_targets[target].name));
 }
 
 #define MAX_PUSHED_PATH  8
