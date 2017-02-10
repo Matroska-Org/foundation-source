@@ -27,6 +27,8 @@ Project commands
   defines the .def file to use to generate a DLL output
 - INCLUDE <directory>
   add a directory, relative to the project directory, to the list of include directories
+- EXPINCLUDE <directory>
+  add a directory, relative to the project directory, to the list of include directories and in projects using (USE) this project
 - NO_STDAFX .
   do not generate and build the std_afx files needed by Core-C
 - NO_PROJECT .
@@ -35,6 +37,8 @@ Project commands
   set the output directory where the built project will be (by default all output are in the same release output directory)
 - DEFINE define
   set a #define for the all the compiled files in the project
+- EXPDEFINE define
+  set a #define for the all the compiled files in the project and set it in projects using (USE) this project
 - CONFIG_FILE <filename> ({ NO_INCLUDE .})
   define the configuration file to use (usually config.h) optionally forbid following includes from the config.h
 - USE <project_name>
