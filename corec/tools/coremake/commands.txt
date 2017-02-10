@@ -11,6 +11,8 @@ Project outputs
   a dynamic library
 - GROUP <name>
   a generic project that can be merged in other projects, useful for sharing commands between projects
+- GENERATE <name>
+  generate the specified file
 
 Project commands
 - SOURCE <filename> ({class <BaseCoremakeClass>})
@@ -39,6 +41,10 @@ Project commands
   link the current with the designated project
 - PLATFORM_FILES <directory>
   defines where to find the coremake files, if not in the default location
+- DEP <project>
+  make the current project depend on the designated project
+- RUN "command"
+  run the specified command before building the rest of the files
 
 In coremake compiled files (.build and .inc files)
 - CONFIG
@@ -49,3 +55,5 @@ In coremake compiled files (.build and .inc files)
   process the coremake <command> instead of outputing the line
 - %(variable)
   replace the coremake variable with its value in the generated file
+- SCRIPT
+  make the currently built file executable

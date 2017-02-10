@@ -378,6 +378,7 @@ static struct target_def all_targets[] = {
     { "lib_csharp",  "output_lib", 1 },
     { "exe_android", "output_android", 0 },
     { "dll_android", "output_android_lib", 1 },
+    { "generate",    NULL,         0 },
     { NULL, NULL, 0 }
 };
 
@@ -2223,6 +2224,23 @@ void preprocess_stdafx_includes(item* p,int lib)
 	}
 }
 
+void preprocess_generate(item* p)
+{
+    item **child, *i;
+    char config_path[MAX_PATH];
+    if (!p) return;
+    for (child = p->child; child != p->childend; ++child)
+    {
+        item* outputpath = getvalue(getroot(*child, "outputpath"));
+        item* outputdir = item_find(*child, "output_dir");
+        strcpy(config_path, outputpath->value);
+        if (outputdir)
+            strcat(config_path, getvalue(outputdir)->value);
+        i = item_get(item_get(*p->child, "expinclude", 0), config_path, 1);
+        set_path_type(i, FLAG_PATH_GENERATED);
+    }
+}
+
 void preprocess_automake(item* p)
 {
     item** child;
@@ -3736,6 +3754,8 @@ void preprocess(item* p)
         if (all_targets[target].output_name)
             preprocess_stdafx_includes(item_find(p, all_targets[target].name), all_targets[target].is_lib);
 //	preprocess_stdafx_includes(item_find(p,"dll_android"),0);
+
+    preprocess_generate(item_find(p, "generate"));
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)

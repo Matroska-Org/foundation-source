@@ -171,7 +171,9 @@ FOR EACH USE
         ../../LIBINCLUDE += %(NAME)
       ENDFOR
     ELSE
-      PRINTNL LIBS += %(¯!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_LIB)
+      IF %(TYPE)!=GENERATE
+        PRINTNL LIBS += %(¯!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_LIB)
+      ENDIF
     ENDIF
   ENDIF
   FOR EACH USEBUILT
@@ -351,11 +353,19 @@ PRINTNL .PHONY: all dependencies prebuild postbuild install clean distclean clea
 PRINTNL 
 PRINTNL all: dependencies prebuild $(LIBS) $(GENERATED) $(OUTPUT) postbuild
 PRINTNL 
-IF "%(PRECOMPILED_HEADER)"!=""
+IF "%(PRECOMPILED_HEADER)"!="" || "%(RUN)"
   PRINTNL prebuild:
+  IF "%(PRECOMPILED_HEADER)"!=""
 //  PRINTNL 	$(hide)echo prebuild
-  PRINTNL 	$(hide)-test ! -f %(PRECOMPILED_HEADER).gch.%(NAME) || mv %(PRECOMPILED_HEADER).gch.%(NAME) %(!PATH)%(PRECOMPILED_HEADER).gch
+    PRINTNL 	$(hide)-test ! -f %(PRECOMPILED_HEADER).gch.%(NAME) || mv %(PRECOMPILED_HEADER).gch.%(NAME) %(!PATH)%(PRECOMPILED_HEADER).gch
+  ENDIF
+  PRINTNL 	$(hide)echo generating %(../NAME)
+  FOR EACH RUN
+    PRINTNL 	$(hide)cd %(¯!OUTPUTPATH)%(OUTPUT_DIR) && ./%(NAME)
+  ENDFOR
   PRINTNL 
+ENDIF
+IF "%(PRECOMPILED_HEADER)"!=""
   PRINTNL postbuild:
 //  PRINTNL 	$(hide)echo postbuild
   PRINTNL 	$(hide)-test ! -f %(!PATH)%(PRECOMPILED_HEADER).gch || mv %(!PATH)%(PRECOMPILED_HEADER).gch %(PRECOMPILED_HEADER).gch.%(NAME)
