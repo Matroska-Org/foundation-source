@@ -1434,6 +1434,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 {
 	int result=0;
 	item *i,*j=NULL;
+    size_t target;
     while (!reader_eof(file))
 	{
 		if (reader_istoken(file,"#include"))
@@ -1560,19 +1561,18 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 
             deepercond = !p->parent && stricmp(file->token,"project")==0;
 
-			need_path = !p->parent && (
-				   stricmp(file->token,"con")==0 ||
-				   stricmp(file->token,"exe")==0 ||
-				   stricmp(file->token,"group")==0 ||
-				   stricmp(file->token,"lib")==0 ||
-				   stricmp(file->token,"dll")==0 ||
-				   stricmp(file->token,"lib_csharp")==0 ||
-				   stricmp(file->token,"dll_csharp")==0 ||
-				   stricmp(file->token,"exe_csharp")==0 ||
-				   stricmp(file->token,"con_csharp")==0 ||
-				   stricmp(file->token,"exe_android")==0 ||
-				   stricmp(file->token,"dll_android")==0 ||
-			       stricmp(file->token,"workspace")==0);
+            need_path = 0;
+            if (!p->parent)
+            {
+                for (target = 0; all_targets[target].name; target++)
+                    if (stricmp(file->token, all_targets[target].name) == 0)
+                    {
+                        need_path = 1;
+                        break;
+                    }
+                if (stricmp(file->token, "workspace") == 0)
+                    need_path = 1;
+            }
 
             uselib = stricmp(file->token,"uselib")==0 || stricmp(file->token,"builtlib")==0;
 
