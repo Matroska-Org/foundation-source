@@ -347,20 +347,25 @@ IF defined(TARGET_PALMOS) && "%(SOURCE_M68K)"
   PRINTNL RES_M68K=$(RESOURCE_M68K:%.rcp=$(BUILD_M68K)%.ro)
 ENDIF
 
-PRINTNL .PHONY: all prebuild postbuild install clean distclean cleandep $(LIBS)
+PRINTNL .PHONY: all dependencies prebuild postbuild install clean distclean cleandep $(LIBS)
 PRINTNL 
-PRINTNL all: prebuild $(LIBS) $(GENERATED) $(OUTPUT) postbuild
+PRINTNL all: dependencies prebuild $(LIBS) $(GENERATED) $(OUTPUT) postbuild
 PRINTNL 
 IF "%(PRECOMPILED_HEADER)"!=""
   PRINTNL prebuild:
 //  PRINTNL 	$(hide)echo prebuild
   PRINTNL 	$(hide)-test ! -f %(PRECOMPILED_HEADER).gch.%(NAME) || mv %(PRECOMPILED_HEADER).gch.%(NAME) %(!PATH)%(PRECOMPILED_HEADER).gch
   PRINTNL 
-ENDIF
-IF "%(PRECOMPILED_HEADER)"!=""
   PRINTNL postbuild:
 //  PRINTNL 	$(hide)echo postbuild
   PRINTNL 	$(hide)-test ! -f %(!PATH)%(PRECOMPILED_HEADER).gch || mv %(!PATH)%(PRECOMPILED_HEADER).gch %(PRECOMPILED_HEADER).gch.%(NAME)
+  PRINTNL 
+ENDIF
+IF "%(DEP)"
+  PRINTNL dependencies:
+  FOR EACH DEP
+    PRINTNL 	$(hide)$(MAKE) -C %(!§PATH) -f %(NAME).mak
+  ENDFOR
   PRINTNL 
 ENDIF
 
@@ -818,6 +823,9 @@ PRINTNL 	$(hide)rm -f $(OUTPUT)
 IF "%(PRECOMPILED_HEADER)"!=""
   PRINTNL 	$(hide)rm -f %(!PATH)%(PRECOMPILED_HEADER).gch %(PRECOMPILED_HEADER).gch.%(NAME)
 ENDIF
+FOR EACH DEP
+  PRINTNL 	$(hide)$(MAKE) -C %(!§PATH) -f %(NAME).mak $@
+ENDFOR
 PRINTNL
 
 PRINTNL cleandep:
