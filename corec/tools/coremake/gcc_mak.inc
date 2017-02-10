@@ -193,6 +193,11 @@ IF "%(USELIB)"
 ENDIF
 
 PRINTNL LFLAGS += $(LIBS) %(FRAMEWORK:%=-framework %) %(<USEBUILT:%=-l%) %(RPATH:%=-Wl,-rpath,%) %(@LIBINCLUDE:%=-L'%') %(<LIBS:%=-l%) %(LFLAGS) %(¯!OUTPUTPATH:%=-L'%')
+FOR EACH USE
+  IF %(OUTPUT_DIR)
+    PRINTNL LFLAGS += %(¯!OUTPUTPATH:%=-L'%'%(OUTPUT_DIR))
+  ENDIF
+ENDFOR
 
 IF "%(CONFIG_QTOPIA_PREFIX)"!=""
   PRINTNL LFLAGS += -Wl,-rpath,%(CONFIG_QTOPIA_PREFIX)/lib
