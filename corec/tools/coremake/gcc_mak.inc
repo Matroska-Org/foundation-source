@@ -602,12 +602,12 @@ IF ("%(WINDRES)"!="")
   PRINTNL $(BUILD)%_res.%(NAME).o: %(!ROOTPATH)%.rc
   PRINTNL 	$(hide)echo compiling $<
   PRINTNL 	$(hide)mkdir -p $(BUILD)$(*D)  
-  PRINTNL 	$(hide)$(WINDRES) -F pe-i386 -I$(*D) %(@INCLUDE:%=-I'%') %(@SYSINCLUDE:%=-I'%') %(@CONFIG_INCLUDE:%=-I'%') $< $@
+  PRINTNL 	$(hide)$(WINDRES) -I$(*D) %(@INCLUDE:%=-I'%') %(@SYSINCLUDE:%=-I'%') %(@CONFIG_INCLUDE:%=-I'%') $< $@
   PRINTNL 
   PRINTNL $(BUILD)%_res.%(NAME).o: %.rc
   PRINTNL 	$(hide)echo compiling $<
   PRINTNL 	$(hide)mkdir -p $(BUILD)$(*D)  
-  PRINTNL 	$(hide)$(WINDRES) -F pe-i386 -I$(*D) %(@INCLUDE:%=-I'%') %(@SYSINCLUDE:%=-I'%') %(@CONFIG_INCLUDE:%=-I'%') $< $@
+  PRINTNL 	$(hide)$(WINDRES) -I$(*D) %(@INCLUDE:%=-I'%') %(@SYSINCLUDE:%=-I'%') %(@CONFIG_INCLUDE:%=-I'%') $< $@
   PRINTNL 
 ENDIF
 PRINTNL $(BUILD)%.%(NAME).o: %(!ROOTPATH)%.c
