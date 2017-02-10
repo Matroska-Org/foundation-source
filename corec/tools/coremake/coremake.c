@@ -390,27 +390,10 @@ item* findref(const item* p)
 					  stricmp(p->parent->value,"usemerge")==0 ||
 					  stricmp(p->parent->value,"usebuilt")==0))
 	{
-		item* v = item_find(getroot(p,"exe"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"con"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"lib"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"dll"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"group"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"dll_csharp"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"con_csharp"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"exe_csharp"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"lib_csharp"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"exe_android"),p->value);
-		if (!v)
-			v = item_find(getroot(p,"dll_android"),p->value);
+        size_t target;
+        item* v = NULL;
+        for (target = 0; !v && all_targets[target].name; target++)
+            v = item_find(getroot(p, all_targets[target].name), p->value);
 		return v;
 	}
 	return NULL;
@@ -3189,7 +3172,7 @@ void preprocess_uselib(item* p,item* ref,item* uselib)
 
 void preprocess_builtlib(item* p)
 {
-	size_t i;
+	size_t i, target;
 	if (!p) return;
 	for (i=0;i<item_childcount(p);++i)
 	{
@@ -3201,17 +3184,8 @@ void preprocess_builtlib(item* p)
             preprocess_dependency_include(p->child[i],item_get(p->child[i],"useinclude",0),1,1);
             preprocess_dependency_include(p->child[i],item_get(p->child[i],"use",0),1,0);
 
-            preprocess_uselib(getroot(p,"group"),p->child[i],value);
-            preprocess_uselib(getroot(p,"exe"),p->child[i],value);
-            preprocess_uselib(getroot(p,"dll"),p->child[i],value);
-            preprocess_uselib(getroot(p,"con"),p->child[i],value);
-            preprocess_uselib(getroot(p,"lib"),p->child[i],value);
-            preprocess_uselib(getroot(p,"dll_csharp"),p->child[i],value);
-            preprocess_uselib(getroot(p,"exe_csharp"),p->child[i],value);
-            preprocess_uselib(getroot(p,"con_csharp"),p->child[i],value);
-            preprocess_uselib(getroot(p,"lib_csharp"),p->child[i],value);
-            preprocess_uselib(getroot(p,"exe_android"),p->child[i],value);
-            preprocess_uselib(getroot(p,"dll_android"),p->child[i],value);
+            for (target = 0; all_targets[target].name; target++)
+                preprocess_uselib(getroot(p, all_targets[target].name),p->child[i],value);
 			item_delete(p->child[i]);
 			--i;
         }
@@ -3749,11 +3723,9 @@ void preprocess(item* p)
     preprocess_builtlib(item_find(p,"lib"));
     preprocess_builtlib(item_find(p,"lib_csharp"));
 
-	preprocess_usemerge(item_find(p,"dll"));
-	preprocess_usemerge(item_find(p,"exe"));
-	preprocess_usemerge(item_find(p,"dll_csharp"));
-	preprocess_usemerge(item_find(p,"exe_csharp"));
-	preprocess_usemerge(item_find(p,"exe_android"));
+    for (target = 0; all_targets[target].name; target++)
+        if (all_targets[target].output_name && !all_targets[target].is_lib)
+    	    preprocess_usemerge(item_find(p, all_targets[target].name));
 
     // the .build (or .inc) file needs to define these
     for (target = 0; all_targets[target].name; target++)
