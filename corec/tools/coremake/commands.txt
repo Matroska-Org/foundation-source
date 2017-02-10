@@ -9,6 +9,8 @@ Project outputs
   a static library
 - DLL <name>
   a dynamic library
+- GROUP <name>
+  a generic project that can be merged in other projects, useful for sharing commands between projects
 
 Project commands
 - SOURCE <filename> ({class <BaseCoremakeClass>})
@@ -19,6 +21,8 @@ Project commands
   add a header to the project, useful to see it in your IDE
 - COMPILE <filename>
   generate a file based on the source file
+- DEF <filename>
+  defines the .def file to use to generate a DLL output
 - INCLUDE <directory>
   add a directory, relative to the project directory, to the list of include directories
 - NO_STDAFX .
@@ -33,8 +37,10 @@ Project commands
   define the configuration file to use (usually config.h) optionally forbid following includes from the config.h
 - USE <project_name>
   link the current with the designated project
+- PLATFORM_FILES <directory>
+  defines where to find the coremake files, if not in the default location
 
-In coremake compiled files
+In coremake compiled files (.build and .inc files)
 - CONFIG
   read the config.h file
 - %%BEGIN / %%END
