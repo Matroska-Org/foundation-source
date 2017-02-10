@@ -360,6 +360,26 @@ void setvalue(item* p,const char* value)
     item_get(p,value,1);
 }
 
+struct target_def {
+    const char *name;
+    const char *output_name;
+    int is_lib;
+};
+
+static struct target_def all_targets[] = {
+    { "exe",         "output_exe", 0 },
+    { "con",         "output_con", 0 },
+    { "dll",         "output_dll", 0 },
+    { "lib",         "output_lib", 1 },
+    { "exe_csharp",  "output_exe", 0 },
+    { "con_csharp",  "output_con", 0 },
+    { "dll_csharp",  "output_dll", 0 },
+    { "lib_csharp",  "output_lib", 1 },
+    { "exe_android", "output_android", 0 },
+    { "dll_android", "output_android_lib", 1 },
+    { NULL, NULL, 0 }
+};
+
 item* findref(const item* p)
 {
 	if (p->parent && (stricmp(p->parent->value,"project")==0 ||
@@ -1602,7 +1622,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 					   stricmp(file->token,"source_m68k")==0 ||
 					   stricmp(file->token,"export_svn")==0 ||
 					   stricmp(file->token,"source")==0 ||
-					   stricmp(file->token, "sourcedir") == 0 ||
+					   stricmp(file->token,"sourcedir") == 0 ||
 					   stricmp(file->token,"compile")==0 ||
                        stricmp(file->token,"sourceam") == 0 ||
                        stricmp(file->token,"linkfile")==0 ||
@@ -1626,7 +1646,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 					   stricmp(file->token,"register_cab")==0 ||
                        stricmp(file->token,"reg")==0 ||
 					   stricmp(file->token,"class")==0 ||
-                       stricmp(file->token, "no_include") == 0; // we need this because priority would mess up conditions
+                       stricmp(file->token,"no_include") == 0; // we need this because priority would mess up conditions
 
 			if (stricmp(file->token,"config")==0)
 			{
@@ -3598,26 +3618,6 @@ void preprocess_sort(item* p)
         item_get(item_get(*child,"project_version_revision",0),ver,1);
     }
 }
-
-struct target_def {
-    const char *name;
-    const char *output_name;
-    int is_lib;
-};
-
-static struct target_def all_targets[] = {
-    { "exe",         "output_exe", 0 },
-    { "con",         "output_con", 0 },
-    { "dll",         "output_dll", 0 },
-    { "lib",         "output_lib", 1 },
-    { "exe_csharp",  "output_exe", 0 },
-    { "con_csharp",  "output_con", 0 },
-    { "dll_csharp",  "output_dll", 0 },
-    { "lib_csharp",  "output_lib", 1 },
-    { "exe_android", "output_android", 0 },
-    { "dll_android", "output_android_lib", 1 },
-    { NULL, NULL, 0}
-};
 
 void preprocess(item* p)
 {
