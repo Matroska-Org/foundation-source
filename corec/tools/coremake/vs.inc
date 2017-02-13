@@ -89,7 +89,7 @@ FOR EACH WORKSPACE
     ELSE
       PRINTNL Project("%(PROJECT_GUID)") = "%(NAME)", "%(¯~!PATH)%(NAME).%(PROJECT_EXT)", "%(GUID)"
     ENDIF
-    IF "%(USE)"!=""
+    IF "%(USE)"!="" && "%(VSVERSION)"!="14.00"
       PRINTNL 	ProjectSection(ProjectDependencies) = postProject
       FOR EACH USE
         IF (%NOLIB)
@@ -275,12 +275,14 @@ FOR EACH LIB,DLL,EXE,CON
   IF (%(TYPE)==EXE)
     TARGCONFTYPE = 1
     TARGSUBSYSTEM = %(TARGEXESUBSYSTEM)
+    TARGSUBSYSTEMX = Console
   ENDIF
 
   IF (%(TYPE)==CON)
     TARGCONFTYPE = 1
     TARGSUBSYSTEM = 1
     DEFINE += _CONSOLE
+    TARGSUBSYSTEMX = Console
   ENDIF
 
   IF (%(TYPE)==DLL) || ((%(TYPE)==EXE) && defined(TARGET_PALMOS))

@@ -203,6 +203,54 @@ IF %(TYPE)==LIB
   PRINTNL     <Lib>
   PRINTNL       <OutputFile>$(OutDir)%(NAME).lib</OutputFile>
   PRINTNL     </Lib>
+ELIF %(TYPE)==EXE || %(TYPE)=CON
+  PRINTNL     <Link>
+  IF (%(COM_COMPONENT)!="" || %(MANAGED_CLR)!="") && !defined(TARGET_WINCE)
+    PRINTNL       <RegisterOutput>true</RegisterOutput>
+  ENDIF
+  IF ("%(LIBS)"||"%(LIBS_DEBUG)") && !(%(TYPE)==LIB)
+    PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_DEBUG:%=;%)</AdditionalDependencies>
+  ENDIF
+  IF "%(ADDOPTIONS)"!=""
+    PRINTNL       <AdditionalOptions>%(ADDOPTIONS)</AdditionalOptions>
+  ENDIF
+  PRINTNL       <OutputFile>$(OutDir)%(NAME).exe</OutputFile>
+  IF "%(USEBUILT)"!=""
+    PRINTNL       <AdditionalLibraryDirectories>%(@LIBINCLUDE:%=;%)%(@LIBINCLUDE_DEBUG:%=;%);%(~!OUTPUTPATH)debug\</AdditionalLibraryDirectories>
+  ELSE
+    PRINTNL       <AdditionalLibraryDirectories>%(@LIBINCLUDE:%=;%)%(@LIBINCLUDE_DEBUG:%=;%)</AdditionalLibraryDirectories>
+  ENDIF
+  IF "%(USE_DLL_RUNTIME)"!="" && "%(MANIFEST_DEBUG_DEP)"
+    PRINTNL       <AdditionalManifestDependencies>%(MANIFEST_DEBUG_DEP)</AdditionalManifestDependencies>
+  ENDIF
+  IF %(TARGDEPLOY)
+    PRINTNL       <DelayLoadDLLs>$(NOINHERIT)</DelayLoadDLLs>
+  ENDIF
+  IF %(DEF)
+    PRINTNL       <ModuleDefinitionFile>%(~!DEF)</ModuleDefinitionFile>
+  ENDIF
+    PRINTNL       <GenerateDebugInformation>true</GenerateDebugInformation>
+  IF %(MANAGED_CLR)!=""
+    PRINTNL       <AssemblyDebug>1</AssemblyDebug>
+  ENDIF
+  PRINTNL       <GenerateMapFile>true</GenerateMapFile>
+  PRINTNL       <MapFileName>$(IntDir)$(ProjectName).map</MapFileName>
+  IF %(TARGSUBSYSTEMX)
+    PRINTNL       <SubSystem>%(TARGSUBSYSTEMX)</SubSystem>
+  ENDIF
+  IF defined(TARGET_WINCE) && (%(TYPE)==EXE)
+    PRINTNL       <StackReserveSize>65536</StackReserveSize>
+  ENDIF
+  IF "%(USE_MFC)" && "%(COM_COMPONENT)"=="" && defined(TARGET_WINCE)
+    PRINTNL       <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
+  ENDIF
+  IF "%(TARGMACHINE)"
+    PRINTNL       <TargetMachine>%(TARGMACHINE)</TargetMachine>
+  ENDIF
+  IF %(MANAGED_CLR)!=""
+    PRINTNL       <CLRUnmanagedCodeCheck>true</CLRUnmanagedCodeCheck>
+  ENDIF
+  PRINTNL     </Link>
 ENDIF
 PRINTNL   </ItemDefinitionGroup>
 PRINTNL   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_RELEASE)|%(TARGNAME)'">
@@ -277,8 +325,64 @@ IF %(TYPE)==LIB
   PRINTNL     <Lib>
   PRINTNL       <OutputFile>$(OutDir)%(NAME).lib</OutputFile>
   PRINTNL     </Lib>
+ELIF %(TYPE)==EXE || %(TYPE)=CON
+  PRINTNL     <Link>
+  IF (%(COM_COMPONENT)!="" || %(MANAGED_CLR)!="") && !defined(TARGET_WINCE)
+    PRINTNL       <RegisterOutput>true</RegisterOutput>
+  ENDIF
+  IF ("%(LIBS)"||"%(LIBS_RELEASE)") && !(%(TYPE)==LIB)
+    PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_RELEASE:%=;%)</AdditionalDependencies>
+  ENDIF
+  IF "%(ADDOPTIONS)"!=""
+    PRINTNL       <AdditionalOptions>%(ADDOPTIONS)</AdditionalOptions>
+  ENDIF
+  PRINTNL       <OutputFile>$(OutDir)%(NAME).exe</OutputFile>
+  IF "%(USEBUILT)"!=""
+    PRINTNL       <AdditionalLibraryDirectories>%(@LIBINCLUDE:%=;%)%(@LIBINCLUDE_RELEASE:%=;%);%(~!OUTPUTPATH)release\</AdditionalLibraryDirectories>
+  ELSE
+    PRINTNL       <AdditionalLibraryDirectories>%(@LIBINCLUDE:%=;%)%(@LIBINCLUDE_RELEASE:%=;%)</AdditionalLibraryDirectories>
+  ENDIF
+  IF "%(USE_DLL_RUNTIME)"!="" && "%(MANIFEST_RELEASE_DEP)"
+    PRINTNL       <AdditionalManifestDependencies>%(MANIFEST_RELEASE_DEP)</AdditionalManifestDependencies>
+  ENDIF
+  IF %(TARGDEPLOY)
+    PRINTNL       <DelayLoadDLLs>$(NOINHERIT)</DelayLoadDLLs>
+  ENDIF
+  IF %(DEF)
+    PRINTNL       <ModuleDefinitionFile>%(~!DEF)</ModuleDefinitionFile>
+  ENDIF
+  IF %(MANAGED_CLR)!=""
+    PRINTNL       <AssemblyDebug>1</AssemblyDebug>
+  ENDIF
+  PRINTNL       <GenerateMapFile>true</GenerateMapFile>
+  PRINTNL       <MapFileName>$(IntDir)$(ProjectName).map</MapFileName>
+  IF %(TARGSUBSYSTEMX)
+    PRINTNL       <SubSystem>%(TARGSUBSYSTEMX)</SubSystem>
+  ENDIF
+  IF defined(TARGET_WINCE) && (%(TYPE)==EXE)
+    PRINTNL       <StackReserveSize>65536</StackReserveSize>
+  ENDIF
+  PRINTNL       <OptimizeReferences>true</OptimizeReferences>
+  PRINTNL       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+  IF "%(USE_MFC)" && "%(COM_COMPONENT)"=="" && defined(TARGET_WINCE)
+    PRINTNL       <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
+  ENDIF
+  IF "%(TARGMACHINE)"
+    PRINTNL       <TargetMachine>%(TARGMACHINE)</TargetMachine>
+  ENDIF
+  IF %(MANAGED_CLR)!=""
+    PRINTNL       <CLRUnmanagedCodeCheck>true</CLRUnmanagedCodeCheck>
+  ENDIF
+  PRINTNL     </Link>
 ENDIF
 PRINTNL   </ItemDefinitionGroup>
+PRINTNL   <ItemGroup>
+FOR EACH USE, DEP
+  PRINTNL     <ProjectReference Include="%(¯~!PATH)%(NAME).vcxproj">
+  PRINTNL       <Project>%(GUID)</Project>
+  PRINTNL     </ProjectReference>
+ENDFOR
+PRINTNL   </ItemGroup>
 PRINTNL   <ItemGroup>
 FOR EACH SOURCE
 IF (%(_copy_item))
