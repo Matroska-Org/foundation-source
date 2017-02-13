@@ -51,6 +51,14 @@ Project commands
   run the specified command before building the rest of the files
 
 In coremake compiled files (.build and .inc files)
+- PRINTNL <line>
+  write the line and a newline in the target file
+- IF <test>
+  ENDIF
+  execute the code in the IF if the test returns true
+- IFNDEF <variable>
+  ENDIF
+  execute the code in the IFDEF if the variable is not defined in the target
 - CONFIG
   read the config.h file
 - %%BEGIN / %%END
