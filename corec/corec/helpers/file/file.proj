@@ -19,6 +19,8 @@ GROUP file
   SOURCE(TARGET_SYMBIAN) file_symbian.cpp {class File_Class:1}
   SOURCE(TARGET_WIN) file_win32.c {class File_Class:1}
   SOURCE(CONFIG_STDIO && !TARGET_PALMOS) stream_stdio.c {class Stdio_Class:2}
+  
+  LIBS(TARGET_WIN && !TARGET_WINCE) shell32.lib
 
   USE(TARGET_PS2SDK) ps2sdk_filexio
   USE(TARGET_PS2SDK) ps2sdk_iomanx_irx
