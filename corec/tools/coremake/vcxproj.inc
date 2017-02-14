@@ -203,6 +203,7 @@ IF %(TAR64)
   PRINTNL       <Detect64BitPortabilityProblems>true</Detect64BitPortabilityProblems>
 ENDIF
 PRINTNL       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
