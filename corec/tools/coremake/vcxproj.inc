@@ -335,6 +335,7 @@ ENDIF
 IF %(TAR64)
   PRINTNL       <Detect64BitPortabilityProblems>true</Detect64BitPortabilityProblems>
 ENDIF
+PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_RELEASE:%=;%)</PreprocessorDefinitions>
