@@ -128,10 +128,16 @@ PRINTNL   </PropertyGroup>
 PRINTNL   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_DEBUG)|%(TARGNAME)'">
 PRINTNL     <OutDir>%(¯~!OUTPUTPATH)debug\%(~+OUTPUTDIR)</OutDir>
 PRINTNL     <IntDir>%(¯~!BUILDPATH)debug\%(~§PATH)\%(NAME)\</IntDir>
+IFDEF COMPILER_CLANG
+  PRINTNL     <UseMultiToolTask>true</UseMultiToolTask>
+ENDIF
 PRINTNL   </PropertyGroup>
 PRINTNL   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_RELEASE)|%(TARGNAME)'">
 PRINTNL     <OutDir>%(¯~!OUTPUTPATH)release\%(~+OUTPUTDIR)</OutDir>
 PRINTNL     <IntDir>%(¯~!BUILDPATH)release\%(~§PATH)\%(NAME)\</IntDir>
+IFDEF COMPILER_CLANG
+  PRINTNL     <UseMultiToolTask>true</UseMultiToolTask>
+ENDIF
 PRINTNL   </PropertyGroup>
 PRINTNL   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_DEBUG)|%(TARGNAME)'">
 PRINTNL     <Midl>
@@ -195,7 +201,11 @@ IF "%(HEADER_FORCE)"
   PRINTNL       <ForcedIncludeFiles>%(HEADER_FORCE:%=;%)</ForcedIncludeFiles>
 ENDIF
 PRINTNL       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-PRINTNL       <WarningLevel>Level3</WarningLevel>
+IFDEF COMPILER_CLANG
+  PRINTNL       <WarningLevel>EnableAllWarnings</WarningLevel>
+ELSE
+  PRINTNL       <WarningLevel>Level3</WarningLevel>
+ENDIF
 IF "%(TARGCOMPILEARCH)"!=""
   PRINTNL       <CompileForArchitecture>%(TARGCOMPILEARCH)</CompileForArchitecture>
 ENDIF
@@ -207,7 +217,9 @@ IFDEF COMPILER_CLANG
 ELSE
   PRINTNL       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
 ENDIF
-PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+IFNDEF COMPILER_CLANG
+  PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+ENDIF
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
@@ -332,7 +344,11 @@ ENDIF
 IF "%(HEADER_FORCE)"
   PRINTNL       <ForcedIncludeFiles>%(HEADER_FORCE:%=;%)</ForcedIncludeFiles>
 ENDIF
-PRINTNL       <WarningLevel>Level3</WarningLevel>
+IFDEF COMPILER_CLANG
+  PRINTNL       <WarningLevel>EnableAllWarnings</WarningLevel>
+ELSE
+  PRINTNL       <WarningLevel>Level3</WarningLevel>
+ENDIF
 IF "%(TARGCOMPILEARCH)"!=""
   PRINTNL       <CompileForArchitecture>%(TARGCOMPILEARCH)</CompileForArchitecture>
 ENDIF
@@ -342,7 +358,9 @@ ENDIF
 IFDEF COMPILER_CLANG
   PRINTNL       <DebugInformationFormat>None</DebugInformationFormat>
 ENDIF
-PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+IFNDEF COMPILER_CLANG
+  PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+ENDIF
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_RELEASE:%=;%)</PreprocessorDefinitions>
