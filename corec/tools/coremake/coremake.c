@@ -3780,6 +3780,7 @@ void preprocess(item* p)
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
             preprocess_sort(item_find(p, all_targets[target].name));
+    preprocess_sort(item_find(p, "generate"));
 	preprocess_sort_workspace(item_find(p,"workspace"));
 
     for (target = 0; all_targets[target].name; target++)
