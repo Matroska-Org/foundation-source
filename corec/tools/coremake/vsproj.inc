@@ -245,8 +245,11 @@ IF "%(PRECOMPILED_HEADER)"
   PRINTNL 				UsePrecompiledHeader="2"
   PRINTNL 				PrecompiledHeaderThrough="%(PCH_FILE)"
   IF "%(PRECOMPILED_HEADER_FORCED)"!="no"
-    PRINTNL 				ForcedIncludeFiles="%(PCH_FILE)"
+    HEADER_FORCE += %(PCH_FILE)
   ENDIF
+ENDIF
+IF %(HEADER_FORCE)
+  PRINTNL 				ForcedIncludeFiles="%(HEADER_FORCE:%=;%)"
 ENDIF
 PRINTNL 				ProgramDataBaseFileName="$(OutDir)\$(ProjectName).pdb"
 PRINTNL 				WarningLevel="3"
@@ -560,9 +563,9 @@ ENDIF
 IF "%(PRECOMPILED_HEADER)"
   PRINTNL 				UsePrecompiledHeader="2"
   PRINTNL 				PrecompiledHeaderThrough="%(PCH_FILE)"
-  IF "%(PRECOMPILED_HEADER_FORCED)"!="no"
-    PRINTNL 				ForcedIncludeFiles="%(PCH_FILE)"
-  ENDIF
+ENDIF
+IF %(HEADER_FORCE)
+  PRINTNL 				ForcedIncludeFiles="%(HEADER_FORCE:%=;%)"
 ENDIF
 PRINTNL 				WarningLevel="3"
 IF "%(TARGMACHINE)"!=""
@@ -1054,7 +1057,7 @@ IF DEFINED(CARBIDE_VS)
   PRINTNL 			</File>
   PRINTNL 		</Filter>
 ENDIF
-IF %(HEADER_QT4) || %(HEADER)
+IF %(HEADER_QT4) || %(HEADER) || %(HEADER_FORCE)
   PRINTNL 		<Filter
   PRINTNL 			Name="Header Files"
   PRINTNL 			Filter="h;hpp;hxx;hm;inl;inc;xsd;xpm"
@@ -1096,7 +1099,7 @@ IF %(HEADER_QT4) || %(HEADER)
     PRINTNL 				</FileConfiguration>
     PRINTNL 			</File>
   ENDFOR
-  FOR EACH HEADER
+  FOR EACH HEADER,HEADER_FORCE
     PRINTNL 			<File
     PRINTNL 				RelativePath="%(~!NAME)"
     IF %(managed)!=""

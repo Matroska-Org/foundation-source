@@ -485,7 +485,7 @@ FOR EACH LIB,DLL,EXE
   PRINTNLDOS # Begin Group "Header Files"
   PRINTNLDOS 
   PRINTNLDOS # PROP Default_Filter "h;hpp;hxx;hm;inl"
-  FOR EACH HEADER
+  FOR EACH HEADER,HEADER_FORCE
     PRINTNLDOS # Begin Source File
     PRINTNLDOS 
     PRINTNLDOS SOURCE=%(~!NAME)

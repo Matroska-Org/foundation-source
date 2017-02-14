@@ -1594,6 +1594,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 					   stricmp(file->token,"def")==0 ||
 					   stricmp(file->token,"icon")==0 ||
 					   stricmp(file->token,"header")==0 ||
+					   stricmp(file->token,"header_force")==0 ||
 					   stricmp(file->token,"header_qt4")==0 ||
 					   stricmp(file->token,"ui_form_qt4")==0 ||
 					   stricmp(file->token,"resource_qt4")==0 ||

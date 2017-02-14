@@ -182,8 +182,11 @@ IF "%(PRECOMPILED_HEADER)"
   PRINTNL       <UsePrecompiledHeader>2</UsePrecompiledHeader>
   PRINTNL       <PrecompiledHeaderThrough>%(PCH_FILE)"
   IF "%(PRECOMPILED_HEADER_FORCED)"!="no"
-    PRINTNL         <ForcedIncludeFiles>%(PCH_FILE)</ForcedIncludeFiles>
+    HEADER_FORCE += %(PCH_FILE)
   ENDIF
+ENDIF
+IF "%(HEADER_FORCE)"
+  PRINTNL       <ForcedIncludeFiles>%(HEADER_FORCE:%=;%)</ForcedIncludeFiles>
 ENDIF
 PRINTNL       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
 PRINTNL       <WarningLevel>Level3</WarningLevel>
@@ -314,9 +317,9 @@ ENDIF
 IF "%(PRECOMPILED_HEADER)"
   PRINTNL       <UsePrecompiledHeader>2</UsePrecompiledHeader>
   PRINTNL       <PrecompiledHeaderThrough>%(PCH_FILE)</PrecompiledHeaderThrough>
-  IF "%(PRECOMPILED_HEADER_FORCED)"!="no"
-    PRINTNL       <ForcedIncludeFiles>%(PCH_FILE)</ForcedIncludeFiles>
-  ENDIF
+ENDIF
+IF "%(HEADER_FORCE)"
+  PRINTNL       <ForcedIncludeFiles>%(HEADER_FORCE:%=;%)</ForcedIncludeFiles>
 ENDIF
 PRINTNL       <WarningLevel>Level3</WarningLevel>
 IF "%(TARGCOMPILEARCH)"!=""
@@ -617,7 +620,7 @@ FOR EACH DEF
   PRINTNL     <ClCompile Include="%(~!NAME)"/>
 ENDFOR
 PRINTNL   </ItemGroup>
-IF %(HEADER_QT4) || %(HEADER)
+IF %(HEADER_QT4) || %(HEADER) || %(HEADER_FORCE)
   PRINTNL   <ItemGroup>
   FOR EACH HEADER_QT4
     PRINTNL     <ClInclude Include="%(~!NAME)">
@@ -653,7 +656,7 @@ IF %(HEADER_QT4) || %(HEADER)
     PRINTNL         </FileConfiguration>
     PRINTNL     </ClInclude>
   ENDFOR
-  FOR EACH HEADER
+  FOR EACH HEADER,HEADER_FORCE
     PRINTNL     <ClInclude Include="%(~!NAME)">
     IF (%(>NAME)==cpp) || (%(>NAME)==c)
       PRINTNL         <FileConfiguration

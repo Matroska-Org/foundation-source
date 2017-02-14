@@ -1,6 +1,6 @@
 #define TARGET_OSX
 
-ASMFLAGS = -f macho -D_MACHO
+ASMFLAGS = -D_HIDDEN
 
 #define OUTPUT_EXE %(NAME)
 #define OUTPUT_DLL %(NAME).so
@@ -291,7 +291,7 @@ FOR EACH WORKSPACE
     IF %(SOURCE)
       PRINTNL 				%(_XCODEGRPUID) /* Sources */,
     ENDIF
-    IF %(HEADER)
+    IF %(HEADER) || %(HEADER_FORCE)
       PRINTNL 				%(XCODEGRPUID2) /* Headers */,
     ENDIF
     IF %(HAS_REZ) || %(HAS_RESOURCE) || %(OSX_STRINGS) || (%(TYPE)==EXE) || (%(TYPE)==DLL)
@@ -304,11 +304,11 @@ FOR EACH WORKSPACE
     PRINTNL 			name = %(NAME);
     PRINTNL 			sourceTree = "<group>";
     PRINTNL 		};
-    IF %(HEADER)
+    IF %(HEADER) || %(HEADER_FORCE)
       PRINTNL 		%(XCODEGRPUID2) /* Headers */ = {
       PRINTNL 			isa = PBXGroup;
       PRINTNL 			children = (
-      FOR EACH HEADER
+      FOR EACH HEADER,HEADER_FORCE
         PRINTNL 				%(XCODEUID) /* %(!;NAME) */,
       ENDFOR
       PRINTNL 			);
@@ -637,7 +637,7 @@ FOR EACH WORKSPACE
       ENDIF
     ENDIF
     IF %(ASMFLAGS)!=""
-      PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
+      PRINTNL 				YASM_OTHER_FLAGS = "%(ASMFLAGS)";
       PRINTNL				HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )";
     ENDIF
     PRINTNL 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -808,7 +808,7 @@ FOR EACH WORKSPACE
   PRINTNL 				SYMROOT = %(¯!;§OUTPUTPATH);
   PRINTNL 				OBJROOT = %(!;§BUILDPATH);
   IF %(ASMFLAGS)!=""
-    PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
+    PRINTNL 				YASM_OTHER_FLAGS = "%(ASMFLAGS)";
     PRINTNL				HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )";
   ENDIF
   IF %(SDK)
@@ -858,7 +858,7 @@ FOR EACH WORKSPACE
   PRINTNL 				SYMROOT = %(¯!;§OUTPUTPATH);
   PRINTNL 				OBJROOT = %(!;§BUILDPATH);
   IF %(ASMFLAGS)!=""
-    PRINTNL 				NASM_OTHER_FLAGS = "%(ASMFLAGS)";
+    PRINTNL 				YASM_OTHER_FLAGS = "%(ASMFLAGS)";
     PRINTNL				HEADER_SEARCH_PATHS = "%(!;@INCLUDE:%=% )";
   ENDIF
   IF %(SDK)
