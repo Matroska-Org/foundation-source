@@ -49,6 +49,8 @@ Project commands
   make the current project depend on the designated project
 - RUN "command"
   run the specified command before building the rest of the files
+- ECHO <text>
+  write a message on the command-line, (for debugging or warn about possible issues)
 
 In coremake compiled files (.build and .inc files)
 - PRINTNL <line>
