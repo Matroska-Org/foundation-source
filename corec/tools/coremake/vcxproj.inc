@@ -98,7 +98,7 @@ ELIF %(TYPE)==LIB
 ELSE
   PRINTNL     <ConfigurationType>Application</ConfigurationType>
 ENDIF
-PRINTNL     <PlatformToolset>v140</PlatformToolset>
+PRINTNL     <PlatformToolset>%(PLATFORMTOOLSET)</PlatformToolset>
 PRINTNL     <CharacterSet>Unicode</CharacterSet>
 PRINTNL   </PropertyGroup>
 PRINTNL   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_DEBUG)|%(TARGNAME)'" Label="Configuration">
@@ -109,7 +109,7 @@ ELIF %(TYPE)==LIB
 ELSE
   PRINTNL     <ConfigurationType>Application</ConfigurationType>
 ENDIF
-PRINTNL     <PlatformToolset>v140</PlatformToolset>
+PRINTNL     <PlatformToolset>%(PLATFORMTOOLSET)</PlatformToolset>
 PRINTNL     <CharacterSet>Unicode</CharacterSet>
 PRINTNL   </PropertyGroup>
 PRINTNL   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -202,7 +202,11 @@ ENDIF
 IF %(TAR64)
   PRINTNL       <Detect64BitPortabilityProblems>true</Detect64BitPortabilityProblems>
 ENDIF
-PRINTNL       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+IFDEF COMPILER_CLANG
+  PRINTNL       <DebugInformationFormat>FullDebug</DebugInformationFormat>
+ELSE
+  PRINTNL       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+ENDIF
 PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
@@ -334,6 +338,9 @@ IF "%(TARGCOMPILEARCH)"!=""
 ENDIF
 IF %(TAR64)
   PRINTNL       <Detect64BitPortabilityProblems>true</Detect64BitPortabilityProblems>
+ENDIF
+IFDEF COMPILER_CLANG
+  PRINTNL       <DebugInformationFormat>None</DebugInformationFormat>
 ENDIF
 PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
 PRINTNL     </ClCompile>
