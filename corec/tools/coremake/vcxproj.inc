@@ -252,6 +252,15 @@ ELIF %(TYPE)==EXE || %(TYPE)=CON
   ENDIF
   PRINTNL     </Link>
 ENDIF
+IF "%(RUN)"
+  PRINTNL     <PreBuildEvent>
+  PRINTNL       <Command>
+  FOR EACH RUN
+    PRINTNL cmd /c "cd $(OutDir) &amp;&amp; %(NAME)"
+  ENDFOR
+  PRINTNL       </Command>
+  PRINTNL     </PreBuildEvent>
+ENDIF
 PRINTNL   </ItemDefinitionGroup>
 PRINTNL   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_RELEASE)|%(TARGNAME)'">
 PRINTNL     <Midl>
@@ -374,6 +383,15 @@ ELIF %(TYPE)==EXE || %(TYPE)=CON
     PRINTNL       <CLRUnmanagedCodeCheck>true</CLRUnmanagedCodeCheck>
   ENDIF
   PRINTNL     </Link>
+ENDIF
+IF "%(RUN)"
+  PRINTNL     <PreBuildEvent>
+  PRINTNL       <Command>
+  FOR EACH RUN
+    PRINTNL cmd /c "cd $(OutDir) &amp;&amp; %(NAME)"
+  ENDFOR
+  PRINTNL       </Command>
+  PRINTNL     </PreBuildEvent>
 ENDIF
 PRINTNL   </ItemDefinitionGroup>
 PRINTNL   <ItemGroup>
