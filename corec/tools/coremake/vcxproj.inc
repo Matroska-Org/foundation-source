@@ -230,7 +230,7 @@ IF %(TYPE)==LIB
   PRINTNL     <Lib>
     PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_DEBUG:%=;%)</AdditionalDependencies>
   PRINTNL     </Lib>
-ELIF %(TYPE)==EXE || %(TYPE)=CON
+ELIF %(TYPE)==EXE || %(TYPE)==CON || %(TYPE)==DLL
   PRINTNL     <Link>
   IF (%(COM_COMPONENT)!="" || %(MANAGED_CLR)!="") && !defined(TARGET_WINCE)
     PRINTNL       <RegisterOutput>true</RegisterOutput>
@@ -371,7 +371,7 @@ IF %(TYPE)==LIB
   PRINTNL     <Lib>
     PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_RELEASE:%=;%)</AdditionalDependencies>
   PRINTNL     </Lib>
-ELIF %(TYPE)==EXE || %(TYPE)=CON
+ELIF %(TYPE)==EXE || %(TYPE)==CON || %(TYPE)==DLL
   PRINTNL     <Link>
   IF (%(COM_COMPONENT)!="" || %(MANAGED_CLR)!="") && !defined(TARGET_WINCE)
     PRINTNL       <RegisterOutput>true</RegisterOutput>
