@@ -228,20 +228,18 @@ PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%
 PRINTNL     </ResourceCompile>
 IF %(TYPE)==LIB
   PRINTNL     <Lib>
-  PRINTNL       <OutputFile>$(OutDir)%(NAME).lib</OutputFile>
   PRINTNL     </Lib>
 ELIF %(TYPE)==EXE || %(TYPE)=CON
   PRINTNL     <Link>
   IF (%(COM_COMPONENT)!="" || %(MANAGED_CLR)!="") && !defined(TARGET_WINCE)
     PRINTNL       <RegisterOutput>true</RegisterOutput>
   ENDIF
-  IF ("%(LIBS)"||"%(LIBS_DEBUG)") && !(%(TYPE)==LIB)
+  IF "%(LIBS)"||"%(LIBS_DEBUG)"
     PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_DEBUG:%=;%)</AdditionalDependencies>
   ENDIF
   IF "%(ADDOPTIONS)"!=""
     PRINTNL       <AdditionalOptions>%(ADDOPTIONS)</AdditionalOptions>
   ENDIF
-  PRINTNL       <OutputFile>$(OutDir)%(NAME).exe</OutputFile>
   IF "%(USEBUILT)"!=""
     PRINTNL       <AdditionalLibraryDirectories>%(@LIBINCLUDE:%=;%)%(@LIBINCLUDE_DEBUG:%=;%);%(~!OUTPUTPATH)debug\</AdditionalLibraryDirectories>
   ELSE
@@ -370,20 +368,18 @@ PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE
 PRINTNL     </ResourceCompile>
 IF %(TYPE)==LIB
   PRINTNL     <Lib>
-  PRINTNL       <OutputFile>$(OutDir)%(NAME).lib</OutputFile>
   PRINTNL     </Lib>
 ELIF %(TYPE)==EXE || %(TYPE)=CON
   PRINTNL     <Link>
   IF (%(COM_COMPONENT)!="" || %(MANAGED_CLR)!="") && !defined(TARGET_WINCE)
     PRINTNL       <RegisterOutput>true</RegisterOutput>
   ENDIF
-  IF ("%(LIBS)"||"%(LIBS_RELEASE)") && !(%(TYPE)==LIB)
+  IF "%(LIBS)"||"%(LIBS_RELEASE)"
     PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_RELEASE:%=;%)</AdditionalDependencies>
   ENDIF
   IF "%(ADDOPTIONS)"!=""
     PRINTNL       <AdditionalOptions>%(ADDOPTIONS)</AdditionalOptions>
   ENDIF
-  PRINTNL       <OutputFile>$(OutDir)%(NAME).exe</OutputFile>
   IF "%(USEBUILT)"!=""
     PRINTNL       <AdditionalLibraryDirectories>%(@LIBINCLUDE:%=;%)%(@LIBINCLUDE_RELEASE:%=;%);%(~!OUTPUTPATH)release\</AdditionalLibraryDirectories>
   ELSE
