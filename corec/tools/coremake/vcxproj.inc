@@ -228,6 +228,7 @@ PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%
 PRINTNL     </ResourceCompile>
 IF %(TYPE)==LIB
   PRINTNL     <Lib>
+    PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_DEBUG:%=;%)</AdditionalDependencies>
   PRINTNL     </Lib>
 ELIF %(TYPE)==EXE || %(TYPE)=CON
   PRINTNL     <Link>
@@ -368,6 +369,7 @@ PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE
 PRINTNL     </ResourceCompile>
 IF %(TYPE)==LIB
   PRINTNL     <Lib>
+    PRINTNL       <AdditionalDependencies>%(LIBS:%=;%)%(LIBS_RELEASE:%=;%)</AdditionalDependencies>
   PRINTNL     </Lib>
 ELIF %(TYPE)==EXE || %(TYPE)=CON
   PRINTNL     <Link>
