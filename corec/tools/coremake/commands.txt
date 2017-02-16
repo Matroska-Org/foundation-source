@@ -55,6 +55,8 @@ Project commands
 In coremake compiled files (.build and .inc files)
 - PRINTNL <line>
   write the line and a newline in the target file
+- PRINTNLDOS <line>
+  write the line and a newline in the target file, the newline has a DOS/Windows format
 - IF <test>
   ENDIF
   execute the code in the IF if the test returns true
