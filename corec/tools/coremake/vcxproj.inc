@@ -151,6 +151,7 @@ PRINTNL       <HeaderFileName>%%(Filename)_i.h</HeaderFileName>
 PRINTNL     </Midl>
 PRINTNL     <ClCompile>
 PRINTNL       <ObjectFileName>$(IntDir)%%(RelativeDir)%%(filename).obj</ObjectFileName>
+PRINTNL       <PrecompiledHeaderFile></PrecompiledHeaderFile>
 IF "%(TARGCFLAGS)"!=""
   PRINTNL       <AdditionalOptions>%(TARGCFLAGS)</AdditionalOptions>
 ENDIF
@@ -300,6 +301,7 @@ PRINTNL       <HeaderFileName>%%(Filename)_i.h</HeaderFileName>
 PRINTNL     </Midl>
 PRINTNL     <ClCompile>
 PRINTNL       <ObjectFileName>$(IntDir)%%(RelativeDir)%%(filename).obj</ObjectFileName>
+PRINTNL       <PrecompiledHeaderFile></PrecompiledHeaderFile>
 PRINTNL       <Optimization>Full</Optimization>
 IF "%(FULL_INLINE)"
   PRINTNL       <InlineFunctionExpansion>2</InlineFunctionExpansion>
