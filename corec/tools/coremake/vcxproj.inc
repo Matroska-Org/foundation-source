@@ -149,6 +149,7 @@ PRINTNL       <OutputDirectory>%(¯~!BUILDPATH)%(~§PATH)</OutputDirectory>
 PRINTNL       <HeaderFileName>%%(Filename)_i.h</HeaderFileName>
 PRINTNL     </Midl>
 PRINTNL     <ClCompile>
+PRINTNL       <ObjectFileName>$(IntDir)%%(RelativeDir)%%(filename).obj</ObjectFileName>
 IF "%(TARGCFLAGS)"!=""
   PRINTNL       <AdditionalOptions>%(TARGCFLAGS)</AdditionalOptions>
 ENDIF
@@ -298,6 +299,7 @@ PRINTNL       <OutputDirectory>%(¯~!BUILDPATH)%(~§PATH)</OutputDirectory>
 PRINTNL       <HeaderFileName>%%(Filename)_i.h</HeaderFileName>
 PRINTNL     </Midl>
 PRINTNL     <ClCompile>
+PRINTNL       <ObjectFileName>$(IntDir)%%(RelativeDir)%%(filename).obj</ObjectFileName>
 PRINTNL       <Optimization>Full</Optimization>
 IF "%(FULL_INLINE)"
   PRINTNL       <InlineFunctionExpansion>2</InlineFunctionExpansion>
