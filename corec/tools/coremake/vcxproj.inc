@@ -88,6 +88,7 @@ PRINTNL   </ItemGroup>
 PRINTNL   <PropertyGroup Label="Globals">
 PRINTNL     <ProjectGuid>%(GUID)</ProjectGuid>
 PRINTNL     <RootNamespace>%(NAME)</RootNamespace>
+PRINTNL     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
 PRINTNL   </PropertyGroup>
 PRINTNL   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
 PRINTNL   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_RELEASE)|%(TARGNAME)'" Label="Configuration">
