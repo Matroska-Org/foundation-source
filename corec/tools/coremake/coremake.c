@@ -3911,57 +3911,69 @@ int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 	for (;*s;++s)
 	{
 		char* s0 = s;
-        if ((extra_cmd != CMD_AUTOMAKE) && s[0]=='%' && s[1]=='%')
+        if (s[0] == '%' && s[1] == '%')
         {
-            s +=2;
-            s = getname(s,name);
-            if (stricmp(name,"DIRPUSH")==0)
+            if (extra_cmd != CMD_AUTOMAKE)
             {
-                int flags;
-                s = strdel(s0,s);
-			    s = strins(s,"cd ",NULL);
-                s +=2;
-                while (isspace(*s)) ++s;
-                s0 = s;
-                flags = tokeneval(s,skip,pos,error,extra_cmd);
-                if (++curr_build > MAX_PUSHED_PATH)
+                if (s[2] == '(')
                 {
-	                printf("can't push directory %s, limit reached\r\n",s);
-	                exit(1);
+                    strdel(s, s + 1);
+                    s+=2;
+                    continue;
                 }
-                strcpy(name,s);
-                getabspath(name,flags,buildpath[curr_build-1],buildflags[curr_build-1]);
-                addendpath(name);
-                strcpy(buildpath[curr_build],name);
-                buildflags[curr_build] = flags;
-
-                getrelpath(name,flags,buildpath[curr_build-1],buildflags[curr_build-1],0,0);
-                truncfilepath(name,1);
-
-			    s = strcpy(s0,name);
-                continue;
-            }
-            else
-            if (stricmp(name,"DIRPOP")==0)
-            {
-                int flags;
-                s = strdel(s0,s);
-			    s = strins(s,"cd ",NULL);
-                s +=3;
-                while (isspace(*s)) ++s;
-                s0 = s;
-                flags = tokeneval(s,skip,pos,error,extra_cmd);
-                if (--curr_build < 0)
+                else
                 {
-                    printf("can't pop directory limit reached\r\n");
-                    exit(1);
-                }
-                strcpy(name,buildpath[curr_build]);
-                getrelpath(name,buildflags[curr_build],buildpath[curr_build+1],buildflags[curr_build+1],0,0);
-                truncfilepath(name,1);
+                    s += 2;
+                    s = getname(s, name);
+                    if (stricmp(name, "DIRPUSH") == 0)
+                    {
+                        int flags;
+                        s = strdel(s0, s);
+                        s = strins(s, "cd ", NULL);
+                        s += 2;
+                        while (isspace(*s)) ++s;
+                        s0 = s;
+                        flags = tokeneval(s, skip, pos, error, extra_cmd);
+                        if (++curr_build > MAX_PUSHED_PATH)
+                        {
+                            printf("can't push directory %s, limit reached\r\n", s);
+                            exit(1);
+                        }
+                        strcpy(name, s);
+                        getabspath(name, flags, buildpath[curr_build - 1], buildflags[curr_build - 1]);
+                        addendpath(name);
+                        strcpy(buildpath[curr_build], name);
+                        buildflags[curr_build] = flags;
 
-                s = strcpy(s0,name);
-                continue;
+                        getrelpath(name, flags, buildpath[curr_build - 1], buildflags[curr_build - 1], 0, 0);
+                        truncfilepath(name, 1);
+
+                        s = strcpy(s0, name);
+                        continue;
+                    }
+                    else
+                        if (stricmp(name, "DIRPOP") == 0)
+                        {
+                            int flags;
+                            s = strdel(s0, s);
+                            s = strins(s, "cd ", NULL);
+                            s += 3;
+                            while (isspace(*s)) ++s;
+                            s0 = s;
+                            flags = tokeneval(s, skip, pos, error, extra_cmd);
+                            if (--curr_build < 0)
+                            {
+                                printf("can't pop directory limit reached\r\n");
+                                exit(1);
+                            }
+                            strcpy(name, buildpath[curr_build]);
+                            getrelpath(name, buildflags[curr_build], buildpath[curr_build + 1], buildflags[curr_build + 1], 0, 0);
+                            truncfilepath(name, 1);
+
+                            s = strcpy(s0, name);
+                            continue;
+                        }
+                }
             }
         }
 		if ((extra_cmd != CMD_AUTOMAKE) && s[0]=='%' && s[1]=='(')
