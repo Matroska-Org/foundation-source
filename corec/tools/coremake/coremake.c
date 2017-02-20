@@ -135,6 +135,7 @@ typedef struct reader_static
 {
 	FILE* f;
 	int comment;
+    int ext_variable;
 	int no;
 	int flags;
     int filename_kind;
@@ -892,6 +893,22 @@ int reader_read(reader* p)
 					break;
 				}
 		}
+        else if (p->r.ext_variable)
+        {
+            char* s0 = s;
+            for (; *s; ++s)
+            {
+                p->token[p->r.ext_variable++] = *s;
+                if (!isname(*s) && *s != ')')
+                {
+                    s++;
+                    break;
+                }
+            }
+            p->token[p->r.ext_variable] = 0;
+            p->r.ext_variable = 0;
+            break;
+        }
 		else
 		{
 			while (*s && isspace(*s))
@@ -929,7 +946,14 @@ int reader_read(reader* p)
 				if (*s=='"')
 					++s;
 				break;
-			}
+            }
+            else
+            if (s[0] == '$' && s[1] == '(')
+            {
+                p->token[0] = *(s++);
+                p->token[1] = *(s++);
+                p->r.ext_variable = 2;
+            }
             else
             if (*s == '<')
             {
