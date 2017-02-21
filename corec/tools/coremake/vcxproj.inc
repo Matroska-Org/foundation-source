@@ -311,7 +311,7 @@ ELIF "%(LIMIT_INLINE)"
 ENDIF
 IF "%(FAVOR_MAX_SPEED)"
   PRINTNL       <EnableIntrinsicFunctions>true</EnableIntrinsicFunctions>
-  PRINTNL       <FavorSizeOrSpeed>1</FavorSizeOrSpeed>
+  PRINTNL       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
   PRINTNL       <OmitFramePointers>true</OmitFramePointers>
 ENDIF
 IF !DEFINED(IX86_64)
