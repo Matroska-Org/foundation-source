@@ -223,6 +223,7 @@ ENDIF
 IFNDEF COMPILER_CLANG
   PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
 ENDIF
+PRINTNL       <RuntimeTypeInfo>true</RuntimeTypeInfo>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
@@ -365,6 +366,7 @@ ENDIF
 IFNDEF COMPILER_CLANG
   PRINTNL       <MultiProcessorCompilation>true</MultiProcessorCompilation>
 ENDIF
+PRINTNL       <RuntimeTypeInfo>true</RuntimeTypeInfo>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_RELEASE:%=;%)</PreprocessorDefinitions>
