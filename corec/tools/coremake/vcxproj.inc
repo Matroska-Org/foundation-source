@@ -28,6 +28,11 @@ IF "%(VSVERSION)"=="8.00" || "%(VSVERSION)"=="9.00" || "%(VSVERSION)"=="14.00"
   ENDIF
 ENDIF
 
+//~ IFDEF COMPILER_CLANG
+  //~ DEFINE += __STDC_HOSTED__
+  //~ DEFINE += _CRT_USE_WINAPI_FAMILY_DESKTOP_APP
+//~ ENDIF
+
 HAS_IDL =
 FOR EACH SOURCE
   IF (%(>NAME)==idl)
@@ -143,7 +148,7 @@ PRINTNL   </PropertyGroup>
 PRINTNL   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_DEBUG)|%(TARGNAME)'">
 PRINTNL     <Midl>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
-PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%= ;%)%(@&INCLUDE_DEBUG:%= ;%)%(@&SYSINCLUDE:%= ;%) ;%(&TARGINC)%(@&CONFIG_INCLUDE:%= ;%)</AdditionalIncludeDirectories>
+PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%= ;%)%(@&INCLUDE:%= ;%)%(@&INCLUDE_DEBUG:%= ;%)%(@&SYSINCLUDE:%= ;%) ;%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <MkTypLibCompatible>false</MkTypLibCompatible>
 PRINTNL       <TypeLibraryName>$(TargetDir)$(ProjectName).tlb</TypeLibraryName>
 PRINTNL       <OutputDirectory>%(¯~!BUILDPATH)%(~§PATH)</OutputDirectory>
@@ -178,7 +183,7 @@ IF "%(HEADER_QT4)"!=""
   INCLUDE_DEBUG += %(¯|BUILDPATH)debug\%(PATH)GeneratedFiles
   INCLUDE_RELEASE += %(¯|BUILDPATH)release\%(PATH)GeneratedFiles
 ENDIF
-PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)%(@&CONFIG_INCLUDE:%=;%)</AdditionalIncludeDirectories>
+PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
 IF %(MANAGED_CLR)==""
   PRINTNL       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -227,7 +232,7 @@ PRINTNL       <RuntimeTypeInfo>true</RuntimeTypeInfo>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
-PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)%(@&CONFIG_INCLUDE:%=;%)</AdditionalIncludeDirectories>
+PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL     </ResourceCompile>
 IF %(TYPE)==LIB
   PRINTNL     <Lib>
@@ -294,7 +299,7 @@ PRINTNL   </ItemDefinitionGroup>
 PRINTNL   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_RELEASE)|%(TARGNAME)'">
 PRINTNL     <Midl>
 PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_RELEASE:%=;%)</PreprocessorDefinitions>
-PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%= ;%)%(@&INCLUDE_RELEASE:%= ;%)%(@&SYSINCLUDE:%= ;%) ;%(&TARGINC)%(@&CONFIG_INCLUDE:%= ;%)</AdditionalIncludeDirectories>
+PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%= ;%)%(@&INCLUDE:%= ;%)%(@&INCLUDE_RELEASE:%= ;%)%(@&SYSINCLUDE:%= ;%) ;%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <MkTypLibCompatible>false</MkTypLibCompatible>
 PRINTNL       <TypeLibraryName>$(TargetDir)$(ProjectName).tlb</TypeLibraryName>
 PRINTNL       <OutputDirectory>%(¯~!BUILDPATH)%(~§PATH)</OutputDirectory>
@@ -328,7 +333,7 @@ IF "%(HEADER_QT4)"!=""
   DEFINE += QT_NO_DEBUG
   DEFINE += QT_NO_DEBUG_OUTPUT
 ENDIF
-PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)%(@&CONFIG_INCLUDE:%=;%)</AdditionalIncludeDirectories>
+PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_RELEASE:%=;%)</PreprocessorDefinitions>
 PRINTNL       <StringPooling>true</StringPooling>
 IF !defined(TARGET_WINCE)
@@ -370,7 +375,7 @@ PRINTNL       <RuntimeTypeInfo>true</RuntimeTypeInfo>
 PRINTNL     </ClCompile>
 PRINTNL     <ResourceCompile>
 PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_RELEASE:%=;%)</PreprocessorDefinitions>
-PRINTNL       <AdditionalIncludeDirectories>%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)%(@&CONFIG_INCLUDE:%=;%)</AdditionalIncludeDirectories>
+PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL     </ResourceCompile>
 IF %(TYPE)==LIB
   PRINTNL     <Lib>
@@ -580,7 +585,7 @@ ELIF (%(>NAME)==c) && defined(MIPS) && ("%(TARGGCC)"!="") && %(gcc)
   PRINTNL           >
   PRINTNL           <Tool
   PRINTNL             Name="%(CUSTOM_TOOL)"
-  PRINTNL             CommandLine="%(TARGGCC) -DNDEBUG %(DEFINE:%=-D%) %(DEFINE_RELEASE:%=-D%) %(@INCLUDE:%=-I%) %(@CONFIG_INCLUDE:%=-I%) -S &quot;$(InputPath)&quot; -o&quot;$(IntDir)/$(InputName).S&quot;%(CMD_NEWLINE)mips2s &quot;$(IntDir)/$(InputName).S&quot;%(CMD_NEWLINE)mipsasm /QMmips32 /c &quot;$(IntDir)/$(InputName)_gcc.S&quot; /Fo&quot;$(IntDir)/$(InputName).obj&quot;%(CMD_NEWLINE)"
+  PRINTNL             CommandLine="%(TARGGCC) -DNDEBUG %(DEFINE:%=-D%) %(DEFINE_RELEASE:%=-D%) %(@CONFIG_INCLUDE:%=-I%) %(@INCLUDE:%=-I%) -S &quot;$(InputPath)&quot; -o&quot;$(IntDir)/$(InputName).S&quot;%(CMD_NEWLINE)mips2s &quot;$(IntDir)/$(InputName).S&quot;%(CMD_NEWLINE)mipsasm /QMmips32 /c &quot;$(IntDir)/$(InputName)_gcc.S&quot; /Fo&quot;$(IntDir)/$(InputName).obj&quot;%(CMD_NEWLINE)"
   PRINTNL             Outputs="$(IntDir)/$(InputName).obj"
   PRINTNL           />
   PRINTNL         </FileConfiguration>
