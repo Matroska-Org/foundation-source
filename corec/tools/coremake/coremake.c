@@ -2406,7 +2406,8 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
 
                             if (r.r.f)
                             {
-                                if (reader_line(&r))
+								strcpy(r.project_root, pro_root);
+								if (reader_line(&r))
                                 {
                                     if (stricmp(r.line,"8")!=0 && stricmp(r.line,"9")!=0 && stricmp(r.line,"10")!=0)
 				                        printf("unknown .svn/entries version '%s'\r\n",r.line);
@@ -4925,7 +4926,7 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
     reader_free(&r);
 }
 
-void build_file(item* p,const char* filename, int reader_flags);
+void build_file(item* p,const char* filename, int reader_flags, const char *pjr_root);
 int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 {
 	int bin;
@@ -4955,7 +4956,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
             reader_token(file);
 			reader_filename(file,FLAG_PATH_COREMAKE);
             if (!skip && !(file->r.flags & FLAG_NO_INCLUDE))
-                build_file(p, file->token, FLAG_PATH_COREMAKE);
+                build_file(p, file->token, FLAG_PATH_COREMAKE, file->project_root);
 		}
 		else
 		if (is_sharped && reader_istoken(file,"undef"))
@@ -5014,20 +5015,20 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
                 {
                     item* no_include = item_find(*config->child, "no_include");
                     set_path_type(config,FLAG_PATH_GENERATED);
-					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED | (no_include?FLAG_NO_INCLUDE:0));
+					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED | (no_include?FLAG_NO_INCLUDE:0), file->project_root);
                 }
 				config = item_get(getconfig(p),"COREMAKE_CONFIG_HELPER",0);
 				if (config && config->flags & FLAG_DEFINED)
 				{
 					strcpy(tmpstr,coremake_root);
 					strcat(tmpstr,"config_helper.h");
-					build_file(p,tmpstr, FLAG_PATH_COREMAKE);
+					build_file(p,tmpstr, FLAG_PATH_COREMAKE, file->project_root);
 				}
 				config = getroot(p,"config_cleaner");
 				if (getvalue(config))
                 {
                     set_path_type(config,FLAG_PATH_SOURCE);
-					build_file(p,getvalue(config)->value, FLAG_PATH_SOURCE);
+					build_file(p,getvalue(config)->value, FLAG_PATH_SOURCE, file->project_root);
                 }
 				preprocess(p, file->project_root);
 			}
@@ -5534,12 +5535,13 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 	return result;
 }
 
-void build_file(item* p,const char* filename, int reader_flags)
+void build_file(item* p,const char* filename, int reader_flags, const char *pjr_root)
 {
 	reader r;
     reader_init(&r);
 	strcpy(r.filename,filename);
 	pathunix(r.filename);
+	strcpy(r.project_root, pjr_root);
 	r.r.f = fopen(filename,"r");
 	r.pos = r.line;
 	if (!r.r.f)
@@ -5762,7 +5764,7 @@ int main(int argc, char** argv)
 	strcpy(buildpath[0],proj_root); //safety
     buildflags[0] = FLAG_PATH_GENERATED;
 	build = NULL;
-	build_file(root,path,FLAG_PATH_COREMAKE);
+	build_file(root,path,FLAG_PATH_COREMAKE, proj_root);
 	if (build)
 	{
 		fclose(build);
