@@ -1462,8 +1462,8 @@ itemcond* load_cond(item* item, reader* file, int force)
 	return p;
 }
 
-int load_file(item* p,const char* filename, int file_kind, itemcond* cond0, const char *root);
-int load_item(item* p,reader* file,int sub,itemcond* cond0)
+int load_file(item* root,const char* filename, int file_kind, itemcond* cond0, const char *root_path);
+int load_item(item* root,reader* file,int sub,itemcond* cond0)
 {
 	int result=0;
 	int has_statement = 0;
@@ -1499,13 +1499,13 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 						{
     						sprintf(file->token,"%s%s/%s.proj",path,entry->d_name,entry->d_name);
 							strip_path_abs(file->token, FLAG_PATH_GENERATED, file->project_root);
-                            if (!load_file(p,file->token,FLAG_PATH_SOURCE,cond0, file->project_root) && strrchr(entry->d_name,'-'))
+                            if (!load_file(root,file->token,FLAG_PATH_SOURCE,cond0, file->project_root) && strrchr(entry->d_name,'-'))
                             {
                                 // if it's a UNIX library name, try without the version
 						        char *empty = strrchr(file->token,'-');
                                 *empty = 0;
                                 strcat(file->token,".proj");
-                                load_file(p,file->token,FLAG_PATH_SOURCE,cond0, file->project_root);
+                                load_file(root,file->token,FLAG_PATH_SOURCE,cond0, file->project_root);
                             }
 						}
 					}
@@ -1516,7 +1516,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 			{
                 reader_token(file);
 				reader_filename(file,0);
-				load_file(p,file->token,FLAG_PATH_SOURCE,cond0, file->project_root);
+				load_file(root,file->token,FLAG_PATH_SOURCE,cond0, file->project_root);
 			}
 		}
 		else
@@ -1527,16 +1527,16 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 			int mode;
 			do
 			{
-				itemcond* cond = load_cond(p,file,1);
+				itemcond* cond = load_cond(root,file,1);
                 itemcond* cond1 = itemcond_and(itemcond_and(itemcond_dup(cond),cond0),condextra);
-				mode = load_item(p,file,2,cond1);
+				mode = load_item(root,file,2,cond1);
 				itemcond_delete(cond1);
 				if (mode==1)
 				{
 					itemcond* not1 = (itemcond*)itemcond_new(COND_NOT,NULL);
 					not1->a = itemcond_dup(cond);
                     not1 = itemcond_and(itemcond_and(not1,cond0),condextra);
-					load_item(p,file,3,not1);
+					load_item(root,file,3,not1);
 	    			itemcond_delete(not1);
 				}
                 else if (mode==2)
@@ -1603,10 +1603,10 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 			itemcond* cond;
 			reader_name(file);
 
-            deepercond = !p->parent && stricmp(file->token,"project")==0;
+            deepercond = !root->parent && stricmp(file->token,"project")==0;
 
             need_path = 0;
-            if (!p->parent)
+            if (!root->parent)
             {
                 for (target = 0; all_targets[target].name; target++)
                     if (stricmp(file->token, all_targets[target].name) == 0)
@@ -1694,7 +1694,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 						printf("CONFIG_FILE needs to be find in the .proj file %s:%d\r\n", file->filename, file->r.no);
 						exit(1);
 					}
-					p = item_get_or_add(p, "ROOT", 0);
+					root = item_get_or_add(root, "ROOT", 0);
 					reader_save(file, &new_root_reader);
 					strcpy(file->project_root, root_path);
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
@@ -1706,18 +1706,18 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 			if (stricmp(file->token,"config")==0)
 			{
 				config = 1;
-				j = getconfig(p);
+				j = getconfig(root);
 			}
 			else
-				j = item_get_or_add(p,file->token,0);
+				j = item_get_or_add(root,file->token,0);
 
-			cond = load_cond(p,file,0);
+			cond = load_cond(root,file,0);
 			cond = itemcond_and(cond,cond0);
 
 			if (cond && config)
 			{
 				item* v;
-				for (v=p;v;v=v->parent)
+				for (v=root;v;v=v->parent)
 					cond = itemcond_and(cond,v->cond);
 			}
 
@@ -1841,7 +1841,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
                         char path[MAX_PATH];
                         path[0]=0;
                         strins(path,file->filename,getfilename(file->filename));
-                        incs = item_get_or_add(p,"libinclude",0);
+                        incs = item_get_or_add(root,"libinclude",0);
                         exists = item_find(incs,path)!=NULL;
                         i = item_get_or_add(incs,path,0);
                         i->flags = file->r.filename_kind;
@@ -1882,7 +1882,7 @@ int load_item(item* p,reader* file,int sub,itemcond* cond0)
 	return result;
 }
 
-int load_file(item* p,const char* filename, int file_kind, itemcond* cond, const char *projt_root)
+int load_file(item* root,const char* filename, int file_kind, itemcond* cond, const char *projt_root)
 {
 	reader r;
     reader_init(&r);
@@ -1894,7 +1894,7 @@ int load_file(item* p,const char* filename, int file_kind, itemcond* cond, const
 	if (r.r.f)
 	{
         r.r.filename_kind = file_kind;
-		load_item(p,&r,0,cond);
+		load_item(root,&r,0,cond);
 		fclose(r.r.f);
         reader_free(&r);
 		return 1;
