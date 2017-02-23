@@ -3141,27 +3141,46 @@ void preprocess_project(item* p)
 	}
 }
 
+static item *find_group(item *root, const char *name)
+{
+	if (!root) return NULL;
+	item* base_groups = item_find_add(root, "group", 0);
+	item* result = item_find(base_groups, name);
+	if (result)
+		return result;
+
+	return find_group(item_find(root, ROOT_NAME), name);
+}
+
+static void preprocess_use_group_root(item *root, item *targets, item *target)
+{
+	size_t i;
+	item* use = item_find_add(target, "use", 0);
+	for (i = 0; i<item_childcount(use); ++i)
+	{
+		item *child = use->child[i];
+		item* group = find_group(root, child->value);
+		if (group)
+		{
+			merge_project(target, group, child);
+			item_delete(child);
+			--i; // process the same item again until there is no more 'group'
+		}
+	}
+}
+
 /* replace the "use" of a "group" by the content of the "group" */
 static void preprocess_use_group(item *root, const char *target_type)
 {
-	item** target;
-    item *targets = item_find(root, target_type);
+	item** child;
+	item* targets = item_find(root, target_type);
+	item* sub_root = item_find(root, ROOT_NAME);
+	if (sub_root)
+		preprocess_use_group(sub_root, target_type);
 	if (!targets) return;
-	for (target=targets->target;target!=targets->childend;++target)
+	for (child=targets->child;child!=targets->childend;++child)
 	{
-		size_t i;
-		item* use = item_find_add(*target,"use",0);
-		for (i=0;i<item_childcount(use);++i)
-		{
-			item *child = use->child[i];
-			item* group = item_find(item_find_in_root(targets,"group"),child->value);
-			if (group)
-			{
-				merge_project(*target,group,child);
-				item_delete(child);
-				--i; // process the same item again until there is no more 'group'
-			}
-		}
+		preprocess_use_group_root(root, targets, *child);
 	}
 }
 
