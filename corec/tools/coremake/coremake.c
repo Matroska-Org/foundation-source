@@ -264,19 +264,29 @@ static int item_is_root(const item *p)
 	return strcmp(p->value, ROOT_NAME) == 0;
 }
 
-static item* getroot(const item* p,const char* name)
+static const item* item_root(const item* p, int full)
 {
-	while (p->parent)
+	while (p->parent && (full || item_is_root(p)))
 		p = p->parent;
-	return item_find_add((item*)p,name,0);
+	return p;
+}
+
+static item* item_find_add_in_root(item* p,const char* name)
+{
+	return item_find_add((item*) item_root(p, 0),name,0);
+}
+
+static item* item_find_in_root(const item* p, const char* name, int full)
+{
+	return item_find(item_root(p, full), name);
 }
 
 static item* getconfig(item* p)
 {
-	return getroot(p,"config");
+	return item_find_add_in_root(p,"config");
 }
 
-item* getvalue(item* p)
+static item* getvalue(item* p)
 {
 	if (p)
 	{
@@ -334,7 +344,7 @@ item* findref(const item* p)
         size_t target;
         item* v = NULL;
         for (target = 0; !v && all_targets[target].name; target++)
-            v = item_find(getroot(p, all_targets[target].name), p->value);
+            v = item_find(item_find_in_root(p, all_targets[target].name, 0), p->value);
 		return v;
 	}
 	return NULL;
@@ -2251,7 +2261,7 @@ void preprocess_generate(item* p)
     if (!p) return;
     for (child = p->child; child != p->childend; ++child)
     {
-        item* outputpath = getvalue(getroot(*child, "outputpath"));
+        item* outputpath = getvalue(item_find_in_root(*child, "outputpath",1));
         item* outputdir = item_find(*child, "output_dir");
         strcpy(config_path, outputpath->value);
         if (outputdir)
@@ -2476,7 +2486,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
         			item* ref = findref(use->child[i]);
                     if (ref && stricmp(ref->parent->value,"dll")==0 && getvalue(item_find(ref,"nolib")))
                     {
-                        item* outputpath = getvalue(getroot(ref,"outputpath"));
+                        item* outputpath = getvalue(item_find_in_root(ref,"outputpath",1));
                         item* output = getvalue(item_find_add(ref,"output",0));
                         if (outputpath && outputpath->value && output && output->value)
                         {
@@ -3045,7 +3055,7 @@ void preprocess_usemerge(item* p)
 			if (dll && stricmp(dll->parent->value,"dll")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-                item* lib = item_find_add(getroot(p,"lib"),dll->value,0);
+                item* lib = item_find_add(item_find_add_in_root(p,"lib"),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3061,10 +3071,10 @@ void preprocess_usemerge(item* p)
                 if (use)
                     item_delete(use);
 
-				replace_use(getroot(p,"dll"),lib->value,*child);
-				replace_use(getroot(p,"lib"),lib->value,*child);
-				replace_use(getroot(p,"con"),lib->value,*child);
-				replace_use(getroot(p,"exe"),lib->value,*child);
+				replace_use(item_find_in_root(p,"dll", 0),lib->value,*child);
+				replace_use(item_find_in_root(p,"lib", 0),lib->value,*child);
+				replace_use(item_find_in_root(p,"con", 0),lib->value,*child);
+				replace_use(item_find_in_root(p,"exe", 0),lib->value,*child);
 
                 item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
@@ -3072,7 +3082,7 @@ void preprocess_usemerge(item* p)
 			if (dll && stricmp(dll->parent->value,"dll_csharp")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-                item* lib = item_find_add(getroot(p,"lib_csharp"),dll->value,0);
+                item* lib = item_find_add(item_find_add_in_root(p,"lib_csharp"),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3088,10 +3098,10 @@ void preprocess_usemerge(item* p)
                 if (use)
                     item_delete(use);
 
-				replace_use(getroot(p,"dll_csharp"),lib->value,*child);
-				replace_use(getroot(p,"lib_csharp"),lib->value,*child);
-				replace_use(getroot(p,"con_csharp"),lib->value,*child);
-				replace_use(getroot(p,"exe_csharp"),lib->value,*child);
+				replace_use(item_find_in_root(p,"dll_csharp", 0),lib->value,*child);
+				replace_use(item_find_in_root(p,"lib_csharp", 0),lib->value,*child);
+				replace_use(item_find_in_root(p,"con_csharp", 0),lib->value,*child);
+				replace_use(item_find_in_root(p,"exe_csharp", 0),lib->value,*child);
 
                 item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
@@ -3144,7 +3154,7 @@ static void preprocess_use_group(item *root, const char *target_type)
 		for (i=0;i<item_childcount(use);++i)
 		{
 			item *child = use->child[i];
-			item* group = item_find(getroot(targets,"group"),child->value);
+			item* group = item_find(item_find_in_root(targets,"group"),child->value);
 			if (group)
 			{
 				merge_project(*target,group,child);
@@ -3226,7 +3236,7 @@ void preprocess_builtlib(item* p)
             preprocess_dependency_include(p->child[i],item_find_add(p->child[i],"use",0),1,0);
 
             for (target = 0; all_targets[target].name; target++)
-                preprocess_uselib(getroot(p, all_targets[target].name),p->child[i],value);
+                preprocess_uselib(item_find_in_root(p, all_targets[target].name,0),p->child[i],value);
 			item_delete(p->child[i]);
 			--i;
         }
@@ -3657,7 +3667,7 @@ void preprocess(item* p, const char *pr_root)
 
     // add the path with config.h to CONFIG_INCLUDE
     i = item_find_add(p,"config_include",0);
-    config_file = getvalue(getroot(p,"config_file"));
+    config_file = getvalue(item_find_in_root(p,"config_file", 0));
     if (config_file)
         strcpy(config_path,config_file->value);
     else
@@ -3669,8 +3679,8 @@ void preprocess(item* p, const char *pr_root)
     i->flags |= FLAG_PATH_GENERATED;
 
 	// add the path of the CONFIG_CLEANER file to CONFIG_INCLUDE
-	i = getroot(p,"config_cleaner");
-	if (getvalue(i))
+	i = item_find_in_root(p,"config_cleaner", 0);
+	if (i && getvalue(i))
     {
 		strcpy(config_path,getvalue(i)->value);
 		truncfilepath(config_path,0);
@@ -3686,7 +3696,7 @@ void preprocess(item* p, const char *pr_root)
 	}
 
     // "GROUP con_to_exe": replaces all "con" by "exe" and add "USE con_to_exe"
-    con_to_exe = getvalue(item_find(item_find(getroot(p,"group"),"con_to_exe"),"source"));
+    con_to_exe = getvalue(item_find(item_find(item_find_in_root(p,"group",0),"con_to_exe"),"source"));
 	if (con_to_exe)
 	{
 		i = item_find(p,"con");
@@ -4956,22 +4966,22 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		{
 			if (!skip)
 			{
-				item* config = getroot(p,"config_file");
-				if (getvalue(config))
+				item* config = item_find_in_root(p,"config_file", 0);
+				if (config && getvalue(config))
                 {
                     item* no_include = item_find(*config->child, "no_include");
                     set_path_type(config,FLAG_PATH_GENERATED);
 					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED | (no_include?FLAG_NO_INCLUDE:0), file->project_root);
                 }
-				config = item_find_add(getconfig(p),"COREMAKE_CONFIG_HELPER",0);
+				config = item_find(getconfig(p),"COREMAKE_CONFIG_HELPER");
 				if (config && config->flags & FLAG_DEFINED)
 				{
 					strcpy(tmpstr,coremake_root);
 					strcat(tmpstr,"config_helper.h");
 					build_file(p,tmpstr, FLAG_PATH_COREMAKE, file->project_root);
 				}
-				config = getroot(p,"config_cleaner");
-				if (getvalue(config))
+				config = item_find_in_root(p,"config_cleaner", 0);
+				if (config && getvalue(config))
                 {
                     set_path_type(config,FLAG_PATH_SOURCE);
 					build_file(p,getvalue(config)->value, FLAG_PATH_SOURCE, file->project_root);
@@ -5664,7 +5674,7 @@ int main(int argc, char** argv)
 	i = item_find_add(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
-	i = getvalue(getroot(root,"platform_files"));
+	i = getvalue(item_find_add(root,"platform_files",0));
 	if (i)
 	{
 		if (ispathabs(i->value) || !ispathabs(src_root))
