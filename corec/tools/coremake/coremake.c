@@ -257,13 +257,13 @@ int compare_name(const item* a, const item* b)
 	return stricmp(a->value,b->value)>0;
 }
 
-static item* item_get_or_add(item* parent,const char* value,int defined);
+static item* item_find_add(item* parent,const char* value,int defined);
 
 static item* getroot(const item* p,const char* name)
 {
 	while (p->parent)
 		p = p->parent;
-	return item_get_or_add((item*)p,name,0);
+	return item_find_add((item*)p,name,0);
 }
 
 static item* getconfig(item* p)
@@ -292,7 +292,7 @@ void setvalue(item* p,const char* value)
             return;
         v->flags |= FLAG_REMOVED;
     }
-    item_get_or_add(p,value,1);
+    item_find_add(p,value,1);
 }
 
 struct target_def {
@@ -350,11 +350,11 @@ int compare_use(const item* a, const item* b)
 		size_t i;
 		item* use;
 
-		use = item_get_or_add(refb,"use",0);
+		use = item_find_add(refb,"use",0);
 		for (i=0;i<item_childcount(use);++i)
 			if (refa == findref(use->child[i]))
 			{
-				use = item_get_or_add(refa,"use",0);
+				use = item_find_add(refa,"use",0);
 				for (i=0;i<item_childcount(use);++i)
 					if (refb == findref(use->child[i]))
 					{
@@ -374,11 +374,11 @@ int precompare_use(const item* refa, const item* refb)
 	size_t i;
 	item* use;
 
-	use = item_get_or_add((item*)refb,"use",0);
+	use = item_find_add((item*)refb,"use",0);
 	for (i=0;i<item_childcount(use);++i)
 		if (refa == findref(use->child[i]))
 		{
-			use = item_get_or_add((item*)refa,"use",0);
+			use = item_find_add((item*)refa,"use",0);
 			for (i=0;i<item_childcount(use);++i)
 				if (refb == findref(use->child[i]))
 				{
@@ -416,7 +416,7 @@ void item_sort(item* p,int(*compare)(const item*, const item*))
 	}
 }
 
-static item* item_get_or_add(item* parent,const char* value,int defined)
+static item* item_find_add(item* parent,const char* value,int defined)
 {
 	item* p = item_find(parent,value);
 	if (!p)
@@ -626,7 +626,7 @@ static item* item_getmerge(item* p,const item* child,int removed,int *existed)
 	dup = item_find(p,child->value);
 	*existed = dup != NULL;
 	if (!dup)
-		dup = item_get_or_add(p,child->value,(child->flags & FLAG_DEFINED)==FLAG_DEFINED);
+		dup = item_find_add(p,child->value,(child->flags & FLAG_DEFINED)==FLAG_DEFINED);
     if (((child->flags & FLAG_REMOVED) || removed) && (!*existed || (dup->flags & FLAG_REMOVED)))
         dup->flags |= FLAG_REMOVED;
     else
@@ -1352,7 +1352,7 @@ itemcond* load_cond2(reader* file,item* config)
 		if (reader_istoken(file,")"))
 			syntax(file);
 		reader_name(file);
-		p = itemcond_new(COND_GET,item_get_or_add(config,file->token,0));
+		p = itemcond_new(COND_GET,item_find_add(config,file->token,0));
 	}
 	return p;
 }
@@ -1637,7 +1637,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 						printf("CONFIG_FILE needs to be find in the .proj file %s:%d\r\n", file->filename, file->r.no);
 						exit(1);
 					}
-					root = item_get_or_add(root, ROOT_NAME, 0);
+					root = item_find_add(root, ROOT_NAME, 0);
 					reader_save(file, &new_root_reader);
 					strcpy(file->project_root, root_path);
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
@@ -1652,7 +1652,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 				j = getconfig(root);
 			}
 			else
-				j = item_get_or_add(root,file->token,0);
+				j = item_find_add(root,file->token,0);
 
 			cond = load_cond(root,file,0);
 			cond = itemcond_and(cond,cond0);
@@ -1668,13 +1668,13 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 			{
 				if (sub != 1)
 					syntax(file);
-				item_get_or_add(j,"1",1);
+				item_find_add(j,"1",1);
 				break;
 			}
 
 			if (reader_istoken(file,",") || reader_istoken(file,";"))
 			{
-				item_get_or_add(j,"1",1);
+				item_find_add(j,"1",1);
 			}
 			else
 			if (reader_istoken(file,"{"))
@@ -1703,7 +1703,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                     }
 
                     exists = item_find(j,file->token)!=NULL;
-					i = item_get_or_add(j,file->token,0);
+					i = item_find_add(j,file->token,0);
                     if (attrib)
                         i->flags |= FLAG_ATTRIB;
                     if (is_abs)
@@ -1721,7 +1721,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 					if (need_path)
 					{
 						char path[MAX_PATH];
-						item *v = item_get_or_add(i,"PATH",0);
+						item *v = item_find_add(i,"PATH",0);
                         item *j;
 
                         if (exists)
@@ -1741,7 +1741,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                         else
                             strins(path,src_root,NULL);
 
-						j = item_get_or_add(v,path,1);
+						j = item_find_add(v,path,1);
                         if (generated_dir)
                             set_path_type(j,FLAG_PATH_GENERATED);
                         else if (coremake_dir)
@@ -1750,22 +1750,22 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                             set_path_type(j,FLAG_PATH_SOURCE);
 
                         // pre-define some items
-						item_get_or_add(i,"OUTPUT",0);
-						item_get_or_add(i,"EXPINCLUDE",0);
-						item_get_or_add(i,"SUBINCLUDE",0);
-						item_get_or_add(i,"SYSINCLUDE",0);
-						item_get_or_add(i,"LIBINCLUDE",0);
-						item_get_or_add(i,"LIBINCLUDE_DEBUG",0);
-						item_get_or_add(i,"LIBINCLUDE_RELEASE",0);
-						item_get_or_add(i,"INCLUDE",0);
-						item_get_or_add(i,"INCLUDE_DEBUG",0);
-						item_get_or_add(i,"INCLUDE_RELEASE",0);
-						item_get_or_add(i,"EXPDEFINE",0);
-						item_get_or_add(i,"DEFINE",0);
-						item_get_or_add(i,"LIBS",0);
-						item_get_or_add(i,"LIBS_DEBUG",0);
-						item_get_or_add(i,"LIBS_RELEASE",0);
-						item_get_or_add(i,"SYSLIBS",0);
+						item_find_add(i,"OUTPUT",0);
+						item_find_add(i,"EXPINCLUDE",0);
+						item_find_add(i,"SUBINCLUDE",0);
+						item_find_add(i,"SYSINCLUDE",0);
+						item_find_add(i,"LIBINCLUDE",0);
+						item_find_add(i,"LIBINCLUDE_DEBUG",0);
+						item_find_add(i,"LIBINCLUDE_RELEASE",0);
+						item_find_add(i,"INCLUDE",0);
+						item_find_add(i,"INCLUDE_DEBUG",0);
+						item_find_add(i,"INCLUDE_RELEASE",0);
+						item_find_add(i,"EXPDEFINE",0);
+						item_find_add(i,"DEFINE",0);
+						item_find_add(i,"LIBS",0);
+						item_find_add(i,"LIBS_DEBUG",0);
+						item_find_add(i,"LIBS_RELEASE",0);
+						item_find_add(i,"SYSLIBS",0);
 					}
 
                     if (!deepercond)
@@ -1784,9 +1784,9 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                         char path[MAX_PATH];
                         path[0]=0;
                         strins(path,file->filename,getfilename(file->filename));
-                        incs = item_get_or_add(root,"libinclude",0);
+                        incs = item_find_add(root,"libinclude",0);
                         exists = item_find(incs,path)!=NULL;
-                        i = item_get_or_add(incs,path,0);
+                        i = item_find_add(incs,path,0);
                         i->flags = file->r.filename_kind;
                         if (exists)
                             i->cond = itemcond_or(i->cond,cond);
@@ -1801,7 +1801,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                         if (sscanf(file->token,"%d",&pri)!=1)
                             syntax(file);
 
-                        item_get_or_add(item_get_or_add(i,"priority",0),file->token,1);
+                        item_find_add(item_find_add(i,"priority",0),file->token,1);
                     }
 
 					if (reader_istoken(file,"{"))
@@ -2005,7 +2005,7 @@ void preprocess_dependency_project(item* p)
 	{
 		// remove not exising dependencies
 		size_t i;
-		item* use = item_get_or_add(p,"use",0);
+		item* use = item_find_add(p,"use",0);
 
 		p->flags |= FLAG_PROCESSED;
 
@@ -2158,10 +2158,10 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root)
 		item* plugin = getvalue(item_find(*child,"plugin"));
 		item* no_stdafx = getvalue(item_find(*child,"no_stdafx"));
 		item* no_project = getvalue(item_find(*child,"no_project"));
-		item* cls = item_get_or_add(*child,"class",0);
-		item* reg = item_get_or_add(*child,"reg",0);
-		item* path = getvalue(item_get_or_add(*child,"path",0));
-        item *include = item_get_or_add(*child,"include",0);
+		item* cls = item_find_add(*child,"class",0);
+		item* reg = item_find_add(*child,"reg",0);
+		item* path = getvalue(item_find_add(*child,"path",0));
+        item *include = item_find_add(*child,"include",0);
 
         if (!path)
             continue;
@@ -2193,10 +2193,10 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root)
             item *add_inc;
 
             sprintf(file,"%s%s_project.h",gen_path,(*child)->value);
-			src = item_get_or_add(item_get_or_add(*child,"header",0),file,1);
+			src = item_find_add(item_find_add(*child,"header",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
 
-            add_inc = item_get_or_add(include,gen_path,0);
+            add_inc = item_find_add(include,gen_path,0);
             set_path_type(add_inc,FLAG_PATH_GENERATED);
             add_inc->flags |= FLAG_ATTRIB;
 		}
@@ -2209,10 +2209,10 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root)
             item *add_inc;
 
             sprintf(file,"%s%s_host.h",gen_path,(*child)->value);
-			src = item_get_or_add(item_get_or_add(*child,"header",0),file,1);
+			src = item_find_add(item_find_add(*child,"header",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
 
-            add_inc = item_get_or_add(include,gen_path,0);
+            add_inc = item_find_add(include,gen_path,0);
             set_path_type(add_inc,FLAG_PATH_GENERATED);
             add_inc->flags |= FLAG_ATTRIB;
         }
@@ -2224,21 +2224,21 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root)
 			char file[MAX_PATH];
             item *add_inc;
 
-            src = item_get_or_add(item_get_or_add(*child,"expinclude",0),gen_path,1);
+            src = item_find_add(item_find_add(*child,"expinclude",0),gen_path,1);
             set_path_type(src,FLAG_PATH_GENERATED);
 			sprintf(file,"%s%s_stdafx.c",gen_path,(*child)->value);
-			src = item_get_or_add(item_get_or_add(*child,"source",0),file,1);
+			src = item_find_add(item_find_add(*child,"source",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
-            src = item_get_or_add(src,"NO_PCH",1);
-            item_get_or_add(src,".",1);
+            src = item_find_add(src,"NO_PCH",1);
+            item_find_add(src,".",1);
 
-            add_inc = item_get_or_add(include,gen_path,0);
+            add_inc = item_find_add(include,gen_path,0);
             set_path_type(add_inc,FLAG_PATH_GENERATED);
             add_inc->flags |= FLAG_ATTRIB;
 
 			/* add _stdafx.h */
 			sprintf(file,"%s%s_stdafx.h",gen_path,(*child)->value);
-			src = item_get_or_add(item_get_or_add(*child,"header",0),file,1);
+			src = item_find_add(item_find_add(*child,"header",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
         }
 	}
@@ -2256,7 +2256,7 @@ void preprocess_generate(item* p)
         strcpy(config_path, outputpath->value);
         if (outputdir)
             strcat(config_path, getvalue(outputdir)->value);
-        i = item_get_or_add(item_get_or_add(*p->child, "expinclude", 0), config_path, 1);
+        i = item_find_add(item_find_add(*p->child, "expinclude", 0), config_path, 1);
         set_path_type(i, FLAG_PATH_GENERATED);
     }
 }
@@ -2269,8 +2269,8 @@ void preprocess_automake(item* p, const char *pj_root)
     {
         size_t i;
         char gen_path[MAX_PATH];
-        item* path = getvalue(item_get_or_add(*child, "path", 0));
-        item* src_am = item_get_or_add(*child, "sourceam", 0);
+        item* path = getvalue(item_find_add(*child, "path", 0));
+        item* src_am = item_find_add(*child, "sourceam", 0);
 
         if (!path)
             continue;
@@ -2291,7 +2291,7 @@ void preprocess_automake(item* p, const char *pj_root)
             truncfilename(s);
             sprintf(file, "%s%s", gen_path, s);
             free(s);
-            src = item_get_or_add(item_get_or_add(*child, "source", 0), file, 1);
+            src = item_find_add(item_find_add(*child, "source", 0), file, 1);
             set_path_type(src, FLAG_PATH_GENERATED);
 
             compile_file(src, (src_am->child[i])->value, file, FLAG_PATH_GENERATED, &compile_pos, 1);
@@ -2310,15 +2310,15 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
         char gen_path[MAX_PATH];
 		item* plugin = getvalue(item_find(*child,"plugin"));
 		item* no_stdafx = getvalue(item_find(*child,"no_stdafx"));
-		item* cls = item_get_or_add(*child,"class",0);
-		item* reg = item_get_or_add(*child,"reg",0);
+		item* cls = item_find_add(*child,"class",0);
+		item* reg = item_find_add(*child,"reg",0);
 		item* use = item_find(*child,"use");
 		item* usebuilt = item_find(*child,"usebuilt");
-		item* path = getvalue(item_get_or_add(*child,"path",0));
-		item* src = item_get_or_add(*child,"source",0);
-		item* libs = item_get_or_add(*child,"libs",0);
-		item* syslibs = item_get_or_add(*child,"syslibs",0);
-		item* install = item_get_or_add(*child,"install",0);
+		item* path = getvalue(item_find_add(*child,"path",0));
+		item* src = item_find_add(*child,"source",0);
+		item* libs = item_find_add(*child,"libs",0);
+		item* syslibs = item_find_add(*child,"syslibs",0);
+		item* install = item_find_add(*child,"install",0);
 		item* uselib = item_find(*child,"uselib");
 
         if (path)
@@ -2359,7 +2359,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
                                     {
                                         if (reader_line(&r) && reader_line(&r) && reader_line(&r))
                                         {
-                                            item* build=item_get_or_add(*child,"PROJECT_BUILD",1);
+                                            item* build=item_find_add(*child,"PROJECT_BUILD",1);
                                             item** j;
 		                                    for (j=build->child;j!=build->childend;++j)
                                                 if (itemcond_partof((*k)->cond,(*j)->cond))
@@ -2371,7 +2371,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
 
                                             if (j==build->childend)
                                             {
-                                                item* line = item_get_or_add(build,r.line,1);
+                                                item* line = item_find_add(build,r.line,1);
                                                 line->cond = itemcond_dup((*k)->cond);
                                                 preprocess_condeval(line);
                                             }
@@ -2412,7 +2412,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
 			item* ref = findref(use->child[i]);
 			if (ref && stricmp(ref->parent->value,"lib")==0)
 			{
-				item* src = item_get_or_add(ref,"source",0);
+				item* src = item_find_add(ref,"source",0);
         		item* uselib = item_find(*child,"uselib");
 
 				for (j=0;j<item_childcount(src);++j)
@@ -2442,7 +2442,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
 			item* ref = findref(usebuilt->child[i]);
 			if (ref && stricmp(ref->parent->value,"lib")==0)
 			{
-				item* src = item_get_or_add(ref,"source",0);
+				item* src = item_find_add(ref,"source",0);
         		item* uselib = item_find(*child,"uselib");
 
 				for (j=0;j<item_childcount(src);++j)
@@ -2468,7 +2468,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
 
         if (item_find(getconfig(p),"RESOURCE_COREC"))
         {
-        	if (item_get_or_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED)
+        	if (item_find_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED)
             {
                 // make resource out of plugin/driver dll files
 		        for (i=0;i<item_childcount(use);++i)
@@ -2477,7 +2477,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
                     if (ref && stricmp(ref->parent->value,"dll")==0 && getvalue(item_find(ref,"nolib")))
                     {
                         item* outputpath = getvalue(getroot(ref,"outputpath"));
-                        item* output = getvalue(item_get_or_add(ref,"output",0));
+                        item* output = getvalue(item_find_add(ref,"output",0));
                         if (outputpath && outputpath->value && output && output->value)
                         {
                             item* tmp, *out;
@@ -2485,8 +2485,8 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
                     	    strcpy(path,outputpath->value);
                             addendpath(path);
                             strcat(path,output->value);
-                            tmp = item_get_or_add(ref,"__tmp",1);
-                            out = item_get_or_add(tmp,path,1);
+                            tmp = item_find_add(ref,"__tmp",1);
+                            out = item_find_add(tmp,path,1);
                             set_path_type(out,outputpath->flags & FLAG_PATH_MASK);
                             item_merge(install,tmp,use->child[i]);
                         }
@@ -2497,7 +2497,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
             if (item_childcount(install))
             {
                 itemcond* cond = itemcond_new(COND_GET,item_find(getconfig(p),"RESOURCE_COREC"));
-                item* v = item_get_or_add(*child,"install_resource",0);
+                item* v = item_find_add(*child,"install_resource",0);
     		    item_merge(v,install,NULL);
     		    for (i=0;i<item_childcount(v);++i)
                 {
@@ -2509,7 +2509,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
                     free(v->child[i]->value);
     			    v->child[i]->value = strdup(name);
                     v->child[i]->flags |= FLAG_ATTRIB;
-                    item_get_or_add(item_get_or_add(v->child[i],"priority",1),"1",1);
+                    item_find_add(item_find_add(v->child[i],"priority",1),"1",1);
                     v->child[i]->cond = itemcond_and(v->child[i]->cond,cond);
                 }
                 item_merge(cls,v,NULL);
@@ -2827,21 +2827,21 @@ void preprocess_dependency_include(item* base, item* list, int keep_exp_inc, int
             ref->stamp = stamp;
 
 			// add to "expinclude" to "include" or "expinclude"
-            item_merge(item_get_or_add(base,keep_exp_inc?"expinclude":"include",0),item_find(ref,"expinclude"),list->child[i]);
+            item_merge(item_find_add(base,keep_exp_inc?"expinclude":"include",0),item_find(ref,"expinclude"),list->child[i]);
 			// also merge "subinclude"
-			item_merge(item_get_or_add(base,"subinclude",0),item_find(ref,"subinclude"),list->child[i]);
+			item_merge(item_find_add(base,"subinclude",0),item_find(ref,"subinclude"),list->child[i]);
 			// also merge "sysinclude"
-			item_merge(item_get_or_add(base,"sysinclude",0),item_find(ref,"sysinclude"),list->child[i]);
+			item_merge(item_find_add(base,"sysinclude",0),item_find(ref,"sysinclude"),list->child[i]);
 			// also merge "linkfile"
-			item_merge(item_get_or_add(base,"linkfile",0),item_find(ref,"linkfile"),list->child[i]);
+			item_merge(item_find_add(base,"linkfile",0),item_find(ref,"linkfile"),list->child[i]);
 			// also merge "crt0"
-			item_merge(item_get_or_add(base,"crt0",0),item_find(ref,"crt0"),list->child[i]);
+			item_merge(item_find_add(base,"crt0",0),item_find(ref,"crt0"),list->child[i]);
 			// also merge "expdefine" to "define" or "expdefine"
             if (!discard_exp_def)
-			    item_merge(item_get_or_add(base,"define",0),item_find(ref,"expdefine"),list->child[i]);
+			    item_merge(item_find_add(base,"define",0),item_find(ref,"expdefine"),list->child[i]);
 
-            preprocess_dependency_include(base,item_get_or_add(ref,"useinclude",0),keep_exp_inc,1);
-            preprocess_dependency_include(base,item_get_or_add(ref,"use",0),keep_exp_inc,0);
+            preprocess_dependency_include(base,item_find_add(ref,"useinclude",0),keep_exp_inc,1);
+            preprocess_dependency_include(base,item_find_add(ref,"use",0),keep_exp_inc,0);
 		}
 	}
 }
@@ -2859,8 +2859,8 @@ void preprocess_dependency_init(item* p,int onlysource)
 		(*child)->flags &= ~FLAG_PROCESSED;
 
         ++stamp;
-        preprocess_dependency_include(*child,item_get_or_add(*child,"useinclude",0),0,1);
-        preprocess_dependency_include(*child,item_get_or_add(*child,"use",0),0,0);
+        preprocess_dependency_include(*child,item_find_add(*child,"useinclude",0),0,1);
+        preprocess_dependency_include(*child,item_find_add(*child,"use",0),0,0);
 
 		list = item_find(*child,"source");
 		for (i=0;i<item_childcount(list);++i)
@@ -2907,20 +2907,20 @@ void preprocess_workspace_adddep(item* workspace_use,item* p)
 	if (ref && !(ref->flags & FLAG_REMOVED))
 	{
 		size_t i;
-		item* use = item_get_or_add(ref,"use",0);
+		item* use = item_find_add(ref,"use",0);
 		for (i=0;i<item_childcount(use);++i)
 			if (!(use->child[i]->flags & FLAG_REMOVED))
 			{
-				item* dep = item_get_or_add(workspace_use,use->child[i]->value,1);
+				item* dep = item_find_add(workspace_use,use->child[i]->value,1);
 				if (!(dep->flags & FLAG_PROCESSED))
 					preprocess_workspace_adddep(workspace_use,dep);
 			}
 
-		use = item_get_or_add(ref,"dep",0);
+		use = item_find_add(ref,"dep",0);
 		for (i=0;i<item_childcount(use);++i)
 			if (!(use->child[i]->flags & FLAG_REMOVED))
 			{
-				item* dep = item_get_or_add(workspace_use,use->child[i]->value,1);
+				item* dep = item_find_add(workspace_use,use->child[i]->value,1);
 				if (!(dep->flags & FLAG_PROCESSED))
 					preprocess_workspace_adddep(workspace_use,dep);
 			}
@@ -2940,7 +2940,7 @@ void preprocess_workspace(item* p)
 	item** child;
 	for (child=p->child;child!=p->childend;++child)
 	{
-		item* use = item_get_or_add(*child,"use",0);
+		item* use = item_find_add(*child,"use",0);
 		size_t i;
 		for (i=0;i<item_childcount(use);++i)
 			use->child[i]->flags &= ~FLAG_PROCESSED;
@@ -2968,7 +2968,7 @@ void preprocess_workspace(item* p)
 		else
 		{
 			// copy all the FRAMEWORK of each (use) into the WORKSPACE (*child)
-			item *frameworks = item_get_or_add(*child,"framework",0);
+			item *frameworks = item_find_add(*child,"framework",0);
 			for (i=0;i<item_childcount(use);++i)
 			{
 				item* ref = findref(use->child[i]);
@@ -2986,7 +2986,7 @@ static void merge_project(item* target,item* source,item* filter)
 {
 	size_t j;
 
-    item* tmp = item_get_or_add(NULL,"tmp",0);
+    item* tmp = item_find_add(NULL,"tmp",0);
 
 	item_add(tmp,item_find(source,"path"));
 
@@ -3005,7 +3005,7 @@ void replace_use(item* p,const char* remove,item* set)
 	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
-		item* use = item_get_or_add(*child,"use",0);
+		item* use = item_find_add(*child,"use",0);
 		item* a = item_find(use,remove);
 		if (a && !(a->flags & FLAG_REMOVED))
 		{
@@ -3020,12 +3020,12 @@ void replace_use(item* p,const char* remove,item* set)
                     if ((*child)->parent && stricmp((*child)->parent->value,"lib")==0)
                         continue;
 
-					item_get_or_add(item_get_or_add(set,"dep",0),(*child)->value,1);
+					item_find_add(item_find_add(set,"dep",0),(*child)->value,1);
 					item_delete(setuse);
 				}
 
                 // replace use
-				item_get_or_add(use,set->value,1);
+				item_find_add(use,set->value,1);
 			}
 		}
 	}
@@ -3038,14 +3038,14 @@ void preprocess_usemerge(item* p)
 	for (child=p->child;child!=p->childend;++child)
 	{
 		size_t i;
-		item* merge = item_get_or_add(*child,"usemerge",0);
+		item* merge = item_find_add(*child,"usemerge",0);
 		for (i=0;i<item_childcount(merge);++i)
 		{
 			item* dll = findref(merge->child[i]);
 			if (dll && stricmp(dll->parent->value,"dll")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-                item* lib = item_get_or_add(getroot(p,"lib"),dll->value,0);
+                item* lib = item_find_add(getroot(p,"lib"),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3053,11 +3053,11 @@ void preprocess_usemerge(item* p)
 		        item_merge(lib,dll,merge->child[i]);
                 item_delete(dll);
 
-                use = item_find(item_get_or_add(lib,"use",0),(*child)->value);
+                use = item_find(item_find_add(lib,"use",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
-                use = item_find(item_get_or_add(lib,"usebuilt",0),(*child)->value);
+                use = item_find(item_find_add(lib,"usebuilt",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
@@ -3066,13 +3066,13 @@ void preprocess_usemerge(item* p)
 				replace_use(getroot(p,"con"),lib->value,*child);
 				replace_use(getroot(p,"exe"),lib->value,*child);
 
-                item_get_or_add(item_get_or_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
+                item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
             else
 			if (dll && stricmp(dll->parent->value,"dll_csharp")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-                item* lib = item_get_or_add(getroot(p,"lib_csharp"),dll->value,0);
+                item* lib = item_find_add(getroot(p,"lib_csharp"),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3080,11 +3080,11 @@ void preprocess_usemerge(item* p)
 		        item_merge(lib,dll,merge->child[i]);
                 item_delete(dll);
 
-                use = item_find(item_get_or_add(lib,"use",0),(*child)->value);
+                use = item_find(item_find_add(lib,"use",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
-                use = item_find(item_get_or_add(lib,"usebuilt",0),(*child)->value);
+                use = item_find(item_find_add(lib,"usebuilt",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
@@ -3093,7 +3093,7 @@ void preprocess_usemerge(item* p)
 				replace_use(getroot(p,"con_csharp"),lib->value,*child);
 				replace_use(getroot(p,"exe_csharp"),lib->value,*child);
 
-                item_get_or_add(item_get_or_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
+                item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
 		}
 	}
@@ -3111,7 +3111,7 @@ void preprocess_outputname(item* p,const char* outputname)
 			preprocess_setremoved(*child);
 		else
 		if (!getvalue(item_find(*child,"output")))
-			item_get_or_add(item_get_or_add(*child,"output",0),output->value,1);
+			item_find_add(item_find_add(*child,"output",0),output->value,1);
 	}
 }
 
@@ -3134,20 +3134,21 @@ void preprocess_project(item* p)
 /* replace the "use" of a "group" by the content of the "group" */
 static void preprocess_use_group(item *root, const char *target_type)
 {
-	item** child;
+	item** target;
     item *targets = item_find(root, target_type);
 	if (!targets) return;
-	for (child=targets->child;child!=targets->childend;++child)
+	for (target=targets->target;target!=targets->childend;++target)
 	{
 		size_t i;
-		item* use = item_get_or_add(*child,"use",0);
+		item* use = item_find_add(*target,"use",0);
 		for (i=0;i<item_childcount(use);++i)
 		{
-			item* group = item_find(getroot(targets,"group"),use->child[i]->value);
+			item *child = use->child[i];
+			item* group = item_find(getroot(targets,"group"),child->value);
 			if (group)
 			{
-				merge_project(*child,group,use->child[i]);
-				item_delete(use->child[i]);
+				merge_project(*target,group,child);
+				item_delete(child);
 				--i; // process the same item again until there is no more 'group'
 			}
 		}
@@ -3162,47 +3163,47 @@ void preprocess_uselib(item* p,item* ref,item* uselib)
         if (!((*child)->flags & FLAG_REMOVED))
 	    {
 		    size_t i;
-		    item* use = item_get_or_add(*child,"use",0);
+		    item* use = item_find_add(*child,"use",0);
 		    for (i=0;i<item_childcount(use);++i)
 		    {
 			    if (stricmp(use->child[i]->value,ref->value)==0)
 			    {
                     size_t j;
-		            item* src = item_get_or_add(ref,"source",0);
+		            item* src = item_find_add(ref,"source",0);
 		            for (j=0;j<item_childcount(src);++j)
 		            {
                         char path[MAX_PATH];
                         strcpy(path,src->child[j]->value);
                         truncfileext(path);
                         if (stricmp(path,"rc")==0)
-    			            item_merge(item_get_or_add(item_get_or_add(*child,"source",0),src->child[j]->value,1),src->child[j],use->child[i]);
+    			            item_merge(item_find_add(item_find_add(*child,"source",0),src->child[j]->value,1),src->child[j],use->child[i]);
 
-			            item_merge(item_get_or_add(*child,"reg",0),item_find(src->child[j],"reg"),use->child[i]);
-			            item_merge(item_get_or_add(*child,"class",0),item_find(src->child[j],"class"),use->child[i]);
+			            item_merge(item_find_add(*child,"reg",0),item_find(src->child[j],"reg"),use->child[i]);
+			            item_merge(item_find_add(*child,"class",0),item_find(src->child[j],"class"),use->child[i]);
 		            }
 
-	                item_merge(item_get_or_add(*child,"reg",0),item_find(ref,"reg"),use->child[i]);
-	                item_merge(item_get_or_add(*child,"class",0),item_find(ref,"class"),use->child[i]);
-	                item_merge(item_get_or_add(*child,"libs",0),item_find(ref,"libs"),use->child[i]);
-	                item_merge(item_get_or_add(*child,"syslibs",0),item_find(ref,"syslibs"),use->child[i]);
-	                item_merge(item_get_or_add(*child,"install",0),item_find(ref,"install"),use->child[i]);
+	                item_merge(item_find_add(*child,"reg",0),item_find(ref,"reg"),use->child[i]);
+	                item_merge(item_find_add(*child,"class",0),item_find(ref,"class"),use->child[i]);
+	                item_merge(item_find_add(*child,"libs",0),item_find(ref,"libs"),use->child[i]);
+	                item_merge(item_find_add(*child,"syslibs",0),item_find(ref,"syslibs"),use->child[i]);
+	                item_merge(item_find_add(*child,"install",0),item_find(ref,"install"),use->child[i]);
 
 	                // add to "include"
-	                item_merge(item_get_or_add(*child,"include",0),item_find(ref,"expinclude"),use->child[i]);
+	                item_merge(item_find_add(*child,"include",0),item_find(ref,"expinclude"),use->child[i]);
 	                // also merge "subinclude"
-	                item_merge(item_get_or_add(*child,"subinclude",0),item_find(ref,"subinclude"),use->child[i]);
+	                item_merge(item_find_add(*child,"subinclude",0),item_find(ref,"subinclude"),use->child[i]);
 	                // also merge "sysinclude"
-	                item_merge(item_get_or_add(*child,"sysinclude",0),item_find(ref,"sysinclude"),use->child[i]);
+	                item_merge(item_find_add(*child,"sysinclude",0),item_find(ref,"sysinclude"),use->child[i]);
 			        // also merge "libinclude"
-			        item_merge(item_get_or_add(*child,"libinclude",0),item_find(ref,"libinclude"),use->child[i]);
+			        item_merge(item_find_add(*child,"libinclude",0),item_find(ref,"libinclude"),use->child[i]);
 			        // also merge "uselib"
-			        item_merge(item_get_or_add(*child,"uselib",0),item_find(ref,"uselib"),use->child[i]);
+			        item_merge(item_find_add(*child,"uselib",0),item_find(ref,"uselib"),use->child[i]);
 			        // also merge "rpath"
-			        item_merge(item_get_or_add(*child,"rpath",0),item_find(ref,"rpath"),use->child[i]);
+			        item_merge(item_find_add(*child,"rpath",0),item_find(ref,"rpath"),use->child[i]);
 	                // add to "define"
-	                item_merge(item_get_or_add(*child,"define",0),item_find(ref,"expdefine"),use->child[i]);
+	                item_merge(item_find_add(*child,"define",0),item_find(ref,"expdefine"),use->child[i]);
 
-				    item_get_or_add(item_get_or_add(*child,"uselib",1),uselib->value,1);
+				    item_find_add(item_find_add(*child,"uselib",1),uselib->value,1);
 				    item_delete(use->child[i]);
 				    --i;
 			    }
@@ -3216,13 +3217,13 @@ void preprocess_builtlib(item* p)
 	if (!p) return;
 	for (i=0;i<item_childcount(p);++i)
 	{
-		item* builtlib = item_get_or_add(p->child[i],"builtlib",0);
+		item* builtlib = item_find_add(p->child[i],"builtlib",0);
         item* value = getvalue(builtlib);
         if (value)
         {
             ++stamp;
-            preprocess_dependency_include(p->child[i],item_get_or_add(p->child[i],"useinclude",0),1,1);
-            preprocess_dependency_include(p->child[i],item_get_or_add(p->child[i],"use",0),1,0);
+            preprocess_dependency_include(p->child[i],item_find_add(p->child[i],"useinclude",0),1,1);
+            preprocess_dependency_include(p->child[i],item_find_add(p->child[i],"use",0),1,0);
 
             for (target = 0; all_targets[target].name; target++)
                 preprocess_uselib(getroot(p, all_targets[target].name),p->child[i],value);
@@ -3327,13 +3328,13 @@ void preprocess_sort_workspace(item* p)
 		{
 	        char xcodeuid[25];
 			generate_xcodeuid(xcodeuid,frameworks->child[i]->value);
-			item_get_or_add(item_get_or_add(frameworks->child[i],"xcodegrpuid",0),xcodeuid,1);
+			item_find_add(item_find_add(frameworks->child[i],"xcodegrpuid",0),xcodeuid,1);
 
 			generate_xcodeuid(xcodeuid, xcodeuid);
-			item_get_or_add(item_get_or_add(frameworks->child[i],"xcodegrpuid2",0),xcodeuid,1);
+			item_find_add(item_find_add(frameworks->child[i],"xcodegrpuid2",0),xcodeuid,1);
 		}
 #endif
-        item_sort(item_get_or_add(*child,"use",0),compare_use); // for automake "subdirs"
+        item_sort(item_find_add(*child,"use",0),compare_use); // for automake "subdirs"
     }
 }
 
@@ -3362,58 +3363,58 @@ void preprocess_sort(item* p)
 		char projfile[MAX_PATH];
 
 		generate_msuid(msuid,(*child)->value);
-        item_get_or_add(item_get_or_add(*child,"guid",0),msuid,1);
+        item_find_add(item_find_add(*child,"guid",0),msuid,1);
 
 		generate_msuid(msuid,msuid);
-        item_get_or_add(item_get_or_add(*child,"guidbis",0),msuid,1);
+        item_find_add(item_find_add(*child,"guidbis",0),msuid,1);
 
 		generate_msuid(msuid,msuid);
-        item_get_or_add(item_get_or_add(*child,"guid2",0),msuid,1);
+        item_find_add(item_find_add(*child,"guid2",0),msuid,1);
 
 		generate_msuid(msuid,msuid);
-        item_get_or_add(item_get_or_add(*child,"guid3",0),msuid,1);
+        item_find_add(item_find_add(*child,"guid3",0),msuid,1);
 
 		generate_msmuid(msmuid,msuid);
-        item_get_or_add(item_get_or_add(*child,"msmuid",0),msmuid,1);
+        item_find_add(item_find_add(*child,"msmuid",0),msmuid,1);
 
 		generate_msmuid(msmuid,msmuid);
-        item_get_or_add(item_get_or_add(*child,"msmuid2",0),msmuid,1);
+        item_find_add(item_find_add(*child,"msmuid2",0),msmuid,1);
 
         generate_xcodeuid(xcodeuid,(*child)->value);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid2",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid2",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid3",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid3",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid4",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid4",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid5",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid5",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid6",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid6",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid7",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid7",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid8",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid8",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid9",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid9",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_get_or_add(item_get_or_add(*child,"xcodegrpuid10",0),xcodeuid,1);
+        item_find_add(item_find_add(*child,"xcodegrpuid10",0),xcodeuid,1);
 
-		item_sort(item_get_or_add(*child,"source",0),compare_name);
-		item_sort(item_get_or_add(*child, "sourcedir", 0), compare_name);
-		item_sort(item_get_or_add(*child,"use",0),compare_use); // symbian libary linking madness...
+		item_sort(item_find_add(*child,"source",0),compare_name);
+		item_sort(item_find_add(*child, "sourcedir", 0), compare_name);
+		item_sort(item_find_add(*child,"use",0),compare_use); // symbian libary linking madness...
 
-	    src = item_get_or_add(*child,"source",0);
+	    src = item_find_add(*child,"source",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3421,13 +3422,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"xcodeuid",0),xcodeuid,1);
+			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-	    src = item_get_or_add(*child,"header",0);
+	    src = item_find_add(*child,"header",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3435,13 +3436,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"xcodeuid",0),xcodeuid,1);
+			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-	    src = item_get_or_add(*child,"osx_strings",0);
+	    src = item_find_add(*child,"osx_strings",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3449,13 +3450,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"xcodeuid",0),xcodeuid,1);
+			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-	    src = item_get_or_add(*child,"osx_icon",0);
+	    src = item_find_add(*child,"osx_icon",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3463,13 +3464,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"xcodeuid",0),xcodeuid,1);
+			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-	    src = item_get_or_add(*child,"icon",0);
+	    src = item_find_add(*child,"icon",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3477,13 +3478,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"xcodeuid",0),xcodeuid,1);
+			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-	    src = item_get_or_add(*child,"install",0);
+	    src = item_find_add(*child,"install",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3491,13 +3492,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"xcodeuid",0),xcodeuid,1);
+			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-        src = item_get_or_add(*child,"framework",0);
+        src = item_find_add(*child,"framework",0);
         for (i=0;i<item_childcount(src);++i)
         {
             strcpy(projfile,(*child)->value);
@@ -3505,13 +3506,13 @@ void preprocess_sort(item* p)
             strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-            item_get_or_add(item_get_or_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+            item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-        src = item_get_or_add(*child,"framework_lib",0);
+        src = item_find_add(*child,"framework_lib",0);
         for (i=0;i<item_childcount(src);++i)
         {
             strcpy(projfile,(*child)->value);
@@ -3519,13 +3520,13 @@ void preprocess_sort(item* p)
             strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-            item_get_or_add(item_get_or_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+            item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-        src = item_get_or_add(*child,"privateframework",0);
+        src = item_find_add(*child,"privateframework",0);
         for (i=0;i<item_childcount(src);++i)
         {
             strcpy(projfile,(*child)->value);
@@ -3533,13 +3534,13 @@ void preprocess_sort(item* p)
             strcat(projfile,src->child[i]->value);
 
             generate_xcodeuid(xcodeuid, projfile);
-            item_get_or_add(item_get_or_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+            item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
 
             generate_msmuid(msmuid, projfile);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
         }
 
-		src = item_get_or_add(*child,"use",0);
+		src = item_find_add(*child,"use",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			item* ref = findref(src->child[i]);
@@ -3550,14 +3551,14 @@ void preprocess_sort(item* p)
 				strcat(projfile,ref->value);
 
                 generate_xcodeuid(xcodeuid, projfile);
-				item_get_or_add(item_get_or_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+				item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
 
                 generate_msmuid(msmuid, projfile);
-			    item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			    item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
 			}
         }
 
-		src = item_get_or_add(*child,"install_cab",0);
+		src = item_find_add(*child,"install_cab",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3565,13 +3566,13 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
 
             generate_msmuid(msmuid, msmuid);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid2",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid2",0),msmuid,1);
         }
 
-		src = item_get_or_add(*child,"register_cab",0);
+		src = item_find_add(*child,"register_cab",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3579,58 +3580,58 @@ void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_msmuid(msmuid, projfile);
-			item_get_or_add(item_get_or_add(src->child[i],"msmuid",0),msmuid,1);
+			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
 
             generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid2",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid2",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid3",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid3",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid4",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid4",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid5",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid5",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid6",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid6",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid7",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid7",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid8",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid8",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_get_or_add(item_get_or_add(src->child[i],"msmuid9",0),msmuid,1);
+            item_find_add(item_find_add(src->child[i],"msmuid9",0),msmuid,1);
         }
 
-        prjname = getvalue(item_get_or_add(*child,"project_name",0));
+        prjname = getvalue(item_find_add(*child,"project_name",0));
         if (!prjname)
-            prjname = item_get_or_add(item_get_or_add(*child,"project_name",0),(*child)->value,1);
+            prjname = item_find_add(item_find_add(*child,"project_name",0),(*child)->value,1);
 
-        prjpath = getvalue(item_get_or_add(*child,"project_path",0));
+        prjpath = getvalue(item_find_add(*child,"project_path",0));
         if (!prjpath)
-            prjpath = item_get_or_add(item_get_or_add(*child,"project_path",0),(*child)->value,1);
+            prjpath = item_find_add(item_find_add(*child,"project_path",0),(*child)->value,1);
 
-        if (!getvalue(item_get_or_add(*child,"project_version",0)))
-            item_get_or_add(item_get_or_add(*child,"project_version",0),"1.0.0",1);
+        if (!getvalue(item_find_add(*child,"project_version",0)))
+            item_find_add(item_find_add(*child,"project_version",0),"1.0.0",1);
 
-        if ((item_get_or_add(getconfig(*child),"TARGET_PALMOS",0)->flags & FLAG_DEFINED) && !getvalue(item_get_or_add(*child,"project_fourcc",0)))
-            item_get_or_add(item_get_or_add(*child,"project_fourcc",0),"'CMAK'",1);
+        if ((item_find_add(getconfig(*child),"TARGET_PALMOS",0)->flags & FLAG_DEFINED) && !getvalue(item_find_add(*child,"project_fourcc",0)))
+            item_find_add(item_find_add(*child,"project_fourcc",0),"'CMAK'",1);
 
         major=1;
         minor=0;
         revision=0;
-        sscanf(getvalue(item_get_or_add(*child,"project_version",0))->value,"%d.%d.%d",&major,&minor,&revision);
+        sscanf(getvalue(item_find_add(*child,"project_version",0))->value,"%d.%d.%d",&major,&minor,&revision);
 
         sprintf(ver,"%d",major);
-        item_get_or_add(item_get_or_add(*child,"project_version_major",0),ver,1);
+        item_find_add(item_find_add(*child,"project_version_major",0),ver,1);
         sprintf(ver,"%d",minor);
-        item_get_or_add(item_get_or_add(*child,"project_version_minor",0),ver,1);
+        item_find_add(item_find_add(*child,"project_version_minor",0),ver,1);
         sprintf(ver,"%d",revision);
-        item_get_or_add(item_get_or_add(*child,"project_version_revision",0),ver,1);
+        item_find_add(item_find_add(*child,"project_version_revision",0),ver,1);
     }
 }
 
@@ -3647,7 +3648,7 @@ void preprocess(item* p, const char *pr_root)
     {
         char path[MAX_PATH];
     	sprintf(path,"lib/%s/",i->value);
-		item_get_or_add(item_get_or_add(p,"libpath",1),path,1);
+		item_find_add(item_find_add(p,"libpath",1),path,1);
     }
 
 	preprocess_condstart(p);
@@ -3655,14 +3656,14 @@ void preprocess(item* p, const char *pr_root)
 	preprocess_condeval(p);
 
     // add the path with config.h to CONFIG_INCLUDE
-    i = item_get_or_add(p,"config_include",0);
+    i = item_find_add(p,"config_include",0);
     config_file = getvalue(getroot(p,"config_file"));
     if (config_file)
         strcpy(config_path,config_file->value);
     else
         config_path[0]=0;
     truncfilepath(config_path,0);
-    i = item_get_or_add(i,config_path,0);
+    i = item_find_add(i,config_path,0);
     set_path_type(i,FLAG_PATH_GENERATED);
     i->flags |= FLAG_ATTRIB;
     i->flags |= FLAG_PATH_GENERATED;
@@ -3673,14 +3674,14 @@ void preprocess(item* p, const char *pr_root)
     {
 		strcpy(config_path,getvalue(i)->value);
 		truncfilepath(config_path,0);
-        i = item_get_or_add(item_get_or_add(p,"config_include",0),config_path,1);
+        i = item_find_add(item_find_add(p,"config_include",0),config_path,1);
         set_path_type(i,FLAG_PATH_SOURCE);
     }
 
 	// add the path of PLATFORM_FILES to CONFIG_INCLUDE if COREMAKE_CONFIG_HELPER is set
-	if (item_get_or_add(getconfig(p),"COREMAKE_CONFIG_HELPER",0)->flags & FLAG_DEFINED)
+	if (item_find_add(getconfig(p),"COREMAKE_CONFIG_HELPER",0)->flags & FLAG_DEFINED)
 	{
-        i = item_get_or_add(item_get_or_add(p,"config_include",0),coremake_root,1);
+        i = item_find_add(item_find_add(p,"config_include",0),coremake_root,1);
         set_path_type(i,FLAG_PATH_SOURCE);
 	}
 
@@ -3695,15 +3696,15 @@ void preprocess(item* p, const char *pr_root)
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED))
 	            {
-                    item* j = item_get_or_add(item_get_or_add(p,"exe",0),(*child)->value,1);
+                    item* j = item_find_add(item_find_add(p,"exe",0),(*child)->value,1);
 		            item_merge(j,*child,NULL);
-                    item_get_or_add(item_get_or_add(j,"use",0),"con_to_exe",1);
+                    item_find_add(item_find_add(j,"use",0),"con_to_exe",1);
 		            item_delete(*child);
                     --child;
         	    }
         }
     }
-    else if (item_get_or_add(getconfig(p),"COREMAKE_CONSOLE",0)->flags & FLAG_DEFINED)
+    else if (item_find_add(getconfig(p),"COREMAKE_CONSOLE",0)->flags & FLAG_DEFINED)
     {
         // repleace all "exe" by "con"
 		i = item_find(p,"exe");
@@ -3713,7 +3714,7 @@ void preprocess(item* p, const char *pr_root)
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED))
 	            {
-                    item* j = item_get_or_add(item_get_or_add(p,"con",0),(*child)->value,1);
+                    item* j = item_find_add(item_find_add(p,"con",0),(*child)->value,1);
 		            item_merge(j,*child,NULL);
 		            item_delete(*child);
                     --child;
@@ -3727,16 +3728,16 @@ void preprocess(item* p, const char *pr_root)
 	preprocess_use_group(p,"workspace");
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
-	if ((item_get_or_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_get_or_add(getconfig(p),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
+	if ((item_find_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_find_add(getconfig(p),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
 	{
 		i = item_find(p,"dll");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
-                if (!((*child)->flags & FLAG_REMOVED) && ((item_get_or_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
+                if (!((*child)->flags & FLAG_REMOVED) && ((item_find_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
 	            {
-		            item_merge(item_get_or_add(item_get_or_add(p,"lib",0),(*child)->value,1),*child,NULL);
+		            item_merge(item_find_add(item_find_add(p,"lib",0),(*child)->value,1),*child,NULL);
 		            item_delete(*child);
                     --child;
         	    }
@@ -3746,9 +3747,9 @@ void preprocess(item* p, const char *pr_root)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
-                if (!((*child)->flags & FLAG_REMOVED) && ((item_get_or_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
+                if (!((*child)->flags & FLAG_REMOVED) && ((item_find_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
 	            {
-		            item_merge(item_get_or_add(item_get_or_add(p,"lib_csharp",0),(*child)->value,1),*child,NULL);
+		            item_merge(item_find_add(item_find_add(p,"lib_csharp",0),(*child)->value,1),*child,NULL);
 		            item_delete(*child);
                     --child;
         	    }
@@ -3795,7 +3796,7 @@ void preprocess(item* p, const char *pr_root)
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
             preprocess_workspace_init(item_find(p, all_targets[target].name));
-	preprocess_workspace(item_get_or_add(p,"workspace",0));
+	preprocess_workspace(item_find_add(p,"workspace",0));
 
 	preprocess_condend(p);
 
@@ -4721,7 +4722,7 @@ item* reader_item(reader* file, int skip, build_pos* pos)
             token += 3;
         }
         if (parent)
-    		i = item_get_or_add(parent->p,token,1);
+    		i = item_find_add(parent->p,token,1);
     }
 
     return i;
@@ -4861,7 +4862,7 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
         tmpstr[0] = 0;
         strins(tmpstr, r.filename, getfilename(r.filename));
         item_delete(item_find(pos->p, "base"));
-        src = item_get_or_add(item_get_or_add(pos->p, "base", 0), tmpstr, 1);
+        src = item_find_add(item_find_add(pos->p, "base", 0), tmpstr, 1);
         set_path_type(src, FLAG_PATH_SOURCE);
 
         build = backupfile;
@@ -4917,13 +4918,13 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		if (is_sharped && reader_istoken(file,"define"))
 		{
 			reader_name(file);
-			i = skip?NULL:item_get_or_add(getconfig(p),file->token,1);
+			i = skip?NULL:item_find_add(getconfig(p),file->token,1);
             if (!skip && strnicmp(file->token,"CONFIG_CUSTOMER_",16)==0)
             {
                 char *lower = file->token+16;
-                i = item_get_or_add(getconfig(p),"CONFIG_CUSTOMER",1);
+                i = item_find_add(getconfig(p),"CONFIG_CUSTOMER",1);
                 lwr(lower);
-                item_get_or_add(i,lower,1);
+                item_find_add(i,lower,1);
             }
             else
 			if (reader_tokenline(file,0) && !skip)
@@ -4942,7 +4943,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 					strdel(s+len-2,s+len);
 					strdel(s,s+3);
 				}
-				i = item_get_or_add(i,file->token,1);
+				i = item_find_add(i,file->token,1);
                 if (stricmp(i->parent->value,"CONFIG_ANDROID_NDK")==0)
                 {
                     pathunix(i->value);
@@ -4962,7 +4963,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
                     set_path_type(config,FLAG_PATH_GENERATED);
 					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED | (no_include?FLAG_NO_INCLUDE:0), file->project_root);
                 }
-				config = item_get_or_add(getconfig(p),"COREMAKE_CONFIG_HELPER",0);
+				config = item_find_add(getconfig(p),"COREMAKE_CONFIG_HELPER",0);
 				if (config && config->flags & FLAG_DEFINED)
 				{
 					strcpy(tmpstr,coremake_root);
@@ -5239,7 +5240,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 								reader_restore(file,&forpos);
                             w = findref2(*child);
                             if (w)
-                                setvalue(item_get_or_add(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
+                                setvalue(item_find_add(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
 
 							build_parse(w,file,1,0,&pos);
                             if (w->flags & FLAG_REMOVED)
@@ -5355,7 +5356,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			flags = reader_tokeneval(file,skip,0,&pos,0);
 			if (i)
             {
-                item *j = item_get_or_add(i,file->token,1);
+                item *j = item_find_add(i,file->token,1);
                 set_path_type(j,flags & FLAG_PATH_MASK);
                 build_parse(j,file,9,skip,&pos);
             }
@@ -5456,7 +5457,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 					item_delete(i->child[0]);
 				if (i)
                 {
-					item_get_or_add(i,file->token,1);
+					item_find_add(i,file->token,1);
                     set_path_type(i,flags & FLAG_PATH_MASK);
                 }
 			}
@@ -5467,7 +5468,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 				flags = reader_tokeneval(file,skip,0,&pos,0);
 				if (i)
                 {
-					item *j = item_get_or_add(i,file->token,1);
+					item *j = item_find_add(i,file->token,1);
                     set_path_type(j,flags & FLAG_PATH_MASK);
                 }
 			}
@@ -5510,9 +5511,9 @@ item* default_workspace(item* workspace,item* i,item* p)
         if (!i)
         {
             truncfilename(proj);
-            i = item_get_or_add(workspace,proj,1);
+            i = item_find_add(workspace,proj,1);
         }
-        item_get_or_add(item_get_or_add(i,"use",1),(*child)->value,1);
+        item_find_add(item_find_add(i,"use",1),(*child)->value,1);
     }
     return i;
 }
@@ -5528,7 +5529,7 @@ int main(int argc, char** argv)
 	char root_forced = 0;
 	char platform[MAX_PATH] = "";
 
-	item* root = item_get_or_add(NULL,ROOT_NAME,0);
+	item* root = item_find_add(NULL,ROOT_NAME,0);
 	getconfig(root);
 
     getcwd(proj_root,sizeof(proj_root));
@@ -5623,7 +5624,7 @@ int main(int argc, char** argv)
     if (!getvalue(item_find(root,"workspace")))
     {
         // add default workspace
-        item* w = item_get_or_add(root,"workspace",0);
+        item* w = item_find_add(root,"workspace",0);
         item* i = NULL;
         i=default_workspace(w,i,item_find(root,"exe"));
         i=default_workspace(w,i,item_find(root,"dll"));
@@ -5643,24 +5644,24 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	item_get_or_add(item_get_or_add(root,"platformname",1),platform,1);
+	item_find_add(item_find_add(root,"platformname",1),platform,1);
 
-    i = item_get_or_add(root,"rootpath",1);
-	i = item_get_or_add(i,src_root,1);
+    i = item_find_add(root,"rootpath",1);
+	i = item_find_add(i,src_root,1);
     set_path_type(i,FLAG_PATH_SOURCE);
 
-    i = item_get_or_add(root,"builddir",1);
-	i = item_get_or_add(i,proj_root,1);
+    i = item_find_add(root,"builddir",1);
+	i = item_find_add(i,proj_root,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
 	sprintf(path,"%srelease/%s/",proj_root,platform);
-    i = item_get_or_add(root,"outputpath",1);
-	i = item_get_or_add(i,path,1);
+    i = item_find_add(root,"outputpath",1);
+	i = item_find_add(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
 	sprintf(path,"%sbuild/%s/",proj_root,platform);
-    i = item_get_or_add(root,"buildpath",1);
-	i = item_get_or_add(i,path,1);
+    i = item_find_add(root,"buildpath",1);
+	i = item_find_add(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
 	i = getvalue(getroot(root,"platform_files"));
@@ -5694,8 +5695,8 @@ int main(int argc, char** argv)
         ///       We probably need a --prefix during compilation to hardcode that /usr/share path
         strcpy(coremake_root,"/usr/local/share/coremake");
 #endif
-        i = item_get_or_add(root,"platform_files",1);
-        i = item_get_or_add(i,coremake_root,1);
+        i = item_find_add(root,"platform_files",1);
+        i = item_find_add(i,coremake_root,1);
         set_path_type(i,FLAG_PATH_COREMAKE);
         strcpy(coremake_root,i->value);
     }
