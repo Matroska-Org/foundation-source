@@ -259,6 +259,11 @@ int compare_name(const item* a, const item* b)
 
 static item* item_find_add(item* parent,const char* value,int defined);
 
+static int item_is_root(const item *p)
+{
+	return strcmp(p->value, ROOT_NAME) == 0;
+}
+
 static item* getroot(const item* p,const char* name)
 {
 	while (p->parent)
@@ -661,11 +666,6 @@ void item_merge2(item* p,item* group,itemcond* cond0,int removed,int append_cond
 		}
 		itemcond_delete(cond);
 	}
-}
-
-static int item_is_root(const item *p)
-{
-	return strcmp(p->value, ROOT_NAME) == 0;
 }
 
 static void item_merge(item* p,item* group,item* filter)
