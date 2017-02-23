@@ -9,6 +9,7 @@ WORKSPACE coremake
 CON coremake
 {
   SOURCE coremake.c
+  HEADER directory.h
 }
 
 CON corerc

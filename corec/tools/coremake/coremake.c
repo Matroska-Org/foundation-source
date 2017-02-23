@@ -39,6 +39,12 @@
 
 #define MAX_LINE		8192
 
+#include "directory.h"
+
+#ifndef MAX_PATH
+#define MAX_PATH		1024
+#endif
+
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
 # ifndef strcmpi
 #  define strcmpi strcasecmp
@@ -59,77 +65,6 @@
 
 int verbose = 0;
 
-#ifdef _WIN32
-#include <io.h>
-#include <direct.h>
-#include <windows.h>
-
-#ifndef _INTPTR_T_DEFINED
-typedef signed int intptr_t;
-#define _INTPTR_T_DEFINED
-#endif
-
-#ifndef MAX_PATH
-#define MAX_PATH		1024
-#endif
-
-struct dirent
-{
-	char d_name[MAX_PATH];
-};
-typedef struct DIR
-{
-	intptr_t h;
-	int first;
-	struct _finddata_t file;
-	struct dirent entry;
-
-} DIR;
-
-DIR* opendir(const char* name)
-{
-	DIR* p = (DIR*)malloc(sizeof(DIR));
-	if (p)
-	{
-		sprintf(p->entry.d_name,"%s\\*",name);
-		p->h = _findfirst(p->entry.d_name,&p->file);
-		p->first = 1;
-		if (p->h == -1)
-		{
-			free(p);
-			p = NULL;
-		}
-	}
-	return p;
-}
-
-struct dirent* readdir(DIR* p)
-{
-	if (p->first || _findnext(p->h,&p->file)==0)
-	{
-		p->first = 0;
-		strcpy(p->entry.d_name,p->file.name);
-		return &p->entry;
-	}
-	return NULL;
-}
-
-void closedir(DIR* p)
-{
-	_findclose(p->h);
-	free(p);
-}
-
-#else
-#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
-
-#ifndef MAX_PATH
-#define MAX_PATH		1024
-#endif
-
-#endif
 
 typedef struct reader_static
 {
