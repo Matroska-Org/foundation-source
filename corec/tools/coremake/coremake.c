@@ -3126,18 +3126,19 @@ void preprocess_project(item* p)
 	}
 }
 
-// replace the "use" of a "group" by the content of the "group"
-static void preprocess_group(item* p)
+/* replace the "use" of a "group" by the content of the "group" */
+static void preprocess_use_group(item *root, const char *target_type)
 {
 	item** child;
-	if (!p) return;
-	for (child=p->child;child!=p->childend;++child)
+    item *targets = item_find(root, target_type);
+	if (!targets) return;
+	for (child=targets->child;child!=targets->childend;++child)
 	{
 		size_t i;
 		item* use = item_get_or_add(*child,"use",0);
 		for (i=0;i<item_childcount(use);++i)
 		{
-			item* group = item_find(getroot(p,"group"),use->child[i]->value);
+			item* group = item_find(getroot(targets,"group"),use->child[i]->value);
 			if (group)
 			{
 				merge_project(*child,group,use->child[i]);
@@ -3717,8 +3718,8 @@ void preprocess(item* p, const char *pr_root)
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-	        preprocess_group(item_find(p, all_targets[target].name));
-	preprocess_group(item_find(p,"workspace"));
+	        preprocess_use_group(p, all_targets[target].name);
+	preprocess_use_group(p,"workspace");
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
 	if ((item_get_or_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_get_or_add(getconfig(p),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
