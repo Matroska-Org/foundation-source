@@ -663,6 +663,11 @@ void item_merge2(item* p,item* group,itemcond* cond0,int removed,int append_cond
 	}
 }
 
+static int item_is_root(const item *p)
+{
+	return strcmp(p->value, ROOT_NAME) == 0;
+}
+
 static void item_merge(item* p,item* group,item* filter)
 {
 	if (group)
@@ -670,7 +675,7 @@ static void item_merge(item* p,item* group,item* filter)
 		int removed=0;
 		item* i;
 		itemcond* cond = NULL;
-		for (i=group->parent;i;i=i->parent)
+		for (i=group->parent;i && !item_is_root(i);i=i->parent)
 			cond = itemcond_and(cond,i->cond);
 		if (filter)
 		{
