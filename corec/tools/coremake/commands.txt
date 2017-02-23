@@ -1,5 +1,9 @@
 List of known commands in .proj files
 
+In configuration files (typically config.h)
+- COREMAKE_STATIC
+  build everything statically
+
 Project outputs
 - CON <name>
   a console based program
@@ -51,6 +55,8 @@ Project commands
   run the specified command before building the rest of the files
 - ECHO <text>
   write a message on the command-line, (for debugging or warn about possible issues)
+- NOLIB .
+  specify that the DLL target being defined should not become a static library even with COREMAKE_STATIC
 
 In coremake compiled files (.build and .inc files)
 - PRINTNL <line>
