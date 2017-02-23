@@ -65,6 +65,7 @@
 
 int verbose = 0;
 
+#define ROOT_NAME  "ROOT"
 
 typedef struct reader_static
 {
@@ -1629,7 +1630,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 						printf("CONFIG_FILE needs to be find in the .proj file %s:%d\r\n", file->filename, file->r.no);
 						exit(1);
 					}
-					root = item_get_or_add(root, "ROOT", 0);
+					root = item_get_or_add(root, ROOT_NAME, 0);
 					reader_save(file, &new_root_reader);
 					strcpy(file->project_root, root_path);
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
@@ -1820,6 +1821,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 int load_file(item* root,const char* filename, int file_kind, itemcond* cond, const char *projt_root)
 {
 	reader r;
+	assert(strcmp(root->value,ROOT_NAME)==0);
     reader_init(&r);
 	strcpy(r.filename,filename);
 	strcpy(r.project_root, projt_root);
@@ -5518,7 +5520,7 @@ int main(int argc, char** argv)
 	char root_forced = 0;
 	char platform[MAX_PATH] = "";
 
-	item* root = item_get_or_add(NULL,"ROOT",0);
+	item* root = item_get_or_add(NULL,ROOT_NAME,0);
 	getconfig(root);
 
     getcwd(proj_root,sizeof(proj_root));
