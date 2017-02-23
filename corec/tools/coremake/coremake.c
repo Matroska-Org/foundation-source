@@ -663,7 +663,7 @@ void item_merge2(item* p,item* group,itemcond* cond0,int removed,int append_cond
 	}
 }
 
-static void item_merge(item* p,item* group,item* plus)
+static void item_merge(item* p,item* group,item* filter)
 {
 	if (group)
 	{
@@ -672,10 +672,10 @@ static void item_merge(item* p,item* group,item* plus)
 		itemcond* cond = NULL;
 		for (i=group->parent;i;i=i->parent)
 			cond = itemcond_and(cond,i->cond);
-		if (plus)
+		if (filter)
 		{
-			removed = (plus->flags & FLAG_REMOVED)==FLAG_REMOVED;
-			cond = itemcond_and(cond,plus->cond);
+			removed = (filter->flags & FLAG_REMOVED)==FLAG_REMOVED;
+			cond = itemcond_and(cond,filter->cond);
 		}
 		item_merge2(p,group,cond,removed,1);
 		itemcond_delete(cond);
