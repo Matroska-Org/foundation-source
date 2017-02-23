@@ -620,12 +620,14 @@ itemcond* itemcond_or(itemcond* p,itemcond* cond)
 	return p;
 }
 
-item* item_getmerge(item* p,const item* child,int removed,int *exists)
+static item* item_getmerge(item* p,const item* child,int removed,int *existed)
 {
     item* dup;
-	*exists = item_find(p,child->value) != NULL;
-	dup = item_get_or_add(p,child->value,(child->flags & FLAG_DEFINED)==FLAG_DEFINED);
-    if (((child->flags & FLAG_REMOVED) || removed) && (!*exists || (dup->flags & FLAG_REMOVED)))
+	dup = item_find(p,child->value);
+	*existed = dup != NULL;
+	if (!dup)
+		dup = item_get_or_add(p,child->value,(child->flags & FLAG_DEFINED)==FLAG_DEFINED);
+    if (((child->flags & FLAG_REMOVED) || removed) && (!*existed || (dup->flags & FLAG_REMOVED)))
         dup->flags |= FLAG_REMOVED;
     else
         dup->flags &= ~FLAG_REMOVED;
@@ -633,7 +635,7 @@ item* item_getmerge(item* p,const item* child,int removed,int *exists)
     return dup;
 }
 
-void item_merge2(item* p,item* group,itemcond* cond0,int removed,int exists)
+void item_merge2(item* p,item* group,itemcond* cond0,int removed,int append_cond)
 {
 	if (group)
 	{
@@ -649,7 +651,7 @@ void item_merge2(item* p,item* group,itemcond* cond0,int removed,int exists)
 
 		if (!item_childcount(group) || (p->flags & FLAG_ATTRIB))
 		{
-			if (exists)
+			if (append_cond)
 				p->cond = itemcond_or(p->cond,cond);
 			else
 			{
