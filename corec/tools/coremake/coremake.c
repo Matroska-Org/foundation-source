@@ -301,7 +301,7 @@ struct target_def {
     int is_lib;
 };
 
-static struct target_def all_targets[] = {
+static const struct target_def all_targets[] = {
     { "group",       NULL,         0 },
     { "exe",         "output_exe", 0 },
     { "con",         "output_con", 0 },
