@@ -261,7 +261,7 @@ static item* item_find_add(item* parent,const char* value,int defined);
 
 static int item_is_root(const item *p)
 {
-	return strcmp(p->value, ROOT_NAME) == 0;
+	return strcmp(p->parent->value, ROOT_NAME) == 0;
 }
 
 static const item* item_root(const item* p, int full)
@@ -1838,7 +1838,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 int load_file(item* root,const char* filename, int file_kind, itemcond* cond, const char *projt_root)
 {
 	reader r;
-	assert(strcmp(root->value,ROOT_NAME)==0);
+	assert(strcmp(root->parent->value,ROOT_NAME)==0);
     reader_init(&r);
 	strcpy(r.filename,filename);
 	strcpy(r.project_root, projt_root);
@@ -5558,9 +5558,6 @@ int main(int argc, char** argv)
 	char root_forced = 0;
 	char platform[MAX_PATH] = "";
 
-	item* root = item_find_add(NULL,ROOT_NAME,0);
-	getconfig(root);
-
     getcwd(proj_root,sizeof(proj_root));
     pathunix(proj_root);
     addendpath(proj_root);
@@ -5612,6 +5609,13 @@ int main(int argc, char** argv)
     if (!src_root[0])
         strcpy(src_root, proj_root);
 	src_root_len = strlen(src_root);
+
+	item *universe = item_find_add(NULL, "UNIVERSE", 0);
+
+	item *all_roots = item_find_add(universe, ROOT_NAME, 0);
+
+	item* root = item_find_add(all_roots, proj_root, 0);
+	getconfig(root);
 
     if (!load_file(root,path,FLAG_PATH_SOURCE,NULL, proj_root) && !root_forced)
 	{
@@ -5675,25 +5679,25 @@ int main(int argc, char** argv)
 
 	item_find_add(item_find_add(root,"platformname",1),platform,1);
 
-    i = item_find_add(root,"rootpath",1);
+    i = item_find_add(universe,"rootpath",1);
 	i = item_find_add(i,src_root,1);
     set_path_type(i,FLAG_PATH_SOURCE);
 
-    i = item_find_add(root,"builddir",1);
+    i = item_find_add(universe,"builddir",1);
 	i = item_find_add(i,proj_root,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
 	sprintf(path,"%srelease/%s/",proj_root,platform);
-    i = item_find_add(root,"outputpath",1);
+    i = item_find_add(universe,"outputpath",1);
 	i = item_find_add(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
 	sprintf(path,"%sbuild/%s/",proj_root,platform);
-    i = item_find_add(root,"buildpath",1);
+    i = item_find_add(universe,"buildpath",1);
 	i = item_find_add(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
-	i = getvalue(item_find_add(root,"platform_files",0));
+	i = getvalue(item_find_add(universe,"platform_files",0));
 	if (i)
 	{
 		if (ispathabs(i->value) || !ispathabs(src_root))
@@ -5739,16 +5743,22 @@ int main(int argc, char** argv)
 	strcpy(buildpath[0],proj_root); //safety
     buildflags[0] = FLAG_PATH_GENERATED;
 	build = NULL;
-	build_file(root,path,FLAG_PATH_COREMAKE, proj_root);
-	if (build)
+
+	item** child_root;
+	for (child_root = all_roots->child; child_root != all_roots->childend; ++child_root)
 	{
-		fclose(build);
-		file_finalize(buildpath[curr_build]);
+		/* TODO call this for each root in the universe */
+		build_file(*child_root, path, FLAG_PATH_COREMAKE, proj_root);
+		if (build)
+		{
+			fclose(build);
+			file_finalize(buildpath[curr_build]);
+		}
 	}
 
 	if (dumppost)
-		dumpitem(root,1);
+		dumpitem(universe,1);
 
-	item_delete(root);
+	item_delete(universe);
 	return 0;
 }
