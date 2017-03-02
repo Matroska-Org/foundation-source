@@ -3664,7 +3664,7 @@ void preprocess_sort(item* p)
     }
 }
 
-void preprocess(item* p, const char *pr_root)
+void preprocess(item* root, const char *pr_root)
 {
 	item* i;
     item* con_to_exe;
@@ -3672,21 +3672,21 @@ void preprocess(item* p, const char *pr_root)
     item *config_file;
     size_t target;
 
-	i = getvalue(item_find(p,"platformlib"));
+	i = getvalue(item_find(root,"platformlib"));
     if (i)
     {
         char path[MAX_PATH];
     	sprintf(path,"lib/%s/",i->value);
-		item_find_add(item_find_add(p,"libpath",1),path,1);
+		item_find_add(item_find_add(root,"libpath",1),path,1);
     }
 
-	preprocess_condstart(p);
-	preprocess_config(getconfig(p));
-	preprocess_condeval(p);
+	preprocess_condstart(root);
+	preprocess_config(getconfig(root));
+	preprocess_condeval(root);
 
     // add the path with config.h to CONFIG_INCLUDE
-    i = item_find_add(p,"config_include",0);
-    config_file = getvalue(item_find_in_root(p,"config_file", 0));
+    i = item_find_add(root,"config_include",0);
+    config_file = getvalue(item_find_in_root(root,"config_file", 0));
     if (config_file)
         strcpy(config_path,config_file->value);
     else
@@ -3698,34 +3698,34 @@ void preprocess(item* p, const char *pr_root)
     i->flags |= FLAG_PATH_GENERATED;
 
 	// add the path of the CONFIG_CLEANER file to CONFIG_INCLUDE
-	i = item_find_in_root(p,"config_cleaner", 0);
+	i = item_find_in_root(root,"config_cleaner", 0);
 	if (i && getvalue(i))
     {
 		strcpy(config_path,getvalue(i)->value);
 		truncfilepath(config_path,0);
-        i = item_find_add(item_find_add(p,"config_include",0),config_path,1);
+        i = item_find_add(item_find_add(root,"config_include",0),config_path,1);
         set_path_type(i,FLAG_PATH_SOURCE);
     }
 
 	// add the path of PLATFORM_FILES to CONFIG_INCLUDE if COREMAKE_CONFIG_HELPER is set
-	if (item_find_add(getconfig(p),"COREMAKE_CONFIG_HELPER",0)->flags & FLAG_DEFINED)
+	if (item_find_add(getconfig(root),"COREMAKE_CONFIG_HELPER",0)->flags & FLAG_DEFINED)
 	{
-        i = item_find_add(item_find_add(p,"config_include",0),coremake_root,1);
+        i = item_find_add(item_find_add(root,"config_include",0),coremake_root,1);
         set_path_type(i,FLAG_PATH_SOURCE);
 	}
 
     // "GROUP con_to_exe": replaces all "con" by "exe" and add "USE con_to_exe"
-    con_to_exe = getvalue(item_find(item_find(item_find_in_root(p,"group",0),"con_to_exe"),"source"));
+    con_to_exe = getvalue(item_find(item_find(item_find_in_root(root,"group",0),"con_to_exe"),"source"));
 	if (con_to_exe)
 	{
-		i = item_find(p,"con");
+		i = item_find(root,"con");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED))
 	            {
-                    item* j = item_find_add(item_find_add(p,"exe",0),(*child)->value,1);
+                    item* j = item_find_add(item_find_add(root,"exe",0),(*child)->value,1);
 		            item_merge(j,*child,NULL);
                     item_find_add(item_find_add(j,"use",0),"con_to_exe",1);
 		            item_delete(*child);
@@ -3733,17 +3733,17 @@ void preprocess(item* p, const char *pr_root)
         	    }
         }
     }
-    else if (item_find_add(getconfig(p),"COREMAKE_CONSOLE",0)->flags & FLAG_DEFINED)
+    else if (item_find_add(getconfig(root),"COREMAKE_CONSOLE",0)->flags & FLAG_DEFINED)
     {
         // repleace all "exe" by "con"
-		i = item_find(p,"exe");
+		i = item_find(root,"exe");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED))
 	            {
-                    item* j = item_find_add(item_find_add(p,"con",0),(*child)->value,1);
+                    item* j = item_find_add(item_find_add(root,"con",0),(*child)->value,1);
 		            item_merge(j,*child,NULL);
 		            item_delete(*child);
                     --child;
@@ -3753,32 +3753,32 @@ void preprocess(item* p, const char *pr_root)
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-	        preprocess_use_group(p, all_targets[target].name);
-	preprocess_use_group(p,"workspace");
+	        preprocess_use_group(root, all_targets[target].name);
+	preprocess_use_group(root,"workspace");
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
-	if ((item_find_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_find_add(getconfig(p),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
+	if ((item_find_add(getconfig(root),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_find_add(getconfig(root),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
 	{
-		i = item_find(p,"dll");
+		i = item_find(root,"dll");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED) && ((item_find_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
 	            {
-		            item_merge(item_find_add(item_find_add(p,"lib",0),(*child)->value,1),*child,NULL);
+		            item_merge(item_find_add(item_find_add(root,"lib",0),(*child)->value,1),*child,NULL);
 		            item_delete(*child);
                     --child;
         	    }
         }
-		i = item_find(p,"dll_csharp");
+		i = item_find(root,"dll_csharp");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED) && ((item_find_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
 	            {
-		            item_merge(item_find_add(item_find_add(p,"lib_csharp",0),(*child)->value,1),*child,NULL);
+		            item_merge(item_find_add(item_find_add(root,"lib_csharp",0),(*child)->value,1),*child,NULL);
 		            item_delete(*child);
                     --child;
         	    }
@@ -3787,57 +3787,57 @@ void preprocess(item* p, const char *pr_root)
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-	        preprocess_presort(item_find(p, all_targets[target].name));
+	        preprocess_presort(item_find(root, all_targets[target].name));
 
-    preprocess_builtlib(item_find(p,"project"));
-    preprocess_builtlib(item_find(p,"lib"));
-    preprocess_builtlib(item_find(p,"lib_csharp"));
+    preprocess_builtlib(item_find(root,"project"));
+    preprocess_builtlib(item_find(root,"lib"));
+    preprocess_builtlib(item_find(root,"lib_csharp"));
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name && !all_targets[target].is_lib)
-    	    preprocess_usemerge(item_find(p, all_targets[target].name));
+    	    preprocess_usemerge(item_find(root, all_targets[target].name));
 
     // the .build (or .inc) file needs to define these
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-	        preprocess_outputname(item_find(p, all_targets[target].name), all_targets[target].output_name);
+	        preprocess_outputname(item_find(root, all_targets[target].name), all_targets[target].output_name);
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-            preprocess_stdafx_includes(item_find(p, all_targets[target].name), all_targets[target].is_lib, pr_root);
+            preprocess_stdafx_includes(item_find(root, all_targets[target].name), all_targets[target].is_lib, pr_root);
 //	preprocess_stdafx_includes(item_find(p,"dll_android"),0);
 
-    preprocess_generate(item_find(p, "generate"));
+    preprocess_generate(item_find(root, "generate"));
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-            preprocess_dependency_init(item_find(p, all_targets[target].name), all_targets[target].is_lib);
+            preprocess_dependency_init(item_find(root, all_targets[target].name), all_targets[target].is_lib);
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-            preprocess_dependency(item_find(p, all_targets[target].name));
+            preprocess_dependency(item_find(root, all_targets[target].name));
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-	        preprocess_stdafx(item_find(p, all_targets[target].name), all_targets[target].is_lib, pr_root);
+	        preprocess_stdafx(item_find(root, all_targets[target].name), all_targets[target].is_lib, pr_root);
 //	preprocess_stdafx(item_find(p,"dll_android"),1);
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-            preprocess_workspace_init(item_find(p, all_targets[target].name));
-	preprocess_workspace(item_find_add(p,"workspace",0));
+            preprocess_workspace_init(item_find(root, all_targets[target].name));
+	preprocess_workspace(item_find_add(root,"workspace",0));
 
-	preprocess_condend(p);
-
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_sort(item_find(p, all_targets[target].name));
-    preprocess_sort(item_find(p, "generate"));
-	preprocess_sort_workspace(item_find(p,"workspace"));
+	preprocess_condend(root);
 
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
-            preprocess_automake(item_find(p, all_targets[target].name), pr_root);
+            preprocess_sort(item_find(root, all_targets[target].name));
+    preprocess_sort(item_find(root, "generate"));
+	preprocess_sort_workspace(item_find(root,"workspace"));
+
+    for (target = 0; all_targets[target].name; target++)
+        if (all_targets[target].output_name)
+            preprocess_automake(item_find(root, all_targets[target].name), pr_root);
 }
 
 #define MAX_PUSHED_PATH  8
