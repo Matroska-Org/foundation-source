@@ -2256,6 +2256,7 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root)
 	}
 }
 
+/* add the output generated directory in EXPINCLUDE */
 void preprocess_generate(item* p)
 {
     item **child, *i;
@@ -3673,6 +3674,7 @@ void preprocess(item* root, const char *pr_root)
     char config_path[MAX_PATH];
     item *config_file;
     size_t target;
+	assert(item_is_root(root));
 
 	i = getvalue(item_find(root,"platformlib"));
     if (i)
