@@ -4563,7 +4563,7 @@ char* eval3(const char** s,item* config,reader* file)
 	return a;
 }
 
-char* eval2(const char** s,item* config,reader* file)
+char* eval_not_equal(const char** s,item* config,reader* file)
 {
 	evalspace(s);
 	if ((*s)[0] == '!' && (*s)[1] != '=')
@@ -4571,7 +4571,7 @@ char* eval2(const char** s,item* config,reader* file)
 		int value;
 		char* a;
 		*s += 1;
-		a = eval2(s,config,file);
+		a = eval_not_equal(s,config,file);
 		value = !str2bool(a);
 		free(a);
 		return bool2str(value);
@@ -4584,7 +4584,7 @@ char* eval1(const char** s,item* config,reader* file)
 {
 	int value;
 	char* b;
-	char* a = eval2(s,config,file);
+	char* a = eval_not_equal(s,config,file);
 
 	evalspace(s);
 	if ((*s)[0] == '=' && (*s)[1] == '=')
