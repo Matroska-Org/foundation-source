@@ -266,7 +266,7 @@ static int item_is_root(const item *p)
 
 static const item* item_root(const item* p, int full)
 {
-	while (p->parent && (full || item_is_root(p)))
+	while (p->parent && (full || !item_is_root(p)))
 		p = p->parent;
 	return p;
 }
