@@ -343,6 +343,7 @@ item* findref(const item* p)
 	{
         size_t target;
         item* v = NULL;
+		/* TODO look in all the roots */
         for (target = 0; !v && all_targets[target].name; target++)
             v = item_find(item_find_in_root(p, all_targets[target].name, 0), p->value);
 		return v;
@@ -1665,6 +1666,11 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 			}
 			else
 				j = item_find_add(root,file->token,0);
+
+			if (new_root)
+			{
+				/* TODO copy "outputpath", "rootpath", etc from the old root or use the global values */
+			}
 
 			cond = load_cond(root,file,0);
 			cond = itemcond_and(cond,cond0);
