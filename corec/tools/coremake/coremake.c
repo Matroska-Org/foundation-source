@@ -1647,7 +1647,9 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 						printf("CONFIG_FILE needs to be find in the .proj file %s:%d\r\n", file->filename, file->r.no);
 						exit(1);
 					}
-					root = item_find_add(root, ROOT_NAME, 0);
+					root = item_find_add(root->parent, root_path, 0);
+					getconfig(root);
+					/* switch the local reader to a new root */
 					reader_save(file, &new_root_reader);
 					strcpy(file->project_root, root_path);
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
