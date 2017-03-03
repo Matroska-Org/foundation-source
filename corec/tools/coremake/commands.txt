@@ -79,3 +79,19 @@ In coremake compiled files (.build and .inc files)
   replace the coremake variable with its value in the generated file
 - SCRIPT
   make the currently built file executable
+
+Variables available in compiled scripts (.build and .inc files)
+- PLATFORMNAME
+  the name of the target provided in the command line (eg. vs9_x64)
+- ROOTPATH
+  the path to the root of the source tree being processed
+- BUILDDIR
+  the path to the root when project files will be generated to build
+- OUTPUTPATH
+  the path to the directory that will received built outputs
+- BUILDPATH
+  the path to the directory that will contain temporary object files when building
+- PLATFORM_FILES
+  the path to the coremake compiled scripts
+- PLATFORMLIB
+  the path to the directory that contains library files to include as already built, see USELIB
