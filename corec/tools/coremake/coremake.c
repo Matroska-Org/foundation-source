@@ -1570,7 +1570,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
             deepercond = !root->parent && stricmp(file->token,"project")==0;
 
             need_path = 0;
-            if (!root->parent)
+            if (item_is_root(root))
             {
                 for (target = 0; all_targets[target].name; target++)
                     if (stricmp(file->token, all_targets[target].name) == 0)
