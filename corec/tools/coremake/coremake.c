@@ -63,7 +63,7 @@
 # define make_dir(x) mkdir(x)
 #endif
 
-int verbose = 0;
+static int verbose = 0;
 
 #define ROOT_NAME  "ROOT"
 
@@ -1433,7 +1433,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 	int has_statement = 0;
 	item *i,*j=NULL;
     size_t target;
-	reader new_root_reader;
+	reader old_reader;
 	int new_root = 0;
 
     while (!reader_eof(file))
@@ -1556,7 +1556,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 		else
 		{
 			int config = 0;
-			int need_path;
+			int need_path = 0;
 			int filename;
             int uselib;
             int deepercond;
@@ -1569,7 +1569,6 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 
             deepercond = !root->parent && stricmp(file->token,"project")==0;
 
-            need_path = 0;
             if (item_is_root(root))
             {
                 for (target = 0; all_targets[target].name; target++)
@@ -1661,7 +1660,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 					root = item_find_add(root->parent, root_path, 0);
 					getconfig(root);
 					/* switch the local reader to a new root */
-					reader_save(file, &new_root_reader);
+					reader_save(file, &old_reader);
 					strcpy(file->project_root, root_path);
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
 					//chdir(file->project_root);
@@ -1847,7 +1846,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 	}
 	if (new_root)
 	{
-		reader_restore(file, &new_root_reader);
+		reader_restore(file, &old_reader);
 		//chdir(file->project_root);
 	}
 	return result;
@@ -2333,7 +2332,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root)
 		item* reg = item_find_add(*child,"reg",0);
 		item* use = item_find(*child,"use");
 		item* usebuilt = item_find(*child,"usebuilt");
-		item* path = getvalue(item_find_add(*child,"path",0));
+		const item* path = getvalue(item_find_add(*child,"path",0));
 		item* src = item_find_add(*child,"source",0);
 		item* libs = item_find_add(*child,"libs",0);
 		item* syslibs = item_find_add(*child,"syslibs",0);
@@ -3902,9 +3901,9 @@ void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags,
         else
             switch (rel_flags & FLAG_PATH_MASK)
             {
-            case FLAG_PATH_SOURCE:    strcpy(base,src_root); break;
+            case FLAG_PATH_SOURCE:    strcpy(base, src_root); break;
             case FLAG_PATH_GENERATED: strcpy(base, prj_root); break;
-            case FLAG_PATH_COREMAKE:  strcpy(base,coremake_root); break;
+            case FLAG_PATH_COREMAKE:  strcpy(base, coremake_root); break;
             default: base[0] = '\0'; // safety
             }
         addendpath(base);
