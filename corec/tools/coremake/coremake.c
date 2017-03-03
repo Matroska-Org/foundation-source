@@ -122,7 +122,6 @@ char src_root[MAX_PATH] = "";
 char coremake_root[MAX_PATH] = "";
 size_t src_root_len = 0;
 size_t coremake_root_len = 0;
-char proj[MAX_PATH] = "root.proj";
 
 enum
 {
@@ -5550,7 +5549,6 @@ item* default_workspace(item* workspace,item* i,item* p)
     {
         if (!i)
         {
-            truncfilename(proj);
             i = item_find_add(workspace,proj,1);
         }
         item_find_add(item_find_add(i,"use",1),(*child)->value,1);
@@ -5568,7 +5566,8 @@ int main(int argc, char** argv)
 	char proj_root[MAX_PATH];
 	char root_forced = 0;
 	char platform[MAX_PATH] = "";
-
+	char proj[MAX_PATH] = "root.proj";
+	
     getcwd(proj_root,sizeof(proj_root));
     pathunix(proj_root);
     addendpath(proj_root);
@@ -5665,15 +5664,16 @@ int main(int argc, char** argv)
         }
 	}
 
+	truncfilename(proj);
     if (!getvalue(item_find(root,"workspace")))
     {
         // add default workspace
         item* w = item_find_add(root,"workspace",0);
         item* i = NULL;
-        i=default_workspace(w,i,item_find(root,"exe"));
-        i=default_workspace(w,i,item_find(root,"dll"));
-        i=default_workspace(w,i,item_find(root,"con"));
-        i=default_workspace(w,i,item_find(root,"exe_android"));
+        i=default_workspace(w,i,item_find(root,"exe"), proj);
+        i=default_workspace(w,i,item_find(root,"dll"), proj);
+        i=default_workspace(w,i,item_find(root,"con"), proj);
+        i=default_workspace(w,i,item_find(root,"exe_android"), proj);
     }
 
 	preprocess_project(item_find(root,"project"));
