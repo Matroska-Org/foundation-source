@@ -651,7 +651,7 @@ static item* item_getmerge(item* p,const item* child,int removed,int *existed)
     return dup;
 }
 
-void item_merge2(item* p,item* group,itemcond* cond0,int removed,int append_cond)
+static void item_merge2(item* p,const item* group,itemcond* cond0,int removed,int append_cond)
 {
 	if (group)
 	{
@@ -679,7 +679,7 @@ void item_merge2(item* p,item* group,itemcond* cond0,int removed,int append_cond
 	}
 }
 
-static void item_merge(item* p,item* group,item* filter)
+static void item_merge(item* p,const item* group,item* filter)
 {
 	if (group)
 	{
@@ -695,6 +695,16 @@ static void item_merge(item* p,item* group,item* filter)
 		}
 		item_merge2(p,group,cond,removed,1);
 		itemcond_delete(cond);
+	}
+}
+
+static void item_merge_name(item* dst, const item* src, const char* value, item* cond)
+{
+	src = item_find(src, value);
+	if (src)
+	{
+		int exists;
+		item_merge(item_getmerge(dst, src, 0, &exists), src, cond);
 	}
 }
 
@@ -2005,16 +2015,6 @@ void preprocess_condend(item* p)
 		else
 			preprocess_condend(*child);
 	}
-}
-
-void item_merge_name(item* dst,item* src,const char* value,item* cond)
-{
-    src = item_find(src,value);
-    if (src)
-    {
-        int exists;
-		item_merge(item_getmerge(dst,src,0,&exists),src,cond);
-    }
 }
 
 void preprocess_dependency_project(item* p)
