@@ -1660,7 +1660,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 					getconfig(root);
 					/* switch the local reader to a new root */
 					reader_save(file, &old_reader);
-					strcpy(file->project_root, root_path);
+					strcpy(file->project_root, root_path); /* TODO fix out of tree build */
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
 					//chdir(file->project_root);
 				}
