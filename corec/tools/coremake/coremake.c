@@ -65,6 +65,11 @@
 
 static int verbose = 0;
 
+#define MAX_PUSHED_PATH  8
+char buildpath[MAX_PUSHED_PATH][MAX_PATH];
+int buildflags[MAX_PUSHED_PATH];
+int curr_build = 0;
+
 #define ROOT_NAME  "ROOT"
 
 typedef struct reader_static
@@ -1434,6 +1439,25 @@ itemcond* load_cond(item* item, reader* file, int force)
 	return p;
 }
 
+static void settle_root(item *root, const char *src_root, const char *proj_root, const char *coremake_root)
+{
+	item* i;
+
+	getconfig(root);
+
+	i = item_find_add(root, "rootpath", 1);
+	i = item_find_add(i, src_root, 1);
+	set_path_type(i, FLAG_PATH_SOURCE);
+
+	i = item_find_add(root, "builddir", 1);
+	i = item_find_add(i, proj_root, 1);
+	set_path_type(i, FLAG_PATH_GENERATED);
+
+	i = item_find_add(root, "platform_files", 1);
+	i = item_find_add(i, coremake_root, 1);
+	set_path_type(i, FLAG_PATH_COREMAKE);
+}
+
 int load_file(item* root,const char* filename, itemcond* cond0, const char *root_path, const char *src_path, const char *coremake_path);
 int load_item(item* root,reader* file,int sub,itemcond* cond0)
 {
@@ -1666,11 +1690,17 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 						exit(1);
 					}
 					root = item_find_add(root->parent, root_path, 0);
-					getconfig(root);
 					/* switch the local reader to a new root */
 					reader_save(file, &old_reader);
 					strcpy(file->project_root, root_path); /* TODO fix out of tree build */
 					strcpy(file->src_root, root_path);
+					if (++curr_build > MAX_PUSHED_PATH)
+					{
+						printf("can't push directory %s, limit reached\r\n", file->project_root);
+						exit(1);
+					}
+					strcpy(buildpath[curr_build], file->project_root);
+					settle_root(root, file->src_root, file->project_root, file->coremake_root);
 					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
 					//chdir(file->project_root);
 				}
@@ -1855,6 +1885,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 	}
 	if (new_root)
 	{
+		--curr_build;
 		reader_restore(file, &old_reader);
 		//chdir(file->project_root);
 	}
@@ -3864,12 +3895,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
             preprocess_automake(item_find(root, all_targets[target].name), pr_root, src_root, coremake_root);
 }
 
-#define MAX_PUSHED_PATH  8
 FILE* build;
-char buildpath[MAX_PUSHED_PATH][MAX_PATH];
-int buildflags[MAX_PUSHED_PATH];
-int curr_build = 0;
-
 void simplifypath(char* path, int head)
 {
     char* s;
@@ -5704,15 +5730,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	item_find_add(item_find_add(root,"platformname",1),platform,1);
-
-    i = item_find_add(universe,"rootpath",1);
-	i = item_find_add(i,src_root,1);
-    set_path_type(i,FLAG_PATH_SOURCE);
-
-    i = item_find_add(universe,"builddir",1);
-	i = item_find_add(i,proj_root,1);
-    set_path_type(i,FLAG_PATH_GENERATED);
+	item_find_add(item_find_add(universe,"platformname",1),platform,1);
 
 	sprintf(path,"%srelease/%s/",proj_root,platform);
     i = item_find_add(universe,"outputpath",1);
@@ -5724,7 +5742,7 @@ int main(int argc, char** argv)
 	i = item_find_add(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
-	i = getvalue(item_find_add(universe,"platform_files",0));
+	i = getvalue(item_find_add(root,"platform_files",0));
 	if (i)
 	{
 		if (ispathabs(i->value) || !ispathabs(src_root))
@@ -5755,11 +5773,9 @@ int main(int argc, char** argv)
         ///       We probably need a --prefix during compilation to hardcode that /usr/share path
         strcpy(coremake_root,"/usr/local/share/coremake");
 #endif
-        i = item_find_add(root,"platform_files",1);
-        i = item_find_add(i,coremake_root,1);
-        set_path_type(i,FLAG_PATH_COREMAKE);
-        strcpy(coremake_root,i->value);
     }
+	settle_root(root, src_root, proj_root, coremake_root);
+
 	addendpath(coremake_root);
 
     strcpy(path,coremake_root);
@@ -5774,7 +5790,10 @@ int main(int argc, char** argv)
 	for (child_root = all_roots->child; child_root != all_roots->childend; ++child_root)
 	{
 		/* TODO call this for each root in the universe */
-		build_file(*child_root, path, FLAG_PATH_COREMAKE, proj_root, src_root, coremake_root);
+		item *proj_path     = item_find(*child_root, "builddir");
+		item *src_path      = item_find(*child_root, "rootpath");
+		item *coremake_path = item_find(*child_root, "platform_files");
+		build_file(*child_root, path, FLAG_PATH_COREMAKE, getvalue(proj_path)->value, getvalue(src_path)->value, getvalue(coremake_path)->value);
 		if (build)
 		{
 			fclose(build);
