@@ -449,10 +449,9 @@ ENDFOR
 PRINTNL   </ItemGroup>
 PRINTNL   <ItemGroup>
 FOR EACH SOURCE
+PRINTNL     <ClCompile Include="%(~!NAME)">
 IF (%(_copy_item))
-  PRINTNL     <ClCompile Include="%(~!NAME)" DeploymentContent="true">
-ELSE
-  PRINTNL     <ClCompile Include="%(~!NAME)">
+  PRINTNL       <DeploymentContent>true</DeploymentContent>
 ENDIF
 IF ((%(>NAME)==c || %(>NAME)==cpp) && %(../PCH_SOURCE) && %(NO_PCH)=="")
   PRINTNL         <FileConfiguration
