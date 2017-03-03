@@ -3683,12 +3683,14 @@ void preprocess(item* root, const char *pr_root)
 	assert(item_is_root(root));
 
 	i = getvalue(item_find(root,"platformlib"));
-    if (i)
-    {
-        char path[MAX_PATH];
-    	sprintf(path,"lib/%s/",i->value);
-		item_find_add(item_find_add(root,"libpath",1),path,1);
-    }
+	if (i)
+	{
+		char path[MAX_PATH];
+		sprintf(path, "lib/%s/", i->value);
+		item_find_add(item_find_add(root, "libpath", 1), path, 1); /* TODO remove, it's never used */
+	}
+	else
+		printf("PLATFORMLIB not defined for this target, USELIB will not work\r\n");
 
 	preprocess_condstart(root);
 	preprocess_config(getconfig(root));
