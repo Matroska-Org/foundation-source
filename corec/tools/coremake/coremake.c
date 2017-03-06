@@ -333,7 +333,7 @@ static const struct target_def all_targets[] = {
     { NULL, NULL, 0 }
 };
 
-item* findref(const item* p)
+static item* findref(const item* p)
 {
 	if (p->parent && (stricmp(p->parent->value,"project")==0 ||
 		              stricmp(p->parent->value,"dep")==0 ||
@@ -352,7 +352,7 @@ item* findref(const item* p)
 	return NULL;
 }
 
-item* findref2(item* p)
+static item* findref_or_self(item* p)
 {
 	item* ref = findref(p);
 	return ref?ref:p;
@@ -5314,12 +5314,10 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 
 						while (child!=childend)
 						{
-                            item* w;
+                            item* w = findref_or_self(*child);
 							if (!first)
 								reader_restore(file,&forpos);
-                            w = findref2(*child);
-                            if (w)
-                                setvalue(item_find_add(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
+                            setvalue(item_find_add(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
 
 							build_parse(w,file,1,0,&pos);
                             if (w->flags & FLAG_REMOVED)
