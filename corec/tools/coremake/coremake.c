@@ -352,27 +352,21 @@ static item* findref(const item* p)
 	return NULL;
 }
 
-static item* findref_or_self(item* p)
-{
-	item* ref = findref(p);
-	return ref?ref:p;
-}
-
 int compare_use(const item* a, const item* b)
 {
-	item* refa = findref(a);
-	item* refb = findref(b);
+	const item* refa = findref(a);
+	const item* refb = findref(b);
 	if (refa && refb)
 	{
 		size_t i;
-		item* use;
+		const item* use;
 
-		use = item_find_add(refb,"use",0);
-		for (i=0;i<item_childcount(use);++i)
+		use = item_find(refb,"use");
+		for (i=0;use && i<item_childcount(use);++i)
 			if (refa == findref(use->child[i]))
 			{
-				use = item_find_add(refa,"use",0);
-				for (i=0;i<item_childcount(use);++i)
+				use = item_find(refa,"use");
+				for (i=0; use && i<item_childcount(use);++i)
 					if (refb == findref(use->child[i]))
 					{
 						// circular reference
@@ -389,14 +383,14 @@ int compare_use(const item* a, const item* b)
 int precompare_use(const item* refa, const item* refb)
 {
 	size_t i;
-	item* use;
+	const item* use;
 
-	use = item_find_add((item*)refb,"use",0);
-	for (i=0;i<item_childcount(use);++i)
+	use = item_find(refb,"use");
+	for (i=0;use && i<item_childcount(use);++i)
 		if (refa == findref(use->child[i]))
 		{
-			use = item_find_add((item*)refa,"use",0);
-			for (i=0;i<item_childcount(use);++i)
+			use = item_find(refa,"use");
+			for (i=0;use && i<item_childcount(use);++i)
 				if (refb == findref(use->child[i]))
 				{
 					// circular reference
@@ -5319,7 +5313,8 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 
 						while (child!=childend)
 						{
-                            item* w = findref_or_self(*child);
+                            item* w = findref(*child);
+							if (!w) w = *child;
 							if (!first)
 								reader_restore(file,&forpos);
                             setvalue(item_find_add(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
