@@ -344,9 +344,9 @@ static item* findref(const item* p)
 	{
         size_t target;
         item* v = NULL;
-		/* TODO look in all the roots */
+		const item* root = item_root(p, 0);
         for (target = 0; !v && all_targets[target].name; target++)
-            v = item_find(item_find_in_root(p, all_targets[target].name, 0), p->value);
+            v = item_find(item_find(root, all_targets[target].name), p->value);
 		return v;
 	}
 	return NULL;
@@ -3096,7 +3096,9 @@ void replace_use(item* p,const char* remove,item* set)
 void preprocess_usemerge(item* p)
 {
 	item** child;
+	const item* root;
 	if (!p) return;
+	root = item_root(p, 0);
 	for (child=p->child;child!=p->childend;++child)
 	{
 		size_t i;
@@ -3107,7 +3109,7 @@ void preprocess_usemerge(item* p)
 			if (dll && stricmp(dll->parent->value,"dll")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-                item* lib = item_find_add(item_find_add_in_root(p,"lib"),dll->value,0);
+				item* lib = item_find_add(item_find_add((item*) root,"lib",0),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3123,10 +3125,10 @@ void preprocess_usemerge(item* p)
                 if (use)
                     item_delete(use);
 
-				replace_use(item_find_in_root(p,"dll", 0),lib->value,*child);
-				replace_use(item_find_in_root(p,"lib", 0),lib->value,*child);
-				replace_use(item_find_in_root(p,"con", 0),lib->value,*child);
-				replace_use(item_find_in_root(p,"exe", 0),lib->value,*child);
+				replace_use(item_find(root,"dll"),lib->value,*child);
+				replace_use(item_find(root,"lib"),lib->value,*child);
+				replace_use(item_find(root,"con"),lib->value,*child);
+				replace_use(item_find(root,"exe"),lib->value,*child);
 
                 item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
@@ -3134,7 +3136,7 @@ void preprocess_usemerge(item* p)
 			if (dll && stricmp(dll->parent->value,"dll_csharp")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-                item* lib = item_find_add(item_find_add_in_root(p,"lib_csharp"),dll->value,0);
+				item* lib = item_find_add(item_find_add((item*) root,"lib_csharp", 0),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3150,10 +3152,10 @@ void preprocess_usemerge(item* p)
                 if (use)
                     item_delete(use);
 
-				replace_use(item_find_in_root(p,"dll_csharp", 0),lib->value,*child);
-				replace_use(item_find_in_root(p,"lib_csharp", 0),lib->value,*child);
-				replace_use(item_find_in_root(p,"con_csharp", 0),lib->value,*child);
-				replace_use(item_find_in_root(p,"exe_csharp", 0),lib->value,*child);
+				replace_use(item_find(root,"dll_csharp"),lib->value,*child);
+				replace_use(item_find(root,"lib_csharp"),lib->value,*child);
+				replace_use(item_find(root,"con_csharp"),lib->value,*child);
+				replace_use(item_find(root,"exe_csharp"),lib->value,*child);
 
                 item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
@@ -3295,7 +3297,9 @@ void preprocess_uselib(item* p,item* ref,item* uselib)
 void preprocess_builtlib(item* p)
 {
 	size_t i, target;
+	const item* root;
 	if (!p) return;
+	root = item_root(p, 0);
 	for (i=0;i<item_childcount(p);++i)
 	{
 		item* builtlib = item_find_add(p->child[i],"builtlib",0);
@@ -3307,7 +3311,7 @@ void preprocess_builtlib(item* p)
             preprocess_dependency_include(p->child[i],item_find_add(p->child[i],"use",0),1,0);
 
             for (target = 0; all_targets[target].name; target++)
-                preprocess_uselib(item_find_in_root(p, all_targets[target].name,0),p->child[i],value);
+                preprocess_uselib(item_find(root, all_targets[target].name),p->child[i],value);
 			item_delete(p->child[i]);
 			--i;
         }
@@ -3741,7 +3745,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
 
     // add the path with config.h to CONFIG_INCLUDE
     i = item_find_add(root,"config_include",0);
-    config_file = getvalue(item_find_in_root(root,"config_file", 0));
+    config_file = getvalue(item_find(root,"config_file"));
     if (config_file)
         strcpy(config_path,config_file->value);
     else
@@ -3753,7 +3757,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
     i->flags |= FLAG_PATH_GENERATED;
 
 	// add the path of the CONFIG_CLEANER file to CONFIG_INCLUDE
-	i = item_find_in_root(root,"config_cleaner", 0);
+	i = item_find(root,"config_cleaner");
 	if (i && getvalue(i))
     {
 		strcpy(config_path,getvalue(i)->value);
@@ -3770,7 +3774,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
 	}
 
     // "GROUP con_to_exe": replaces all "con" by "exe" and add "USE con_to_exe"
-    con_to_exe = getvalue(item_find(item_find(item_find_in_root(root,"group",0),"con_to_exe"),"source"));
+    con_to_exe = getvalue(item_find(item_find(item_find(root,"group"),"con_to_exe"),"source"));
 	if (con_to_exe)
 	{
 		i = item_find(root,"con");
@@ -5035,7 +5039,8 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		{
 			if (!skip)
 			{
-				item* config = item_find_in_root(p,"config_file", 0);
+				const item* root = item_root(p, 0);
+				item* config = item_find(root,"config_file");
 				if (config && getvalue(config))
                 {
                     item* no_include = item_find(*config->child, "no_include");
@@ -5049,7 +5054,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 					strcat(tmpstr,"config_helper.h");
 					build_file(p,tmpstr, FLAG_PATH_COREMAKE, file->project_root, file->src_root, file->coremake_root);
 				}
-				config = item_find_in_root(p,"config_cleaner", 0);
+				config = item_find(root,"config_cleaner");
 				if (config && getvalue(config))
                 {
                     set_path_type(config,FLAG_PATH_SOURCE);
@@ -5787,7 +5792,9 @@ int main(int argc, char** argv)
 	item** child_root;
 	for (child_root = all_roots->child; child_root != all_roots->childend; ++child_root)
 	{
-		/* TODO call this for each root in the universe */
+		/* call this for each root in the universe */
+		if (!item_is_root(*child_root))
+			continue;
 		item *proj_path     = item_find(*child_root, "builddir");
 		item *src_path      = item_find(*child_root, "rootpath");
 		item *coremake_path = item_find(*child_root, "platform_files");
