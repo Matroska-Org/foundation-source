@@ -352,35 +352,7 @@ static item* findref(const item* p)
 	return NULL;
 }
 
-int compare_use(const item* a, const item* b)
-{
-	const item* refa = findref(a);
-	const item* refb = findref(b);
-	if (refa && refb)
-	{
-		size_t i;
-		const item* use;
-
-		use = item_find(refb,"use");
-		for (i=0;use && i<item_childcount(use);++i)
-			if (refa == findref(use->child[i]))
-			{
-				use = item_find(refa,"use");
-				for (i=0; use && i<item_childcount(use);++i)
-					if (refb == findref(use->child[i]))
-					{
-						// circular reference
-						return compare_name(refa,refb);
-					}
-
-				return 1;
-			}
-
-	}
-	return 0;
-}
-
-int precompare_use(const item* refa, const item* refb)
+static int compare_ref_use(const item* refa, const item* refb)
 {
 	size_t i;
 	const item* use;
@@ -400,6 +372,15 @@ int precompare_use(const item* refa, const item* refb)
 			return 1;
 		}
 
+	return 0;
+}
+
+static int compare_use(const item* a, const item* b)
+{
+	const item* refa = findref(a);
+	const item* refb = findref(b);
+	if (refa && refb)
+		return compare_ref_use(refa, refb);
 	return 0;
 }
 
@@ -3422,7 +3403,7 @@ void preprocess_presort(item* p)
 {
     // before builtlib removes projects
 	if (!p) return;
-	item_sort(p,precompare_use); // symbian libary linking madness...
+	item_sort(p,compare_ref_use); // symbian libary linking madness...
 }
 
 void preprocess_sort(item* p)
