@@ -3077,8 +3077,8 @@ void preprocess_usemerge(item* p)
 	for (child=p->child;child!=p->childend;++child)
 	{
 		size_t i;
-		item* merge = item_find_add(*child,"usemerge",0);
-		for (i=0;i<item_childcount(merge);++i)
+		item* merge = item_find(*child,"usemerge");
+		for (i=0; merge && i<item_childcount(merge); ++i)
 		{
 			item* dll = findref(merge->child[i]);
 			if (dll && stricmp(dll->parent->value,"dll")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
