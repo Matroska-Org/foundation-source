@@ -2853,7 +2853,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_ro
 	}
 }
 
-void preprocess_dependency_include(item* base, item* list, int keep_exp_inc, int discard_exp_def)
+static void preprocess_dependency_include(item* base, item* list, int keep_exp_inc, int discard_exp_def)
 {
 	size_t i;
 	for (i=0;i<item_childcount(list);++i)
@@ -2877,13 +2877,13 @@ void preprocess_dependency_include(item* base, item* list, int keep_exp_inc, int
             if (!discard_exp_def)
 			    item_merge(item_find_add(base,"define",0),item_find(ref,"expdefine"),list->child[i]);
 
-            preprocess_dependency_include(base,item_find_add(ref,"useinclude",0),keep_exp_inc,1);
-            preprocess_dependency_include(base,item_find_add(ref,"use",0),keep_exp_inc,0);
+            preprocess_dependency_include(base,item_find(ref,"useinclude"),keep_exp_inc,1);
+            preprocess_dependency_include(base,item_find(ref,"use"),keep_exp_inc,0);
 		}
 	}
 }
 
-void preprocess_dependency_init(item* p,int onlysource)
+static void preprocess_dependency_init(item* p,int onlysource)
 {
 	item** child;
 	if (!p) return;
@@ -2896,8 +2896,8 @@ void preprocess_dependency_init(item* p,int onlysource)
 		(*child)->flags &= ~FLAG_PROCESSED;
 
         ++stamp;
-        preprocess_dependency_include(*child,item_find_add(*child,"useinclude",0),0,1);
-        preprocess_dependency_include(*child,item_find_add(*child,"use",0),0,0);
+        preprocess_dependency_include(*child,item_find(*child,"useinclude"),0,1);
+        preprocess_dependency_include(*child,item_find(*child,"use"),0,0);
 
 		list = item_find(*child,"source");
 		for (i=0;i<item_childcount(list);++i)
@@ -3214,7 +3214,7 @@ static void preprocess_use_group(item *root, const char *target_type)
 	}
 }
 
-void preprocess_uselib(item* p,item* ref,item* uselib)
+static void preprocess_uselib(item* p,item* ref,item* uselib)
 {
 	item** child;
 	if (!p) return;
@@ -3222,7 +3222,7 @@ void preprocess_uselib(item* p,item* ref,item* uselib)
         if (!((*child)->flags & FLAG_REMOVED))
 	    {
 		    size_t i;
-		    item* use = item_find_add(*child,"use",0);
+		    item* use = item_find(*child,"use");
 		    for (i=0;i<item_childcount(use);++i)
 		    {
 			    if (stricmp(use->child[i]->value,ref->value)==0)
