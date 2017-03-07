@@ -2039,7 +2039,7 @@ void preprocess_dependency_project(item* p)
 	{
 		// remove not exising dependencies
 		size_t i;
-		item* use = item_find_add(p,"use",0);
+		item* use = item_find(p,"use");
 
 		p->flags |= FLAG_PROCESSED;
 
@@ -2944,7 +2944,7 @@ void preprocess_workspace_adddep(item* workspace_use,item* p)
 	if (ref && !(ref->flags & FLAG_REMOVED))
 	{
 		size_t i;
-		item* use = item_find_add(ref,"use",0);
+		item* use = item_find(ref,"use");
 		for (i=0;i<item_childcount(use);++i)
 			if (!(use->child[i]->flags & FLAG_REMOVED))
 			{
@@ -2953,7 +2953,7 @@ void preprocess_workspace_adddep(item* workspace_use,item* p)
 					preprocess_workspace_adddep(workspace_use,dep);
 			}
 
-		use = item_find_add(ref,"dep",0);
+		use = item_find(ref,"dep");
 		for (i=0;i<item_childcount(use);++i)
 			if (!(use->child[i]->flags & FLAG_REMOVED))
 			{
@@ -2977,7 +2977,7 @@ void preprocess_workspace(item* p)
 	item** child;
 	for (child=p->child;child!=p->childend;++child)
 	{
-		item* use = item_find_add(*child,"use",0);
+		item* use = item_find(*child,"use");
 		size_t i;
 		for (i=0;i<item_childcount(use);++i)
 			use->child[i]->flags &= ~FLAG_PROCESSED;
@@ -3042,7 +3042,7 @@ void replace_use(item* p,const char* remove,item* set)
 	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
-		item* use = item_find_add(*child,"use",0);
+		item* use = item_find(*child,"use");
 		item* a = item_find(use,remove);
 		if (a && !(a->flags & FLAG_REMOVED))
 		{
@@ -3185,7 +3185,7 @@ static item *find_group(item *root, const char *name)
 static void preprocess_use_group_root(item *root, item *targets, item *target)
 {
 	size_t i;
-	item* use = item_find_add(target, "use", 0);
+	item* use = item_find(target, "use");
 	for (i = 0; i<item_childcount(use); ++i)
 	{
 		item *child = use->child[i];
@@ -3528,7 +3528,7 @@ static void preprocess_sort(item* p)
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 1);
 
-		src = item_find_add(*child,"use",0);
+		src = item_find(*child,"use");
         for (i=0;i<item_childcount(src);++i)
         {
 			item* ref = findref(src->child[i]);
