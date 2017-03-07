@@ -3395,7 +3395,7 @@ void preprocess_sort_workspace(item* p)
 			item_find_add(item_find_add(frameworks->child[i],"xcodegrpuid2",0),xcodeuid,1);
 		}
 #endif
-        item_sort(item_find_add(*child,"use",0),compare_use); // for automake "subdirs"
+        item_sort(item_find(*child,"use"), compare_use); // for automake "subdirs"
     }
 }
 
@@ -3488,9 +3488,9 @@ static void preprocess_sort(item* p)
         generate_xcodeuid(xcodeuid, xcodeuid);
         item_find_add(item_find_add(*child,"xcodegrpuid10",0),xcodeuid,1);
 
-		item_sort(item_find_add(*child,"source",0),compare_name);
-		item_sort(item_find_add(*child, "sourcedir", 0), compare_name);
-		item_sort(item_find_add(*child,"use",0),compare_use); // symbian libary linking madness...
+		item_sort(item_find(*child,"source"), compare_name);
+		item_sort(item_find(*child, "sourcedir"), compare_name);
+		item_sort(item_find(*child,"use"), compare_use); // symbian libary linking madness...
 
 	    src = item_find_add(*child,"source",0);
         for (i=0;i<item_childcount(src);++i)
