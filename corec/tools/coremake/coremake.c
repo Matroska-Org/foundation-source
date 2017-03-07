@@ -3270,7 +3270,7 @@ void preprocess_uselib(item* p,item* ref,item* uselib)
 	    }
 }
 
-void preprocess_builtlib(item* p)
+static void preprocess_builtlib(item* p)
 {
 	size_t i, target;
 	const item* root;
@@ -3283,8 +3283,8 @@ void preprocess_builtlib(item* p)
         if (value)
         {
             ++stamp;
-            preprocess_dependency_include(p->child[i],item_find_add(p->child[i],"useinclude",0),1,1);
-            preprocess_dependency_include(p->child[i],item_find_add(p->child[i],"use",0),1,0);
+            preprocess_dependency_include(p->child[i],item_find(p->child[i],"useinclude"),1,1);
+            preprocess_dependency_include(p->child[i],item_find(p->child[i],"use"),1,0);
 
             for (target = 0; all_targets[target].name; target++)
                 preprocess_uselib(item_find(root, all_targets[target].name),p->child[i],value);
