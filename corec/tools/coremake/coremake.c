@@ -2192,9 +2192,9 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char 
 		item* plugin = getvalue(item_find(*child,"plugin"));
 		item* no_stdafx = getvalue(item_find(*child,"no_stdafx"));
 		item* no_project = getvalue(item_find(*child,"no_project"));
-		item* cls = item_find_add(*child,"class",0);
-		item* reg = item_find_add(*child,"reg",0);
-		item* path = getvalue(item_find_add(*child,"path",0));
+		item* cls = item_find(*child,"class");
+		item* reg = item_find(*child,"reg");
+		item* path = getvalue(item_find(*child,"path"));
         item *include = item_find_add(*child,"include",0);
 
         if (!path)
@@ -2304,8 +2304,8 @@ void preprocess_automake(item* p, const char *pj_root, const char *src_root, con
     {
         size_t i;
         char gen_path[MAX_PATH];
-        item* path = getvalue(item_find_add(*child, "path", 0));
-        item* src_am = item_find_add(*child, "sourceam", 0);
+        item* path = getvalue(item_find(*child, "path"));
+        item* src_am = item_find(*child, "sourceam");
 
         if (!path)
             continue;
@@ -2350,7 +2350,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_ro
 		item* use = item_find(*child,"use");
 		item* usebuilt = item_find(*child,"usebuilt");
 		const item* path = getvalue(item_find_add(*child,"path",0));
-		item* src = item_find_add(*child,"source",0);
+		item* src = item_find(*child,"source");
 		item* libs = item_find_add(*child,"libs",0);
 		item* syslibs = item_find_add(*child,"syslibs",0);
 		item* install = item_find_add(*child,"install",0);
@@ -2449,7 +2449,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_ro
 			item* ref = findref(use->child[i]);
 			if (ref && stricmp(ref->parent->value,"lib")==0)
 			{
-				item* src = item_find_add(ref,"source",0);
+				item* src = item_find(ref,"source");
         		item* uselib = item_find(*child,"uselib");
 
 				for (j=0;j<item_childcount(src);++j)
@@ -2479,7 +2479,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_ro
 			item* ref = findref(usebuilt->child[i]);
 			if (ref && stricmp(ref->parent->value,"lib")==0)
 			{
-				item* src = item_find_add(ref,"source",0);
+				item* src = item_find(ref,"source");
         		item* uselib = item_find(*child,"uselib");
 
 				for (j=0;j<item_childcount(src);++j)
@@ -2514,7 +2514,7 @@ void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_ro
                     if (ref && stricmp(ref->parent->value,"dll")==0 && getvalue(item_find(ref,"nolib")))
                     {
                         item* outputpath = getvalue(item_find_in_root(ref,"outputpath",1));
-                        item* output = getvalue(item_find_add(ref,"output",0));
+                        item* output = getvalue(item_find(ref,"output"));
                         if (outputpath && outputpath->value && output && output->value)
                         {
                             item* tmp, *out;
@@ -2975,6 +2975,7 @@ void preprocess_workspace_init(item* p)
 void preprocess_workspace(item* p)
 {
 	item** child;
+	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
 		item* use = item_find(*child,"use");
@@ -3092,11 +3093,11 @@ void preprocess_usemerge(item* p)
 		        item_merge(lib,dll,merge->child[i]);
                 item_delete(dll);
 
-                use = item_find(item_find_add(lib,"use",0),(*child)->value);
+                use = item_find(item_find(lib,"use"),(*child)->value);
                 if (use)
                     item_delete(use);
 
-                use = item_find(item_find_add(lib,"usebuilt",0),(*child)->value);
+                use = item_find(item_find(lib,"usebuilt"),(*child)->value);
                 if (use)
                     item_delete(use);
 
@@ -3119,11 +3120,11 @@ void preprocess_usemerge(item* p)
 		        item_merge(lib,dll,merge->child[i]);
                 item_delete(dll);
 
-                use = item_find(item_find_add(lib,"use",0),(*child)->value);
+                use = item_find(item_find(lib,"use"),(*child)->value);
                 if (use)
                     item_delete(use);
 
-                use = item_find(item_find_add(lib,"usebuilt",0),(*child)->value);
+                use = item_find(item_find(lib,"usebuilt"),(*child)->value);
                 if (use)
                     item_delete(use);
 
@@ -3174,7 +3175,7 @@ void preprocess_project(item* root)
 static item *find_group(item *root, const char *name)
 {
 	if (!root) return NULL;
-	item* base_groups = item_find_add(root, "group", 0);
+	item* base_groups = item_find(root, "group");
 	item* result = item_find(base_groups, name);
 	if (result)
 		return result;
@@ -3228,7 +3229,7 @@ static void preprocess_uselib(item* p,item* ref,item* uselib)
 			    if (stricmp(use->child[i]->value,ref->value)==0)
 			    {
                     size_t j;
-		            item* src = item_find_add(ref,"source",0);
+		            item* src = item_find(ref,"source");
 		            for (j=0;j<item_childcount(src);++j)
 		            {
                         char path[MAX_PATH];
@@ -3278,7 +3279,7 @@ static void preprocess_builtlib(item* p)
 	root = item_root(p, 0);
 	for (i=0;i<item_childcount(p);++i)
 	{
-		item* builtlib = item_find_add(p->child[i],"builtlib",0);
+		item* builtlib = item_find(p->child[i],"builtlib");
         item* value = getvalue(builtlib);
         if (value)
         {
@@ -3429,8 +3430,6 @@ static void preprocess_sort(item* p)
 	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
-        item* prjname;
-        item* prjpath;
 		item* src;
         int major,minor,revision;
         size_t i;
@@ -3492,39 +3491,39 @@ static void preprocess_sort(item* p)
 		item_sort(item_find(*child, "sourcedir"), compare_name);
 		item_sort(item_find(*child,"use"), compare_use); // symbian libary linking madness...
 
-	    src = item_find_add(*child,"source",0);
+	    src = item_find(*child,"source");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 0);
 
-	    src = item_find_add(*child,"header",0);
+	    src = item_find(*child,"header");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 0);
 		
-	    src = item_find_add(*child,"osx_strings",0);
+	    src = item_find(*child,"osx_strings");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 0);
 
-	    src = item_find_add(*child,"osx_icon",0);
+	    src = item_find(*child,"osx_icon");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 0);
 
-	    src = item_find_add(*child,"icon",0);
+	    src = item_find(*child,"icon");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 0);
 
-	    src = item_find_add(*child,"install",0);
+	    src = item_find(*child,"install");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 0);
 
-        src = item_find_add(*child,"framework",0);
+        src = item_find(*child,"framework");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 1);
 
-        src = item_find_add(*child,"framework_lib",0);
+        src = item_find(*child,"framework_lib");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 1);
 
-        src = item_find_add(*child,"privateframework",0);
+        src = item_find(*child,"privateframework");
         for (i=0;i<item_childcount(src);++i)
 			generate_uids(src->child[i], 1);
 
@@ -3546,7 +3545,7 @@ static void preprocess_sort(item* p)
 			}
         }
 
-		src = item_find_add(*child,"install_cab",0);
+		src = item_find(*child,"install_cab");
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3560,7 +3559,7 @@ static void preprocess_sort(item* p)
 			item_find_add(item_find_add(src->child[i],"msmuid2",0),msmuid,1);
         }
 
-		src = item_find_add(*child,"register_cab",0);
+		src = item_find(*child,"register_cab");
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3595,16 +3594,17 @@ static void preprocess_sort(item* p)
             item_find_add(item_find_add(src->child[i],"msmuid9",0),msmuid,1);
         }
 
-        prjname = getvalue(item_find_add(*child,"project_name",0));
-        if (!prjname)
-            prjname = item_find_add(item_find_add(*child,"project_name",0),(*child)->value,1);
+		src = item_find_add(*child, "project_name", 0);
+        if (!getvalue(src))
+            item_find_add(src,(*child)->value,1);
 
-        prjpath = getvalue(item_find_add(*child,"project_path",0));
-        if (!prjpath)
-            prjpath = item_find_add(item_find_add(*child,"project_path",0),(*child)->value,1);
+		src = item_find_add(*child, "project_path", 0);
+        if (!getvalue(src))
+            item_find_add(src,(*child)->value,1);
 
-        if (!getvalue(item_find_add(*child,"project_version",0)))
-            item_find_add(item_find_add(*child,"project_version",0),"1.0.0",1);
+		src = item_find_add(*child, "project_version", 0);
+        if (!getvalue(src))
+            item_find_add(src,"1.0.0",1);
 
         if ((item_find_add(getconfig(*child),"TARGET_PALMOS",0)->flags & FLAG_DEFINED) && !getvalue(item_find_add(*child,"project_fourcc",0)))
             item_find_add(item_find_add(*child,"project_fourcc",0),"'CMAK'",1);
@@ -3787,7 +3787,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
             preprocess_workspace_init(item_find(root, all_targets[target].name));
-	preprocess_workspace(item_find_add(root,"workspace",0));
+	preprocess_workspace(item_find(root,"workspace"));
 
 	preprocess_condend(root);
 
