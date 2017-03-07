@@ -3406,7 +3406,24 @@ void preprocess_presort(item* p)
 	item_sort(p,compare_ref_use); // symbian libary linking madness...
 }
 
-void preprocess_sort(item* p)
+static void generate_uids(item *into, int framework)
+{
+	char xcodeuid[25];
+	char msmuid[40];
+	char projfile[MAX_PATH];
+
+	strcpy(projfile, into->parent->parent->value);
+	strcat(projfile, into->parent->value);
+	strcat(projfile, into->value);
+
+	generate_xcodeuid(xcodeuid, projfile);
+	item_find_add(item_find_add(into, framework ? "xcodefrwfile" : "xcodeuid", 0), xcodeuid, 1);
+
+	generate_msmuid(msmuid, projfile);
+	item_find_add(item_find_add(into, "msmuid", 0), msmuid, 1);
+}
+
+static void preprocess_sort(item* p)
 {
 	item** child;
 	if (!p) return;
@@ -3477,129 +3494,39 @@ void preprocess_sort(item* p)
 
 	    src = item_find_add(*child,"source",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-			strcpy(projfile,(*child)->value);
-			strcat(projfile,"source");
-			strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 0);
 
 	    src = item_find_add(*child,"header",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-			strcpy(projfile,(*child)->value);
-			strcat(projfile,"header");
-			strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
-
+			generate_uids(src->child[i], 0);
+		
 	    src = item_find_add(*child,"osx_strings",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-			strcpy(projfile,(*child)->value);
-			strcat(projfile,"osx_strings");
-			strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 0);
 
 	    src = item_find_add(*child,"osx_icon",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-			strcpy(projfile,(*child)->value);
-			strcat(projfile,"osx_icon");
-			strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 0);
 
 	    src = item_find_add(*child,"icon",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-			strcpy(projfile,(*child)->value);
-			strcat(projfile,"icon");
-			strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 0);
 
 	    src = item_find_add(*child,"install",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-			strcpy(projfile,(*child)->value);
-			strcat(projfile,"install");
-			strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-			item_find_add(item_find_add(src->child[i],"xcodeuid",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 0);
 
         src = item_find_add(*child,"framework",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-            strcpy(projfile,(*child)->value);
-            strcat(projfile,"framework");
-            strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-            item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-            item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 1);
 
         src = item_find_add(*child,"framework_lib",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-            strcpy(projfile,(*child)->value);
-            strcat(projfile,"framework_lib");
-            strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-            item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-            item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 1);
 
         src = item_find_add(*child,"privateframework",0);
         for (i=0;i<item_childcount(src);++i)
-        {
-            strcpy(projfile,(*child)->value);
-            strcat(projfile,"privateframework");
-            strcat(projfile,src->child[i]->value);
-
-            generate_xcodeuid(xcodeuid, projfile);
-            item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
-
-            generate_msmuid(msmuid, projfile);
-            item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
-        }
+			generate_uids(src->child[i], 1);
 
 		src = item_find_add(*child,"use",0);
         for (i=0;i<item_childcount(src);++i)
