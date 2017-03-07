@@ -5686,16 +5686,16 @@ int main(int argc, char** argv)
         }
 	}
 
-	truncfilename(proj);
     if (!getvalue(item_find(root,"workspace")))
     {
-        // add default workspace
+        // add a default workspace as none were defined
         item* w = item_find_add(root,"workspace",0);
         item* i = NULL;
-        i=default_workspace(w,i,item_find(root,"exe"), proj);
-        i=default_workspace(w,i,item_find(root,"dll"), proj);
-        i=default_workspace(w,i,item_find(root,"con"), proj);
-        i=default_workspace(w,i,item_find(root,"exe_android"), proj);
+		size_t target;
+		truncfilename(proj);
+		for (target = 0; all_targets[target].name; target++)
+			if (all_targets[target].output_name)
+				i=default_workspace(w,i,item_find(root, all_targets[target].name), proj);
     }
 
 	preprocess_project(root);
