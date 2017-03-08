@@ -4858,7 +4858,7 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
     reader_free(&r);
 }
 
-void build_file(item* p,const char* filename, int reader_flags, const char *pjr_root, const char *src_root, const char *coremake_root);
+void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root);
 int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 {
 	int bin;
@@ -5467,7 +5467,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 	return result;
 }
 
-void build_file(item* p,const char* filename, int reader_flags, const char *pjr_root, const char *src_root, const char *coremake_root)
+void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root)
 {
 	reader r;
     reader_init(&r);
@@ -5483,8 +5483,8 @@ void build_file(item* p,const char* filename, int reader_flags, const char *pjr_
 		printf("'%s' build file not found!\r\n",filename);
 		exit(1);
 	}
-    r.r.flags = reader_flags;
-    r.r.filename_kind = reader_flags;
+    r.r.flags = filename_kind;
+    r.r.filename_kind = filename_kind;
 	build_parse(p,&r,0,0,NULL);
 	fclose(r.r.f);
     reader_free(&r);
