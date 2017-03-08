@@ -91,9 +91,9 @@ static SpecElement *FindElementParent(array *Elements, SpecElement* element)
         return NULL;
     tchar_t *parent_end;
     tcscpy_s(ParentPath, TSIZEOF(ParentPath), element->Path);
-    parent_end = wcschr(ParentPath, '(');
+    parent_end = tcschr(ParentPath, '(');
     if (!parent_end)
-        parent_end = wcsrchr(ParentPath, '\\');
+        parent_end = tcsrchr(ParentPath, '\\');
     *parent_end = '\0';
     for (parent = ARRAYBEGIN(*Elements, SpecElement*); parent != ARRAYEND(*Elements, SpecElement*); ++parent) {
         if (tcsisame_ascii((*parent)->Path, ParentPath))
@@ -145,20 +145,21 @@ void LinkElementParents(array *Elements)
         {
             fprintf(stderr, "did not parse element '%s' path %s\n", (*element)->Name, (*element)->Path);
         }
-        tchar_t *parent_end = wcsrchr((*element)->Path, ')');
+        tchar_t *parent_end = tcsrchr((*element)->Path, ')');
         *parent_end = '\0';
-        parent_end = wcschr((*element)->Path, '(');
+        parent_end = tcschr((*element)->Path, '(');
+        assert(parent_end != NULL);
         tcscpy_s((*element)->Path, TSIZEOF((*element)->Path), parent_end+1);
 
         if ((*element)->Recursive) {
-            parent_end = wcsstr((*element)->Path, T("))"));
+            parent_end = tcsstr((*element)->Path, T("))"));
             if (!parent_end)
                 fprintf(stderr, "recursive part not set in element '%s' path %s\n", (*element)->Name, (*element)->Path);
             else if (parent_end[2] != '\0')
                 fprintf(stderr, "unnknown recursive part in element '%s' path %s\n", (*element)->Name, (*element)->Path);
             else {
                 *parent_end = '\0';
-                parent_end = wcsstr((*element)->Path, T("(1*("));
+                parent_end = tcsstr((*element)->Path, T("(1*("));
                 if (!parent_end)
                     fprintf(stderr, "recursive part not understood in element '%s' path %s\n", (*element)->Name, (*element)->Path);
                 else {
@@ -169,7 +170,7 @@ void LinkElementParents(array *Elements)
 
         const tchar_t *separator_lookup = (*element)->Path;
         (*element)->Level = -1;
-        while ((separator_lookup = wcschr(separator_lookup, '\\')) != NULL)
+        while ((separator_lookup = tcschr(separator_lookup, '\\')) != NULL)
         {
             (*element)->Level++;
             separator_lookup++;
