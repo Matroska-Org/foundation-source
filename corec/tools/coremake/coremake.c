@@ -3802,7 +3802,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
             preprocess_automake(item_find(root, all_targets[target].name), pr_root, src_root, coremake_root);
 }
 
-FILE* build;
+FILE* file_built;
 void simplifypath(char* path, int head)
 {
     char* s;
@@ -4799,7 +4799,7 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
     {
         item *src;
         char backup[MAX_PATH];
-        FILE* backupfile = build;
+        FILE* backupfile = file_built;
         int backupflags = buildflags[curr_build];
         strcpy(backup,buildpath[curr_build]);
         strcpy(buildpath[curr_build], dst);
@@ -4819,9 +4819,9 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
         }
 
         create_missing_dirs(buildpath[curr_build]);
-        build = fopen(buildpath[curr_build],"w+");
+        file_built = fopen(buildpath[curr_build],"w+");
 
-        if (build)
+        if (file_built)
         {
             while (reader_line(&r))
             {
@@ -4835,12 +4835,12 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
                 else
                 {
                     reader_tokeneval(&r, 0, -1, pos, automake ? CMD_AUTOMAKE : CMD_COREMAKE);
-                    fputs(r.token,build);
-                    fputc(10,build);
+                    fputs(r.token,file_built);
+                    fputc(10,file_built);
                 }
             }
 
-            fclose(build);
+            fclose(file_built);
         }
 
         fclose(r.r.f);
@@ -4851,7 +4851,7 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
         src = item_find_add(item_find_add(pos->p, "base", 0), tmpstr, 1);
         set_path_type(src, FLAG_PATH_SOURCE);
 
-        build = backupfile;
+        file_built = backupfile;
         strcpy(buildpath[curr_build],backup);
         buildflags[curr_build] = backupflags;
     }
@@ -5101,12 +5101,12 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-				if (!build)
+				if (!file_built)
 				{
 					printf("not file opened!\r\n");
 					exit(1);
 				}
-				fprintf(build,"%s",file->token);
+				fprintf(file_built,"%s",file->token);
 			}
 		}
 		else
@@ -5122,12 +5122,12 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-				if (!build)
+				if (!file_built)
 				{
 					printf("no file opened!\r\n");
 					exit(1);
 				}
-				fprintf(build,"%s\n",file->token);
+				fprintf(file_built,"%s\n",file->token);
 			}
 		}
 		else
@@ -5136,13 +5136,13 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-				if (!build)
+				if (!file_built)
 				{
 					printf("no file opened!\r\n");
 					exit(1);
 				}
 #ifdef _WIN32
-				fprintf(build,"%s\n",file->token);
+				fprintf(file_built,"%s\n",file->token);
 #else
 				fprintf(build,"%s\r\n",file->token);
 #endif
@@ -5309,9 +5309,9 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		{
             if (!skip)
             {
-				if (build)
+				if (file_built)
 				{
-					fclose(build);
+					fclose(file_built);
 					file_finalize(buildpath[curr_build]);
 				}
             }
@@ -5325,8 +5325,8 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
                 simplifypath(buildpath[curr_build],0);
                 getabspath(buildpath[curr_build],buildflags[curr_build],"",buildflags[curr_build], file->project_root, file->src_root, file->coremake_root);
 				create_missing_dirs(buildpath[curr_build]);
-				build = fopen(buildpath[curr_build],bin?"wb":"w");
-				if (!build)
+				file_built = fopen(buildpath[curr_build],bin?"wb":"w");
+				if (!file_built)
 				{
 					printf("can't create %s\r\n",file->token);
 					exit(1);
@@ -5692,7 +5692,7 @@ int main(int argc, char** argv)
 
 	strcpy(buildpath[0],proj_root); //safety
     buildflags[0] = FLAG_PATH_GENERATED;
-	build = NULL;
+	file_built = NULL;
 
 	item** child_root;
 	for (child_root = all_roots->child; child_root != all_roots->childend; ++child_root)
@@ -5704,9 +5704,9 @@ int main(int argc, char** argv)
 		item *src_path      = item_find(*child_root, "rootpath");
 		item *coremake_path = item_find(*child_root, "platform_files");
 		build_file(*child_root, path, FLAG_PATH_COREMAKE, getvalue(proj_path)->value, getvalue(src_path)->value, getvalue(coremake_path)->value);
-		if (build)
+		if (file_built)
 		{
-			fclose(build);
+			fclose(file_built);
 			file_finalize(buildpath[curr_build]);
 		}
 	}
