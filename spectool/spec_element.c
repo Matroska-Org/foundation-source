@@ -109,37 +109,37 @@ void LinkElementParents(array *Elements)
         if (tcsnicmp_ascii((*element)->Path, T("1*1("), 4)==0)
         {
             if ((*element)->MinOccurrence != 1)
-                fprintf(stderr, "minOccurs (%d instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != 1)
-                fprintf(stderr, "maxOccurs (%d instead of 1) mismatched in '%s with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of 1) mismatched in '%s with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
         else if (tcsnicmp_ascii((*element)->Path, T("1*("), 3)==0)
         {
             if ((*element)->MinOccurrence != 1)
-                fprintf(stderr, "minOccurs (%d instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != SIZE_MAX)
-                fprintf(stderr, "maxOccurs (%d instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
         else if (tcsnicmp_ascii((*element)->Path, T("0*1("), 4)==0)
         {
             if ((*element)->MinOccurrence != 0)
-                fprintf(stderr, "minOccurs (%d instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != 1)
-                fprintf(stderr, "maxOccurs (%d instead of 1) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
         else if (tcsnicmp_ascii((*element)->Path, T("0*2("), 4)==0)
         {
             if ((*element)->MinOccurrence != 0)
-                fprintf(stderr, "minOccurs (%d instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != 2)
-                fprintf(stderr, "maxOccurs (%d instead of 2) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of 2) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
         else if (tcsnicmp_ascii((*element)->Path, T("0*("), 3)==0)
         {
             if ((*element)->MinOccurrence != 0)
-                fprintf(stderr, "minOccurs (%d instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
             if ((*element)->MaxOccurrence != SIZE_MAX)
-                fprintf(stderr, "maxOccurs (%d instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
         }
         else
         {
