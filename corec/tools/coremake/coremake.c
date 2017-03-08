@@ -287,6 +287,7 @@ static item* getconfig(const item* p)
 	return item_find(p,"config");
 }
 
+/* get the first value value of type item */
 static item* getvalue(item* p)
 {
 	if (p)
@@ -2174,11 +2175,11 @@ int getpri(item* p)
     return MAX_PRI;
 }
 
-int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd);
-void create_missing_dirs(const char *path);
-void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags, const char *prj_root, const char *src_root, const char *coremake_root);
-void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake);
-int build_parse(item* p, reader* file, int sub, int skip, build_pos* pos0);
+static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd);
+static void create_missing_dirs(const char *path);
+static void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags, const char *prj_root, const char *src_root, const char *coremake_root);
+static void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake);
+static int build_parse(item* p, reader* file, int sub, int skip, build_pos* pos0);
 
 void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char *src_root, const char *coremake_root)
 {
@@ -2334,7 +2335,7 @@ void preprocess_automake(item* p, const char *pj_root, const char *src_root, con
     }
 }
 
-void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_root, const char *coremake_root)
+static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_root, const char *coremake_root)
 {
 	item** child;
 	if (!p) return;
@@ -2937,7 +2938,7 @@ static void preprocess_dependency_init(item* p,int onlysource)
 	}
 }
 
-void preprocess_workspace_adddep(item* workspace_use,item* p)
+static void preprocess_workspace_adddep(item* workspace_use,item* p)
 {
 	item* ref = findref(p);
 	p->flags |= FLAG_PROCESSED;
@@ -3713,6 +3714,7 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
         }
     }
 
+	/* copy all groups into the actual target */
     for (target = 0; all_targets[target].name; target++)
         if (all_targets[target].output_name)
 	        preprocess_use_group(root, all_targets[target].name);
@@ -3833,7 +3835,7 @@ void simplifypath(char* path, int head)
     }
 }
 
-void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags, const char *prj_root, const char *src_root, const char *coremake_root)
+static void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags, const char *prj_root, const char *src_root, const char *coremake_root)
 {
     assert((path_flags & FLAG_PATH_MASK) != FLAG_PATH_NOT_PATH);
     if (!(path_flags & FLAG_PATH_SET_ABSOLUTE))
@@ -3881,7 +3883,7 @@ void urlquote(char *name,int no_backslash)
     }
 }
 
-int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
+static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 {
 	size_t maskpos,maskend;
 	char mask[MAX_LINE];
@@ -4714,7 +4716,7 @@ item* reader_item(reader* file, int skip, build_pos* pos)
     return i;
 }
 
-void create_missing_dirs(const char *path)
+static void create_missing_dirs(const char *path)
 {
 	size_t strpos = 0, strpos_i;
 	char new_dir[MAX_PATH];
@@ -4779,7 +4781,7 @@ void getarg(char* s, const char** in)
     *s = 0;
 }
 
-void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake)
+static void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake)
 {
     char tmpstr[MAX_LINE];
     reader r;
@@ -4858,8 +4860,8 @@ void compile_file(item* p, const char *src, const char *dst, int flags, build_po
     reader_free(&r);
 }
 
-void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root);
-int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
+static void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root);
+static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 {
 	int bin;
 	int result=0;
@@ -5467,7 +5469,7 @@ int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 	return result;
 }
 
-void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root)
+static void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root)
 {
 	reader r;
     reader_init(&r);
@@ -5490,7 +5492,8 @@ void build_file(item* p,const char* filename, int filename_kind, const char *pjr
     reader_free(&r);
 }
 
-item* default_workspace(item* workspace,item* i,item* p, const char *proj)
+/* generates a workspace for the proj type */
+static item* default_workspace(item* workspace,item* i,item* p, const char *proj)
 {
 	item** child;
 	if (!p) return i;
