@@ -282,9 +282,9 @@ static item* item_find_in_root(const item* p, const char* name, int full)
 	return item_find(item_root(p, full), name);
 }
 
-static item* getconfig(item* p)
+static item* getconfig(const item* p)
 {
-	return item_find_add_in_root(p,"config");
+	return item_find(p,"config");
 }
 
 static item* getvalue(item* p)
@@ -1418,7 +1418,7 @@ static void settle_root(item *root, const char *src_root, const char *proj_root,
 {
 	item* i;
 
-	getconfig(root);
+	item_find_add_in_root(root, "config");
 
 	i = item_find_add(root, "rootpath", 1);
 	i = item_find_add(i, src_root, 1);
@@ -5574,7 +5574,8 @@ int main(int argc, char** argv)
 	item *all_roots = item_find_add(universe, ROOT_NAME, 0);
 
 	item* root = item_find_add(all_roots, proj_root, 0);
-	getconfig(root);
+	item_find_add_in_root(root, "config");
+	/* TODO use settle_root settle_root(root, src_root, proj_root, coremake_root);*/
 
     if (!load_file(root,path,NULL, proj_root, src_root, coremake_root) && !root_forced)
 	{
