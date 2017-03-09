@@ -306,7 +306,7 @@ void ReadSpecElement(SpecElement *elt, parser *p)
         else if (tcsisame_ascii(elt->DefaultValue, T("0x1.f4p+12"))) {
             tcscpy_s(elt->DefaultValue, TSIZEOF(elt->DefaultValue), T("8000.0"));
         }
-        else
+        else if (tcsnicmp_ascii(elt->DefaultValue, T("0x"), 2)==0)
             fprintf(stderr, "default float value not handled %s\n", elt->DefaultValue);
     }
 
