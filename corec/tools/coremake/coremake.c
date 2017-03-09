@@ -5146,7 +5146,7 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 #ifdef _WIN32
 				fprintf(file_built,"%s\n",file->token);
 #else
-				fprintf(build,"%s\r\n",file->token);
+				fprintf(file_built,"%s\r\n",file->token);
 #endif
 			}
 		}
