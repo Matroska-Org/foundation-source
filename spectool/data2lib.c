@@ -283,7 +283,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
         nodetree* i;
         for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
         {
-            OutputElementDefinition(&(SpecElement*)i, elt, EltEnd, CFile, Extras);
+            OutputElementDefinition((SpecElement*)&i, elt, EltEnd, CFile, Extras);
         }
     }
 }
@@ -386,7 +386,7 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
         nodetree* i;
         for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
         {
-            OutputElementDeclaration(&(SpecElement *)i, EltEnd, CFile, Extras);
+            OutputElementDeclaration((SpecElement *)&i, EltEnd, CFile, Extras);
         }
     }
 }
