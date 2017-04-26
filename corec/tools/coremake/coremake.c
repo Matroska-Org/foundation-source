@@ -4956,7 +4956,7 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 				if (config && config->flags & FLAG_DEFINED)
 				{
 					strcpy(tmpstr,file->coremake_root);
-					strcat(tmpstr,"config_helper.h");
+					strcat(tmpstr,"/config_helper.h");
 					build_file(p,tmpstr, FLAG_PATH_COREMAKE, file->project_root, file->src_root, file->coremake_root);
 				}
 				config = item_find(root,"config_cleaner");
