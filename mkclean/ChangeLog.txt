@@ -1,3 +1,9 @@
+2012-04-26
+version 0.8.9:
+    - add support for Opus and VP9 support
+    - add support for colourspace elements
+    - add support for 360°/VR elements
+
 2012-xx-xx
 version 0.8.8:
     - add support for Matroska v4 elements like CueDuration and CueRelativePosition
