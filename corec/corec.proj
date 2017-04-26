@@ -1,4 +1,4 @@
-CONFIG_FILE config.h
+//CONFIG_FILE config.h
 //PLATFORM_FILES tools/coremake
 
 #include "*/*.proj"
