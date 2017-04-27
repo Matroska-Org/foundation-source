@@ -4821,6 +4821,7 @@ static void compile_file(item* p, const char *src, const char *dst, int flags, b
         }
 
         create_missing_dirs(buildpath[curr_build]);
+printf("compile file '%s'\r\n", buildpath[curr_build]);
         file_built = fopen(buildpath[curr_build],"w+");
 
         if (file_built)
@@ -5190,6 +5191,7 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 
 				reader_save(file,&forpos);
 
+printf("for each '%s'\r\n", forpos.token);
 				s = forpos.token;
 				for (;;)
 				{
@@ -5327,6 +5329,7 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
                 simplifypath(buildpath[curr_build],0);
                 getabspath(buildpath[curr_build],buildflags[curr_build],"",buildflags[curr_build], file->project_root, file->src_root, file->coremake_root);
 				create_missing_dirs(buildpath[curr_build]);
+printf("building file '%s'\r\n", buildpath[curr_build]);
 				file_built = fopen(buildpath[curr_build],bin?"wb":"w");
 				if (!file_built)
 				{
@@ -5485,6 +5488,7 @@ static void build_file(item* p,const char* filename, int filename_kind, const ch
 		printf("'%s' build file not found!\r\n",filename);
 		exit(1);
 	}
+printf("building file '%s' \r\n",filename);
     r.r.flags = filename_kind;
     r.r.filename_kind = filename_kind;
 	build_parse(p,&r,0,0,NULL);
