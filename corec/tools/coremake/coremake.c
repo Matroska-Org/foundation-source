@@ -1,7 +1,7 @@
 /*
   $Id$
 
-  Copyright (c) 2006-2016, CoreCodec, Inc.
+  Copyright (c) 2006-2010, CoreCodec, Inc.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,6 @@
 
 #define MAX_LINE		8192
 
-#include "directory.h"
-
-#ifndef MAX_PATH
-#define MAX_PATH		1024
-#endif
-
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
 # ifndef strcmpi
 #  define strcmpi strcasecmp
@@ -63,20 +57,84 @@
 # define make_dir(x) mkdir(x)
 #endif
 
-static int verbose = 0;
+int verbose = 0;
 
-#define MAX_PUSHED_PATH  8
-char buildpath[MAX_PUSHED_PATH][MAX_PATH];
-int buildflags[MAX_PUSHED_PATH];
-int curr_build = 0;
+#ifdef _WIN32
+#include <io.h>
+#include <direct.h>
+#include <windows.h>
 
-#define ROOT_NAME  "ROOT"
+#ifndef _INTPTR_T_DEFINED
+typedef signed int intptr_t;
+#define _INTPTR_T_DEFINED
+#endif
+
+#ifndef MAX_PATH
+#define MAX_PATH		1024
+#endif
+
+struct dirent
+{
+	char d_name[MAX_PATH];
+};
+typedef struct DIR
+{
+	intptr_t h;
+	int first;
+	struct _finddata_t file;
+	struct dirent entry;
+
+} DIR;
+
+DIR* opendir(const char* name)
+{
+	DIR* p = (DIR*)malloc(sizeof(DIR));
+	if (p)
+	{
+		sprintf(p->entry.d_name,"%s\\*",name);
+		p->h = _findfirst(p->entry.d_name,&p->file);
+		p->first = 1;
+		if (p->h == -1)
+		{
+			free(p);
+			p = NULL;
+		}
+	}
+	return p;
+}
+
+struct dirent* readdir(DIR* p)
+{
+	if (p->first || _findnext(p->h,&p->file)==0)
+	{
+		p->first = 0;
+		strcpy(p->entry.d_name,p->file.name);
+		return &p->entry;
+	}
+	return NULL;
+}
+
+void closedir(DIR* p)
+{
+	_findclose(p->h);
+	free(p);
+}
+
+#else
+#include <sys/types.h>
+#include <dirent.h>
+#include <unistd.h>
+
+#ifndef MAX_PATH
+#define MAX_PATH		1024
+#endif
+
+#endif
 
 typedef struct reader_static
 {
 	FILE* f;
 	int comment;
-    int ext_variable;
 	int no;
 	int flags;
     int filename_kind;
@@ -91,9 +149,6 @@ typedef struct reader
 	char *line;
 	char *token;
 	char *filename;
-	char *project_root;
-	char *src_root;
-	char *coremake_root;
 
 } reader;
 
@@ -118,12 +173,17 @@ struct build_pos
 #define FLAG_REMOVED               0x40
 #define FLAG_PROCESSED             0x80
 #define FLAG_ATTRIB                0x100
-#define FLAG_TOKEN_READY           0x200
+#define FLAG_READY                 0x200
 #define FLAG_CONFIG_FILE_SET       0x400
-#define FLAG_NO_INCLUDE            0x800
 
-#define CMD_COREMAKE                1
-#define CMD_AUTOMAKE                2
+char src_root[MAX_PATH] = "";
+char proj_root[MAX_PATH] = "";
+char coremake_root[MAX_PATH] = "";
+size_t src_root_len = 0;
+size_t proj_root_len = 0;
+size_t coremake_root_len = 0;
+char proj[MAX_PATH] = "root.proj";
+char platform[MAX_PATH] = "";
 
 enum
 {
@@ -216,7 +276,7 @@ void item_remove(item* i)
 	i->parent = NULL;
 }
 
-static void item_add(item* p,item* child)
+void item_add(item* p,item* child)
 {
 	if (!child)
 		return;
@@ -258,37 +318,21 @@ int compare_name(const item* a, const item* b)
 	return stricmp(a->value,b->value)>0;
 }
 
-static item* item_find_add(item* parent,const char* value,int defined);
+item* item_get(item* parent,const char* value,int defined);
 
-static int item_is_root(const item *p)
+item* getroot(const item* p,const char* name)
 {
-	return strcmp(p->parent->value, ROOT_NAME) == 0;
-}
-
-static const item* item_root(const item* p, int full)
-{
-	while (p->parent && (full || !item_is_root(p)))
+	while (p->parent)
 		p = p->parent;
-	return p;
+	return item_get((item*)p,name,0);
 }
 
-static item* item_find_add_in_root(item* p,const char* name)
+item* getconfig(item* p)
 {
-	return item_find_add((item*) item_root(p, 0),name,0);
+	return getroot(p,"config");
 }
 
-static item* item_find_in_root(const item* p, const char* name, int full)
-{
-	return item_find(item_root(p, full), name);
-}
-
-static item* getconfig(const item* p)
-{
-	return item_find(p,"config");
-}
-
-/* get the first value value of type item */
-static item* getvalue(item* p)
+item* getvalue(item* p)
 {
 	if (p)
 	{
@@ -309,32 +353,10 @@ void setvalue(item* p,const char* value)
             return;
         v->flags |= FLAG_REMOVED;
     }
-    item_find_add(p,value,1);
+    item_get(p,value,1);
 }
 
-struct target_def {
-    const char *name;
-    const char *output_name;
-    int is_lib;
-};
-
-static const struct target_def all_targets[] = {
-    { "group",       NULL,         0 },
-    { "exe",         "output_exe", 0 },
-    { "con",         "output_con", 0 },
-    { "dll",         "output_dll", 0 },
-    { "lib",         "output_lib", 1 },
-    { "exe_csharp",  "output_exe", 0 },
-    { "con_csharp",  "output_con", 0 },
-    { "dll_csharp",  "output_dll", 0 },
-    { "lib_csharp",  "output_lib", 1 },
-    { "exe_android", "output_android", 0 },
-    { "dll_android", "output_android_lib", 1 },
-    { "generate",    NULL,         0 },
-    { NULL, NULL, 0 }
-};
-
-static item* findref(const item* p)
+item* findref(const item* p)
 {
 	if (p->parent && (stricmp(p->parent->value,"project")==0 ||
 		              stricmp(p->parent->value,"dep")==0 ||
@@ -343,27 +365,77 @@ static item* findref(const item* p)
 					  stricmp(p->parent->value,"usemerge")==0 ||
 					  stricmp(p->parent->value,"usebuilt")==0))
 	{
-        size_t target;
-        item* v = NULL;
-		const item* root = item_root(p, 0);
-        for (target = 0; !v && all_targets[target].name; target++)
-            v = item_find(item_find(root, all_targets[target].name), p->value);
+		item* v = item_find(getroot(p,"exe"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"con"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"lib"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"dll"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"group"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"dll_csharp"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"con_csharp"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"exe_csharp"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"lib_csharp"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"exe_android"),p->value);
+		if (!v)
+			v = item_find(getroot(p,"dll_android"),p->value);
 		return v;
 	}
 	return NULL;
 }
 
-static int compare_ref_use(const item* refa, const item* refb)
+item* findref2(item* p)
+{
+	item* ref = findref(p);
+	return ref?ref:p;
+}
+
+int compare_use(const item* a, const item* b)
+{
+	item* refa = findref(a);
+	item* refb = findref(b);
+	if (refa && refb)
+	{
+		size_t i;
+		item* use;
+
+		use = item_get(refb,"use",0);
+		for (i=0;i<item_childcount(use);++i)
+			if (refa == findref(use->child[i]))
+			{
+				use = item_get(refa,"use",0);
+				for (i=0;i<item_childcount(use);++i)
+					if (refb == findref(use->child[i]))
+					{
+						// circular reference
+						return compare_name(refa,refb);
+					}
+
+				return 1;
+			}
+
+	}
+	return 0;
+}
+
+int precompare_use(const item* refa, const item* refb)
 {
 	size_t i;
-	const item* use;
+	item* use;
 
-	use = item_find(refb,"use");
-	for (i=0;use && i<item_childcount(use);++i)
+	use = item_get((item*)refb,"use",0);
+	for (i=0;i<item_childcount(use);++i)
 		if (refa == findref(use->child[i]))
 		{
-			use = item_find(refa,"use");
-			for (i=0;use && i<item_childcount(use);++i)
+			use = item_get((item*)refa,"use",0);
+			for (i=0;i<item_childcount(use);++i)
 				if (refb == findref(use->child[i]))
 				{
 					// circular reference
@@ -373,15 +445,6 @@ static int compare_ref_use(const item* refa, const item* refb)
 			return 1;
 		}
 
-	return 0;
-}
-
-static int compare_use(const item* a, const item* b)
-{
-	const item* refa = findref(a);
-	const item* refb = findref(b);
-	if (refa && refb)
-		return compare_ref_use(refa, refb);
 	return 0;
 }
 
@@ -409,7 +472,7 @@ void item_sort(item* p,int(*compare)(const item*, const item*))
 	}
 }
 
-static item* item_find_add(item* parent,const char* value,int defined)
+item* item_get(item* parent,const char* value,int defined)
 {
 	item* p = item_find(parent,value);
 	if (!p)
@@ -613,14 +676,12 @@ itemcond* itemcond_or(itemcond* p,itemcond* cond)
 	return p;
 }
 
-static item* item_getmerge(item* p,const item* child,int removed,int *existed)
+item* item_getmerge(item* p,const item* child,int removed,int *exists)
 {
     item* dup;
-	dup = item_find(p,child->value);
-	*existed = dup != NULL;
-	if (!dup)
-		dup = item_find_add(p,child->value,(child->flags & FLAG_DEFINED)==FLAG_DEFINED);
-    if (((child->flags & FLAG_REMOVED) || removed) && (!*existed || (dup->flags & FLAG_REMOVED)))
+	*exists = item_find(p,child->value) != NULL;
+	dup = item_get(p,child->value,(child->flags & FLAG_DEFINED)==FLAG_DEFINED);
+    if (((child->flags & FLAG_REMOVED) || removed) && (!*exists || (dup->flags & FLAG_REMOVED)))
         dup->flags |= FLAG_REMOVED;
     else
         dup->flags &= ~FLAG_REMOVED;
@@ -628,7 +689,7 @@ static item* item_getmerge(item* p,const item* child,int removed,int *existed)
     return dup;
 }
 
-static void item_merge2(item* p,const item* group,itemcond* cond0,int removed,int append_cond)
+void item_merge2(item* p,item* group,itemcond* cond0,int removed,int exists)
 {
 	if (group)
 	{
@@ -644,7 +705,7 @@ static void item_merge2(item* p,const item* group,itemcond* cond0,int removed,in
 
 		if (!item_childcount(group) || (p->flags & FLAG_ATTRIB))
 		{
-			if (append_cond)
+			if (exists)
 				p->cond = itemcond_or(p->cond,cond);
 			else
 			{
@@ -656,32 +717,22 @@ static void item_merge2(item* p,const item* group,itemcond* cond0,int removed,in
 	}
 }
 
-static void item_merge(item* p,const item* group,item* filter)
+void item_merge(item* p,item* group,item* plus)
 {
 	if (group)
 	{
 		int removed=0;
 		item* i;
 		itemcond* cond = NULL;
-		for (i=group->parent;i && !item_is_root(i);i=i->parent)
+		for (i=group->parent;i;i=i->parent)
 			cond = itemcond_and(cond,i->cond);
-		if (filter)
+		if (plus)
 		{
-			removed = (filter->flags & FLAG_REMOVED)==FLAG_REMOVED;
-			cond = itemcond_and(cond,filter->cond);
+			removed = (plus->flags & FLAG_REMOVED)==FLAG_REMOVED;
+			cond = itemcond_and(cond,plus->cond);
 		}
 		item_merge2(p,group,cond,removed,1);
 		itemcond_delete(cond);
-	}
-}
-
-static void item_merge_name(item* dst, const item* src, const char* value, item* cond)
-{
-	src = item_find(src, value);
-	if (src)
-	{
-		int exists;
-		item_merge(item_getmerge(dst, src, 0, &exists), src, cond);
 	}
 }
 
@@ -689,10 +740,7 @@ void reader_init(reader *p)
 {
 	memset(p,0,sizeof(reader));
     p->filename = (char*)malloc(MAX_PATH);
-	p->project_root = (char*)malloc(MAX_PATH);
-	p->src_root = (char*)malloc(MAX_PATH);
-	p->coremake_root = (char*)malloc(MAX_PATH);
-	p->line = (char*)malloc(MAX_LINE);
+    p->line = (char*)malloc(MAX_LINE);
     p->token = (char*)malloc(MAX_LINE);
     memset(p->filename,0,MAX_PATH);
     memset(p->line,0,MAX_LINE);
@@ -701,10 +749,7 @@ void reader_init(reader *p)
 
 void reader_free(reader *p)
 {
-	free(p->project_root);
-	free(p->src_root);
-	free(p->coremake_root);
-	free(p->filename);
+    free(p->filename);
     free(p->line);
     free(p->token);
 }
@@ -714,10 +759,7 @@ void reader_save(reader *p,reader* save)
 	p->r.filepos = ftell(p->r.f);
 	memcpy(save,p,sizeof(reader_static));
     save->filename = strdup(p->filename);
-	save->project_root = strdup(p->project_root);
-	save->src_root = strdup(p->src_root);
-	save->coremake_root = strdup(p->coremake_root);
-	save->line = strdup(p->line);
+    save->line = strdup(p->line);
     save->token = strdup(p->token);
     save->pos = save->line + (p->pos - p->line);
 }
@@ -726,16 +768,13 @@ void reader_restore(reader *p,reader* save)
 {
 	memcpy(p,save,sizeof(reader_static));
     strcpy(p->filename,save->filename);
-	strcpy(p->project_root, save->project_root);
-	strcpy(p->src_root, save->src_root);
-	strcpy(p->coremake_root, save->coremake_root);
-	strcpy(p->line,save->line);
+    strcpy(p->line,save->line);
     strcpy(p->token,save->token);
     p->pos = p->line + (save->pos - save->line);
 	fseek(p->r.f,p->r.filepos,SEEK_SET);
 }
 
-static int reader_line(reader* p)
+int reader_line(reader* p)
 {
 	size_t i;
 	long before_pos = ftell(p->r.f);
@@ -818,7 +857,7 @@ int isname(int ch)
 	return isalpha(ch) || isdigit(ch) || ch=='_' || ch=='-' || ch=='#' || ch=='/' || ch=='\\' || ch=='.' || ch=='%' || ch=='\'';
 }
 
-static int reader_read(reader* p)
+int reader_read(reader* p)
 {
 	char* s = p->pos;
 	for (;;)
@@ -844,22 +883,6 @@ static int reader_read(reader* p)
 					break;
 				}
 		}
-        else if (p->r.ext_variable)
-        {
-            char* s0 = s;
-            for (; *s; ++s)
-            {
-                p->token[p->r.ext_variable++] = *s;
-                if (!isname(*s) && *s != ')')
-                {
-                    s++;
-                    break;
-                }
-            }
-            p->token[p->r.ext_variable] = 0;
-            p->r.ext_variable = 0;
-            break;
-        }
 		else
 		{
 			while (*s && isspace(*s))
@@ -897,31 +920,8 @@ static int reader_read(reader* p)
 				if (*s=='"')
 					++s;
 				break;
-            }
-            else
-            if (s[0] == '$' && s[1] == '(')
-            {
-                p->token[0] = *(s++);
-                p->token[1] = *(s++);
-                p->r.ext_variable = 2;
-            }
-            else
-            if (*s == '<')
-            {
-                int i;
-                ++s;
-                for (i = 0; *s && s[0] != '>'; ++s, ++i)
-                {
-                    if (s[0] == '>')
-                        ++s;
-                    p->token[i] = *s;
-                }
-                p->token[i] = 0;
-                if (*s == '>')
-                    ++s;
-                break;
-            }
-            else
+			}
+			else
 			if (*s)
 			{
 				p->token[0] = *(s++);
@@ -938,32 +938,32 @@ static int reader_read(reader* p)
 	}
 
 	p->pos = s;
-	p->r.flags |= FLAG_TOKEN_READY;
+	p->r.flags |= FLAG_READY;
 	return 1;
 }
 
 int reader_eof(reader* p)
 {
-	if (p->r.flags & FLAG_TOKEN_READY)
+	if (p->r.flags & FLAG_READY)
 		return 0;
 	return !reader_read(p);
 }
 
-static int reader_istoken(reader* p,const char* token)
+int reader_istoken(reader* p,const char* token)
 {
-	if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
+	if (!(p->r.flags & FLAG_READY) && !reader_read(p))
 		return 0;
 
 	if (stricmp(p->token,token)!=0)
 		return 0;
 
-	p->r.flags &= ~FLAG_TOKEN_READY;
+	p->r.flags &= ~FLAG_READY;
 	return 1;
 }
 
 int reader_istoken_n(reader* p,const char* token, int n)
 {
-	if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
+	if (!(p->r.flags & FLAG_READY) && !reader_read(p))
 		return 0;
 
 	if (strnicmp(p->token,token,n)!=0)
@@ -976,14 +976,14 @@ void reader_token_skip(reader* p, int n)
 {
     strdel(p->token,p->token+n);
     if (!p->token[0])
-    	p->r.flags &= ~FLAG_TOKEN_READY;
+    	p->r.flags &= ~FLAG_READY;
 }
 
 int reader_tokenline(reader* p,int onespace)
 {
 	char* s = p->pos;
 
-	assert(!(p->r.flags & FLAG_TOKEN_READY));
+	assert(!(p->r.flags & FLAG_READY));
 
     if (onespace >= 0)
     {
@@ -1002,10 +1002,9 @@ int reader_tokenline(reader* p,int onespace)
 
 void reader_token(reader* p)
 {
-	if (((p->r.flags & FLAG_TOKEN_READY) != FLAG_TOKEN_READY) && !reader_read(p))
-	//if (!(p->r.flags & FLAG_TOKEN_READY) && !reader_read(p))
+	if (!(p->r.flags & FLAG_READY) && !reader_read(p))
 		syntax(p);
-	p->r.flags &= ~FLAG_TOKEN_READY;
+	p->r.flags &= ~FLAG_READY;
 }
 
 void reader_name(reader* p)
@@ -1015,7 +1014,7 @@ void reader_name(reader* p)
 		syntax(p);
 }
 
-static char* getfilename(const char* path)
+char* getfilename(const char* path)
 {
 	char* i = strrchr(path,'/');
 	if (i) return i+1;
@@ -1071,19 +1070,6 @@ void trunchex(char* s)
 		strdel(s,s+2);
 }
 
-void unstring(char *s)
-{
-    size_t len;
-    if (s[0] != '"')
-        return;
-    len = strlen(s);
-    if (len > 1 && s[len - 1] == '"')
-    {
-        memmove(s, s + 1, len - 2);
-        s[len - 2] = '\0';
-    }
-}
-
 char* nextlevel(const char* path)
 {
 	char* i = strchr(path,'/');
@@ -1091,7 +1077,7 @@ char* nextlevel(const char* path)
 	return NULL;
 }
 
-static void addendpath(char* path)
+void addendpath(char* path)
 {
 	if (path[0] && path[strlen(path)-1]!='/')
 		strcat(path,"/");
@@ -1125,7 +1111,7 @@ void truncfileupper(char* path)
         strcpy(path,"./");
 }
 
-static void pathunix(char* path)
+void pathunix(char* path)
 {
 	int i;
 	for (i=0;path[i];++i)
@@ -1190,8 +1176,7 @@ int ispathabs(const char *path)
 }
 
 void simplifypath(char* path, int head);
-void getrelpath(char* path, int path_flags, const char* __curr, int curr_flags, int delend, int levelup,
-	            const char *project_root, const char *src_root, const char *coremake_root)
+void getrelpath(char* path, int path_flags, const char* __curr, int curr_flags, int delend, int levelup)
 {
     char *__path,_path[MAX_PATH];
     char *curr,_curr[MAX_PATH];
@@ -1209,28 +1194,24 @@ void getrelpath(char* path, int path_flags, const char* __curr, int curr_flags, 
 
     if (!(path_flags & FLAG_PATH_SET_ABSOLUTE))
     {
-		const char *abspath = NULL;
         // ensure that we deal with absolute pathes to compare
         assert(ispathabs(curr));
 
         switch (path_flags & FLAG_PATH_MASK)
         {
         case FLAG_PATH_SOURCE:
-			abspath = src_root;
+            if (strnicmp(path,src_root,src_root_len)!=0 && !ispathabs(path))
+                strins(path,src_root,NULL);
             break;
         case FLAG_PATH_GENERATED:
-			abspath = project_root;
-			break;
+            if (strnicmp(path,proj_root,proj_root_len)!=0)
+                strins(path,proj_root,NULL);
+            break;
         case FLAG_PATH_COREMAKE:
-			abspath = coremake_root;
+            if (strnicmp(path,coremake_root,coremake_root_len)!=0)
+                strins(path,coremake_root,NULL);
+            break;
         }
-
-		if (abspath)
-		{
-			size_t abspath_len = strlen(abspath);
-			if (strnicmp(path, abspath, abspath_len) != 0)
-				strins(path, abspath, NULL);
-		}
 
         simplifypath(path,1);
         simplifypath(curr,1);
@@ -1264,37 +1245,32 @@ void getrelpath(char* path, int path_flags, const char* __curr, int curr_flags, 
     strcpy(__path,path);
 }
 
-void strip_path_abs(char *path, int flags, const char *projc_root, const char *src_root, const char *coremake_root)
+void strip_path_abs(char *path, int flags)
 {
-	const char *abspath = NULL;
     assert((flags & FLAG_PATH_MASK) != FLAG_PATH_NOT_PATH);
     switch (flags & FLAG_PATH_MASK)
     {
     case FLAG_PATH_GENERATED:
-		abspath = projc_root;
-		break;
+        if (proj_root_len && strstr(path,proj_root)==path)
+            memmove(path,path+proj_root_len,strlen(path+proj_root_len)+1);
+        break;
     case FLAG_PATH_COREMAKE:
-		abspath = coremake_root;
+        if (coremake_root_len && strstr(path,coremake_root)==path)
+           memmove(path,path+coremake_root_len,strlen(path+coremake_root_len)+1);
         break;
     case FLAG_PATH_SOURCE:
-		abspath = src_root;
+        if (src_root_len && strstr(path,src_root)==path)
+            memmove(path,path+src_root_len,strlen(path+src_root_len)+1);
         break;
     case FLAG_PATH_SYSTEM: // do nothing
         break;
     default: assert(0);
     }
-
-	if (abspath)
-	{
-		size_t abspath_len = strlen(abspath);
-		if (abspath_len && strstr(path, abspath) == path)
-			memmove(path, path + abspath_len, strlen(path + abspath_len) + 1);
-	}
 }
 
-static void reader_strip_abs(reader* p)
+void reader_strip_abs(reader* p)
 {
-    strip_path_abs(p->token,p->r.flags,p->project_root, p->src_root, p->coremake_root);
+    strip_path_abs(p->token,p->r.flags);
 }
 
 void reader_filename(reader* p, int dst_flags)
@@ -1325,19 +1301,19 @@ void reader_filename(reader* p, int dst_flags)
         // adjust the pathes according to their modifier
         if ((dst_flags & FLAG_PATH_MASK) != (p->r.filename_kind & FLAG_PATH_MASK))
         {
-            if (p->coremake_root[0] || (dst_flags & FLAG_PATH_MASK) != FLAG_PATH_COREMAKE) // keep the full path to get the coremake_root
+            if (coremake_root_len || (dst_flags & FLAG_PATH_MASK) != FLAG_PATH_COREMAKE) // keep the full path to get the coremake_root
                 reader_strip_abs(p);
 
             switch (dst_flags & FLAG_PATH_MASK)
             {
             case FLAG_PATH_GENERATED:
-                strins(p->token,p->project_root,NULL);
+                strins(p->token,proj_root,NULL);
                 break;
             case FLAG_PATH_COREMAKE:
-                strins(p->token,p->coremake_root,NULL);
+                strins(p->token,coremake_root,NULL);
                 break;
             case FLAG_PATH_SOURCE:
-                strins(p->token,p->src_root,NULL);
+                strins(p->token,src_root,NULL);
                 break;
             }
             p->r.flags &= ~FLAG_PATH_MASK;
@@ -1362,7 +1338,7 @@ itemcond* load_cond2(reader* file,item* config)
 		if (reader_istoken(file,")"))
 			syntax(file);
 		reader_name(file);
-		p = itemcond_new(COND_GET,item_find_add(config,file->token,0));
+		p = itemcond_new(COND_GET,item_get(config,file->token,0));
 	}
 	return p;
 }
@@ -1415,47 +1391,21 @@ itemcond* load_cond(item* item, reader* file, int force)
 	return p;
 }
 
-static void settle_root(item *root, const char *src_root, const char *proj_root, const char *coremake_root)
-{
-	item* i;
-
-	item_find_add_in_root(root, "config");
-
-	i = item_find_add(root, "rootpath", 1);
-	i = item_find_add(i, src_root, 1);
-	set_path_type(i, FLAG_PATH_SOURCE);
-
-	i = item_find_add(root, "builddir", 1);
-	i = item_find_add(i, proj_root, 1);
-	set_path_type(i, FLAG_PATH_GENERATED);
-
-	i = item_find_add(root, "platform_files", 1);
-	i = item_find_add(i, coremake_root, 1);
-	set_path_type(i, FLAG_PATH_COREMAKE);
-}
-
-int load_file(item* root,const char* filename, itemcond* cond0, const char *root_path, const char *src_path, const char *coremake_path);
-int load_item(item* root,reader* file,int sub,itemcond* cond0)
+int load_file(item* p,const char* filename, int file_kind, itemcond* cond0);
+int load_item(item* p,reader* file,int sub,itemcond* cond0)
 {
 	int result=0;
-	int has_statement = 0;
 	item *i,*j=NULL;
-    size_t target;
-	reader old_reader;
-	int new_root = 0;
-
     while (!reader_eof(file))
 	{
 		if (reader_istoken(file,"#include"))
 		{
-			has_statement = 1;
 			if (reader_istoken(file,"*/*.proj"))
 			{
 				char path[MAX_PATH];
 				DIR* dir;
-				strcpy(path, file->project_root);
-				strcat(path,file->filename);
-				getfilename(path)[0]='\0';
+				path[0] = 0;
+				strins(path,file->filename,getfilename(file->filename));
 				delendpath(path);
 				dir = opendir(path[0]?path:".");
 				if (dir)
@@ -1470,14 +1420,13 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 						if ((entrystats.st_mode & S_IFDIR) && entry->d_name[0]!='.')
 						{
     						sprintf(file->token,"%s%s/%s.proj",path,entry->d_name,entry->d_name);
-							strip_path_abs(file->token, FLAG_PATH_GENERATED, file->project_root, file->src_root, file->coremake_root);
-                            if (!load_file(root,file->token,cond0, file->project_root, file->src_root, file->coremake_root) && strrchr(entry->d_name,'-'))
+                            if (!load_file(p,file->token,FLAG_PATH_SOURCE,cond0) && strrchr(entry->d_name,'-'))
                             {
                                 // if it's a UNIX library name, try without the version
 						        char *empty = strrchr(file->token,'-');
                                 *empty = 0;
                                 strcat(file->token,".proj");
-                                load_file(root,file->token,cond0, file->project_root, file->src_root, file->coremake_root);
+                                load_file(p,file->token,FLAG_PATH_SOURCE,cond0);
                             }
 						}
 					}
@@ -1488,27 +1437,26 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 			{
                 reader_token(file);
 				reader_filename(file,0);
-				load_file(root,file->token,cond0, file->project_root, file->src_root, file->coremake_root);
+				load_file(p,file->token,FLAG_PATH_SOURCE,cond0);
 			}
 		}
 		else
 		if (reader_istoken(file,"if"))
 		{
-			has_statement = 1;
             itemcond* condextra = NULL;
 			int mode;
 			do
 			{
-				itemcond* cond = load_cond(root,file,1);
+				itemcond* cond = load_cond(p,file,1);
                 itemcond* cond1 = itemcond_and(itemcond_and(itemcond_dup(cond),cond0),condextra);
-				mode = load_item(root,file,2,cond1);
+				mode = load_item(p,file,2,cond1);
 				itemcond_delete(cond1);
 				if (mode==1)
 				{
 					itemcond* not1 = (itemcond*)itemcond_new(COND_NOT,NULL);
 					not1->a = itemcond_dup(cond);
                     not1 = itemcond_and(itemcond_and(not1,cond0),condextra);
-					load_item(root,file,3,not1);
+					load_item(p,file,3,not1);
 	    			itemcond_delete(not1);
 				}
                 else if (mode==2)
@@ -1526,7 +1474,6 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 		else
 		if (reader_istoken(file,"else"))
 		{
-			has_statement = 1;
 			if (sub != 2)
 				syntax(file);
 			result = 1;
@@ -1540,7 +1487,6 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
         else
 		if (reader_istoken(file,"elif"))
 		{
-			has_statement = 1;
 			if (sub != 2)
 				syntax(file);
 			result = 2;
@@ -1549,7 +1495,6 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 		else
 		if (reader_istoken(file,"endif"))
 		{
-			has_statement = 1;
 			if (sub != 2 && sub != 3)
 				syntax(file);
 			break;
@@ -1564,7 +1509,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 		else
 		{
 			int config = 0;
-			int need_path = 0;
+			int need_path;
 			int filename;
             int uselib;
             int deepercond;
@@ -1575,19 +1520,21 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 			itemcond* cond;
 			reader_name(file);
 
-            deepercond = !root->parent && stricmp(file->token,"project")==0;
+            deepercond = !p->parent && stricmp(file->token,"project")==0;
 
-            if (item_is_root(root))
-            {
-                for (target = 0; all_targets[target].name; target++)
-                    if (stricmp(file->token, all_targets[target].name) == 0)
-                    {
-                        need_path = 1;
-                        break;
-                    }
-                if (stricmp(file->token, "workspace") == 0)
-                    need_path = 1;
-            }
+			need_path = !p->parent && (
+				   stricmp(file->token,"con")==0 ||
+				   stricmp(file->token,"exe")==0 ||
+				   stricmp(file->token,"group")==0 ||
+				   stricmp(file->token,"lib")==0 ||
+				   stricmp(file->token,"dll")==0 ||
+				   stricmp(file->token,"lib_csharp")==0 ||
+				   stricmp(file->token,"dll_csharp")==0 ||
+				   stricmp(file->token,"exe_csharp")==0 ||
+				   stricmp(file->token,"con_csharp")==0 ||
+				   stricmp(file->token,"exe_android")==0 ||
+				   stricmp(file->token,"dll_android")==0 ||
+			       stricmp(file->token,"workspace")==0);
 
             uselib = stricmp(file->token,"uselib")==0 || stricmp(file->token,"builtlib")==0;
 
@@ -1608,7 +1555,6 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 					   stricmp(file->token,"def")==0 ||
 					   stricmp(file->token,"icon")==0 ||
 					   stricmp(file->token,"header")==0 ||
-					   stricmp(file->token,"header_force")==0 ||
 					   stricmp(file->token,"header_qt4")==0 ||
 					   stricmp(file->token,"ui_form_qt4")==0 ||
 					   stricmp(file->token,"resource_qt4")==0 ||
@@ -1622,10 +1568,9 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 					   stricmp(file->token,"source_m68k")==0 ||
 					   stricmp(file->token,"export_svn")==0 ||
 					   stricmp(file->token,"source")==0 ||
-					   stricmp(file->token,"sourcedir") == 0 ||
+					   stricmp(file->token, "sourcedir") == 0 ||
 					   stricmp(file->token,"compile")==0 ||
-                       stricmp(file->token,"sourceam") == 0 ||
-                       stricmp(file->token,"linkfile")==0 ||
+					   stricmp(file->token,"linkfile")==0 ||
 					   stricmp(file->token,"crt0")==0 ||
 					   stricmp(file->token,"symbian_cert")==0 ||
 					   stricmp(file->token,"symbian_key")==0 ||
@@ -1637,8 +1582,6 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
             generated_dir = stricmp(file->token,"config_file")==0 ||
                             stricmp(file->token,"config_include")==0;
 
-			new_root = stricmp(file->token, "config_file") == 0;
-
             coremake_dir = stricmp(file->token,"platform_files")==0;
 
             system_dir = stricmp(file->token,"config_android_ndk")==0 ||
@@ -1647,62 +1590,23 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
             attrib = filename ||
 					   stricmp(file->token,"register_cab")==0 ||
                        stricmp(file->token,"reg")==0 ||
-					   stricmp(file->token,"class")==0 ||
-                       stricmp(file->token,"no_include") == 0; // we need this because priority would mess up conditions
-
-			if (new_root)
-			{
-				char root_path[MAX_PATH];
-				strcpy(root_path, file->project_root);
-				strcat(root_path, file->filename);
-				truncfilepath(root_path,0);
-				if (strcmp(root_path, file->src_root) == 0)
-					new_root = 0;
-				if (new_root)
-				{
-					if (has_statement)
-					{
-						printf("CONFIG_FILE needs to be find in the .proj file %s:%d\r\n", file->filename, file->r.no);
-						exit(1);
-					}
-					root = item_find_add(root->parent, root_path, 0);
-					/* switch the local reader to a new root */
-					reader_save(file, &old_reader);
-					strcpy(file->project_root, root_path); /* TODO fix out of tree build */
-					strcpy(file->src_root, root_path);
-					if (++curr_build > MAX_PUSHED_PATH)
-					{
-						printf("can't push directory %s, limit reached\r\n", file->project_root);
-						exit(1);
-					}
-					strcpy(buildpath[curr_build], file->project_root);
-					settle_root(root, file->src_root, file->project_root, file->coremake_root);
-					memmove(file->filename, getfilename(file->filename), strlen(file->filename) + 1);
-					//chdir(file->project_root);
-				}
-			}
-			has_statement = 1;
+					   stricmp(file->token,"class")==0; // we need this because priority would mess up conditions
 
 			if (stricmp(file->token,"config")==0)
 			{
 				config = 1;
-				j = getconfig(root);
+				j = getconfig(p);
 			}
 			else
-				j = item_find_add(root,file->token,0);
+				j = item_get(p,file->token,0);
 
-			if (new_root)
-			{
-				/* TODO copy "outputpath", "rootpath", etc from the old root or use the global values */
-			}
-
-			cond = load_cond(root,file,0);
+			cond = load_cond(p,file,0);
 			cond = itemcond_and(cond,cond0);
 
 			if (cond && config)
 			{
 				item* v;
-				for (v=root;v;v=v->parent)
+				for (v=p;v;v=v->parent)
 					cond = itemcond_and(cond,v->cond);
 			}
 
@@ -1710,13 +1614,13 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 			{
 				if (sub != 1)
 					syntax(file);
-				item_find_add(j,"1",1);
+				item_get(j,"1",1);
 				break;
 			}
 
 			if (reader_istoken(file,",") || reader_istoken(file,";"))
 			{
-				item_find_add(j,"1",1);
+				item_get(j,"1",1);
 			}
 			else
 			if (reader_istoken(file,"{"))
@@ -1745,7 +1649,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                     }
 
                     exists = item_find(j,file->token)!=NULL;
-					i = item_find_add(j,file->token,0);
+					i = item_get(j,file->token,0);
                     if (attrib)
                         i->flags |= FLAG_ATTRIB;
                     if (is_abs)
@@ -1763,7 +1667,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 					if (need_path)
 					{
 						char path[MAX_PATH];
-						item *v = item_find_add(i,"PATH",0);
+						item *v = item_get(i,"PATH",0);
                         item *j;
 
                         if (exists)
@@ -1775,15 +1679,15 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 
                         path[0]=0;
                         strins(path,file->filename,getfilename(file->filename));
-                        strip_path_abs(path,file->r.filename_kind, file->project_root, file->src_root, file->coremake_root);
+                        strip_path_abs(path,file->r.filename_kind);
                         if (generated_dir)
-                            strins(path,file->project_root,NULL);
+                            strins(path,proj_root,NULL);
                         else if (coremake_dir)
-                            strins(path,file->coremake_root,NULL);
+                            strins(path,coremake_root,NULL);
                         else
-                            strins(path,file->src_root,NULL);
+                            strins(path,src_root,NULL);
 
-						j = item_find_add(v,path,1);
+						j = item_get(v,path,1);
                         if (generated_dir)
                             set_path_type(j,FLAG_PATH_GENERATED);
                         else if (coremake_dir)
@@ -1792,22 +1696,22 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                             set_path_type(j,FLAG_PATH_SOURCE);
 
                         // pre-define some items
-						item_find_add(i,"OUTPUT",0);
-						item_find_add(i,"EXPINCLUDE",0);
-						item_find_add(i,"SUBINCLUDE",0);
-						item_find_add(i,"SYSINCLUDE",0);
-						item_find_add(i,"LIBINCLUDE",0);
-						item_find_add(i,"LIBINCLUDE_DEBUG",0);
-						item_find_add(i,"LIBINCLUDE_RELEASE",0);
-						item_find_add(i,"INCLUDE",0);
-						item_find_add(i,"INCLUDE_DEBUG",0);
-						item_find_add(i,"INCLUDE_RELEASE",0);
-						item_find_add(i,"EXPDEFINE",0);
-						item_find_add(i,"DEFINE",0);
-						item_find_add(i,"LIBS",0);
-						item_find_add(i,"LIBS_DEBUG",0);
-						item_find_add(i,"LIBS_RELEASE",0);
-						item_find_add(i,"SYSLIBS",0);
+						item_get(i,"OUTPUT",0);
+						item_get(i,"EXPINCLUDE",0);
+						item_get(i,"SUBINCLUDE",0);
+						item_get(i,"SYSINCLUDE",0);
+						item_get(i,"LIBINCLUDE",0);
+						item_get(i,"LIBINCLUDE_DEBUG",0);
+						item_get(i,"LIBINCLUDE_RELEASE",0);
+						item_get(i,"INCLUDE",0);
+						item_get(i,"INCLUDE_DEBUG",0);
+						item_get(i,"INCLUDE_RELEASE",0);
+						item_get(i,"EXPDEFINE",0);
+						item_get(i,"DEFINE",0);
+						item_get(i,"LIBS",0);
+						item_get(i,"LIBS_DEBUG",0);
+						item_get(i,"LIBS_RELEASE",0);
+						item_get(i,"SYSLIBS",0);
 					}
 
                     if (!deepercond)
@@ -1826,9 +1730,9 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                         char path[MAX_PATH];
                         path[0]=0;
                         strins(path,file->filename,getfilename(file->filename));
-                        incs = item_find_add(root,"libinclude",0);
+                        incs = item_get(p,"libinclude",0);
                         exists = item_find(incs,path)!=NULL;
-                        i = item_find_add(incs,path,0);
+                        i = item_get(incs,path,0);
                         i->flags = file->r.filename_kind;
                         if (exists)
                             i->cond = itemcond_or(i->cond,cond);
@@ -1843,7 +1747,7 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
                         if (sscanf(file->token,"%d",&pri)!=1)
                             syntax(file);
 
-                        item_find_add(item_find_add(i,"priority",0),file->token,1);
+                        item_get(item_get(i,"priority",0),file->token,1);
                     }
 
 					if (reader_istoken(file,"{"))
@@ -1859,31 +1763,21 @@ int load_item(item* root,reader* file,int sub,itemcond* cond0)
 			itemcond_delete(cond);
 		}
 	}
-	if (new_root)
-	{
-		--curr_build;
-		reader_restore(file, &old_reader);
-		//chdir(file->project_root);
-	}
 	return result;
 }
 
-int load_file(item* root,const char* filename, itemcond* cond, const char *projt_root, const char *src_path, const char *coremake_path)
+int load_file(item* p,const char* filename, int file_kind, itemcond* cond)
 {
 	reader r;
-	assert(strcmp(root->parent->value,ROOT_NAME)==0);
     reader_init(&r);
 	strcpy(r.filename,filename);
-	strcpy(r.project_root, projt_root);
-	strcpy(r.src_root, src_path);
-	strcpy(r.coremake_root, coremake_path);
 	pathunix(r.filename);
 	r.r.f = fopen(filename,"r");
 	r.pos = r.line;
 	if (r.r.f)
 	{
-        r.r.filename_kind = FLAG_PATH_SOURCE;
-		load_item(root,&r,0,cond);
+        r.r.filename_kind = file_kind;
+		load_item(p,&r,0,cond);
 		fclose(r.r.f);
         reader_free(&r);
 		return 1;
@@ -2034,13 +1928,23 @@ void preprocess_condend(item* p)
 	}
 }
 
+void item_merge_name(item* dst,item* src,const char* value,item* cond)
+{
+    src = item_find(src,value);
+    if (src)
+    {
+        int exists;
+		item_merge(item_getmerge(dst,src,0,&exists),src,cond);
+    }
+}
+
 void preprocess_dependency_project(item* p)
 {
 	if (!(p->flags & FLAG_PROCESSED))
 	{
 		// remove not exising dependencies
 		size_t i;
-		item* use = item_find(p,"use");
+		item* use = item_get(p,"use",0);
 
 		p->flags |= FLAG_PROCESSED;
 
@@ -2175,13 +2079,11 @@ int getpri(item* p)
     return MAX_PRI;
 }
 
-static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd);
-static void create_missing_dirs(const char *path);
-static void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags, const char *prj_root, const char *src_root, const char *coremake_root);
-static void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake);
-static int build_parse(item* p, reader* file, int sub, int skip, build_pos* pos0);
+int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd);
+void create_missing_dirs(const char *path);
+void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags);
 
-void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char *src_root, const char *coremake_root)
+void preprocess_stdafx_includes(item* p,int lib)
 {
 	item** child;
 	if (!p) return;
@@ -2193,17 +2095,17 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char 
 		item* plugin = getvalue(item_find(*child,"plugin"));
 		item* no_stdafx = getvalue(item_find(*child,"no_stdafx"));
 		item* no_project = getvalue(item_find(*child,"no_project"));
-		item* cls = item_find(*child,"class");
-		item* reg = item_find(*child,"reg");
-		item* path = getvalue(item_find(*child,"path"));
-        item *include = item_find_add(*child,"include",0);
+		item* cls = item_get(*child,"class",0);
+		item* reg = item_get(*child,"reg",0);
+		item* path = getvalue(item_get(*child,"path",0));
+        item *include = item_get(*child,"include",0);
 
         if (!path)
             continue;
 
         strcpy(gen_path,path->value);
-        strip_path_abs(gen_path,path->flags, p_root, src_root, coremake_root);
-        getabspath(gen_path,FLAG_PATH_GENERATED,"",FLAG_PATH_GENERATED, p_root, src_root, coremake_root);
+        strip_path_abs(gen_path,path->flags);
+        getabspath(gen_path,FLAG_PATH_GENERATED,"",FLAG_PATH_GENERATED);
 
         if (!plugin)
 		    for (i=0;i<item_childcount(*child);++i)
@@ -2228,10 +2130,10 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char 
             item *add_inc;
 
             sprintf(file,"%s%s_project.h",gen_path,(*child)->value);
-			src = item_find_add(item_find_add(*child,"header",0),file,1);
+			src = item_get(item_get(*child,"header",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
 
-            add_inc = item_find_add(include,gen_path,0);
+            add_inc = item_get(include,gen_path,0);
             set_path_type(add_inc,FLAG_PATH_GENERATED);
             add_inc->flags |= FLAG_ATTRIB;
 		}
@@ -2244,10 +2146,10 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char 
             item *add_inc;
 
             sprintf(file,"%s%s_host.h",gen_path,(*child)->value);
-			src = item_find_add(item_find_add(*child,"header",0),file,1);
+			src = item_get(item_get(*child,"header",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
 
-            add_inc = item_find_add(include,gen_path,0);
+            add_inc = item_get(include,gen_path,0);
             set_path_type(add_inc,FLAG_PATH_GENERATED);
             add_inc->flags |= FLAG_ATTRIB;
         }
@@ -2259,83 +2161,27 @@ void preprocess_stdafx_includes(item* p,int lib, const char *p_root, const char 
 			char file[MAX_PATH];
             item *add_inc;
 
-            src = item_find_add(item_find_add(*child,"expinclude",0),gen_path,1);
+            src = item_get(item_get(*child,"expinclude",0),gen_path,1);
             set_path_type(src,FLAG_PATH_GENERATED);
 			sprintf(file,"%s%s_stdafx.c",gen_path,(*child)->value);
-			src = item_find_add(item_find_add(*child,"source",0),file,1);
+			src = item_get(item_get(*child,"source",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
-            src = item_find_add(src,"NO_PCH",1);
-            item_find_add(src,".",1);
+            src = item_get(src,"NO_PCH",1);
+            item_get(src,".",1);
 
-            add_inc = item_find_add(include,gen_path,0);
+            add_inc = item_get(include,gen_path,0);
             set_path_type(add_inc,FLAG_PATH_GENERATED);
             add_inc->flags |= FLAG_ATTRIB;
 
 			/* add _stdafx.h */
 			sprintf(file,"%s%s_stdafx.h",gen_path,(*child)->value);
-			src = item_find_add(item_find_add(*child,"header",0),file,1);
+			src = item_get(item_get(*child,"header",0),file,1);
             set_path_type(src,FLAG_PATH_GENERATED);
         }
 	}
 }
 
-/* add the output generated directory in EXPINCLUDE */
-void preprocess_generate(item* p)
-{
-    item **child, *i;
-    char config_path[MAX_PATH];
-    if (!p) return;
-    for (child = p->child; child != p->childend; ++child)
-    {
-        item* outputpath = getvalue(item_find_in_root(*child, "outputpath",1));
-        item* outputdir = item_find(*child, "output_dir");
-        strcpy(config_path, outputpath->value);
-        if (outputdir)
-            strcat(config_path, getvalue(outputdir)->value);
-        i = item_find_add(item_find_add(*p->child, "expinclude", 0), config_path, 1);
-        set_path_type(i, FLAG_PATH_GENERATED);
-    }
-}
-
-void preprocess_automake(item* p, const char *pj_root, const char *src_root, const char *coremake_root)
-{
-    item** child;
-    if (!p) return;
-    for (child = p->child; child != p->childend; ++child)
-    {
-        size_t i;
-        char gen_path[MAX_PATH];
-        item* path = getvalue(item_find(*child, "path"));
-        item* src_am = item_find(*child, "sourceam");
-
-        if (!path)
-            continue;
-
-        strcpy(gen_path, path->value);
-        strip_path_abs(gen_path, path->flags, pj_root, src_root, coremake_root);
-        getabspath(gen_path, FLAG_PATH_GENERATED, "", FLAG_PATH_GENERATED, pj_root, src_root, coremake_root);
-
-        for (i = 0; i<item_childcount(src_am); ++i)
-        {
-            /* add automake compiled files */
-            item *src;
-            build_pos compile_pos;
-            compile_pos.p = src_am;
-            compile_pos.prev = NULL;
-
-            char file[MAX_PATH], *s = strdup((src_am->child[i])->value);
-            truncfilename(s);
-            sprintf(file, "%s%s", gen_path, s);
-            free(s);
-            src = item_find_add(item_find_add(*child, "source", 0), file, 1);
-            set_path_type(src, FLAG_PATH_GENERATED);
-
-            compile_file(src, (src_am->child[i])->value, file, FLAG_PATH_GENERATED, &compile_pos, 1);
-        }
-    }
-}
-
-static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char *src_root, const char *coremake_root)
+void preprocess_stdafx(item* p,int lib)
 {
 	item** child;
 	if (!p) return;
@@ -2346,22 +2192,22 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
         char gen_path[MAX_PATH];
 		item* plugin = getvalue(item_find(*child,"plugin"));
 		item* no_stdafx = getvalue(item_find(*child,"no_stdafx"));
-		item* cls = item_find_add(*child,"class",0);
-		item* reg = item_find_add(*child,"reg",0);
+		item* cls = item_get(*child,"class",0);
+		item* reg = item_get(*child,"reg",0);
 		item* use = item_find(*child,"use");
 		item* usebuilt = item_find(*child,"usebuilt");
-		const item* path = getvalue(item_find_add(*child,"path",0));
-		item* src = item_find(*child,"source");
-		item* libs = item_find_add(*child,"libs",0);
-		item* syslibs = item_find_add(*child,"syslibs",0);
-		item* install = item_find_add(*child,"install",0);
+		item* path = getvalue(item_get(*child,"path",0));
+		item* src = item_get(*child,"source",0);
+		item* libs = item_get(*child,"libs",0);
+		item* syslibs = item_get(*child,"syslibs",0);
+		item* install = item_get(*child,"install",0);
 		item* uselib = item_find(*child,"uselib");
 
         if (path)
         {
             strcpy(gen_path,path->value);
-            strip_path_abs(gen_path,path->flags, pro_root, src_root, coremake_root);
-            getabspath(gen_path,FLAG_PATH_GENERATED,"",FLAG_PATH_GENERATED, pro_root, src_root, coremake_root);
+            strip_path_abs(gen_path,path->flags);
+            getabspath(gen_path,FLAG_PATH_GENERATED,"",FLAG_PATH_GENERATED);
         }
 
         if (!plugin)
@@ -2386,10 +2232,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 
                             if (r.r.f)
                             {
-								strcpy(r.project_root, pro_root);
-								strcpy(r.src_root, src_root);
-								strcpy(r.coremake_root, coremake_root);
-								if (reader_line(&r))
+                                if (reader_line(&r))
                                 {
                                     if (stricmp(r.line,"8")!=0 && stricmp(r.line,"9")!=0 && stricmp(r.line,"10")!=0)
 				                        printf("unknown .svn/entries version '%s'\r\n",r.line);
@@ -2397,7 +2240,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
                                     {
                                         if (reader_line(&r) && reader_line(&r) && reader_line(&r))
                                         {
-                                            item* build=item_find_add(*child,"PROJECT_BUILD",1);
+                                            item* build=item_get(*child,"PROJECT_BUILD",1);
                                             item** j;
 		                                    for (j=build->child;j!=build->childend;++j)
                                                 if (itemcond_partof((*k)->cond,(*j)->cond))
@@ -2409,7 +2252,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 
                                             if (j==build->childend)
                                             {
-                                                item* line = item_find_add(build,r.line,1);
+                                                item* line = item_get(build,r.line,1);
                                                 line->cond = itemcond_dup((*k)->cond);
                                                 preprocess_condeval(line);
                                             }
@@ -2450,7 +2293,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 			item* ref = findref(use->child[i]);
 			if (ref && stricmp(ref->parent->value,"lib")==0)
 			{
-				item* src = item_find(ref,"source");
+				item* src = item_get(ref,"source",0);
         		item* uselib = item_find(*child,"uselib");
 
 				for (j=0;j<item_childcount(src);++j)
@@ -2480,7 +2323,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 			item* ref = findref(usebuilt->child[i]);
 			if (ref && stricmp(ref->parent->value,"lib")==0)
 			{
-				item* src = item_find(ref,"source");
+				item* src = item_get(ref,"source",0);
         		item* uselib = item_find(*child,"uselib");
 
 				for (j=0;j<item_childcount(src);++j)
@@ -2506,7 +2349,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 
         if (item_find(getconfig(p),"RESOURCE_COREC"))
         {
-        	if (item_find_add(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED)
+        	if (item_get(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED)
             {
                 // make resource out of plugin/driver dll files
 		        for (i=0;i<item_childcount(use);++i)
@@ -2514,8 +2357,8 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
         			item* ref = findref(use->child[i]);
                     if (ref && stricmp(ref->parent->value,"dll")==0 && getvalue(item_find(ref,"nolib")))
                     {
-                        item* outputpath = getvalue(item_find_in_root(ref,"outputpath",1));
-                        item* output = getvalue(item_find(ref,"output"));
+                        item* outputpath = getvalue(getroot(ref,"outputpath"));
+                        item* output = getvalue(item_get(ref,"output",0));
                         if (outputpath && outputpath->value && output && output->value)
                         {
                             item* tmp, *out;
@@ -2523,8 +2366,8 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
                     	    strcpy(path,outputpath->value);
                             addendpath(path);
                             strcat(path,output->value);
-                            tmp = item_find_add(ref,"__tmp",1);
-                            out = item_find_add(tmp,path,1);
+                            tmp = item_get(ref,"__tmp",1);
+                            out = item_get(tmp,path,1);
                             set_path_type(out,outputpath->flags & FLAG_PATH_MASK);
                             item_merge(install,tmp,use->child[i]);
                         }
@@ -2535,7 +2378,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
             if (item_childcount(install))
             {
                 itemcond* cond = itemcond_new(COND_GET,item_find(getconfig(p),"RESOURCE_COREC"));
-                item* v = item_find_add(*child,"install_resource",0);
+                item* v = item_get(*child,"install_resource",0);
     		    item_merge(v,install,NULL);
     		    for (i=0;i<item_childcount(v);++i)
                 {
@@ -2547,7 +2390,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
                     free(v->child[i]->value);
     			    v->child[i]->value = strdup(name);
                     v->child[i]->flags |= FLAG_ATTRIB;
-                    item_find_add(item_find_add(v->child[i],"priority",1),"1",1);
+                    item_get(item_get(v->child[i],"priority",1),"1",1);
                     v->child[i]->cond = itemcond_and(v->child[i]->cond,cond);
                 }
                 item_merge(cls,v,NULL);
@@ -2557,7 +2400,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 
 		if (path)
 		{
-            preprocess_stdafx_includes(p,lib, pro_root, src_root, coremake_root);
+            preprocess_stdafx_includes(p,lib);
 
             if (prj)
             {
@@ -2854,7 +2697,7 @@ static void preprocess_stdafx(item* p,int lib, const char *pro_root, const char 
 	}
 }
 
-static void preprocess_dependency_include(item* base, item* list, int keep_exp_inc, int discard_exp_def)
+void preprocess_dependency_include(item* base, item* list, int keep_exp_inc, int discard_exp_def)
 {
 	size_t i;
 	for (i=0;i<item_childcount(list);++i)
@@ -2865,26 +2708,26 @@ static void preprocess_dependency_include(item* base, item* list, int keep_exp_i
             ref->stamp = stamp;
 
 			// add to "expinclude" to "include" or "expinclude"
-            item_merge(item_find_add(base,keep_exp_inc?"expinclude":"include",0),item_find(ref,"expinclude"),list->child[i]);
+            item_merge(item_get(base,keep_exp_inc?"expinclude":"include",0),item_find(ref,"expinclude"),list->child[i]);
 			// also merge "subinclude"
-			item_merge(item_find_add(base,"subinclude",0),item_find(ref,"subinclude"),list->child[i]);
+			item_merge(item_get(base,"subinclude",0),item_find(ref,"subinclude"),list->child[i]);
 			// also merge "sysinclude"
-			item_merge(item_find_add(base,"sysinclude",0),item_find(ref,"sysinclude"),list->child[i]);
+			item_merge(item_get(base,"sysinclude",0),item_find(ref,"sysinclude"),list->child[i]);
 			// also merge "linkfile"
-			item_merge(item_find_add(base,"linkfile",0),item_find(ref,"linkfile"),list->child[i]);
+			item_merge(item_get(base,"linkfile",0),item_find(ref,"linkfile"),list->child[i]);
 			// also merge "crt0"
-			item_merge(item_find_add(base,"crt0",0),item_find(ref,"crt0"),list->child[i]);
+			item_merge(item_get(base,"crt0",0),item_find(ref,"crt0"),list->child[i]);
 			// also merge "expdefine" to "define" or "expdefine"
             if (!discard_exp_def)
-			    item_merge(item_find_add(base,"define",0),item_find(ref,"expdefine"),list->child[i]);
+			    item_merge(item_get(base,"define",0),item_find(ref,"expdefine"),list->child[i]);
 
-            preprocess_dependency_include(base,item_find(ref,"useinclude"),keep_exp_inc,1);
-            preprocess_dependency_include(base,item_find(ref,"use"),keep_exp_inc,0);
+            preprocess_dependency_include(base,item_get(ref,"useinclude",0),keep_exp_inc,1);
+            preprocess_dependency_include(base,item_get(ref,"use",0),keep_exp_inc,0);
 		}
 	}
 }
 
-static void preprocess_dependency_init(item* p,int onlysource)
+void preprocess_dependency_init(item* p,int onlysource)
 {
 	item** child;
 	if (!p) return;
@@ -2897,8 +2740,8 @@ static void preprocess_dependency_init(item* p,int onlysource)
 		(*child)->flags &= ~FLAG_PROCESSED;
 
         ++stamp;
-        preprocess_dependency_include(*child,item_find(*child,"useinclude"),0,1);
-        preprocess_dependency_include(*child,item_find(*child,"use"),0,0);
+        preprocess_dependency_include(*child,item_get(*child,"useinclude",0),0,1);
+        preprocess_dependency_include(*child,item_get(*child,"use",0),0,0);
 
 		list = item_find(*child,"source");
 		for (i=0;i<item_childcount(list);++i)
@@ -2938,27 +2781,27 @@ static void preprocess_dependency_init(item* p,int onlysource)
 	}
 }
 
-static void preprocess_workspace_adddep(item* workspace_use,item* p)
+void preprocess_workspace_adddep(item* workspace_use,item* p)
 {
 	item* ref = findref(p);
 	p->flags |= FLAG_PROCESSED;
 	if (ref && !(ref->flags & FLAG_REMOVED))
 	{
 		size_t i;
-		item* use = item_find(ref,"use");
+		item* use = item_get(ref,"use",0);
 		for (i=0;i<item_childcount(use);++i)
 			if (!(use->child[i]->flags & FLAG_REMOVED))
 			{
-				item* dep = item_find_add(workspace_use,use->child[i]->value,1);
+				item* dep = item_get(workspace_use,use->child[i]->value,1);
 				if (!(dep->flags & FLAG_PROCESSED))
 					preprocess_workspace_adddep(workspace_use,dep);
 			}
 
-		use = item_find(ref,"dep");
+		use = item_get(ref,"dep",0);
 		for (i=0;i<item_childcount(use);++i)
 			if (!(use->child[i]->flags & FLAG_REMOVED))
 			{
-				item* dep = item_find_add(workspace_use,use->child[i]->value,1);
+				item* dep = item_get(workspace_use,use->child[i]->value,1);
 				if (!(dep->flags & FLAG_PROCESSED))
 					preprocess_workspace_adddep(workspace_use,dep);
 			}
@@ -2976,10 +2819,9 @@ void preprocess_workspace_init(item* p)
 void preprocess_workspace(item* p)
 {
 	item** child;
-	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
-		item* use = item_find(*child,"use");
+		item* use = item_get(*child,"use",0);
 		size_t i;
 		for (i=0;i<item_childcount(use);++i)
 			use->child[i]->flags &= ~FLAG_PROCESSED;
@@ -3007,7 +2849,7 @@ void preprocess_workspace(item* p)
 		else
 		{
 			// copy all the FRAMEWORK of each (use) into the WORKSPACE (*child)
-			item *frameworks = item_find_add(*child,"framework",0);
+			item *frameworks = item_get(*child,"framework",0);
 			for (i=0;i<item_childcount(use);++i)
 			{
 				item* ref = findref(use->child[i]);
@@ -3021,11 +2863,11 @@ void preprocess_workspace(item* p)
 	}
 }
 
-static void merge_project(item* target,item* source,item* filter)
+void merge_project(item* target,item* source,item* filter)
 {
 	size_t j;
 
-    item* tmp = item_find_add(NULL,"tmp",0);
+    item* tmp = item_get(NULL,"tmp",0);
 
 	item_add(tmp,item_find(source,"path"));
 
@@ -3044,7 +2886,7 @@ void replace_use(item* p,const char* remove,item* set)
 	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
-		item* use = item_find(*child,"use");
+		item* use = item_get(*child,"use",0);
 		item* a = item_find(use,remove);
 		if (a && !(a->flags & FLAG_REMOVED))
 		{
@@ -3059,12 +2901,12 @@ void replace_use(item* p,const char* remove,item* set)
                     if ((*child)->parent && stricmp((*child)->parent->value,"lib")==0)
                         continue;
 
-					item_find_add(item_find_add(set,"dep",0),(*child)->value,1);
+					item_get(item_get(set,"dep",0),(*child)->value,1);
 					item_delete(setuse);
 				}
 
                 // replace use
-				item_find_add(use,set->value,1);
+				item_get(use,set->value,1);
 			}
 		}
 	}
@@ -3073,20 +2915,18 @@ void replace_use(item* p,const char* remove,item* set)
 void preprocess_usemerge(item* p)
 {
 	item** child;
-	const item* root;
 	if (!p) return;
-	root = item_root(p, 0);
 	for (child=p->child;child!=p->childend;++child)
 	{
 		size_t i;
-		item* merge = item_find(*child,"usemerge");
-		for (i=0; merge && i<item_childcount(merge); ++i)
+		item* merge = item_get(*child,"usemerge",0);
+		for (i=0;i<item_childcount(merge);++i)
 		{
 			item* dll = findref(merge->child[i]);
 			if (dll && stricmp(dll->parent->value,"dll")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-				item* lib = item_find_add(item_find_add((item*) root,"lib",0),dll->value,0);
+                item* lib = item_get(getroot(p,"lib"),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3094,26 +2934,26 @@ void preprocess_usemerge(item* p)
 		        item_merge(lib,dll,merge->child[i]);
                 item_delete(dll);
 
-                use = item_find(item_find(lib,"use"),(*child)->value);
+                use = item_find(item_get(lib,"use",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
-                use = item_find(item_find(lib,"usebuilt"),(*child)->value);
+                use = item_find(item_get(lib,"usebuilt",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
-				replace_use(item_find(root,"dll"),lib->value,*child);
-				replace_use(item_find(root,"lib"),lib->value,*child);
-				replace_use(item_find(root,"con"),lib->value,*child);
-				replace_use(item_find(root,"exe"),lib->value,*child);
+				replace_use(getroot(p,"dll"),lib->value,*child);
+				replace_use(getroot(p,"lib"),lib->value,*child);
+				replace_use(getroot(p,"con"),lib->value,*child);
+				replace_use(getroot(p,"exe"),lib->value,*child);
 
-                item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
+                item_get(item_get(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
             else
 			if (dll && stricmp(dll->parent->value,"dll_csharp")==0 && !(merge->child[i]->flags & FLAG_REMOVED))
 			{
                 item* use;
-				item* lib = item_find_add(item_find_add((item*) root,"lib_csharp", 0),dll->value,0);
+                item* lib = item_get(getroot(p,"lib_csharp"),dll->value,0);
 
                 item_delete(item_find(dll,"nolib"));
                 item_delete(item_find(dll,"output"));
@@ -3121,20 +2961,20 @@ void preprocess_usemerge(item* p)
 		        item_merge(lib,dll,merge->child[i]);
                 item_delete(dll);
 
-                use = item_find(item_find(lib,"use"),(*child)->value);
+                use = item_find(item_get(lib,"use",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
-                use = item_find(item_find(lib,"usebuilt"),(*child)->value);
+                use = item_find(item_get(lib,"usebuilt",0),(*child)->value);
                 if (use)
                     item_delete(use);
 
-				replace_use(item_find(root,"dll_csharp"),lib->value,*child);
-				replace_use(item_find(root,"lib_csharp"),lib->value,*child);
-				replace_use(item_find(root,"con_csharp"),lib->value,*child);
-				replace_use(item_find(root,"exe_csharp"),lib->value,*child);
+				replace_use(getroot(p,"dll_csharp"),lib->value,*child);
+				replace_use(getroot(p,"lib_csharp"),lib->value,*child);
+				replace_use(getroot(p,"con_csharp"),lib->value,*child);
+				replace_use(getroot(p,"exe_csharp"),lib->value,*child);
 
-                item_find_add(item_find_add(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
+                item_get(item_get(*child,"use",0),lib->value,1)->flags &= ~FLAG_REMOVED;
 			}
 		}
 	}
@@ -3152,14 +2992,13 @@ void preprocess_outputname(item* p,const char* outputname)
 			preprocess_setremoved(*child);
 		else
 		if (!getvalue(item_find(*child,"output")))
-			item_find_add(item_find_add(*child,"output",0),output->value,1);
+			item_get(item_get(*child,"output",0),output->value,1);
 	}
 }
 
-void preprocess_project(item* root)
+void preprocess_project(item* p)
 {
 	size_t i;
-	item* p = item_find(root, "project");
 	if (!p) return;
     for (i=0;i<item_childcount(p);++i)
 	{
@@ -3173,50 +3012,29 @@ void preprocess_project(item* root)
 	}
 }
 
-static item *find_group(item *root, const char *name)
+// replace the "use" of a "group" by the content of the "group"
+void preprocess_group(item* p)
 {
-	if (!root) return NULL;
-	item* base_groups = item_find(root, "group");
-	item* result = item_find(base_groups, name);
-	if (result)
-		return result;
-
-	return find_group(item_find(root, ROOT_NAME), name);
-}
-
-static void preprocess_use_group_root(item *root, item *targets, item *target)
-{
-	size_t i;
-	item* use = item_find(target, "use");
-	for (i = 0; i<item_childcount(use); ++i)
+	item** child;
+	if (!p) return;
+	for (child=p->child;child!=p->childend;++child)
 	{
-		item *child = use->child[i];
-		item* group = find_group(root, child->value);
-		if (group)
+		size_t i;
+		item* use = item_get(*child,"use",0);
+		for (i=0;i<item_childcount(use);++i)
 		{
-			merge_project(target, group, child);
-			item_delete(child);
-			--i; // process the same item again until there is no more 'group'
+			item* group = item_find(getroot(p,"group"),use->child[i]->value);
+			if (group)
+			{
+				merge_project(*child,group,use->child[i]);
+				item_delete(use->child[i]);
+				--i; // process the same item again until there is no more 'group'
+			}
 		}
 	}
 }
 
-/* replace the "use" of a "group" by the content of the "group" */
-static void preprocess_use_group(item *root, const char *target_type)
-{
-	item** child;
-	item* targets = item_find(root, target_type);
-	item* sub_root = item_find(root, ROOT_NAME);
-	if (sub_root)
-		preprocess_use_group(sub_root, target_type);
-	if (!targets) return;
-	for (child=targets->child;child!=targets->childend;++child)
-	{
-		preprocess_use_group_root(root, targets, *child);
-	}
-}
-
-static void preprocess_uselib(item* p,item* ref,item* uselib)
+void preprocess_uselib(item* p,item* ref,item* uselib)
 {
 	item** child;
 	if (!p) return;
@@ -3224,47 +3042,47 @@ static void preprocess_uselib(item* p,item* ref,item* uselib)
         if (!((*child)->flags & FLAG_REMOVED))
 	    {
 		    size_t i;
-		    item* use = item_find(*child,"use");
+		    item* use = item_get(*child,"use",0);
 		    for (i=0;i<item_childcount(use);++i)
 		    {
 			    if (stricmp(use->child[i]->value,ref->value)==0)
 			    {
                     size_t j;
-		            item* src = item_find(ref,"source");
+		            item* src = item_get(ref,"source",0);
 		            for (j=0;j<item_childcount(src);++j)
 		            {
                         char path[MAX_PATH];
                         strcpy(path,src->child[j]->value);
                         truncfileext(path);
                         if (stricmp(path,"rc")==0)
-    			            item_merge(item_find_add(item_find_add(*child,"source",0),src->child[j]->value,1),src->child[j],use->child[i]);
+    			            item_merge(item_get(item_get(*child,"source",0),src->child[j]->value,1),src->child[j],use->child[i]);
 
-			            item_merge(item_find_add(*child,"reg",0),item_find(src->child[j],"reg"),use->child[i]);
-			            item_merge(item_find_add(*child,"class",0),item_find(src->child[j],"class"),use->child[i]);
+			            item_merge(item_get(*child,"reg",0),item_find(src->child[j],"reg"),use->child[i]);
+			            item_merge(item_get(*child,"class",0),item_find(src->child[j],"class"),use->child[i]);
 		            }
 
-	                item_merge(item_find_add(*child,"reg",0),item_find(ref,"reg"),use->child[i]);
-	                item_merge(item_find_add(*child,"class",0),item_find(ref,"class"),use->child[i]);
-	                item_merge(item_find_add(*child,"libs",0),item_find(ref,"libs"),use->child[i]);
-	                item_merge(item_find_add(*child,"syslibs",0),item_find(ref,"syslibs"),use->child[i]);
-	                item_merge(item_find_add(*child,"install",0),item_find(ref,"install"),use->child[i]);
+	                item_merge(item_get(*child,"reg",0),item_find(ref,"reg"),use->child[i]);
+	                item_merge(item_get(*child,"class",0),item_find(ref,"class"),use->child[i]);
+	                item_merge(item_get(*child,"libs",0),item_find(ref,"libs"),use->child[i]);
+	                item_merge(item_get(*child,"syslibs",0),item_find(ref,"syslibs"),use->child[i]);
+	                item_merge(item_get(*child,"install",0),item_find(ref,"install"),use->child[i]);
 
 	                // add to "include"
-	                item_merge(item_find_add(*child,"include",0),item_find(ref,"expinclude"),use->child[i]);
+	                item_merge(item_get(*child,"include",0),item_find(ref,"expinclude"),use->child[i]);
 	                // also merge "subinclude"
-	                item_merge(item_find_add(*child,"subinclude",0),item_find(ref,"subinclude"),use->child[i]);
+	                item_merge(item_get(*child,"subinclude",0),item_find(ref,"subinclude"),use->child[i]);
 	                // also merge "sysinclude"
-	                item_merge(item_find_add(*child,"sysinclude",0),item_find(ref,"sysinclude"),use->child[i]);
+	                item_merge(item_get(*child,"sysinclude",0),item_find(ref,"sysinclude"),use->child[i]);
 			        // also merge "libinclude"
-			        item_merge(item_find_add(*child,"libinclude",0),item_find(ref,"libinclude"),use->child[i]);
+			        item_merge(item_get(*child,"libinclude",0),item_find(ref,"libinclude"),use->child[i]);
 			        // also merge "uselib"
-			        item_merge(item_find_add(*child,"uselib",0),item_find(ref,"uselib"),use->child[i]);
+			        item_merge(item_get(*child,"uselib",0),item_find(ref,"uselib"),use->child[i]);
 			        // also merge "rpath"
-			        item_merge(item_find_add(*child,"rpath",0),item_find(ref,"rpath"),use->child[i]);
+			        item_merge(item_get(*child,"rpath",0),item_find(ref,"rpath"),use->child[i]);
 	                // add to "define"
-	                item_merge(item_find_add(*child,"define",0),item_find(ref,"expdefine"),use->child[i]);
+	                item_merge(item_get(*child,"define",0),item_find(ref,"expdefine"),use->child[i]);
 
-				    item_find_add(item_find_add(*child,"uselib",1),uselib->value,1);
+				    item_get(item_get(*child,"uselib",1),uselib->value,1);
 				    item_delete(use->child[i]);
 				    --i;
 			    }
@@ -3272,24 +3090,31 @@ static void preprocess_uselib(item* p,item* ref,item* uselib)
 	    }
 }
 
-static void preprocess_builtlib(item* p)
+void preprocess_builtlib(item* p)
 {
-	size_t i, target;
-	const item* root;
+	size_t i;
 	if (!p) return;
-	root = item_root(p, 0);
 	for (i=0;i<item_childcount(p);++i)
 	{
-		item* builtlib = item_find(p->child[i],"builtlib");
+		item* builtlib = item_get(p->child[i],"builtlib",0);
         item* value = getvalue(builtlib);
         if (value)
         {
             ++stamp;
-            preprocess_dependency_include(p->child[i],item_find(p->child[i],"useinclude"),1,1);
-            preprocess_dependency_include(p->child[i],item_find(p->child[i],"use"),1,0);
+            preprocess_dependency_include(p->child[i],item_get(p->child[i],"useinclude",0),1,1);
+            preprocess_dependency_include(p->child[i],item_get(p->child[i],"use",0),1,0);
 
-            for (target = 0; all_targets[target].name; target++)
-                preprocess_uselib(item_find(root, all_targets[target].name),p->child[i],value);
+            preprocess_uselib(getroot(p,"group"),p->child[i],value);
+            preprocess_uselib(getroot(p,"exe"),p->child[i],value);
+            preprocess_uselib(getroot(p,"dll"),p->child[i],value);
+            preprocess_uselib(getroot(p,"con"),p->child[i],value);
+            preprocess_uselib(getroot(p,"lib"),p->child[i],value);
+            preprocess_uselib(getroot(p,"dll_csharp"),p->child[i],value);
+            preprocess_uselib(getroot(p,"exe_csharp"),p->child[i],value);
+            preprocess_uselib(getroot(p,"con_csharp"),p->child[i],value);
+            preprocess_uselib(getroot(p,"lib_csharp"),p->child[i],value);
+            preprocess_uselib(getroot(p,"exe_android"),p->child[i],value);
+            preprocess_uselib(getroot(p,"dll_android"),p->child[i],value);
 			item_delete(p->child[i]);
 			--i;
         }
@@ -3391,13 +3216,13 @@ void preprocess_sort_workspace(item* p)
 		{
 	        char xcodeuid[25];
 			generate_xcodeuid(xcodeuid,frameworks->child[i]->value);
-			item_find_add(item_find_add(frameworks->child[i],"xcodegrpuid",0),xcodeuid,1);
+			item_get(item_get(frameworks->child[i],"xcodegrpuid",0),xcodeuid,1);
 
 			generate_xcodeuid(xcodeuid, xcodeuid);
-			item_find_add(item_find_add(frameworks->child[i],"xcodegrpuid2",0),xcodeuid,1);
+			item_get(item_get(frameworks->child[i],"xcodegrpuid2",0),xcodeuid,1);
 		}
 #endif
-        item_sort(item_find(*child,"use"), compare_use); // for automake "subdirs"
+        item_sort(item_get(*child,"use",0),compare_use); // for automake "subdirs"
     }
 }
 
@@ -3405,32 +3230,17 @@ void preprocess_presort(item* p)
 {
     // before builtlib removes projects
 	if (!p) return;
-	item_sort(p,compare_ref_use); // symbian libary linking madness...
+	item_sort(p,precompare_use); // symbian libary linking madness...
 }
 
-static void generate_uids(item *into, int framework)
-{
-	char xcodeuid[25];
-	char msmuid[40];
-	char projfile[MAX_PATH];
-
-	strcpy(projfile, into->parent->parent->value);
-	strcat(projfile, into->parent->value);
-	strcat(projfile, into->value);
-
-	generate_xcodeuid(xcodeuid, projfile);
-	item_find_add(item_find_add(into, framework ? "xcodefrwfile" : "xcodeuid", 0), xcodeuid, 1);
-
-	generate_msmuid(msmuid, projfile);
-	item_find_add(item_find_add(into, "msmuid", 0), msmuid, 1);
-}
-
-static void preprocess_sort(item* p)
+void preprocess_sort(item* p)
 {
 	item** child;
 	if (!p) return;
 	for (child=p->child;child!=p->childend;++child)
 	{
+        item* prjname;
+        item* prjpath;
 		item* src;
         int major,minor,revision;
         size_t i;
@@ -3441,94 +3251,184 @@ static void preprocess_sort(item* p)
 		char projfile[MAX_PATH];
 
 		generate_msuid(msuid,(*child)->value);
-        item_find_add(item_find_add(*child,"guid",0),msuid,1);
+        item_get(item_get(*child,"guid",0),msuid,1);
 
 		generate_msuid(msuid,msuid);
-        item_find_add(item_find_add(*child,"guidbis",0),msuid,1);
+        item_get(item_get(*child,"guidbis",0),msuid,1);
 
 		generate_msuid(msuid,msuid);
-        item_find_add(item_find_add(*child,"guid2",0),msuid,1);
+        item_get(item_get(*child,"guid2",0),msuid,1);
 
 		generate_msuid(msuid,msuid);
-        item_find_add(item_find_add(*child,"guid3",0),msuid,1);
+        item_get(item_get(*child,"guid3",0),msuid,1);
 
 		generate_msmuid(msmuid,msuid);
-        item_find_add(item_find_add(*child,"msmuid",0),msmuid,1);
+        item_get(item_get(*child,"msmuid",0),msmuid,1);
 
 		generate_msmuid(msmuid,msmuid);
-        item_find_add(item_find_add(*child,"msmuid2",0),msmuid,1);
+        item_get(item_get(*child,"msmuid2",0),msmuid,1);
 
         generate_xcodeuid(xcodeuid,(*child)->value);
-        item_find_add(item_find_add(*child,"xcodegrpuid",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid2",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid2",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid3",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid3",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid4",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid4",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid5",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid5",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid6",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid6",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid7",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid7",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid8",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid8",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid9",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid9",0),xcodeuid,1);
 
         generate_xcodeuid(xcodeuid, xcodeuid);
-        item_find_add(item_find_add(*child,"xcodegrpuid10",0),xcodeuid,1);
+        item_get(item_get(*child,"xcodegrpuid10",0),xcodeuid,1);
 
-		item_sort(item_find(*child,"source"), compare_name);
-		item_sort(item_find(*child, "sourcedir"), compare_name);
-		item_sort(item_find(*child,"use"), compare_use); // symbian libary linking madness...
+		item_sort(item_get(*child,"source",0),compare_name);
+		item_sort(item_get(*child, "sourcedir", 0), compare_name);
+		item_sort(item_get(*child,"use",0),compare_use); // symbian libary linking madness...
 
-	    src = item_find(*child,"source");
+	    src = item_get(*child,"source",0);
         for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 0);
+        {
+			strcpy(projfile,(*child)->value);
+			strcat(projfile,"source");
+			strcat(projfile,src->child[i]->value);
 
-	    src = item_find(*child,"header");
-        for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 0);
-		
-	    src = item_find(*child,"osx_strings");
-        for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 0);
+            generate_xcodeuid(xcodeuid, projfile);
+			item_get(item_get(src->child[i],"xcodeuid",0),xcodeuid,1);
 
-	    src = item_find(*child,"osx_icon");
-        for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 0);
+            generate_msmuid(msmuid, projfile);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
 
-	    src = item_find(*child,"icon");
+	    src = item_get(*child,"header",0);
         for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 0);
+        {
+			strcpy(projfile,(*child)->value);
+			strcat(projfile,"header");
+			strcat(projfile,src->child[i]->value);
 
-	    src = item_find(*child,"install");
+            generate_xcodeuid(xcodeuid, projfile);
+			item_get(item_get(src->child[i],"xcodeuid",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+	    src = item_get(*child,"osx_strings",0);
         for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 0);
+        {
+			strcpy(projfile,(*child)->value);
+			strcat(projfile,"osx_strings");
+			strcat(projfile,src->child[i]->value);
 
-        src = item_find(*child,"framework");
+            generate_xcodeuid(xcodeuid, projfile);
+			item_get(item_get(src->child[i],"xcodeuid",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+	    src = item_get(*child,"osx_icon",0);
         for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 1);
+        {
+			strcpy(projfile,(*child)->value);
+			strcat(projfile,"osx_icon");
+			strcat(projfile,src->child[i]->value);
 
-        src = item_find(*child,"framework_lib");
+            generate_xcodeuid(xcodeuid, projfile);
+			item_get(item_get(src->child[i],"xcodeuid",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+	    src = item_get(*child,"icon",0);
         for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 1);
+        {
+			strcpy(projfile,(*child)->value);
+			strcat(projfile,"icon");
+			strcat(projfile,src->child[i]->value);
 
-        src = item_find(*child,"privateframework");
+            generate_xcodeuid(xcodeuid, projfile);
+			item_get(item_get(src->child[i],"xcodeuid",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+	    src = item_get(*child,"install",0);
         for (i=0;i<item_childcount(src);++i)
-			generate_uids(src->child[i], 1);
+        {
+			strcpy(projfile,(*child)->value);
+			strcat(projfile,"install");
+			strcat(projfile,src->child[i]->value);
 
-		src = item_find(*child,"use");
+            generate_xcodeuid(xcodeuid, projfile);
+			item_get(item_get(src->child[i],"xcodeuid",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+        src = item_get(*child,"framework",0);
+        for (i=0;i<item_childcount(src);++i)
+        {
+            strcpy(projfile,(*child)->value);
+            strcat(projfile,"framework");
+            strcat(projfile,src->child[i]->value);
+
+            generate_xcodeuid(xcodeuid, projfile);
+            item_get(item_get(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+            item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+        src = item_get(*child,"framework_lib",0);
+        for (i=0;i<item_childcount(src);++i)
+        {
+            strcpy(projfile,(*child)->value);
+            strcat(projfile,"framework_lib");
+            strcat(projfile,src->child[i]->value);
+
+            generate_xcodeuid(xcodeuid, projfile);
+            item_get(item_get(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+            item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+        src = item_get(*child,"privateframework",0);
+        for (i=0;i<item_childcount(src);++i)
+        {
+            strcpy(projfile,(*child)->value);
+            strcat(projfile,"privateframework");
+            strcat(projfile,src->child[i]->value);
+
+            generate_xcodeuid(xcodeuid, projfile);
+            item_get(item_get(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+
+            generate_msmuid(msmuid, projfile);
+            item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
+        }
+
+		src = item_get(*child,"use",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			item* ref = findref(src->child[i]);
@@ -3539,14 +3439,14 @@ static void preprocess_sort(item* p)
 				strcat(projfile,ref->value);
 
                 generate_xcodeuid(xcodeuid, projfile);
-				item_find_add(item_find_add(src->child[i],"xcodefrwfile",0),xcodeuid,1);
+				item_get(item_get(src->child[i],"xcodefrwfile",0),xcodeuid,1);
 
                 generate_msmuid(msmuid, projfile);
-			    item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
+			    item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
 			}
         }
 
-		src = item_find(*child,"install_cab");
+		src = item_get(*child,"install_cab",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3554,13 +3454,13 @@ static void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
 
             generate_msmuid(msmuid, msmuid);
-			item_find_add(item_find_add(src->child[i],"msmuid2",0),msmuid,1);
+			item_get(item_get(src->child[i],"msmuid2",0),msmuid,1);
         }
 
-		src = item_find(*child,"register_cab");
+		src = item_get(*child,"register_cab",0);
         for (i=0;i<item_childcount(src);++i)
         {
 			strcpy(projfile,(*child)->value);
@@ -3568,145 +3468,140 @@ static void preprocess_sort(item* p)
 			strcat(projfile,src->child[i]->value);
 
             generate_msmuid(msmuid, projfile);
-			item_find_add(item_find_add(src->child[i],"msmuid",0),msmuid,1);
+			item_get(item_get(src->child[i],"msmuid",0),msmuid,1);
 
             generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid2",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid2",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid3",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid3",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid4",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid4",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid5",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid5",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid6",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid6",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid7",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid7",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid8",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid8",0),msmuid,1);
 
 		    generate_msmuid(msmuid,msmuid);
-            item_find_add(item_find_add(src->child[i],"msmuid9",0),msmuid,1);
+            item_get(item_get(src->child[i],"msmuid9",0),msmuid,1);
         }
 
-		src = item_find_add(*child, "project_name", 0);
-        if (!getvalue(src))
-            item_find_add(src,(*child)->value,1);
+        prjname = getvalue(item_get(*child,"project_name",0));
+        if (!prjname)
+            prjname = item_get(item_get(*child,"project_name",0),(*child)->value,1);
 
-		src = item_find_add(*child, "project_path", 0);
-        if (!getvalue(src))
-            item_find_add(src,(*child)->value,1);
+        prjpath = getvalue(item_get(*child,"project_path",0));
+        if (!prjpath)
+            prjpath = item_get(item_get(*child,"project_path",0),(*child)->value,1);
 
-		src = item_find_add(*child, "project_version", 0);
-        if (!getvalue(src))
-            item_find_add(src,"1.0.0",1);
+        if (!getvalue(item_get(*child,"project_version",0)))
+            item_get(item_get(*child,"project_version",0),"1.0.0",1);
 
-        if ((item_find_add(getconfig(*child),"TARGET_PALMOS",0)->flags & FLAG_DEFINED) && !getvalue(item_find_add(*child,"project_fourcc",0)))
-            item_find_add(item_find_add(*child,"project_fourcc",0),"'CMAK'",1);
+        if ((item_get(getconfig(*child),"TARGET_PALMOS",0)->flags & FLAG_DEFINED) && !getvalue(item_get(*child,"project_fourcc",0)))
+            item_get(item_get(*child,"project_fourcc",0),"'CMAK'",1);
 
         major=1;
         minor=0;
         revision=0;
-        sscanf(getvalue(item_find_add(*child,"project_version",0))->value,"%d.%d.%d",&major,&minor,&revision);
+        sscanf(getvalue(item_get(*child,"project_version",0))->value,"%d.%d.%d",&major,&minor,&revision);
 
         sprintf(ver,"%d",major);
-        item_find_add(item_find_add(*child,"project_version_major",0),ver,1);
+        item_get(item_get(*child,"project_version_major",0),ver,1);
         sprintf(ver,"%d",minor);
-        item_find_add(item_find_add(*child,"project_version_minor",0),ver,1);
+        item_get(item_get(*child,"project_version_minor",0),ver,1);
         sprintf(ver,"%d",revision);
-        item_find_add(item_find_add(*child,"project_version_revision",0),ver,1);
+        item_get(item_get(*child,"project_version_revision",0),ver,1);
     }
 }
 
-void preprocess(item* root, const char *pr_root, const char *src_root, const char *coremake_root)
+void preprocess(item* p)
 {
 	item* i;
     item* con_to_exe;
     char config_path[MAX_PATH];
     item *config_file;
-    size_t target;
-	assert(item_is_root(root));
 
-	i = getvalue(item_find(root,"platformlib"));
-	if (i)
-	{
-		char path[MAX_PATH];
-		sprintf(path, "lib/%s/", i->value);
-		item_find_add(item_find_add(root, "libpath", 1), path, 1); /* TODO remove, it's never used */
-	}
-	else
-		printf("PLATFORMLIB not defined for this target, USELIB will not work\r\n");
+	i = getvalue(item_find(p,"platformlib"));
+    if (i)
+    {
+        char path[MAX_PATH];
+    	sprintf(path,"lib/%s/",i->value);
+		item_get(item_get(p,"libpath",1),path,1);
+    }
 
-	preprocess_condstart(root);
-	preprocess_config(getconfig(root));
-	preprocess_condeval(root);
+	preprocess_condstart(p);
+	preprocess_config(getconfig(p));
+	preprocess_condeval(p);
 
     // add the path with config.h to CONFIG_INCLUDE
-    i = item_find_add(root,"config_include",0);
-    config_file = getvalue(item_find(root,"config_file"));
+    i = item_get(p,"config_include",0);
+    config_file = getvalue(getroot(p,"config_file"));
     if (config_file)
         strcpy(config_path,config_file->value);
     else
         config_path[0]=0;
     truncfilepath(config_path,0);
-    i = item_find_add(i,config_path,0);
+    i = item_get(i,config_path,0);
     set_path_type(i,FLAG_PATH_GENERATED);
     i->flags |= FLAG_ATTRIB;
     i->flags |= FLAG_PATH_GENERATED;
 
 	// add the path of the CONFIG_CLEANER file to CONFIG_INCLUDE
-	i = item_find(root,"config_cleaner");
-	if (i && getvalue(i))
+	i = getroot(p,"config_cleaner");
+	if (getvalue(i))
     {
 		strcpy(config_path,getvalue(i)->value);
 		truncfilepath(config_path,0);
-        i = item_find_add(item_find_add(root,"config_include",0),config_path,1);
+        i = item_get(item_get(p,"config_include",0),config_path,1);
         set_path_type(i,FLAG_PATH_SOURCE);
     }
 
 	// add the path of PLATFORM_FILES to CONFIG_INCLUDE if COREMAKE_CONFIG_HELPER is set
-	if (item_find_add(getconfig(root),"COREMAKE_CONFIG_HELPER",0)->flags & FLAG_DEFINED)
+	if (item_get(getconfig(p),"COREMAKE_CONFIG_HELPER",0)->flags & FLAG_DEFINED)
 	{
-        i = item_find_add(item_find_add(root,"config_include",0),coremake_root,1);
+        i = item_get(item_get(p,"config_include",0),coremake_root,1);
         set_path_type(i,FLAG_PATH_SOURCE);
 	}
 
     // "GROUP con_to_exe": replaces all "con" by "exe" and add "USE con_to_exe"
-    con_to_exe = getvalue(item_find(item_find(item_find(root,"group"),"con_to_exe"),"source"));
+    con_to_exe = getvalue(item_find(item_find(getroot(p,"group"),"con_to_exe"),"source"));
 	if (con_to_exe)
 	{
-		i = item_find(root,"con");
+		i = item_find(p,"con");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED))
 	            {
-                    item* j = item_find_add(item_find_add(root,"exe",0),(*child)->value,1);
+                    item* j = item_get(item_get(p,"exe",0),(*child)->value,1);
 		            item_merge(j,*child,NULL);
-                    item_find_add(item_find_add(j,"use",0),"con_to_exe",1);
+                    item_get(item_get(j,"use",0),"con_to_exe",1);
 		            item_delete(*child);
                     --child;
         	    }
         }
     }
-    else if (item_find_add(getconfig(root),"COREMAKE_CONSOLE",0)->flags & FLAG_DEFINED)
+    else if (item_get(getconfig(p),"COREMAKE_CONSOLE",0)->flags & FLAG_DEFINED)
     {
         // repleace all "exe" by "con"
-		i = item_find(root,"exe");
+		i = item_find(p,"exe");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
                 if (!((*child)->flags & FLAG_REMOVED))
 	            {
-                    item* j = item_find_add(item_find_add(root,"con",0),(*child)->value,1);
+                    item* j = item_get(item_get(p,"con",0),(*child)->value,1);
 		            item_merge(j,*child,NULL);
 		            item_delete(*child);
                     --child;
@@ -3714,97 +3609,157 @@ void preprocess(item* root, const char *pr_root, const char *src_root, const cha
         }
     }
 
-	/* copy all groups into the actual target */
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-	        preprocess_use_group(root, all_targets[target].name);
-	preprocess_use_group(root,"workspace");
+	preprocess_group(item_find(p,"lib"));
+	preprocess_group(item_find(p,"exe"));
+	preprocess_group(item_find(p,"con"));
+	preprocess_group(item_find(p,"dll"));
+	preprocess_group(item_find(p,"lib_csharp"));
+	preprocess_group(item_find(p,"exe_csharp"));
+	preprocess_group(item_find(p,"con_csharp"));
+	preprocess_group(item_find(p,"dll_csharp"));
+	preprocess_group(item_find(p,"exe_android"));
+	preprocess_group(item_find(p,"dll_android"));
+	preprocess_group(item_find(p,"workspace"));
 
 	// COREMAKE_STATIC and TARGET_ALWAYS_STATIC: replaces all "dll" by "lib"
-	if ((item_find_add(getconfig(root),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_find_add(getconfig(root),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
+	if ((item_get(getconfig(p),"COREMAKE_STATIC",0)->flags & FLAG_DEFINED) || (item_get(getconfig(p),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED))
 	{
-		i = item_find(root,"dll");
+		i = item_find(p,"dll");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
-                if (!((*child)->flags & FLAG_REMOVED) && ((item_find_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
+                if (!((*child)->flags & FLAG_REMOVED) && ((item_get(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
 	            {
-		            item_merge(item_find_add(item_find_add(root,"lib",0),(*child)->value,1),*child,NULL);
+		            item_merge(item_get(item_get(p,"lib",0),(*child)->value,1),*child,NULL);
 		            item_delete(*child);
                     --child;
         	    }
         }
-		i = item_find(root,"dll_csharp");
+		i = item_find(p,"dll_csharp");
         if (i)
         {
         	item** child;
         	for (child=i->child;child!=i->childend;++child)
-                if (!((*child)->flags & FLAG_REMOVED) && ((item_find_add(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
+                if (!((*child)->flags & FLAG_REMOVED) && ((item_get(getconfig(*child),"TARGET_ALWAYS_STATIC",0)->flags & FLAG_DEFINED) || !getvalue(item_find(*child,"never_static"))))
 	            {
-		            item_merge(item_find_add(item_find_add(root,"lib_csharp",0),(*child)->value,1),*child,NULL);
+		            item_merge(item_get(item_get(p,"lib_csharp",0),(*child)->value,1),*child,NULL);
 		            item_delete(*child);
                     --child;
         	    }
         }
     }
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-	        preprocess_presort(item_find(root, all_targets[target].name));
+	preprocess_presort(item_find(p,"lib"));
+	preprocess_presort(item_find(p,"con"));
+	preprocess_presort(item_find(p,"exe"));
+	preprocess_presort(item_find(p,"dll"));
+	preprocess_presort(item_find(p,"lib_csharp"));
+	preprocess_presort(item_find(p,"con_csharp"));
+	preprocess_presort(item_find(p,"exe_csharp"));
+	preprocess_presort(item_find(p,"dll_csharp"));
+	preprocess_presort(item_find(p,"exe_android"));
+	preprocess_presort(item_find(p,"dll_android"));
 
-    preprocess_builtlib(item_find(root,"project"));
-    preprocess_builtlib(item_find(root,"lib"));
-    preprocess_builtlib(item_find(root,"lib_csharp"));
+    preprocess_builtlib(item_find(p,"project"));
+    preprocess_builtlib(item_find(p,"lib"));
+    preprocess_builtlib(item_find(p,"lib_csharp"));
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name && !all_targets[target].is_lib)
-    	    preprocess_usemerge(item_find(root, all_targets[target].name));
+	preprocess_usemerge(item_find(p,"dll"));
+	preprocess_usemerge(item_find(p,"exe"));
+	preprocess_usemerge(item_find(p,"dll_csharp"));
+	preprocess_usemerge(item_find(p,"exe_csharp"));
+	preprocess_usemerge(item_find(p,"exe_android"));
 
     // the .build (or .inc) file needs to define these
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-	        preprocess_outputname(item_find(root, all_targets[target].name), all_targets[target].output_name);
+	preprocess_outputname(item_find(p,"lib"),"output_lib");
+	preprocess_outputname(item_find(p,"exe"),"output_exe");
+	preprocess_outputname(item_find(p,"con"),"output_con");
+	preprocess_outputname(item_find(p,"dll"),"output_dll");
+	preprocess_outputname(item_find(p,"lib_csharp"),"output_lib");
+	preprocess_outputname(item_find(p,"exe_csharp"),"output_exe");
+	preprocess_outputname(item_find(p,"con_csharp"),"output_con");
+	preprocess_outputname(item_find(p,"dll_csharp"),"output_dll");
+	preprocess_outputname(item_find(p,"exe_android"),"output_android");
+	preprocess_outputname(item_find(p,"dll_android"),"output_android_lib");
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_stdafx_includes(item_find(root, all_targets[target].name), all_targets[target].is_lib, pr_root, src_root, coremake_root);
+	preprocess_stdafx_includes(item_find(p,"con"),0);
+	preprocess_stdafx_includes(item_find(p,"exe"),0);
+	preprocess_stdafx_includes(item_find(p,"dll"),0);
+	preprocess_stdafx_includes(item_find(p,"lib"),1);
+	preprocess_stdafx_includes(item_find(p,"con_csharp"),0);
+	preprocess_stdafx_includes(item_find(p,"exe_csharp"),0);
+	preprocess_stdafx_includes(item_find(p,"dll_csharp"),0);
+	preprocess_stdafx_includes(item_find(p,"lib_csharp"),1);
+	preprocess_stdafx_includes(item_find(p,"exe_android"),0);
 //	preprocess_stdafx_includes(item_find(p,"dll_android"),0);
 
-    preprocess_generate(item_find(root, "generate"));
+	preprocess_dependency_init(item_find(p,"lib"),1);
+	preprocess_dependency_init(item_find(p,"exe"),0);
+	preprocess_dependency_init(item_find(p,"con"),0);
+	preprocess_dependency_init(item_find(p,"dll"),0);
+	preprocess_dependency_init(item_find(p,"lib_csharp"),1);
+	preprocess_dependency_init(item_find(p,"exe_csharp"),0);
+	preprocess_dependency_init(item_find(p,"con_csharp"),0);
+	preprocess_dependency_init(item_find(p,"dll_csharp"),0);
+	preprocess_dependency_init(item_find(p,"exe_android"),0);
+	preprocess_dependency_init(item_find(p,"dll_android"),0);
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_dependency_init(item_find(root, all_targets[target].name), all_targets[target].is_lib);
+	preprocess_dependency(item_find(p,"lib"));
+	preprocess_dependency(item_find(p,"con"));
+	preprocess_dependency(item_find(p,"exe"));
+	preprocess_dependency(item_find(p,"dll"));
+	preprocess_dependency(item_find(p,"lib_csharp"));
+	preprocess_dependency(item_find(p,"con_csharp"));
+	preprocess_dependency(item_find(p,"exe_csharp"));
+	preprocess_dependency(item_find(p,"dll_csharp"));
+	preprocess_dependency(item_find(p,"exe_android"));
+	preprocess_dependency(item_find(p,"dll_android"));
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_dependency(item_find(root, all_targets[target].name));
-
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-	        preprocess_stdafx(item_find(root, all_targets[target].name), all_targets[target].is_lib, pr_root, src_root, coremake_root);
+	preprocess_stdafx(item_find(p,"con"),0);
+	preprocess_stdafx(item_find(p,"exe"),0);
+	preprocess_stdafx(item_find(p,"dll"),0);
+	preprocess_stdafx(item_find(p,"lib"),1);
+	preprocess_stdafx(item_find(p,"con_csharp"),0);
+	preprocess_stdafx(item_find(p,"exe_csharp"),0);
+	preprocess_stdafx(item_find(p,"dll_csharp"),0);
+	preprocess_stdafx(item_find(p,"lib_csharp"),1);
+	preprocess_stdafx(item_find(p,"exe_android"),0);
 //	preprocess_stdafx(item_find(p,"dll_android"),1);
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_workspace_init(item_find(root, all_targets[target].name));
-	preprocess_workspace(item_find(root,"workspace"));
+	preprocess_workspace_init(item_find(p,"lib"));
+	preprocess_workspace_init(item_find(p,"exe"));
+	preprocess_workspace_init(item_find(p,"con"));
+	preprocess_workspace_init(item_find(p,"dll"));
+	preprocess_workspace_init(item_find(p,"lib_csharp"));
+	preprocess_workspace_init(item_find(p,"exe_csharp"));
+	preprocess_workspace_init(item_find(p,"con_csharp"));
+	preprocess_workspace_init(item_find(p,"dll_csharp"));
+	preprocess_workspace_init(item_find(p,"exe_android"));
+	preprocess_workspace_init(item_find(p,"dll_android"));
+	preprocess_workspace(item_get(p,"workspace",0));
 
-	preprocess_condend(root);
+	preprocess_condend(p);
 
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_sort(item_find(root, all_targets[target].name));
-    preprocess_sort(item_find(root, "generate"));
-	preprocess_sort_workspace(item_find(root,"workspace"));
-
-    for (target = 0; all_targets[target].name; target++)
-        if (all_targets[target].output_name)
-            preprocess_automake(item_find(root, all_targets[target].name), pr_root, src_root, coremake_root);
+	preprocess_sort(item_find(p,"lib"));
+	preprocess_sort(item_find(p,"con"));
+	preprocess_sort(item_find(p,"exe"));
+	preprocess_sort(item_find(p,"dll"));
+	preprocess_sort(item_find(p,"lib_csharp"));
+	preprocess_sort(item_find(p,"con_csharp"));
+	preprocess_sort(item_find(p,"exe_csharp"));
+	preprocess_sort(item_find(p,"dll_csharp"));
+	preprocess_sort(item_find(p,"exe_android"));
+	preprocess_sort(item_find(p,"dll_android"));
+	preprocess_sort_workspace(item_find(p,"workspace"));
 }
 
-FILE* file_built;
+#define MAX_PUSHED_PATH  8
+FILE* build;
+char buildpath[MAX_PUSHED_PATH][MAX_PATH];
+int buildflags[MAX_PUSHED_PATH];
+int curr_build = 0;
+
 void simplifypath(char* path, int head)
 {
     char* s;
@@ -3835,7 +3790,7 @@ void simplifypath(char* path, int head)
     }
 }
 
-static void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags, const char *prj_root, const char *src_root, const char *coremake_root)
+void getabspath(char* path, int path_flags, const char *rel_path, int rel_flags)
 {
     assert((path_flags & FLAG_PATH_MASK) != FLAG_PATH_NOT_PATH);
     if (!(path_flags & FLAG_PATH_SET_ABSOLUTE))
@@ -3849,9 +3804,9 @@ static void getabspath(char* path, int path_flags, const char *rel_path, int rel
         else
             switch (rel_flags & FLAG_PATH_MASK)
             {
-            case FLAG_PATH_SOURCE:    strcpy(base, src_root); break;
-            case FLAG_PATH_GENERATED: strcpy(base, prj_root); break;
-            case FLAG_PATH_COREMAKE:  strcpy(base, coremake_root); break;
+            case FLAG_PATH_SOURCE:    strcpy(base,src_root); break;
+            case FLAG_PATH_GENERATED: strcpy(base,proj_root); break;
+            case FLAG_PATH_COREMAKE:  strcpy(base,coremake_root); break;
             default: base[0] = '\0'; // safety
             }
         addendpath(base);
@@ -3883,7 +3838,7 @@ void urlquote(char *name,int no_backslash)
     }
 }
 
-static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
+int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cmd)
 {
 	size_t maskpos,maskend;
 	char mask[MAX_LINE];
@@ -3897,72 +3852,60 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
 	for (;*s;++s)
 	{
 		char* s0 = s;
-        if (s[0] == '%' && s[1] == '%')
+        if (extra_cmd && s[0]=='%' && s[1]=='%')
         {
-            if (extra_cmd != CMD_AUTOMAKE)
+            s +=2;
+            s = getname(s,name);
+            if (stricmp(name,"DIRPUSH")==0)
             {
-                if (s[2] == '(')
+                int flags;
+                s = strdel(s0,s);
+			    s = strins(s,"cd ",NULL);
+                s +=2;
+                while (isspace(*s)) ++s;
+                s0 = s;
+                flags = tokeneval(s,skip,pos,error,extra_cmd);
+                if (++curr_build > MAX_PUSHED_PATH)
                 {
-                    strdel(s, s + 1);
-                    s+=2;
-                    continue;
+	                printf("can't push directory %s, limit reached\r\n",s);
+	                exit(1);
                 }
-                else
+                strcpy(name,s);
+                getabspath(name,flags,buildpath[curr_build-1],buildflags[curr_build-1]);
+                addendpath(name);
+                strcpy(buildpath[curr_build],name);
+                buildflags[curr_build] = flags;
+
+                getrelpath(name,flags,buildpath[curr_build-1],buildflags[curr_build-1],0,0);
+                truncfilepath(name,1);
+
+			    s = strcpy(s0,name);
+                continue;
+            }
+            else
+            if (stricmp(name,"DIRPOP")==0)
+            {
+                int flags;
+                s = strdel(s0,s);
+			    s = strins(s,"cd ",NULL);
+                s +=3;
+                while (isspace(*s)) ++s;
+                s0 = s;
+                flags = tokeneval(s,skip,pos,error,extra_cmd);
+                if (--curr_build < 0)
                 {
-                    s += 2;
-                    s = getname(s, name);
-                    if (stricmp(name, "DIRPUSH") == 0)
-                    {
-                        int flags;
-                        s = strdel(s0, s);
-                        s = strins(s, "cd ", NULL);
-                        s += 2;
-                        while (isspace(*s)) ++s;
-                        s0 = s;
-                        flags = tokeneval(s, skip, pos, error, extra_cmd);
-                        if (++curr_build > MAX_PUSHED_PATH)
-                        {
-                            printf("can't push directory %s, limit reached\r\n", s);
-                            exit(1);
-                        }
-                        strcpy(name, s);
-                        getabspath(name, flags, buildpath[curr_build - 1], buildflags[curr_build - 1], error->project_root, error->src_root, error->coremake_root);
-                        addendpath(name);
-                        strcpy(buildpath[curr_build], name);
-                        buildflags[curr_build] = flags;
-
-                        getrelpath(name, flags, buildpath[curr_build - 1], buildflags[curr_build - 1], 0, 0, error->project_root, error->src_root, error->coremake_root);
-                        truncfilepath(name, 1);
-
-                        s = strcpy(s0, name);
-                        continue;
-                    }
-                    else
-                        if (stricmp(name, "DIRPOP") == 0)
-                        {
-                            int flags;
-                            s = strdel(s0, s);
-                            s = strins(s, "cd ", NULL);
-                            s += 3;
-                            while (isspace(*s)) ++s;
-                            s0 = s;
-                            flags = tokeneval(s, skip, pos, error, extra_cmd);
-                            if (--curr_build < 0)
-                            {
-                                printf("can't pop directory limit reached\r\n");
-                                exit(1);
-                            }
-                            strcpy(name, buildpath[curr_build]);
-                            getrelpath(name, buildflags[curr_build], buildpath[curr_build + 1], buildflags[curr_build + 1], 0, 0, error->project_root, error->src_root, error->coremake_root);
-                            truncfilepath(name, 1);
-
-                            s = strcpy(s0, name);
-                            continue;
-                        }
+                    printf("can't pop directory limit reached\r\n");
+                    exit(1);
                 }
+                strcpy(name,buildpath[curr_build]);
+                getrelpath(name,buildflags[curr_build],buildpath[curr_build+1],buildflags[curr_build+1],0,0);
+                truncfilepath(name,1);
+
+                s = strcpy(s0,name);
+                continue;
             }
         }
-		if ((extra_cmd != CMD_AUTOMAKE) && s[0]=='%' && s[1]=='(')
+		if (s[0]=='%' && s[1]=='(')
 		{
             int in_generated;
             int count;
@@ -3997,14 +3940,14 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
             item* i;
 
 			s += 2;
-            in_generated = *s==(char)0xAF; // ¯
+            in_generated = *s=='¯';
             if (in_generated) ++s;
-            if (*s==(char)0xAF && ++in_generated) ++s;
+            if (*s=='¯' && ++in_generated) ++s;
             nodrive = *s==':';
             if (nodrive) ++s;
             count = *s=='=';
             if (count) ++s;
-            dos = *s==(char)0x7E; // ~
+			dos = *s=='~';
 			if (dos) ++s;
 			fourcc = *s=='\'';
 			if (fourcc) ++s;
@@ -4016,15 +3959,15 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
 			if (filefourcc) ++s;
 			fileext = *s=='>';
 			if (fileext) ++s;
-            only_abspath = *s==(char)0xBA; // º
+            only_abspath = *s=='º';
 			if (only_abspath) ++s;
-            only_relpath = *s==(char)0xBA; // º
+            only_relpath = *s=='º';
             if (only_relpath) { ++s; only_abspath=0; }
             relpath = *s=='!';
 			if (relpath) ++s;
-            escape = *s==(char)0x60; // `
+			escape = *s=='`';
 			if (escape) ++s;
-			while (*s==(char)0x60 && ++escape) ++s;
+			while (*s=='`' && ++escape) ++s;
 			upper = *s=='^';
 			if (upper) ++s;
 			filepath = *s=='/';
@@ -4035,7 +3978,7 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
             while (*s==';' && ++levelup) s++;
 			delend = *s=='@';
 			if (delend) { ++s; relpath=1; }
-            deltrail = *s==(char)0xA7; // §
+			deltrail = *s=='§';
 			if (deltrail) ++s;
 			addend = *s=='+';
 			if (addend) { ++s; }
@@ -4045,7 +3988,7 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
             if (reverse) ++s;
             getused = *s=='*';
             if (getused) ++s;
-            findfile = *s==(char)0xF7; // ÷
+            findfile = *s=='÷';
             if (findfile) ++s;
             quote = *s=='&';
             if (quote) ++s;
@@ -4209,7 +4152,7 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
 
                             // force a relative path by default
                             if ((value_flags & FLAG_PATH_MASK) != FLAG_PATH_NOT_PATH)
-                                strip_path_abs(value, value_flags, error->project_root, error->src_root, error->coremake_root);
+                                strip_path_abs(value, value_flags);
 
                             if (in_generated==1)
                             {
@@ -4223,9 +4166,9 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
                             }
 
                             if (relpath)
-								getrelpath(value,value_flags,buildpath[curr_build],buildflags[curr_build],delend,levelup, error->project_root, error->src_root, error->coremake_root);
+								getrelpath(value,value_flags,buildpath[curr_build],buildflags[curr_build],delend,levelup);
                             if (abspath)
-                                getabspath(value,value_flags,buildpath[curr_build],buildflags[curr_build], error->project_root, error->src_root, error->coremake_root);
+                                getabspath(value,value_flags,buildpath[curr_build],buildflags[curr_build]);
 							if (filepath) truncfilepath(value,delend);
 							if (fileupper) truncfileupper(value);
 							if (filename) truncfilename(value);
@@ -4283,7 +4226,7 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
                                     strcpy(path,filename);
                                     tokeneval(path,0,pos,error,extra_cmd);
                                     pathunix(path);
-                                    getabspath(path,FLAG_PATH_SOURCE,buildpath[curr_build],buildflags[curr_build], error->project_root, error->src_root, error->coremake_root);
+                                    getabspath(path,FLAG_PATH_SOURCE,buildpath[curr_build],buildflags[curr_build]);
                                     if (stat(path,&s)!=0)
                                         name0[0]=0;
                                 }
@@ -4316,7 +4259,7 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
                                 strcpy(path,(*child)->value);
                                 tokeneval(path,0,pos,error,extra_cmd);
                                 pathunix(path);
-                                getabspath(path,FLAG_PATH_SOURCE,buildpath[curr_build],buildflags[curr_build], error->project_root, error->src_root, error->coremake_root);
+                                getabspath(path,FLAG_PATH_SOURCE,buildpath[curr_build],buildflags[curr_build]);
                                 if (stat(path,&s)!=0)
                                     continue;
                             }
@@ -4336,7 +4279,7 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
                             result |= name_flags & FLAG_PATH_MASK;
                         }
                         if (skip || !abspath)
-                            strip_path_abs(name, name_flags, error->project_root, error->src_root, error->coremake_root);
+                            strip_path_abs(name, name_flags);
                         else
                             is_relpath = 0;
                     }
@@ -4353,9 +4296,9 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
                     }
 
                     if (is_relpath && relpath)
-						getrelpath(name,name_flags,buildpath[curr_build],buildflags[curr_build],delend,levelup, error->project_root, error->src_root, error->coremake_root);
+						getrelpath(name,name_flags,buildpath[curr_build],buildflags[curr_build],delend,levelup);
                     if (!skip && abspath && is_relpath)
-                        getabspath(name,name_flags,buildpath[curr_build],buildflags[curr_build], error->project_root, error->src_root, error->coremake_root);
+                        getabspath(name,name_flags,buildpath[curr_build],buildflags[curr_build]);
 					if (filepath) truncfilepath(name,delend);
 					if (fileupper) truncfileupper(name);
 					if (filename) truncfilename(name);
@@ -4389,48 +4332,6 @@ static int tokeneval(char* s,int skip,build_pos* pos,reader* error, int extra_cm
 			s = strins(s,name,NULL);
 			--s;
 		}
-        if ((extra_cmd & CMD_AUTOMAKE) && s[0] == '@')
-        {
-            item* i = pos->p, *ii = i, *j, *i2;
-
-            /* parse the name */
-            s += 1;
-            s = getname(s, name);
-            /* translate automake version numbers to coremake version numbers */
-            if (strcmp(name, "VERSION_MAJOR") == 0)
-                strcpy(name, "PACKAGE_VERSION_MAJOR");
-            else if (strcmp(name, "VERSION_MINOR") == 0)
-                strcpy(name, "PACKAGE_VERSION_MINOR");
-            else if (strcmp(name, "VERSION_REVISION") == 0)
-                strcpy(name, "PACKAGE_VERSION_REVISION");
-            else if (strcmp(name, "VERSION_EXTRA") == 0)
-                strcpy(name, "PACKAGE_VERSION_EXTRA");
-
-            j = item_find(ii, name);
-            for (i2 = ii; !skip && !j && i2->parent;)
-            {
-                // search in parents
-                i2 = i2->parent;
-                j = item_find(i2, name);
-            }
-            if (!j)
-                j = item_find(getconfig(pos->p), name);
-
-            if (!j)
-                printf("unknown automake field %s\r\n", name);
-
-            if (j)
-                strcpy(name, (*j->child)->value);
-            unstring(name);
-
-            if (*s != '@')
-                syntax(error);
-            ++s;
-
-            s = strdel(s0, s);
-            s = strins(s, name, NULL);
-            --s;
-        }
 	}
     return result;
 }
@@ -4522,7 +4423,7 @@ char* eval3(const char** s,item* config,reader* file)
 	return a;
 }
 
-char* eval_not_equal(const char** s,item* config,reader* file)
+char* eval2(const char** s,item* config,reader* file)
 {
 	evalspace(s);
 	if ((*s)[0] == '!' && (*s)[1] != '=')
@@ -4530,7 +4431,7 @@ char* eval_not_equal(const char** s,item* config,reader* file)
 		int value;
 		char* a;
 		*s += 1;
-		a = eval_not_equal(s,config,file);
+		a = eval2(s,config,file);
 		value = !str2bool(a);
 		free(a);
 		return bool2str(value);
@@ -4543,7 +4444,7 @@ char* eval1(const char** s,item* config,reader* file)
 {
 	int value;
 	char* b;
-	char* a = eval_not_equal(s,config,file);
+	char* a = eval2(s,config,file);
 
 	evalspace(s);
 	if ((*s)[0] == '=' && (*s)[1] == '=')
@@ -4710,13 +4611,13 @@ item* reader_item(reader* file, int skip, build_pos* pos)
             token += 3;
         }
         if (parent)
-    		i = item_find_add(parent->p,token,1);
+    		i = item_get(parent->p,token,1);
     }
 
     return i;
 }
 
-static void create_missing_dirs(const char *path)
+void create_missing_dirs(const char *path)
 {
 	size_t strpos = 0, strpos_i;
 	char new_dir[MAX_PATH];
@@ -4781,88 +4682,8 @@ void getarg(char* s, const char** in)
     *s = 0;
 }
 
-static void compile_file(item* p, const char *src, const char *dst, int flags, build_pos *pos, int automake)
-{
-    char tmpstr[MAX_LINE];
-    reader r;
-
-    reader_init(&r);
-    getarg(r.filename,&src);
-    pathunix(r.filename);
-    getabspath(r.filename,flags,"",FLAG_PATH_SOURCE, NULL, NULL, NULL);
-    r.r.f = fopen(r.filename,"r");
-    r.r.flags = flags;
-    r.pos = r.line;
-    r.r.filename_kind = FLAG_PATH_SOURCE;
-
-    // TODO: in verbose mode we should issue a warning if the file is not found
-
-    if (r.r.f)
-    {
-        item *src;
-        char backup[MAX_PATH];
-        FILE* backupfile = file_built;
-        int backupflags = buildflags[curr_build];
-        strcpy(backup,buildpath[curr_build]);
-        strcpy(buildpath[curr_build], dst);
-        getabspath(buildpath[curr_build],FLAG_PATH_GENERATED|(ispathabs(buildpath[curr_build])?FLAG_PATH_SET_ABSOLUTE:0),"",FLAG_PATH_GENERATED, r.project_root, r.src_root, r.coremake_root);
-        simplifypath(buildpath[curr_build],0);
-        buildflags[curr_build] = FLAG_PATH_GENERATED;
-
-        // check that the src and dst files are different
-        if (stricmp(r.filename,buildpath[curr_build])==0)
-        {
-            char *ext = strrchr(buildpath[curr_build],'.');
-            if (!ext)
-                strcat(buildpath[curr_build],".compiled");
-            else
-                strins(ext,ext,NULL);
-            printf("*warning: COMPILE '%s' already exists, using '%s'\r\n",r.filename,buildpath[curr_build]);
-        }
-
-        create_missing_dirs(buildpath[curr_build]);
-printf("compile file '%s'\r\n", buildpath[curr_build]);
-        file_built = fopen(buildpath[curr_build],"w+");
-
-        if (file_built)
-        {
-            while (reader_line(&r))
-            {
-                const char* eval = r.line;
-                evalspace(&eval);
-                if (!automake && stricmp(eval, "%%BEGIN") == 0)
-                {
-                    reader_line(&r);
-                    build_parse(p,&r,16,0,pos);
-                }
-                else
-                {
-                    reader_tokeneval(&r, 0, -1, pos, automake ? CMD_AUTOMAKE : CMD_COREMAKE);
-                    fputs(r.token,file_built);
-                    fputc(10,file_built);
-                }
-            }
-
-            fclose(file_built);
-        }
-
-        fclose(r.r.f);
-
-        tmpstr[0] = 0;
-        strins(tmpstr, r.filename, getfilename(r.filename));
-        item_delete(item_find(pos->p, "base"));
-        src = item_find_add(item_find_add(pos->p, "base", 0), tmpstr, 1);
-        set_path_type(src, FLAG_PATH_SOURCE);
-
-        file_built = backupfile;
-        strcpy(buildpath[curr_build],backup);
-        buildflags[curr_build] = backupflags;
-    }
-    reader_free(&r);
-}
-
-static void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root);
-static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
+void build_file(item* p,const char* filename, int reader_flags);
+int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 {
 	int bin;
 	int result=0;
@@ -4890,8 +4711,8 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		{
             reader_token(file);
 			reader_filename(file,FLAG_PATH_COREMAKE);
-            if (!skip && !(file->r.flags & FLAG_NO_INCLUDE))
-                build_file(p, file->token, FLAG_PATH_COREMAKE, file->project_root, file->src_root, file->coremake_root);
+			if (!skip)
+				build_file(p,file->token,FLAG_PATH_COREMAKE);
 		}
 		else
 		if (is_sharped && reader_istoken(file,"undef"))
@@ -4907,13 +4728,13 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		if (is_sharped && reader_istoken(file,"define"))
 		{
 			reader_name(file);
-			i = skip?NULL:item_find_add(getconfig(p),file->token,1);
+			i = skip?NULL:item_get(getconfig(p),file->token,1);
             if (!skip && strnicmp(file->token,"CONFIG_CUSTOMER_",16)==0)
             {
                 char *lower = file->token+16;
-                i = item_find_add(getconfig(p),"CONFIG_CUSTOMER",1);
+                i = item_get(getconfig(p),"CONFIG_CUSTOMER",1);
                 lwr(lower);
-                item_find_add(i,lower,1);
+                item_get(i,lower,1);
             }
             else
 			if (reader_tokenline(file,0) && !skip)
@@ -4932,7 +4753,7 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 					strdel(s+len-2,s+len);
 					strdel(s,s+3);
 				}
-				i = item_find_add(i,file->token,1);
+				i = item_get(i,file->token,1);
                 if (stricmp(i->parent->value,"CONFIG_ANDROID_NDK")==0)
                 {
                     pathunix(i->value);
@@ -4945,28 +4766,26 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 		{
 			if (!skip)
 			{
-				const item* root = item_root(p, 0);
-				item* config = item_find(root,"config_file");
-				if (config && getvalue(config))
+				item* config = getroot(p,"config_file");
+				if (getvalue(config))
                 {
-                    item* no_include = item_find(*config->child, "no_include");
                     set_path_type(config,FLAG_PATH_GENERATED);
-					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED | (no_include?FLAG_NO_INCLUDE:0), file->project_root, file->src_root, file->coremake_root);
+					build_file(p,getvalue(config)->value, FLAG_PATH_GENERATED);
                 }
-				config = item_find(getconfig(p),"COREMAKE_CONFIG_HELPER");
+				config = item_get(getconfig(p),"COREMAKE_CONFIG_HELPER",0);
 				if (config && config->flags & FLAG_DEFINED)
 				{
-					strcpy(tmpstr,file->coremake_root);
-					strcat(tmpstr,"/config_helper.h");
-					build_file(p,tmpstr, FLAG_PATH_COREMAKE, file->project_root, file->src_root, file->coremake_root);
+					strcpy(tmpstr,coremake_root);
+					strcat(tmpstr,"config_helper.h");
+					build_file(p,tmpstr, FLAG_PATH_COREMAKE);
 				}
-				config = item_find(root,"config_cleaner");
-				if (config && getvalue(config))
+				config = getroot(p,"config_cleaner");
+				if (getvalue(config))
                 {
                     set_path_type(config,FLAG_PATH_SOURCE);
-					build_file(p,getvalue(config)->value, FLAG_PATH_SOURCE, file->project_root, file->src_root, file->coremake_root);
+					build_file(p,getvalue(config)->value, FLAG_PATH_SOURCE);
                 }
-				preprocess(p, file->project_root, file->src_root, file->coremake_root);
+				preprocess(p);
 			}
 		}
 		else
@@ -5104,12 +4923,12 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-				if (!file_built)
+				if (!build)
 				{
 					printf("not file opened!\r\n");
 					exit(1);
 				}
-				fprintf(file_built,"%s",file->token);
+				fprintf(build,"%s",file->token);
 			}
 		}
 		else
@@ -5125,12 +4944,12 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-				if (!file_built)
+				if (!build)
 				{
 					printf("no file opened!\r\n");
 					exit(1);
 				}
-				fprintf(file_built,"%s\n",file->token);
+				fprintf(build,"%s\n",file->token);
 			}
 		}
 		else
@@ -5139,15 +4958,15 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-				if (!file_built)
+				if (!build)
 				{
 					printf("no file opened!\r\n");
 					exit(1);
 				}
 #ifdef _WIN32
-				fprintf(file_built,"%s\n",file->token);
+				fprintf(build,"%s\n",file->token);
 #else
-				fprintf(file_built,"%s\r\n",file->token);
+				fprintf(build,"%s\r\n",file->token);
 #endif
 			}
 		}
@@ -5157,11 +4976,79 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 			int flags = reader_tokeneval(file,skip,1,&pos,0);
 			if (!skip)
 			{
-                char src[MAX_LINE];
+	            reader r;
                 const char* s = file->token;
-                getarg(src, &s);
-                getarg(tmpstr, &s);
-                compile_file(p, src, tmpstr, flags, &pos, 0);
+                reader_init(&r);
+	            getarg(r.filename,&s);
+	            pathunix(r.filename);
+                getabspath(r.filename,flags,"",FLAG_PATH_SOURCE);
+	            r.r.f = fopen(r.filename,"r");
+                r.r.flags = flags;
+	            r.pos = r.line;
+                r.r.filename_kind = FLAG_PATH_SOURCE;
+
+                // TODO: in verbose mode we should issue a warning if the file is not found
+
+                if (r.r.f)
+                {
+                    item *src;
+                    char backup[MAX_PATH];
+                    FILE* backupfile = build;
+                    int backupflags = buildflags[curr_build];
+                    strcpy(backup,buildpath[curr_build]);
+                    getarg(buildpath[curr_build],&s);
+                    getabspath(buildpath[curr_build],FLAG_PATH_GENERATED|(ispathabs(buildpath[curr_build])?FLAG_PATH_SET_ABSOLUTE:0),"",FLAG_PATH_GENERATED);
+                    simplifypath(buildpath[curr_build],0);
+                    buildflags[curr_build] = FLAG_PATH_GENERATED;
+
+                    // check that the src and dst files are different
+                    if (stricmp(r.filename,buildpath[curr_build])==0)
+                    {
+                        char *ext = strrchr(buildpath[curr_build],'.');
+                        if (!ext)
+                            strcat(buildpath[curr_build],".compiled");
+                        else
+                            strins(ext,ext,NULL);
+                        printf("*warning: COMPILE '%s' already exists, using '%s'\r\n",r.filename,buildpath[curr_build]);
+                    }
+
+                    create_missing_dirs(buildpath[curr_build]);
+                    build = fopen(buildpath[curr_build],"w+");
+
+					tmpstr[0]=0;
+					strins(tmpstr,r.filename,getfilename(r.filename));
+                    item_delete(item_find(pos.p,"base"));
+                    src = item_get(item_get(pos.p,"base",0),tmpstr,1);
+                    set_path_type(src,FLAG_PATH_SOURCE);
+
+                    if (build)
+                    {
+	                    while (reader_line(&r))
+                        {
+                            const char* eval = r.line;
+                            evalspace(&eval);
+                            if (stricmp(eval,"%%BEGIN")==0)
+                            {
+                                reader_line(&r);
+				                build_parse(p,&r,16,0,&pos);
+                            }
+                            else
+                            {
+                                reader_tokeneval(&r,0,-1,&pos,1);
+                                fputs(r.token,build);
+                                fputc(10,build);
+                            }
+                        }
+
+                        fclose(build);
+                    }
+
+                    fclose(r.r.f);
+                    build = backupfile;
+                    strcpy(buildpath[curr_build],backup);
+                    buildflags[curr_build] = backupflags;
+                }
+                reader_free(&r);
             }
         }
 		else
@@ -5191,7 +5078,6 @@ static int build_parse(item* p,reader* file,int sub,int skip,build_pos* pos0)
 
 				reader_save(file,&forpos);
 
-printf("for each '%s'\r\n", forpos.token);
 				s = forpos.token;
 				for (;;)
 				{
@@ -5226,11 +5112,12 @@ printf("for each '%s'\r\n", forpos.token);
 
 						while (child!=childend)
 						{
-                            item* w = findref(*child);
-							if (!w) w = *child;
+                            item* w;
 							if (!first)
 								reader_restore(file,&forpos);
-                            setvalue(item_find_add(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
+                            w = findref2(*child);
+                            if (w)
+                                setvalue(item_get(w,"for_last",0),(child+(reverse?-1:1)==childend)?"1":"0");
 
 							build_parse(w,file,1,0,&pos);
                             if (w->flags & FLAG_REMOVED)
@@ -5313,9 +5200,9 @@ printf("for each '%s'\r\n", forpos.token);
 		{
             if (!skip)
             {
-				if (file_built)
+				if (build)
 				{
-					fclose(file_built);
+					fclose(build);
 					file_finalize(buildpath[curr_build]);
 				}
             }
@@ -5327,11 +5214,10 @@ printf("for each '%s'\r\n", forpos.token);
 				strcat(file->token,".tmp");
 				strcpy(buildpath[curr_build],file->token);
                 simplifypath(buildpath[curr_build],0);
-                getabspath(buildpath[curr_build],buildflags[curr_build],"",buildflags[curr_build], file->project_root, file->src_root, file->coremake_root);
+                getabspath(buildpath[curr_build],buildflags[curr_build],"",buildflags[curr_build]);
 				create_missing_dirs(buildpath[curr_build]);
-printf("building file '%s'\r\n", buildpath[curr_build]);
-				file_built = fopen(buildpath[curr_build],bin?"wb":"w");
-				if (!file_built)
+				build = fopen(buildpath[curr_build],bin?"wb":"w");
+				if (!build)
 				{
 					printf("can't create %s\r\n",file->token);
 					exit(1);
@@ -5347,7 +5233,7 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
 			flags = reader_tokeneval(file,skip,0,&pos,0);
 			if (i)
             {
-                item *j = item_find_add(i,file->token,1);
+                item *j = item_get(i,file->token,1);
                 set_path_type(j,flags & FLAG_PATH_MASK);
                 build_parse(j,file,9,skip,&pos);
             }
@@ -5365,7 +5251,7 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
 					printf("can't push directory %s, limit reached\r\n",file->token);
 					exit(1);
                 }
-                getabspath(file->token,flags,buildpath[curr_build-1],buildflags[curr_build-1], file->project_root, file->src_root, file->coremake_root);
+                getabspath(file->token,flags,buildpath[curr_build-1],buildflags[curr_build-1]);
                 addendpath(file->token);
                 strcpy(buildpath[curr_build],file->token);
                 buildflags[curr_build] = flags;
@@ -5389,7 +5275,7 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
 			int flags = reader_tokeneval(file,skip,0,&pos,0);
 			if (!skip)
             {
-                getabspath(file->token,flags,"",FLAG_PATH_GENERATED, file->project_root, file->src_root, file->coremake_root);
+                getabspath(file->token,flags,"",FLAG_PATH_GENERATED);
 				create_missing_dirs(file->token);
             }
 		}
@@ -5411,7 +5297,7 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
                 {
                     getarg(tmpstr,&s);
 	                pathunix(tmpstr);
-                    getabspath(tmpstr,flags,"",buildflags[curr_build], file->project_root, file->src_root, file->coremake_root);
+                    getabspath(tmpstr,flags,"",buildflags[curr_build]);
                     create_missing_dirs(tmpstr);
                     dst = fopen(tmpstr, "wb");
                     if (!dst)
@@ -5448,7 +5334,7 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
 					item_delete(i->child[0]);
 				if (i)
                 {
-					item_find_add(i,file->token,1);
+					item_get(i,file->token,1);
                     set_path_type(i,flags & FLAG_PATH_MASK);
                 }
 			}
@@ -5459,7 +5345,7 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
 				flags = reader_tokeneval(file,skip,0,&pos,0);
 				if (i)
                 {
-					item *j = item_find_add(i,file->token,1);
+					item *j = item_get(i,file->token,1);
                     set_path_type(j,flags & FLAG_PATH_MASK);
                 }
 			}
@@ -5472,15 +5358,12 @@ printf("building file '%s'\r\n", buildpath[curr_build]);
 	return result;
 }
 
-static void build_file(item* p,const char* filename, int filename_kind, const char *pjr_root, const char *src_root, const char *coremake_root)
+void build_file(item* p,const char* filename, int reader_flags)
 {
 	reader r;
     reader_init(&r);
 	strcpy(r.filename,filename);
 	pathunix(r.filename);
-	strcpy(r.project_root, pjr_root);
-	strcpy(r.src_root, src_root);
-	strcpy(r.coremake_root, coremake_root);
 	r.r.f = fopen(filename,"r");
 	r.pos = r.line;
 	if (!r.r.f)
@@ -5488,16 +5371,14 @@ static void build_file(item* p,const char* filename, int filename_kind, const ch
 		printf("'%s' build file not found!\r\n",filename);
 		exit(1);
 	}
-printf("building file '%s' \r\n",filename);
-    r.r.flags = filename_kind;
-    r.r.filename_kind = filename_kind;
+    r.r.flags = reader_flags;
+    r.r.filename_kind = reader_flags;
 	build_parse(p,&r,0,0,NULL);
 	fclose(r.r.f);
     reader_free(&r);
 }
 
-/* generates a workspace for the proj type */
-static item* default_workspace(item* workspace,item* i,item* p, const char *proj)
+item* default_workspace(item* workspace,item* i,item* p)
 {
 	item** child;
 	if (!p) return i;
@@ -5505,9 +5386,10 @@ static item* default_workspace(item* workspace,item* i,item* p, const char *proj
     {
         if (!i)
         {
-            i = item_find_add(workspace,proj,1);
+            truncfilename(proj);
+            i = item_get(workspace,proj,1);
         }
-        item_find_add(item_find_add(i,"use",1),(*child)->value,1);
+        item_get(item_get(i,"use",1),(*child)->value,1);
     }
     return i;
 }
@@ -5519,16 +5401,15 @@ int main(int argc, char** argv)
 	int dump = 0;
 	item* i;
 	char path[MAX_PATH];
-	char proj_root[MAX_PATH];
-	char src_root[MAX_PATH] = "";
-	char coremake_root[MAX_PATH] = "";
 	char root_forced = 0;
-	char platform[MAX_PATH] = "";
-	char proj[MAX_PATH] = "root.proj";
-	
+
+	item* root = item_get(NULL,"ROOT",0);
+	getconfig(root);
+
     getcwd(proj_root,sizeof(proj_root));
     pathunix(proj_root);
     addendpath(proj_root);
+    proj_root_len = strlen(proj_root);
 
 	for (n=1;n<argc;++n)
 	{
@@ -5561,6 +5442,7 @@ int main(int argc, char** argv)
                     simplifypath(src_root,0);
                 }
                 addendpath(src_root);
+                src_root_len = strlen(src_root);
                 break;
 			}
 		}
@@ -5573,18 +5455,13 @@ int main(int argc, char** argv)
     addendpath(path);
 	strcat(path,proj);
 
-    if (!src_root[0])
+    if (!src_root_len)
+    {
         strcpy(src_root, proj_root);
+        src_root_len = proj_root_len;
+    }
 
-	item *universe = item_find_add(NULL, "UNIVERSE", 0);
-
-	item *all_roots = item_find_add(universe, ROOT_NAME, 0);
-
-	item* root = item_find_add(all_roots, proj_root, 0);
-	item_find_add_in_root(root, "config");
-	/* TODO use settle_root settle_root(root, src_root, proj_root, coremake_root);*/
-
-    if (!load_file(root,path,NULL, proj_root, src_root, coremake_root) && !root_forced)
+    if (!load_file(root,path,FLAG_PATH_SOURCE,NULL) && !root_forced)
 	{
         // try <directory>.proj
 		strcpy(proj,src_root);
@@ -5592,7 +5469,7 @@ int main(int argc, char** argv)
         truncfilename(proj);
 		strcat(proj,".proj");
         strins(proj,src_root,NULL);
-		if (!load_file(root,proj,NULL, proj_root, src_root, coremake_root))
+		if (!load_file(root,proj,FLAG_PATH_SOURCE,NULL))
         {
             // search for *.proj
 			DIR* dir = opendir(src_root);
@@ -5602,7 +5479,7 @@ int main(int argc, char** argv)
 				struct dirent* entry;
 				while ((entry = readdir(dir)) != NULL)
 					if (entry->d_name[0]!='.' && strrchr(entry->d_name,'.') &&
-                        stricmp(strrchr(entry->d_name,'.'),".proj")==0 && load_file(root,entry->d_name,NULL, proj_root, src_root, coremake_root))
+                        stricmp(strrchr(entry->d_name,'.'),".proj")==0 && load_file(root,entry->d_name,FLAG_PATH_SOURCE,NULL))
                     {
                         found = 1;
                         strcpy(proj,entry->d_name);
@@ -5623,17 +5500,16 @@ int main(int argc, char** argv)
 
     if (!getvalue(item_find(root,"workspace")))
     {
-        // add a default workspace as none were defined
-        item* w = item_find_add(root,"workspace",0);
+        // add default workspace
+        item* w = item_get(root,"workspace",0);
         item* i = NULL;
-		size_t target;
-		truncfilename(proj);
-		for (target = 0; all_targets[target].name; target++)
-			if (all_targets[target].output_name)
-				i=default_workspace(w,i,item_find(root, all_targets[target].name), proj);
+        i=default_workspace(w,i,item_find(root,"exe"));
+        i=default_workspace(w,i,item_find(root,"dll"));
+        i=default_workspace(w,i,item_find(root,"con"));
+        i=default_workspace(w,i,item_find(root,"exe_android"));
     }
 
-	preprocess_project(root);
+	preprocess_project(item_find(root,"project"));
 
 	if (dump)
 		dumpitem(root,1);
@@ -5645,19 +5521,27 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	item_find_add(item_find_add(universe,"platformname",1),platform,1);
+	item_get(item_get(root,"platformname",1),platform,1);
+
+    i = item_get(root,"rootpath",1);
+	i = item_get(i,src_root,1);
+    set_path_type(i,FLAG_PATH_SOURCE);
+
+    i = item_get(root,"builddir",1);
+	i = item_get(i,proj_root,1);
+    set_path_type(i,FLAG_PATH_GENERATED);
 
 	sprintf(path,"%srelease/%s/",proj_root,platform);
-    i = item_find_add(universe,"outputpath",1);
-	i = item_find_add(i,path,1);
+    i = item_get(root,"outputpath",1);
+	i = item_get(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
 	sprintf(path,"%sbuild/%s/",proj_root,platform);
-    i = item_find_add(universe,"buildpath",1);
-	i = item_find_add(i,path,1);
+    i = item_get(root,"buildpath",1);
+	i = item_get(i,path,1);
     set_path_type(i,FLAG_PATH_GENERATED);
 
-	i = getvalue(item_find_add(root,"platform_files",0));
+	i = getvalue(getroot(root,"platform_files"));
 	if (i)
 	{
 		if (ispathabs(i->value) || !ispathabs(src_root))
@@ -5688,10 +5572,13 @@ int main(int argc, char** argv)
         ///       We probably need a --prefix during compilation to hardcode that /usr/share path
         strcpy(coremake_root,"/usr/local/share/coremake");
 #endif
+        i = item_get(root,"platform_files",1);
+        i = item_get(i,coremake_root,1);
+        set_path_type(i,FLAG_PATH_COREMAKE);
+        strcpy(coremake_root,i->value);
     }
-	settle_root(root, src_root, proj_root, coremake_root);
-
 	addendpath(coremake_root);
+    coremake_root_len = strlen(coremake_root);
 
     strcpy(path,coremake_root);
 	strcat(path,platform);
@@ -5699,28 +5586,17 @@ int main(int argc, char** argv)
 
 	strcpy(buildpath[0],proj_root); //safety
     buildflags[0] = FLAG_PATH_GENERATED;
-	file_built = NULL;
-
-	item** child_root;
-	for (child_root = all_roots->child; child_root != all_roots->childend; ++child_root)
+	build = NULL;
+	build_file(root,path,FLAG_PATH_COREMAKE);
+	if (build)
 	{
-		/* call this for each root in the universe */
-		if (!item_is_root(*child_root))
-			continue;
-		item *proj_path     = item_find(*child_root, "builddir");
-		item *src_path      = item_find(*child_root, "rootpath");
-		item *coremake_path = item_find(*child_root, "platform_files");
-		build_file(*child_root, path, FLAG_PATH_COREMAKE, getvalue(proj_path)->value, getvalue(src_path)->value, getvalue(coremake_path)->value);
-		if (file_built)
-		{
-			fclose(file_built);
-			file_finalize(buildpath[curr_build]);
-		}
+		fclose(build);
+		file_finalize(buildpath[curr_build]);
 	}
 
 	if (dumppost)
-		dumpitem(universe,1);
+		dumpitem(root,1);
 
-	item_delete(universe);
+	item_delete(root);
 	return 0;
 }

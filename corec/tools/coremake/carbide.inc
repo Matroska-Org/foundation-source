@@ -66,7 +66,7 @@ FOR EACH LIB,DLL,EXE,CON
   ENDIF
   PRINTNL 	</natures>
   PRINTNL 	<linkedResources>
-  FOR EACH SOURCE,HEADER,HEADER_FORCE
+  FOR EACH SOURCE,HEADER
     IF %(>NAME)!=rss
       PRINTNL 		<link>
       PRINTNL 			<name>%(<NAME).%(>NAME)</name>

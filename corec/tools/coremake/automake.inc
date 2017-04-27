@@ -111,7 +111,7 @@ FOR EACH ALLDIRS
             ../DEPENDENCIES += %(<NAME).lo
           ENDIF
         ENDFOR
-        FOR EACH HEADER,HEADER_FORCE
+        FOR EACH HEADER
           ../../noinst_HEADERS += %(!NAME)
         ENDFOR
 
