@@ -114,7 +114,7 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
         nodetree* i;
         for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
         {
-            OutputElementDefinition(&(SpecElement *)i, EltEnd, CFile, Extras);
+            OutputElementDefinition((SpecElement *)&i, EltEnd, CFile, Extras);
         }
     }
 
