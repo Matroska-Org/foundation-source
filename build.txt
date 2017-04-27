@@ -1,20 +1,18 @@
 1/ To build these sources you first need to build coremake:
 
 * for UNIX + gcc:
-cd corec/tools/coremake
-gcc coremake.c -o ../../../coremake
-cd ../../..
+gcc corec/tools/coremake/coremake.c -o coremake
 
 * for Windows in a Visual Studio shell:
-cd corec/tools/coremake
-cl coremake.c -o ..\..\..\coremake.exe
-cd ../../..
+cl corec/tools/coremake/coremake.c -o coremake.exe
 
 
 2/ Generate the makefiles
 
 * for gcc on Linux
 ./coremake gcc_linux
+or
+./coremake gcc_linux_x64
 
 * for gcc on Mingw64
 ./coremake gcc_win64
@@ -25,16 +23,14 @@ cd ../../..
 
 3a/ build the spec tools
 
-cd spectool
-make
+make -C spectool
 
 the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
 coremake target you used on step 2.
 
 3b/ build mkvalidator
 
-cd mkvalidator
-make
+make -C mkvalidator
 
 the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
 coremake target you used on step 2.
@@ -42,8 +38,7 @@ coremake target you used on step 2.
 
 3c/ build mkclean
 
-cd mkclean
-make
+make -C mkclean
 
 the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
 coremake target you used on step 2.
