@@ -176,7 +176,7 @@ typedef struct textwriter
 
 NODE_DLL err_t TextWrite(textwriter*, const tchar_t*);
 NODE_DLL err_t TextPrintf(textwriter*, const tchar_t* Msg,...)
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(_MSC_VER)
     __attribute__ ((format(printf, 2, 3)))
 #endif
     ;
@@ -202,7 +202,7 @@ NODE_DLL bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen);
 NODE_DLL bool_t ExprSkipAfter(const tchar_t** p,int ch); //ch=0 for general space
 NODE_DLL bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name);
 NODE_DLL bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(_MSC_VER)
     __attribute__ ((format(printf, 2, 3)))
 #endif
     ;
@@ -229,7 +229,7 @@ NODE_DLL bool_t BufferToBase64(tchar_t *Out, size_t OutLen, const uint8_t *Buffe
 NODE_DLL uint32_t StringToIP(const tchar_t *Addr);
 
 NODE_DLL err_t Stream_Printf(stream*, const tchar_t* Msg,...)
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(_MSC_VER)
     __attribute__ ((format(printf, 2, 3)))
 #endif
     ;
