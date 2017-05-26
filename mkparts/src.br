@@ -22,6 +22,9 @@
 *.vs -
 Makefile -
 *.vcproj -
+*.vcxproj -
 *.sln -
 *_project.h -
 *_stdafx.* -
+*.tlog -
+*.obj -
