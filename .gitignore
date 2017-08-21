@@ -19,3 +19,6 @@ GNUmakefile
 *.vcxproj
 *.filters
 *.vs
+*.VC.db
+/spectool/libmatroska
+/spectool/libmatroska2
