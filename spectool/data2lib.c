@@ -507,6 +507,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
 
 int main(void)
 {
+    int result = 1;
     parsercontext p;
     parser parseIn;
     stream *Input = NULL,*OutputC = NULL,*OutputH = NULL;
@@ -521,10 +522,38 @@ int main(void)
     if (Input == NULL)
     {
         fprintf(stderr, "missing source file ebml_matroska.xml\n");
-        return -1;
+        goto done;
     }
-    OutputC = StreamOpen(&p,T("KaxSemantic.cpp"),SFLAG_WRONLY|SFLAG_CREATE);
-    OutputH = StreamOpen(&p,T("KaxSemantic.h"),SFLAG_WRONLY|SFLAG_CREATE);
+    bool_t created = PathIsFolder(&p, "libmatroska") || FolderCreate(&p, "libmatroska");
+    if (!created)
+    {
+        fprintf(stderr, "failed to create the libmatroska folder\n");
+        goto done;
+    }
+    created = PathIsFolder(&p, "libmatroska/src") || FolderCreate(&p, "libmatroska/src");
+    if (!created)
+    {
+        fprintf(stderr, "failed to create the libmatroska/src folder\n");
+        goto done;
+    }
+    created = PathIsFolder(&p, "libmatroska/matroska") || FolderCreate(&p, "libmatroska/matroska");
+    if (!created)
+    {
+        fprintf(stderr, "failed to create the libmatroska/matroska folder\n");
+        goto done;
+    }
+    OutputC = StreamOpen(&p,T("libmatroska/src/KaxSemantic.cpp"),SFLAG_WRONLY|SFLAG_CREATE);
+    if (!OutputC)
+    {
+        fprintf(stderr, "failed to open libmatroska/src/KaxSemantic.cpp for writing\n");
+        goto done;
+    }
+    OutputH = StreamOpen(&p,T("libmatroska/matroska/KaxSemantic.h"),SFLAG_WRONLY|SFLAG_CREATE);
+    if (!OutputH)
+    {
+        fprintf(stderr, "failed to open libmatroska/matroska/KaxSemantic.h for writing\n");
+        goto done;
+    }
 
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
@@ -624,13 +653,15 @@ int main(void)
     for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element)
         NodeDelete((node*)*element);
     ArrayClear(&Elements);
+    result = 0;
 
+done:
     StreamClose(Input);
     StreamClose(OutputC);
-    //StreamClose(OutputH);
+    StreamClose(OutputH);
 
 	StdAfx_Done((nodemodule*)&p);
     ParserContext_Done(&p);
-    return 0;
+    return result;
 }
 
