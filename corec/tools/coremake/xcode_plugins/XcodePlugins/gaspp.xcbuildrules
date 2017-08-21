@@ -1,0 +1,8 @@
+
+(
+	{
+	Name = "Gas Proprocessor Source Rule";
+	FileType = "sourcecode.asm.gaspp";
+	CompilerSpec = "com.corecodec.compilers.gaspp";
+	}
+)

@@ -75,7 +75,7 @@
 #undef CONFIG_WMMX /* platforms that don't support Wireless MMX CPUs/instructions */
 #endif
 
-#if !defined(ARM) || defined(TARGET_SYMBIAN) || defined(TARGET_PALMOS)
+#if !defined(ARM) || defined(TARGET_SYMBIAN) || defined(TARGET_PALMOS) || defined(TARGET_IPHONE)
 #undef CONFIG_ARMV6 /* platforms that don't support ARMv6 CPUs/instructions */
 #endif
 
@@ -83,7 +83,7 @@
 #undef CONFIG_MMX /* platforms that don't support MMX CPUs/instructions */
 #endif
 
-#if (!defined(ARM) && !defined(ARM64)) || (!defined(TARGET_IPHONE) && !defined(TARGET_ANDROID))
+#if (!defined(ARM) && !defined(ARM64)) || (!defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(TARGET_LINUX))
 #undef CONFIG_NEON /* platforms that don't support NEON/ARMv7 instructions */
 #endif
 

@@ -21,8 +21,7 @@ SVNDIR = mingw32ce
 
 #define GLIBC
 
-#define CCFLAGS -mthreads -O3 -fomit-frame-pointer -mno-cygwin
-#define CFLAGS -Wdeclaration-after-statement
+//#define CFLAGS -Wdeclaration-after-statement
 #define LFLAGS -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32
 #define SHFLAGS -shared -Wl,--strip-all -Wl,--enable-stdcall-fixup -Wl,--output-def,%(¯!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_DLL_DEF) -Wl,--out-implib,%(!OUTPUTPATH)%(+OUTPUT_DIR)%(OUTPUT_DLL_LIB)
 

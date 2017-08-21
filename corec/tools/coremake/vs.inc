@@ -40,7 +40,11 @@ IF DEFINED(COMPILER_ICL9) || DEFINED(COMPILER_ICL11)
   PROJECT_EXT=icproj
   PROJECT_GUID={EAF909A5-FA59-4C3D-9431-0FCC20D5BCF9}
 ELSE
-  PROJECT_EXT=vcproj
+  IF "%(VSVERSION)"=="14.00" || "%(VSVERSION)"=="15.00"
+    PROJECT_EXT=vcxproj
+  ELSE
+    PROJECT_EXT=vcproj
+  ENDIF
   PROJECT_GUID={8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}
 ENDIF
 
@@ -55,10 +59,21 @@ FOR EACH WORKSPACE
     PRINTNL Microsoft Visual Studio Solution File, Format Version 10.00
     PRINTNL # Visual %(VSBUILDER)
   ELSE
+  IF "%(VSVERSION)"=="14.00" || "%(VSVERSION)"=="15.00"
+    PRINTNL Microsoft Visual Studio Solution File, Format Version 12.00
+    PRINTNL # Visual %(VSBUILDER)
+  ELSE
     PRINTNL Microsoft Visual Studio Solution File, Format Version 8.00
   ENDIF
   ENDIF
-  
+  ENDIF
+  IF "%(VSFULLVERSION)"
+    PRINTNL VisualStudioVersion = %(VSFULLVERSION)
+  ENDIF
+  IF "%(VSMINVERSION)"
+    PRINTNL MinimumVisualStudioVersion = %(VSMINVERSION)
+  ENDIF
+
   HAS_CSHARP=
   FOR EACH USE
     IF %(TYPE)==LIB_CSHARP || %(TYPE)==DLL_CSHARP || %(TYPE)==EXE_CSHARP || %(TYPE)==CON_CSHARP
@@ -74,7 +89,7 @@ FOR EACH WORKSPACE
     ELSE
       PRINTNL Project("%(PROJECT_GUID)") = "%(NAME)", "%(¯~!PATH)%(NAME).%(PROJECT_EXT)", "%(GUID)"
     ENDIF
-    IF "%(USE)"!=""
+    IF "%(USE)"!="" && "%(VSVERSION)"!="14.00" && "%(VSVERSION)"!="15.00"
       PRINTNL 	ProjectSection(ProjectDependencies) = postProject
       FOR EACH USE
         IF (%NOLIB)
@@ -95,7 +110,7 @@ FOR EACH WORKSPACE
 //  PRINTNL 	EndProjectSection
 //  PRINTNL EndProject
   PRINTNL Global
-  IF "%(VSVERSION)"=="8.00" || "%(VSVERSION)"=="9.00"
+  IF "%(VSVERSION)"!="7.10"
     PRINTNL 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
     IF %(TYPE)==LIB_CSHARP || %(TYPE)==DLL_CSHARP || %(TYPE)==EXE_CSHARP || %(TYPE)==CON_CSHARP
       PRINTNL 		%(TARG_DEBUG)|%(TARGNAME) = %(TARG_DEBUG)|Any CPU
@@ -113,7 +128,7 @@ FOR EACH WORKSPACE
     PRINTNL 		%(TARG_RELEASE) = %(TARG_RELEASE)
   ENDIF
   PRINTNL 	EndGlobalSection
-  IF "%(VSVERSION)"=="8.00" || "%(VSVERSION)"=="9.00"
+  IF "%(VSVERSION)"!="7.10"
     PRINTNL 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
   ELSE
     PRINTNL 	GlobalSection(ProjectConfiguration) = postSolution
@@ -174,7 +189,7 @@ FOR EACH WORKSPACE
     ENDFOR  
   ENDIF
   PRINTNL 	EndGlobalSection
-  IF "%(VSVERSION)"=="8.00" || "%(VSVERSION)"=="9.00"
+  IF "%(VSVERSION)"!="7.10"
     PRINTNL 	GlobalSection(SolutionProperties) = preSolution
     PRINTNL 		HideSolutionNode = FALSE
     PRINTNL 	EndGlobalSection
@@ -255,17 +270,19 @@ FOR EACH LIB,DLL,EXE,CON
   ENDIF
 ENDFOR
 
-FOR EACH LIB,DLL,EXE,CON
+FOR EACH LIB,DLL,EXE,CON,GENERATE
  
   IF (%(TYPE)==EXE)
     TARGCONFTYPE = 1
     TARGSUBSYSTEM = %(TARGEXESUBSYSTEM)
+    TARGSUBSYSTEMX = Windows
   ENDIF
 
   IF (%(TYPE)==CON)
     TARGCONFTYPE = 1
     TARGSUBSYSTEM = 1
     DEFINE += _CONSOLE
+    TARGSUBSYSTEMX = Console
   ENDIF
 
   IF (%(TYPE)==DLL) || ((%(TYPE)==EXE) && defined(TARGET_PALMOS))
@@ -882,9 +899,13 @@ FOR EACH LIB,DLL,EXE,CON
   BSC_TOOL=VCBscMakeTool
   LINKER_TOOL=VCLinkerTool
   CMD_NEWLINE=#x0D;&#x0A;
-  FILE %(¯PATH)%(NAME).vcproj
-  #include "vsproj.inc"
-  IFDEF TARGET_WINCE
+  IF "%(VSVERSION)"=="14.00" || "%(VSVERSION)"=="15.00"
+    FILE %(¯PATH)%(NAME).vcxproj
+    #include "vcxproj.inc"
+  ELSE
+    FILE %(¯PATH)%(NAME).vcproj
+    #include "vsproj.inc"
+    IFDEF TARGET_WINCE
 //    FILE %(¯PATH)%(NAME).vcproj.%(MACHINE).%(USER).user
 //    FILE %(¯PATH)%(NAME).vcproj.user
 //    IF defined(COREMAKE_STATIC)
@@ -894,13 +915,14 @@ FOR EACH LIB,DLL,EXE,CON
 //    ENDIF
 //    EXECUTABLE_DEBUG = %(RemoteExecutable)
 //    #include "vsproj-user.inc"
-  ENDIF
-  IFDEF TARGET_PALMOS
-    FILE %(¯PATH)%(NAME).vcproj.user
-    EXECUTABLE_RELEASE = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\release\PalmSim_54_rel.exe
-    EXECUTABLE_DEBUG = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\debug\PalmSim_54_dbg.exe
-    WORKINGDIR_DEBUG = %(~`|OUTPUTPATH)
-    #include "vsproj-user.inc"
+    ENDIF
+    IFDEF TARGET_PALMOS
+      FILE %(¯PATH)%(NAME).vcproj.user
+      EXECUTABLE_RELEASE = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\release\PalmSim_54_rel.exe
+      EXECUTABLE_DEBUG = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\debug\PalmSim_54_dbg.exe
+      WORKINGDIR_DEBUG = %(~`|OUTPUTPATH)
+      #include "vsproj-user.inc"
+    ENDIF
   ENDIF
 
 ENDFOR

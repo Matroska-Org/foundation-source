@@ -1,0 +1,14 @@
+(
+	{
+		AppliesToBuildRules = YES;
+		BasedOn = sourcecode;
+		ComputerLanguage = asm;
+		Extensions = (
+			S,
+		);
+		GccDialectName = "assembler-with-cpp";
+		Identifier = "sourcecode.asm.gaspp";
+		Name = "Gas Proprocessor";
+		UTI = "public.gaspp-assembly-source";
+	},
+)

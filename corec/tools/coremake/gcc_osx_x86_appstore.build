@@ -3,7 +3,7 @@
 
 PLATFORMLIB = osx_x86
 SVNDIR = osx_x86
-SDK = /Developer/SDKs/MacOSX10.5.sdk
+SDK = "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk"
 
 CCFLAGS=%(CCFLAGS) -arch i386 -mdynamic-no-pic -mmacosx-version-min=10.5
 ASMFLAGS = -f macho32 -D_MACHO -D_HIDDEN

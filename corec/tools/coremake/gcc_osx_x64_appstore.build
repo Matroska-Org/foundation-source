@@ -1,0 +1,12 @@
+#define TARGET_OSX
+#define IX64
+#define IX86_64
+
+PLATFORMLIB = osx_x86
+SVNDIR = osx_x86
+SDK = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk
+
+CCFLAGS=%(CCFLAGS) -arch x86_64 -mdynamic-no-pic -mmacosx-version-min=10.4
+ASMFLAGS = -f macho64 -D_MACHO -D_HIDDEN
+
+#include "gcc_osx.inc"

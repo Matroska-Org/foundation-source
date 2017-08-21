@@ -1,0 +1,42 @@
+{
+	Type = Compiler;
+	Identifier = "com.corecodec.compilers.gaspp64";
+	Name = "Gas Preprocessor (64 Bit)";
+	Vendor = C0R3;
+	Description = "Assemble Using Gas PreProcessor (64 Bit)";
+	CommandLine = "/usr/local/coremake/bin/gas-preprocessor.pl $(InputFile) [options] -c -o $(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o";
+	RuleName = "GasPP64 $(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o $(InputFile)";
+	ExecDescription = "Assemble $(InputFile)";
+	Architectures = (
+		arm64,
+	);
+	Languages = (
+		asm,
+	);
+	InputFileTypes = (
+		"sourcecode.asm.gaspp64",
+	);
+	SynthesizeBuildRule = Yes;
+	Outputs = (
+		"$(ObjectsDir)/$(InputFileBase)$(InputFileBaseUniquefier).o",
+	);
+	CommandOutputParser = "XCGccCommandOutputParser";
+	Options = (
+		{
+			Name = arch;
+			Type = String;
+			CommandLineArgs = {
+				"<<otherwise>>" = (
+					"-arch",
+					"$(value)",
+				);
+			};
+		},
+		{
+			Name = "USER_HEADER_SEARCH_PATHS";
+			Type = PathList;
+			DefaultValue = "";
+			"CommandLinePrefixFlag" = "-I";
+		},
+	);
+}

@@ -1,0 +1,20 @@
+#define TARGARCH x86_64
+#define TARGARCH_ABI x86_64
+#define TARGOPTIM release
+#define IX64
+#define IX86_64
+
+#define ASM yasm
+#define ASMFLAGS -f elf64 -D_HIDDEN
+
+CCFLAGS += -pipe -fpic -ffunction-sections -funwind-tables -fno-short-enums -O2 -fomit-frame-pointer -funswitch-loops -finline-limit=300 -fvisibility=hidden -g
+SFLAGS += -D_HIDDEN
+ANDROID_ABI += x86_64
+ANDROID_ARCH = arch-x86_64
+ANDROID_GCC_PREFIX = x86_64-linux-android
+ANDROID_GCC_VERSION = 4.9
+ANDROID_GCC = %(ANDROID_GCC_PREFIX)-%(ANDROID_GCC_VERSION)
+ANDROID_GCC_LIB = gcc/%(ANDROID_GCC_PREFIX)/%(ANDROID_GCC_VERSION)/libgcc.a
+ANDROID_TOOL_DIR = x86_64-%(ANDROID_GCC_VERSION)
+
+#include "android.inc"

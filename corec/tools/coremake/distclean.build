@@ -12,6 +12,7 @@ FOR EACH WORKSPACE
   REMOVE %(¯PATH)%(NAME).kdevelop
   REMOVE %(¯PATH)%(NAME).kdevelop.pcs
   REMOVE %(¯PATH)%(NAME).kdevses
+  REMOVE %(¯PATH)%(NAME).VC.db
 
   FOR EACH USE
     FOR EACH COMPILE
@@ -32,6 +33,7 @@ FOR EACH LIB,DLL,EXE,CON,CAB,LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP
   REMOVE %(¯PATH)%(NAME).aps
   REMOVE %(¯PATH)%(NAME).vcproj.*.user
   REMOVE %(¯PATH)%(NAME).vcproj.user
+  REMOVE %(¯PATH)%(NAME).vcxproj.user
   REMOVE %(!ROOTPATH)%(PATH)%(NAME).csproj.*.user
   REMOVE %(!ROOTPATH)%(PATH)%(NAME).csproj.user
   REMOVE %(¯PATH)%(NAME).vcl
