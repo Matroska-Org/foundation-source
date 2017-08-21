@@ -646,9 +646,9 @@ const ebml_context MATROSKA_ContextTagChapterUID = {0x63C4, EBML_INTEGER_CLASS, 
 const ebml_context MATROSKA_ContextTagAttachmentUID = {0x63C6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "TagAttachmentUID", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTargets[] = {
-    {0, 1, &MATROSKA_ContextTargetTypeValue, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTargetType, PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextTagTrackUID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextTargetTypeValue, 0},
+    {0, 1, &MATROSKA_ContextTargetType, 0},
+    {0, 0, &MATROSKA_ContextTagTrackUID, 0},
     {0, 0, &MATROSKA_ContextTagEditionUID, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextTagChapterUID, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextTagAttachmentUID, PROFILE_WEBM},
@@ -663,26 +663,26 @@ const ebml_context MATROSKA_ContextTagString = {0x4487, EBML_UNISTRING_CLASS, 0,
 const ebml_context MATROSKA_ContextTagBinary = {0x4485, EBML_BINARY_CLASS, 0, 0, "TagBinary", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticSimpleTag[] = {
-    {0, 0, &MATROSKA_ContextSimpleTag, PROFILE_WEBM}, // recursive
-    {1, 1, &MATROSKA_ContextTagName, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTagLanguage, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextSimpleTag, 0}, // recursive
+    {1, 1, &MATROSKA_ContextTagName, 0},
+    {1, 1, &MATROSKA_ContextTagLanguage, 0},
     {0, 1, &MATROSKA_ContextTagLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTagDefault, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTagString, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextTagBinary, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextTagDefault, 0},
+    {0, 1, &MATROSKA_ContextTagString, 0},
+    {0, 1, &MATROSKA_ContextTagBinary, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSimpleTag = {0x67C8, EBML_MASTER_CLASS, 0, 0, "SimpleTag", EBML_SemanticSimpleTag, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTag[] = {
-    {1, 1, &MATROSKA_ContextTargets, PROFILE_WEBM},
-    {1, 0, &MATROSKA_ContextSimpleTag, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextTargets, 0},
+    {1, 0, &MATROSKA_ContextSimpleTag, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTag = {0x7373, EBML_MASTER_CLASS, 0, 0, "Tag", EBML_SemanticTag, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticTags[] = {
-    {1, 0, &MATROSKA_ContextTag, PROFILE_WEBM},
+    {1, 0, &MATROSKA_ContextTag, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTags = {0x1254C367, EBML_MASTER_CLASS, 0, 0, "Tags", EBML_SemanticTags, EBML_SemanticGlobals, NULL};
@@ -695,7 +695,7 @@ const ebml_semantic EBML_SemanticSegment[] = {
     {0, 1, &MATROSKA_ContextCues, 0},
     {0, 1, &MATROSKA_ContextAttachments, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapters, 0},
-    {0, 0, &MATROSKA_ContextTags, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextTags, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextSegment = {0x18538067, EBML_MASTER_CLASS, 0, 0, "Segment", EBML_SemanticSegment, EBML_SemanticGlobals, NULL};
