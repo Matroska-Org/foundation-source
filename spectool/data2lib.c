@@ -295,10 +295,10 @@ static void OutputElementDefinition(const SpecElement **pElt, const SpecElement 
 
     if (elt->Type==EBML_MASTER)
     {
-        nodetree* i;
-        for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
+        const SpecElement* i;
+        for (i = SpecElement_Children(elt); i; i = SpecElement_Next(i))
         {
-            OutputElementDefinition((SpecElement*)&i, elt, EltEnd, CFile, Extras);
+            OutputElementDefinition(&i, elt, EltEnd, CFile, Extras);
         }
     }
 }
@@ -398,10 +398,10 @@ static void OutputElementDeclaration(const SpecElement **pElt, const SpecElement
 
     if (elt->Type==EBML_MASTER)
     {
-        nodetree* i;
-        for (i = NodeTree_Children(elt); i; i = NodeTree_Next(i))
+        const SpecElement* i;
+        for (i = SpecElement_Children(elt); i; i = SpecElement_Next(i))
         {
-            OutputElementDeclaration((SpecElement *)&i, EltEnd, CFile, Extras);
+            OutputElementDeclaration(&i, EltEnd, CFile, Extras);
         }
     }
 }
@@ -524,19 +524,19 @@ int main(void)
         fprintf(stderr, "missing source file ebml_matroska.xml\n");
         goto done;
     }
-    bool_t created = PathIsFolder(&p, "libmatroska") || FolderCreate(&p, "libmatroska");
+    bool_t created = PathIsFolder(&p.Base, "libmatroska") || FolderCreate(&p.Base, "libmatroska");
     if (!created)
     {
         fprintf(stderr, "failed to create the libmatroska folder\n");
         goto done;
     }
-    created = PathIsFolder(&p, "libmatroska/src") || FolderCreate(&p, "libmatroska/src");
+    created = PathIsFolder(&p.Base, "libmatroska/src") || FolderCreate(&p.Base, "libmatroska/src");
     if (!created)
     {
         fprintf(stderr, "failed to create the libmatroska/src folder\n");
         goto done;
     }
-    created = PathIsFolder(&p, "libmatroska/matroska") || FolderCreate(&p, "libmatroska/matroska");
+    created = PathIsFolder(&p.Base, "libmatroska/matroska") || FolderCreate(&p.Base, "libmatroska/matroska");
     if (!created)
     {
         fprintf(stderr, "failed to create the libmatroska/matroska folder\n");
