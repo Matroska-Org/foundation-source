@@ -50,6 +50,18 @@ typedef struct table_extras
 
 static const tchar_t *GetCppName(const SpecElement *elt)
 {
+    if (elt->Id == 0x114D9B74)
+        return T("SeekHeader");
+    if (elt->Id == 0x4DBB)
+        return T("SeekPoint");
+    if (elt->Id == 0xFA)
+        return T("FlagReferenced");
+    if (elt->Id == 0x61A7)
+        return T("AttachedFile");
+    if (elt->Id == 0x4660)
+        return T("FileMimeType");
+    if (elt->Id == 0x447A)
+        return T("TagLanguage");
     if (elt->CppName[0])
         return elt->CppName;
     return elt->Name;
