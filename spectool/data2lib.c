@@ -130,6 +130,9 @@ static const tchar_t *GetClassType(const SpecElement *elt, bool_t Define)
     case EBML_BINARY:
         return T("BINARY ");
         break;
+    case EBML_unknown:
+        assert(elt->Type != EBML_unknown);
+        break;
     }
     return NULL;
 }
