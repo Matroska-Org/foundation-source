@@ -199,6 +199,7 @@ const ebml_context MATROSKA_ContextTrackOffset = {0x537F, EBML_SINTEGER_CLASS, 1
 const ebml_context MATROSKA_ContextMaxBlockAdditionID = {0x55EE, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MaxBlockAdditionID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextName = {0x536E, EBML_UNISTRING_CLASS, 0, 0, "Name", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextLanguage = {0x22B59C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "Language", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextLanguageIETF = {0x22B59D, EBML_STRING_CLASS, 0, 0, "LanguageIETF", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCodecID = {0x86, EBML_STRING_CLASS, 0, 0, "CodecID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCodecPrivate = {0x63A2, EBML_BINARY_CLASS, 0, 0, "CodecPrivate", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextCodecName = {0x258688, EBML_UNISTRING_CLASS, 0, 0, "CodecName", NULL, EBML_SemanticGlobals, NULL};
@@ -448,6 +449,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextMaxBlockAdditionID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextName, 0},
     {0, 1, &MATROSKA_ContextLanguage, 0},
+    {0, 1, &MATROSKA_ContextLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextCodecID, 0},
     {0, 1, &MATROSKA_ContextCodecPrivate, 0},
     {0, 1, &MATROSKA_ContextCodecName, 0},
@@ -572,11 +574,13 @@ const ebml_semantic EBML_SemanticChapterTrack[] = {
 const ebml_context MATROSKA_ContextChapterTrack = {0x8F, EBML_MASTER_CLASS, 0, 0, "ChapterTrack", EBML_SemanticChapterTrack, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapString = {0x85, EBML_UNISTRING_CLASS, 0, 0, "ChapString", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapLanguage = {0x437C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "ChapLanguage", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextChapLanguageIETF = {0x437D, EBML_STRING_CLASS, 0, 0, "ChapLanguageIETF", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextChapCountry = {0x437E, EBML_STRING_CLASS, 0, 0, "ChapCountry", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticChapterDisplay[] = {
     {1, 1, &MATROSKA_ContextChapString, 0},
     {1, 0, &MATROSKA_ContextChapLanguage, 0},
+    {0, 1, &MATROSKA_ContextChapLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextChapCountry, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
@@ -653,6 +657,7 @@ const ebml_semantic EBML_SemanticTargets[] = {
 const ebml_context MATROSKA_ContextTargets = {0x63C0, EBML_MASTER_CLASS, 0, 0, "Targets", EBML_SemanticTargets, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagName = {0x45A3, EBML_UNISTRING_CLASS, 0, 0, "TagName", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagLanguage = {0x447A, EBML_STRING_CLASS, 1, (intptr_t)"und", "TagLanguage", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextTagLanguageIETF = {0x447B, EBML_STRING_CLASS, 0, 0, "TagLanguageIETF", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagDefault = {0x4484, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TagDefault", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagString = {0x4487, EBML_UNISTRING_CLASS, 0, 0, "TagString", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTagBinary = {0x4485, EBML_BINARY_CLASS, 0, 0, "TagBinary", NULL, EBML_SemanticGlobals, NULL};
@@ -661,6 +666,7 @@ const ebml_semantic EBML_SemanticSimpleTag[] = {
     {0, 0, &MATROSKA_ContextSimpleTag, PROFILE_WEBM}, // recursive
     {1, 1, &MATROSKA_ContextTagName, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTagLanguage, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextTagLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTagDefault, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTagString, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTagBinary, PROFILE_WEBM},
