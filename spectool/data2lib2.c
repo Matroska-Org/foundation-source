@@ -388,6 +388,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
 
 int main(void)
 {
+    int result = -1;
     parsercontext p;
     parser parseIn;
     stream *Input = NULL,*OutputC = NULL,*OutputH = NULL;
@@ -402,10 +403,32 @@ int main(void)
     if (Input == NULL)
     {
         fprintf(stderr, "missing source file ebml_matroska.xml\n");
-        return -1;
+        goto done;
     }
-    OutputC = StreamOpen(&p,T("matroska_sem.c"),SFLAG_WRONLY|SFLAG_CREATE);
-    OutputH = StreamOpen(&p,T("matroska_sem.h"),SFLAG_WRONLY|SFLAG_CREATE);
+    bool_t created = PathIsFolder(&p, "libmatroska2") || FolderCreate(&p, "libmatroska2");
+    if (!created)
+    {
+        fprintf(stderr, "failed to create the libmatroska2 folder\n");
+        goto done;
+    }
+    created = PathIsFolder(&p, "libmatroska2/matroska") || FolderCreate(&p, "libmatroska2/matroska");
+    if (!created)
+    {
+        fprintf(stderr, "failed to create the libmatroska2/matroska folder\n");
+        goto done;
+    }
+    OutputC = StreamOpen(&p,T("libmatroska2/matroska_sem.c"),SFLAG_WRONLY|SFLAG_CREATE);
+    if (!OutputC)
+    {
+        fprintf(stderr, "failed to open libmatroska2/matroska_sem.c for writing\n");
+        goto done;
+    }
+    OutputH = StreamOpen(&p,T("libmatroska2/matroska/matroska_sem.h"),SFLAG_WRONLY|SFLAG_CREATE);
+    if (!OutputH)
+    {
+        fprintf(stderr, "failed to open libmatroska2/matroska/matroska_sem.h for writing\n");
+        goto done;
+    }
 
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
@@ -462,13 +485,15 @@ int main(void)
     for (element=ARRAYBEGIN(Elements,SpecElement*); element!=ARRAYEND(Elements,SpecElement*);++element)
         NodeDelete((node*)*element);
     ArrayClear(&Elements);
+    result = 0;
 
+done:
     StreamClose(Input);
     StreamClose(OutputC);
     StreamClose(OutputH);
 
 	StdAfx_Done((nodemodule*)&p);
     ParserContext_Done(&p);
-    return 0;
+    return result;
 }
 
