@@ -311,7 +311,7 @@ void ReadSpecElement(SpecElement *elt, parser *p)
     }
 
     /* Read <documentation> */
-    if (ParserIsElement(p, Value, TSIZEOF(Value)))
+    if (ParserIsElementNested(p, Value, TSIZEOF(Value)))
     {
         if (tcsisame_ascii(Value, T("documentation"))) {
             ParserElementContent(p, elt->Description, TSIZEOF(elt->Description));
