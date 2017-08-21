@@ -73,4 +73,14 @@ void ReadElementText(parser *p, tchar_t *Out, size_t OutLen);
 void ReadSpecElement(SpecElement *elt, parser *p);
 void LinkElementParents(array *Elements);
 
+static INLINE const SpecElement * SpecElement_Children(const SpecElement *elt)
+{
+    return (const SpecElement *)NodeTree_Children(&elt->Base);
+}
+
+static INLINE const SpecElement * SpecElement_Next(const SpecElement *elt)
+{
+    return (const SpecElement *)NodeTree_Next(&elt->Base);
+}
+
 #endif /* SPEC_ELEMENT_H */
