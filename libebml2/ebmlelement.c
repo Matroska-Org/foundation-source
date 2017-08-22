@@ -258,6 +258,8 @@ size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id)
 
 fourcc_t EBML_BufferToID(const uint8_t *Buffer)
 {
+    if (Buffer == NULL)
+        return 0;
 	if (Buffer[0] & 0x80)
 		return (fourcc_t)Buffer[0];
 	if (Buffer[0] & 0x40)
