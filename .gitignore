@@ -23,3 +23,11 @@ GNUmakefile
 *.VC.db
 /spectool/libmatroska
 /spectool/libmatroska2
+
+mkclean/mkclean-*.tar.bz2
+mkclean/mkclean-*.zip
+mkvalidator/mkvalidator-*.tar.bz2
+mkvalidator/mkvalidator-*.zip
+*.compiled
+*.br.br
+*.sh.sh
