@@ -1032,6 +1032,11 @@ int main(int argc, const char *argv[])
 
 	// find the segment
 	RSegment = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
+    if (RSegment == NULL)
+    {
+        Result = OutputError(0x20, T("No Segment found"));
+        goto exit;
+    }
     RSegmentContext.Context = &MATROSKA_ContextSegment;
     RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
     RSegmentContext.UpContext = &RContext;

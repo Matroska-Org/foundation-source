@@ -1,3 +1,10 @@
+2017-08-22
+version 0.5.1:
+    - Add new elements from IETF CELLAR group
+    - Deprecate more elements based on IETF CELLAR group
+    - fix crash with files that have no Segment
+
+
 2015-03-25
 version 0.5.0:
     - Use DocType and not read DocType as the profile to check elements against
