@@ -13,8 +13,11 @@ case $os_name in
 cygwin*)
   coremake_param="gcc_linux"
   ;;
-mingw* | pw32*)
+mingw32* | pw32*)
   coremake_param="gcc_win32"
+  ;;
+mingw64*)
+  coremake_param="gcc_win64"
   ;;
 darwin* | rhapsody*)
     case $cpu_name in
