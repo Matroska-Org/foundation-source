@@ -3,6 +3,7 @@ version 0.5.1:
     - Add new elements from IETF CELLAR group
     - Deprecate more elements based on IETF CELLAR group
     - fix crash with files that have no Segment
+    - fix crash on incomplete files
 
 
 2015-03-25

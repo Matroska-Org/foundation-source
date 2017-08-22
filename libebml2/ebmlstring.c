@@ -72,7 +72,7 @@ void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
 static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     err_t Result;
-    char *Buffer;
+    char *Buffer = NULL;
 
     Element->Base.bValueIsSet = 0;
 
