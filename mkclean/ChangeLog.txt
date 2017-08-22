@@ -1,3 +1,8 @@
+2012-08-22
+version 0.8.10:
+    - update the list of Matroska elements from the IETF CELLAR group work
+    - fix many parsing crashes in libebml2
+
 2012-04-26
 version 0.8.9:
     - add support for Opus and VP9 support
