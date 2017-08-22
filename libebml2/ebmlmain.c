@@ -659,8 +659,9 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
         {
             if (AllowDummyElt)
             {
+                /* add a dummy placeholder for the remaining of the parent */
                 int LevelChange = 0;
-			    ebml_element *Result = EBML_ElementCreateUsingContext(Input, PossibleIdNSize, PossibleID_Length, Context, &LevelChange, 0, 1);
+                ebml_element *Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL);
 			    if (Result != NULL)
                 {
                     if (LevelChange > 0)
@@ -669,6 +670,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 				    Result->ElementPosition = Result->SizePosition - PossibleID_Length;
 				    Result->DataSize = 0;
                     Result->SizeLength = (int8_t)(Context->EndPosition - Result->SizePosition);
+                    Result->EndPosition = Context->EndPosition;
 				    // place the file at the end of the element
 				    Stream_Seek(Input,Context->EndPosition,SEEK_SET);
 				    return Result;
