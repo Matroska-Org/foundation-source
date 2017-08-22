@@ -576,6 +576,8 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 			}
 			if (PossibleSizeLength >= 8)
 				break;
+            if (PossibleSizeLength > 0 && PossibleIdNSize[PossibleID_Length] == 0)
+                break; // invalid all zero size
             if (Context->EndPosition == StartPos+ReadSize)
                 break; // we should not read further than our limit
             if (Stream_ReadOneOrMore(Input,&PossibleIdNSize[SizeIdx++], 1, NULL)!=ERR_NONE)
