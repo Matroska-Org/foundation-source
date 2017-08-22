@@ -1397,27 +1397,31 @@ int main(int argc, const char *argv[])
     }
 
 exit:
-	if (!Quiet && RSegmentInfo)
+	if (!Quiet)
 	{
-		tchar_t App[MAXPATH];
-		App[0] = 0;
-		LibName = (ebml_string*)EBML_MasterFindChild(RSegmentInfo,&MATROSKA_ContextMuxingApp);
-		AppName = (ebml_string*)EBML_MasterFindChild(RSegmentInfo,&MATROSKA_ContextWritingApp);
-		if (LibName)
-		{
-			EBML_StringGet(LibName,String,TSIZEOF(String));
-			tcscat_s(App,TSIZEOF(App),String);
-		}
-		if (AppName)
-		{
-			EBML_StringGet(AppName,String,TSIZEOF(String));
-			if (App[0])
-				tcscat_s(App,TSIZEOF(App),T(" / "));
-			tcscat_s(App,TSIZEOF(App),String);
-		}
-		if (App[0]==0)
-			tcscat_s(App,TSIZEOF(App),T("<unknown>"));
-	    TextPrintf(StdErr,T("\r\tfile created with %s\r\n"),App);
+        TextPrintf(StdErr, T("\r\tfile \"%s\"\r\n"), Path);
+        if (RSegmentInfo)
+        {
+            tchar_t App[MAXPATH];
+            App[0] = 0;
+            LibName = (ebml_string*)EBML_MasterFindChild(RSegmentInfo, &MATROSKA_ContextMuxingApp);
+            AppName = (ebml_string*)EBML_MasterFindChild(RSegmentInfo, &MATROSKA_ContextWritingApp);
+            if (LibName)
+            {
+                EBML_StringGet(LibName, String, TSIZEOF(String));
+                tcscat_s(App, TSIZEOF(App), String);
+            }
+            if (AppName)
+            {
+                EBML_StringGet(AppName, String, TSIZEOF(String));
+                if (App[0])
+                    tcscat_s(App, TSIZEOF(App), T(" / "));
+                tcscat_s(App, TSIZEOF(App), String);
+            }
+            if (App[0] == 0)
+                tcscat_s(App, TSIZEOF(App), T("<unknown>"));
+            TextPrintf(StdErr, T("\r\tcreated with %s\r\n"), App);
+        }
 	}
 
     for (Cluster = ARRAYBEGIN(RClusters,ebml_master*);Cluster != ARRAYEND(RClusters,ebml_master*); ++Cluster)
