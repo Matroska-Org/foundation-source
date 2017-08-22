@@ -1,3 +1,4 @@
+*.patch
 *_stdafx.[ch]
 *_project.h
 *.mak
