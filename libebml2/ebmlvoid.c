@@ -68,6 +68,7 @@ static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
         Result->ElementPosition = Element->ElementPosition;
         Result->SizeLength = Element->SizeLength;
         Result->SizePosition = Element->SizePosition;
+        Result->EndPosition = Element->EndPosition;
         Result->bNeedDataSizeUpdate = Element->bNeedDataSizeUpdate;
     }
     return Result;

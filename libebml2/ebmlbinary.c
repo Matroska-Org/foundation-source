@@ -100,6 +100,7 @@ static ebml_binary *Copy(const ebml_binary *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.EndPosition = Element->Base.EndPosition;
         Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
     }
     return Result;

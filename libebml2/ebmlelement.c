@@ -38,6 +38,7 @@ static void PostCreate(ebml_element *Element, bool_t SetDefault)
     Element->DefaultSize = -1;
     Element->ElementPosition = INVALID_FILEPOS_T;
     Element->SizePosition = INVALID_FILEPOS_T;
+    Element->EndPosition = INVALID_FILEPOS_T;
 }
 
 static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
@@ -332,6 +333,7 @@ err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeep
 	if (!bKeepPosition) {
 		Element->ElementPosition = PosAfter - FinalHeadSize;
 		Element->SizePosition = Element->ElementPosition + GetIdLength(Element->Context->Id);
+        Element->EndPosition = Element->SizePosition + CodedSize + Element->DataSize;
 	}
     if (Rendered)
         *Rendered = PosAfter - PosBefore;

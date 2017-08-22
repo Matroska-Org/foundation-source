@@ -569,6 +569,7 @@ static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
         Result->Base.ElementPosition = Element->Base.ElementPosition;
         Result->Base.SizeLength = Element->Base.SizeLength;
         Result->Base.SizePosition = Element->Base.SizePosition;
+        Result->Base.EndPosition = Element->Base.EndPosition;
         Result->Base.bNeedDataSizeUpdate = Element->Base.bNeedDataSizeUpdate;
         Result->CheckSumStatus = Element->CheckSumStatus;
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))

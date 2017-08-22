@@ -398,6 +398,7 @@ printf("Elt: size %d id %d %02X\n",SizeFound,PossibleID_Length,PossibleId[0]);
     }
     Result->ElementPosition = aElementPosition;
     Result->SizePosition = aSizePosition;
+    Result->EndPosition = aSizePosition + _SizeLength + SizeFound;
 
     return Result;
 }
