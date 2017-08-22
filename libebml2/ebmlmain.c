@@ -657,7 +657,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 
         if (Context->EndPosition!=INVALID_FILEPOS_T && Context->EndPosition <= CurrentPos)
         {
-            if (AllowDummyElt)
+            if (AllowDummyElt && Context->EndPosition != CurrentPos)
             {
                 /* add a dummy placeholder for the remaining of the parent */
                 int LevelChange = 0;
