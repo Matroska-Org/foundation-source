@@ -15,7 +15,7 @@
 %(!ROOTPATH)root.proj %(PROJECT_NAME)-%(PROJECT_VERSION)/root.proj
 %(!ROOTPATH)%(PROJECT_NAME)/%(PROJECT_NAME)-%(PROJECT_VERSION) -
 
-%(¯!BASE)configure %(PROJECT_NAME)-%(PROJECT_VERSION)/configure
+%(¯!BASE)configure.compiled %(PROJECT_NAME)-%(PROJECT_VERSION)/configure
 
 
 %(!ROOTPATH)corec/tools/coremake/coremake -
