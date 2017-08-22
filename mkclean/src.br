@@ -32,4 +32,5 @@ Makefile -
 *.obj -
 *.log -
 *.pdb -
-
+*.zip -
+*.tar.bz2 -

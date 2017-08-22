@@ -32,4 +32,5 @@ Makefile -
 *.obj -
 *.log -
 *.pdb -
-%(PROJECT_NAME)-%(PROJECT_VERSION) -
+*.zip -
+*.tar.bz2 -
