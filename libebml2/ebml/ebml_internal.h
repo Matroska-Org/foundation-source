@@ -60,6 +60,7 @@ struct ebml_element
     filepos_t DataSize; // size of the data inside the element
     filepos_t ElementPosition;
     filepos_t SizePosition; // TODO: is this needed since we have the ElementPosition and SizeLength ?
+    filepos_t EndPosition;
     const ebml_context *Context;
     int DefaultSize;
     int8_t SizeLength;

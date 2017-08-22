@@ -192,10 +192,7 @@ filepos_t EBML_ElementPositionData(const ebml_element *Element)
 
 filepos_t EBML_ElementPositionEnd(const ebml_element *Element)
 {
-    if (!EBML_ElementIsFiniteSize(Element))
-        return INVALID_FILEPOS_T; // the end position is unknown
-    else
-        return Element->SizePosition + EBML_CodedSizeLength(Element->DataSize,Element->SizeLength,1) + Element->DataSize;
+    return Element->EndPosition;
 }
 
 bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize)
