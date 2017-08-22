@@ -30,7 +30,7 @@
 
 static bool_t ValidateSize(const ebml_element *p)
 {
-    return 1;
+    return EBML_ElementIsFiniteSize(p); /* not allowed outside of master elements */
 }
 
 static void PostCreate(ebml_element *Element, bool_t SetDefault)

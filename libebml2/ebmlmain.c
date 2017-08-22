@@ -616,6 +616,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
                     assert(_SizeLength <= 8);
                     Result->SizeLength = (int8_t)_SizeLength;
 					Result->DataSize = SizeFound;
+                    EBML_ElementSetInfiniteSize(Result, SizeFound == SizeUnknown);
 
 					if (AllowDummyElt && !EBML_ElementValidateSize(Result) && !EBML_ElementIsDummy(Result))
 					{
@@ -624,6 +625,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 						Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL);
 						Result->SizeLength = (int8_t)_SizeLength;
 						Result->DataSize = SizeFound;
+                        EBML_ElementSetInfiniteSize(Result, SizeFound == SizeUnknown);
 					}
 
 					// LevelChange values
@@ -635,7 +637,6 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
                     {
 						if (SizeFound == SizeUnknown)
                         {
-                            EBML_ElementSetInfiniteSize(Result, 1);
                             Result->DataSize = INVALID_FILEPOS_T;
                         }
 

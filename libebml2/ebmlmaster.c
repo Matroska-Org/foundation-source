@@ -597,6 +597,11 @@ static void AddChild(ebml_master* p,ebml_element* Child,ebml_element* Before)
     INHERITED(p,nodetree_vmt,EBML_MASTER_CLASS)->AddChild(p,Child,Before);
 }
 
+static bool_t ValidateSize(const ebml_element *p)
+{
+    return 1;
+}
+
 META_START(EBMLMaster_Class,EBML_MASTER_CLASS)
 META_CLASS(SIZE,sizeof(ebml_master))
 META_VMT(TYPE_FUNC,nodetree_vmt,AddChild,AddChild)
@@ -607,6 +612,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,UpdateDataSize,UpdateDataSize)
 META_VMT(TYPE_FUNC,ebml_element_vmt,NeedsDataSizeUpdate,NeedsDataSizeUpdate)
 META_VMT(TYPE_FUNC,ebml_element_vmt,ReadData,ReadData)
 META_VMT(TYPE_FUNC,ebml_element_vmt,Copy,Copy)
+META_VMT(TYPE_FUNC, ebml_element_vmt, ValidateSize, ValidateSize)
 #if defined(CONFIG_EBML_WRITING)
 META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
