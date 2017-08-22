@@ -9,7 +9,6 @@ version 0.5.1:
     - fix crash on invalid ID
     - fix bitrate display for high bitrate on large files
 
-
 2015-03-25
 version 0.5.0:
     - Use DocType and not read DocType as the profile to check elements against
