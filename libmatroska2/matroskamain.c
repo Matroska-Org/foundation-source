@@ -329,11 +329,15 @@ err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *L
 fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek)
 {
 	ebml_element *SeekID;
+    const uint8_t *IDdata;
     assert(EBML_ElementIsType((ebml_element*)MetaSeek, &MATROSKA_ContextSeek));
     SeekID = EBML_MasterFindChild((ebml_master*)MetaSeek, &MATROSKA_ContextSeekID);
 	if (!SeekID)
 		return 0;
-	return EBML_BufferToID(EBML_BinaryGetData((ebml_binary*)SeekID));
+    IDdata = EBML_BinaryGetData((ebml_binary*)SeekID);
+    if (IDdata == NULL)
+        return 0;
+	return EBML_BufferToID(IDdata);
 }
 
 bool_t MATROSKA_MetaSeekIsClass(const matroska_seekpoint *MetaSeek, const ebml_context *Class)
