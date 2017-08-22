@@ -12,12 +12,7 @@ GROUP ebml2_group
   IF CONFIG_EBML2_LIB
     USEINCLUDE node
   ELSE
-    USE node
-    USE file
-    USE date
-    IF (CONFIG_EBML_UNICODE || COREMAKE_UNICODE)
-      USE parser
-    ENDIF
+    USE coreclib
   ENDIF
   IF COREMAKE_UNICODE
     DEFINE CONFIG_EBML_UNICODE

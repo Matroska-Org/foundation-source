@@ -16,3 +16,12 @@ GROUP corec
   ENDIF
   HEADER(!COREMAKE_CONFIG_HELPER) confhelper.h
 }
+
+LIB coreclib
+{
+  USE node
+  USE file
+  USE date
+  USE parser
+  USE md5
+}
