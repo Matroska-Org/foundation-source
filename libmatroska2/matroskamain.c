@@ -1557,7 +1557,7 @@ err_t UnCompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, array *OutBu
     else
     {
         size_t Count;
-        stream.next_in = Cursor;
+        stream.next_in = (Bytef*)Cursor;
         stream.avail_in = CursorSize;
         stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + *ArrayOffset;
         do {
