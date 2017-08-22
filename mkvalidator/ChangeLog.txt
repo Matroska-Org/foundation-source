@@ -6,6 +6,7 @@ version 0.5.1:
     - fix crash with files that have no Segment
     - fix crash on incomplete files
     - fix crash on invalid ID
+    - fix bitrate display for high bitrate on large files
 
 
 2015-03-25

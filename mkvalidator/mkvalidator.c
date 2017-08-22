@@ -927,7 +927,7 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--divx"))) DivX = 1;
 		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
 		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
-        else if (tcsisame_ascii(Path, T("--quick"))) QuickExit = 1;
+        else if (tcsisame_ascii(Path,T("--quick"))) QuickExit = 1;
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
 		else if (i<argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
@@ -1391,7 +1391,7 @@ int main(int argc, const char *argv[])
             for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
             {
                 EBML_StringGet(TI->CodecID,String,TSIZEOF(String));
-                TextPrintf(StdErr,T("Track #%d %18s %") TPRId64 T(" bits/s\r\n"),TI->Num,String,Scale64(TI->DataLength,8000000000,MaxTime-MinTime));
+                TextPrintf(StdErr,T("Track #%d %18s %") TPRId64 T(" bits/s\r\n"),TI->Num,String,Scale64(TI->DataLength,8000000, (MaxTime-MinTime)/1000));
             }
         }
     }
