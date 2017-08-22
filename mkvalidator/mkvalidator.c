@@ -52,6 +52,7 @@ static bool_t Live = 0;
 static bool_t Details = 0;
 static bool_t DivX = 0;
 static bool_t Quiet = 0;
+static bool_t QuickExit = 0;
 static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
 static timecode_t ClusterTime = INVALID_TIMECODE_T;
 
@@ -156,6 +157,8 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	va_end(Args);
 	TextPrintf(StdErr,T("\rERR%03X: %s\r\n"),ErrCode,Buffer);
+    if (QuickExit)
+        exit(-ErrCode);
 	return -ErrCode;
 }
 
@@ -169,6 +172,8 @@ static void OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 	    vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	    va_end(Args);
 	    TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
+        if (QuickExit)
+            exit(-ErrCode);
     }
 }
 
@@ -922,6 +927,7 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--divx"))) DivX = 1;
 		else if (tcsisame_ascii(Path,T("--version"))) ShowVersion = 1;
 		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
+        else if (tcsisame_ascii(Path, T("--quick"))) QuickExit = 1;
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
 		else if (i<argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
@@ -937,6 +943,7 @@ int main(int argc, const char *argv[])
             TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
             TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
             TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
+            TextWrite(StdErr,T("  --quick     exit after the first error or warning\r\n"));
             TextWrite(StdErr,T("  --quiet     don't ouput progress and file info\r\n"));
             TextWrite(StdErr,T("  --version   show the version of mkvalidator\r\n"));
             TextWrite(StdErr,T("  --help      show this screen\r\n"));

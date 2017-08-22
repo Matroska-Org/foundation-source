@@ -1,5 +1,6 @@
 2017-08-22
 version 0.5.1:
+    - Add a --quick option to exit after the first error/warning
     - Add new elements from IETF CELLAR group
     - Deprecate more elements based on IETF CELLAR group
     - fix crash with files that have no Segment
