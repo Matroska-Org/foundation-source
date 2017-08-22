@@ -1,5 +1,5 @@
 2017-08-22
-version 0.5.1:
+version 0.5.2:
     - Display the filename at the end of the processing
     - Add a --quick option to exit after the first error/warning
     - Add new elements from IETF CELLAR group
