@@ -43,3 +43,6 @@ make -C mkclean
 the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
 coremake target you used on step 2.
 
+## Code of conduct
+
+Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
