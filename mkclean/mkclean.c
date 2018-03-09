@@ -1563,6 +1563,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("    3: 'matroska' v3\r\n"));
 		    TextWrite(StdErr,T("    4: 'webm'\r\n"));
 		    TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
+		    TextWrite(StdErr,T("    6: 'matroska' v4\r\n"));
 		    TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
 		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
 		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
