@@ -182,7 +182,7 @@ static int CurrentPhase = 1;
 static bool_t MasterError(void *cookie, int type, const tchar_t *ClassName, const ebml_element *i)
 {
 	tchar_t IdString[MAXPATH];
-    if (type==MASTER_CHECK_PROFILE_INVALID)
+    if (type==MASTER_CHECK_PROFILE_INVALID && EBML_ElementPosition(i) != INVALID_FILEPOS_T)
     {
     	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
         TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
