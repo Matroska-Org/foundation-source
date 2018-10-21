@@ -67,6 +67,7 @@ typedef struct SpecElement {
     bool_t InWebM;
     bool_t InDivX;
     tchar_t Description[MAXLINE];
+    tchar_t Restriction[MAXLINE];
 } SpecElement;
 
 void ReadElementText(parser *p, tchar_t *Out, size_t OutLen);

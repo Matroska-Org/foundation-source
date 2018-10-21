@@ -335,6 +335,35 @@ void ReadSpecElement(SpecElement *elt, parser *p)
                     tcscat_s(elt->Description, TSIZEOF(elt->Description), Value+2);
             }
         }
+        /* Read <restriction> */
+        else if (tcsisame_ascii(Value, T("restriction"))) {
+            ParserElementSkip(p);
+            while (ParserIsElementNested(p, Value, TSIZEOF(Value)))
+            {
+                if (tcsisame_ascii(Value, T("enum")))
+                {
+                    tchar_t Enum[MAXDATA] = { 0 }, Label[MAXLINE] = { 0 };
+                    while (ParserIsAttrib(p, String, TSIZEOF(String)))
+                    {
+                        if (ParserAttribString(p, Value, TSIZEOF(Value))) {
+                            if (tcsisame_ascii(String, T("value")))
+                                tcscpy_s(Enum, TSIZEOF(Enum), Value);
+                            else if (tcsisame_ascii(String, T("label")))
+                                tcscpy_s(Label, TSIZEOF(Label), Value);
+                        }
+                    }
+                    /* TODO add to a MAP */
+                    if (Enum[0] && Label[0])
+                    {
+                        if (elt->Restriction[0])
+                            stcatprintf_s(elt->Restriction, TSIZEOF(elt->Restriction), T(",<br>\n%s - %s"), Enum, Label);
+                        else
+                            stcatprintf_s(elt->Restriction, TSIZEOF(elt->Restriction), T("%s - %s"), Enum, Label);
+                    }
+                }
+                ParserElementSkipNested(p);
+            }
+        }
         else
             ParserElementSkipNested(p);
     }
