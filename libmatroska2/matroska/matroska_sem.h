@@ -52,7 +52,7 @@ extern const ebml_context MATROSKA_ContextChapterTranslateCodec;
 extern const ebml_context MATROSKA_ContextChapterTranslateID;
 extern const ebml_context MATROSKA_ContextChapterTranslate;
 
-extern const ebml_context MATROSKA_ContextTimecodeScale;
+extern const ebml_context MATROSKA_ContextTimestampScale;
 extern const ebml_context MATROSKA_ContextDuration;
 extern const ebml_context MATROSKA_ContextDateUTC;
 extern const ebml_context MATROSKA_ContextTitle;
@@ -60,7 +60,7 @@ extern const ebml_context MATROSKA_ContextMuxingApp;
 extern const ebml_context MATROSKA_ContextWritingApp;
 extern const ebml_context MATROSKA_ContextInfo;
 
-extern const ebml_context MATROSKA_ContextTimecode;
+extern const ebml_context MATROSKA_ContextTimestamp;
 extern const ebml_context MATROSKA_ContextSilentTrackNumber;
 extern const ebml_context MATROSKA_ContextSilentTracks;
 
@@ -91,7 +91,7 @@ extern const ebml_context MATROSKA_ContextTimeSlice;
 extern const ebml_context MATROSKA_ContextSlices;
 
 extern const ebml_context MATROSKA_ContextReferenceOffset;
-extern const ebml_context MATROSKA_ContextReferenceTimeCode;
+extern const ebml_context MATROSKA_ContextReferenceTimestamp;
 extern const ebml_context MATROSKA_ContextReferenceFrame;
 
 extern const ebml_context MATROSKA_ContextBlockGroup;
@@ -110,7 +110,7 @@ extern const ebml_context MATROSKA_ContextMinCache;
 extern const ebml_context MATROSKA_ContextMaxCache;
 extern const ebml_context MATROSKA_ContextDefaultDuration;
 extern const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration;
-extern const ebml_context MATROSKA_ContextTrackTimecodeScale;
+extern const ebml_context MATROSKA_ContextTrackTimestampScale;
 extern const ebml_context MATROSKA_ContextTrackOffset;
 extern const ebml_context MATROSKA_ContextMaxBlockAdditionID;
 extern const ebml_context MATROSKA_ContextName;
