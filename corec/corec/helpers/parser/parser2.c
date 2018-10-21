@@ -634,10 +634,10 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
     char* s = alloca(OutLen);
     size_t n=0;
 
+    PARSER_BEGIN(p)
     if (Delimiter == '>' || Delimiter == '=')
     {
         // ' ','\t','\n','/','>' as additional delimiters
-        PARSER_BEGIN(p)
         for (;;++Read)
         {
             if (Read>=Write)
@@ -659,11 +659,9 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
             if (*Read!='\r' && ++n<OutLen) // skip the \r character
                 s[n-1] = *Read;
         }
-        PARSER_SAVE(p);
     }
     else
     {
-        PARSER_BEGIN(p)
         for (;;++Read)
         {
             if (Read>=Write)
@@ -698,8 +696,8 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
             if (*Read!='\r' && ++n<OutLen) // skip the \r character
                 s[n-1] = *Read;
         }
-        PARSER_SAVE(p);
     }
+    PARSER_SAVE(p);
 
     if (OutLen>0)
     {
