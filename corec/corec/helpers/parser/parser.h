@@ -140,6 +140,7 @@ NODE_DLL bool_t ParserIsRootElement(parser*, tchar_t* Root, size_t RootLen);
 NODE_DLL bool_t ParserIsElement(parser*, tchar_t* Name, size_t NameLen);
 NODE_DLL bool_t ParserIsElementNested(parser*, tchar_t* Name, size_t NameLen);
 NODE_DLL bool_t ParserElementContent(parser*, tchar_t* Out, size_t OutLen);
+/** Skip all the attributes of the current element and position after the '>' */
 NODE_DLL void ParserElementSkip(parser* p);
 NODE_DLL void ParserElementSkipNested(parser* p);
 
