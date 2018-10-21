@@ -310,22 +310,33 @@ void ReadSpecElement(SpecElement *elt, parser *p)
             fprintf(stderr, "default float value not handled %s\n", elt->DefaultValue);
     }
 
-    /* Read <documentation> */
-    if (ParserIsElementNested(p, Value, TSIZEOF(Value)))
+    while (ParserIsElementNested(p, Value, TSIZEOF(Value)))
     {
+        /* Read <documentation> */
         if (tcsisame_ascii(Value, T("documentation"))) {
             ParserElementContent(p, elt->Description, TSIZEOF(elt->Description));
+            while (ParserIsElementNested(p, Value, TSIZEOF(Value)))
+            {
+                if (tcsisame_ascii(Value, T("a")))
+                {
+                    tcscat_s(elt->Description, TSIZEOF(elt->Description), T("<a"));
+                    while (ParserIsAttrib(p, String, TSIZEOF(String)))
+                    {
+                        if (ParserAttribString(p, Value, TSIZEOF(Value)))
+                            stcatprintf_s(elt->Description, TSIZEOF(elt->Description), T(" %s=\"%s\""), String, Value);
+                    }
+                    if (ParserReadUntil(p, String, TSIZEOF(String), '<'))
+                        stcatprintf_s(elt->Description, TSIZEOF(elt->Description), T(">%s</a>"), String, Value);
+                    else
+                        tcscat_s(elt->Description, TSIZEOF(elt->Description), T("</a>"));
+                }
+                ParserElementSkipNested(p);
+                if (ParserElementContent(p, Value, TSIZEOF(Value)) && !tcsisame_ascii(Value, T("a>")))
+                    tcscat_s(elt->Description, TSIZEOF(elt->Description), Value+2);
+            }
         }
-        /* /documentation */
-        ParserIsElement(p, String, TSIZEOF(String));
-        while (!tcsisame_ascii(String, T("/element")))
-        {
-            ParserElementSkip(p);
-            ParserSkipAfter(p, '>');
-            /* /element */
-            ParserIsElement(p, String, TSIZEOF(String));
-        }
-        ParserElementSkip(p);
+        else
+            ParserElementSkipNested(p);
     }
 }
 
