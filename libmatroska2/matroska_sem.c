@@ -400,14 +400,22 @@ const ebml_semantic EBML_SemanticContentCompression[] = {
 const ebml_context MATROSKA_ContextContentCompression = {0x5034, EBML_MASTER_CLASS, 0, 0, "ContentCompression", EBML_SemanticContentCompression, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextContentEncAlgo = {0x47E1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ContentEncAlgo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextContentEncKeyID = {0x47E2, EBML_BINARY_CLASS, 0, 0, "ContentEncKeyID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextAESSettingsCipherMode = {0x47E8, EBML_INTEGER_CLASS, 0, 0, "AESSettingsCipherMode", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticContentEncAESSettings[] = {
+    {1, 1, &MATROSKA_ContextAESSettingsCipherMode, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextContentEncAESSettings = {0x47E7, EBML_MASTER_CLASS, 0, 0, "ContentEncAESSettings", EBML_SemanticContentEncAESSettings, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextContentSignature = {0x47E3, EBML_BINARY_CLASS, 0, 0, "ContentSignature", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextContentSigKeyID = {0x47E4, EBML_BINARY_CLASS, 0, 0, "ContentSigKeyID", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextContentSigAlgo = {0x47E5, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ContentSigAlgo", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextContentSigHashAlgo = {0x47E6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ContentSigHashAlgo", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticContentEncryption[] = {
-    {0, 1, &MATROSKA_ContextContentEncAlgo, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextContentEncKeyID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextContentEncAlgo, 0},
+    {0, 1, &MATROSKA_ContextContentEncKeyID, 0},
+    {0, 1, &MATROSKA_ContextContentEncAESSettings, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
     {0, 1, &MATROSKA_ContextContentSignature, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextContentSigKeyID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextContentSigAlgo, PROFILE_WEBM},
@@ -417,17 +425,17 @@ const ebml_semantic EBML_SemanticContentEncryption[] = {
 const ebml_context MATROSKA_ContextContentEncryption = {0x5035, EBML_MASTER_CLASS, 0, 0, "ContentEncryption", EBML_SemanticContentEncryption, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticContentEncoding[] = {
-    {1, 1, &MATROSKA_ContextContentEncodingOrder, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextContentEncodingScope, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextContentEncodingType, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextContentEncodingOrder, 0},
+    {1, 1, &MATROSKA_ContextContentEncodingScope, 0},
+    {1, 1, &MATROSKA_ContextContentEncodingType, 0},
     {0, 1, &MATROSKA_ContextContentCompression, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextContentEncryption, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextContentEncryption, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextContentEncoding = {0x6240, EBML_MASTER_CLASS, 0, 0, "ContentEncoding", EBML_SemanticContentEncoding, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticContentEncodings[] = {
-    {1, 0, &MATROSKA_ContextContentEncoding, PROFILE_WEBM},
+    {1, 0, &MATROSKA_ContextContentEncoding, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextContentEncodings = {0x6D80, EBML_MASTER_CLASS, 0, 0, "ContentEncodings", EBML_SemanticContentEncodings, EBML_SemanticGlobals, NULL};
@@ -470,7 +478,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 1, &MATROSKA_ContextTrickTrackFlag, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTrickMasterTrackUID, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTrickMasterTrackSegmentUID, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextContentEncodings, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextContentEncodings, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextTrackEntry = {0xAE, MATROSKA_TRACKENTRY_CLASS, 0, 0, "TrackEntry", EBML_SemanticTrackEntry, EBML_SemanticGlobals, NULL};

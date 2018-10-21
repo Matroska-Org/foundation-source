@@ -218,6 +218,9 @@ extern const ebml_context MATROSKA_ContextContentCompression;
 
 extern const ebml_context MATROSKA_ContextContentEncAlgo;
 extern const ebml_context MATROSKA_ContextContentEncKeyID;
+extern const ebml_context MATROSKA_ContextAESSettingsCipherMode;
+extern const ebml_context MATROSKA_ContextContentEncAESSettings;
+
 extern const ebml_context MATROSKA_ContextContentSignature;
 extern const ebml_context MATROSKA_ContextContentSigKeyID;
 extern const ebml_context MATROSKA_ContextContentSigAlgo;
