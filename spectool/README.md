@@ -15,13 +15,16 @@ The utilities include:
 Building spectools is dependant on coremake. To build for make run these commands from ~/foundation-source.
 
 ```
-cd ../corec/tools/coremake
+cd corec/tools/coremake
 make
 sudo make install
-cd ../../../spectool
+cd ../../..
 ```
 
 To build spectool run these commands from ~/foundation-source:
+
+coremake gcc_linux
+(or coremake vs17_x64 or gcc_osx_x64, etc. The list of possible targets are the .build files in corec/tools/coremake)
 
 ```
 make -C spectool
