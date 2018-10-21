@@ -53,7 +53,7 @@ typedef struct SpecElement {
 
     tchar_t Name[MAXPATH];
     tchar_t CppName[MAXPATH];
-    tchar_t Path[MAXPATH];
+    tchar_t EbmlPath[MAXPATH];
     int Level;
     bool_t Recursive;
     int32_t Id;

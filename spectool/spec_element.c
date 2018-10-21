@@ -90,13 +90,13 @@ static SpecElement *FindElementParent(array *Elements, SpecElement* element)
     if (element->Level == 0)
         return NULL;
     tchar_t *parent_end;
-    tcscpy_s(ParentPath, TSIZEOF(ParentPath), element->Path);
+    tcscpy_s(ParentPath, TSIZEOF(ParentPath), element->EbmlPath);
     parent_end = tcschr(ParentPath, '(');
     if (!parent_end)
         parent_end = tcsrchr(ParentPath, '\\');
     *parent_end = '\0';
     for (parent = ARRAYBEGIN(*Elements, SpecElement*); parent != ARRAYEND(*Elements, SpecElement*); ++parent) {
-        if (tcsisame_ascii((*parent)->Path, ParentPath))
+        if (tcsisame_ascii((*parent)->EbmlPath, ParentPath))
             return *parent;
     }
     return NULL;
@@ -106,69 +106,69 @@ void LinkElementParents(array *Elements)
 {
     SpecElement **element;
     for (element=ARRAYBEGIN(*Elements,SpecElement*); element!=ARRAYEND(*Elements,SpecElement*);++element) {
-        if (tcsnicmp_ascii((*element)->Path, T("1*1("), 4)==0)
+        if (tcsnicmp_ascii((*element)->EbmlPath, T("1*1("), 4)==0)
         {
             if ((*element)->MinOccurrence != 1)
-                fprintf(stderr, "minOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->EbmlPath);
             if ((*element)->MaxOccurrence != 1)
-                fprintf(stderr, "maxOccurs (%zd instead of 1) mismatched in '%s with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of 1) mismatched in '%s with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->EbmlPath);
         }
-        else if (tcsnicmp_ascii((*element)->Path, T("1*("), 3)==0)
+        else if (tcsnicmp_ascii((*element)->EbmlPath, T("1*("), 3)==0)
         {
             if ((*element)->MinOccurrence != 1)
-                fprintf(stderr, "minOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->EbmlPath);
             if ((*element)->MaxOccurrence != SIZE_MAX)
-                fprintf(stderr, "maxOccurs (%zd instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->EbmlPath);
         }
-        else if (tcsnicmp_ascii((*element)->Path, T("0*1("), 4)==0)
+        else if (tcsnicmp_ascii((*element)->EbmlPath, T("0*1("), 4)==0)
         {
             if ((*element)->MinOccurrence != 0)
-                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->EbmlPath);
             if ((*element)->MaxOccurrence != 1)
-                fprintf(stderr, "maxOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of 1) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->EbmlPath);
         }
-        else if (tcsnicmp_ascii((*element)->Path, T("0*2("), 4)==0)
+        else if (tcsnicmp_ascii((*element)->EbmlPath, T("0*2("), 4)==0)
         {
             if ((*element)->MinOccurrence != 0)
-                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->EbmlPath);
             if ((*element)->MaxOccurrence != 2)
-                fprintf(stderr, "maxOccurs (%zd instead of 2) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of 2) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->EbmlPath);
         }
-        else if (tcsnicmp_ascii((*element)->Path, T("0*("), 3)==0)
+        else if (tcsnicmp_ascii((*element)->EbmlPath, T("0*("), 3)==0)
         {
             if ((*element)->MinOccurrence != 0)
-                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "minOccurs (%zd instead of 0) mismatched in '%s' with path %s\n", (*element)->MinOccurrence, (*element)->Name, (*element)->EbmlPath);
             if ((*element)->MaxOccurrence != SIZE_MAX)
-                fprintf(stderr, "maxOccurs (%zd instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->Path);
+                fprintf(stderr, "maxOccurs (%zd instead of not set) mismatched in '%s' with path %s\n", (*element)->MaxOccurrence, (*element)->Name, (*element)->EbmlPath);
         }
         else
         {
-            fprintf(stderr, "did not parse element '%s' path %s\n", (*element)->Name, (*element)->Path);
+            fprintf(stderr, "did not parse element '%s' path %s\n", (*element)->Name, (*element)->EbmlPath);
         }
-        tchar_t *parent_end = tcsrchr((*element)->Path, ')');
+        tchar_t *parent_end = tcsrchr((*element)->EbmlPath, ')');
         *parent_end = '\0';
-        parent_end = tcschr((*element)->Path, '(');
+        parent_end = tcschr((*element)->EbmlPath, '(');
         assert(parent_end != NULL);
-        tcscpy_s((*element)->Path, TSIZEOF((*element)->Path), parent_end+1);
+        tcscpy_s((*element)->EbmlPath, TSIZEOF((*element)->EbmlPath), parent_end+1);
 
         if ((*element)->Recursive) {
-            parent_end = tcsstr((*element)->Path, T("))"));
+            parent_end = tcsstr((*element)->EbmlPath, T("))"));
             if (!parent_end)
-                fprintf(stderr, "recursive part not set in element '%s' path %s\n", (*element)->Name, (*element)->Path);
+                fprintf(stderr, "recursive part not set in element '%s' path %s\n", (*element)->Name, (*element)->EbmlPath);
             else if (parent_end[2] != '\0')
-                fprintf(stderr, "unnknown recursive part in element '%s' path %s\n", (*element)->Name, (*element)->Path);
+                fprintf(stderr, "unnknown recursive part in element '%s' path %s\n", (*element)->Name, (*element)->EbmlPath);
             else {
                 *parent_end = '\0';
-                parent_end = tcsstr((*element)->Path, T("(1*("));
+                parent_end = tcsstr((*element)->EbmlPath, T("(1*("));
                 if (!parent_end)
-                    fprintf(stderr, "recursive part not understood in element '%s' path %s\n", (*element)->Name, (*element)->Path);
+                    fprintf(stderr, "recursive part not understood in element '%s' path %s\n", (*element)->Name, (*element)->EbmlPath);
                 else {
                     tcscpy_s(parent_end, tcslen(parent_end), parent_end + 4);
                 }
             }
         }
 
-        const tchar_t *separator_lookup = (*element)->Path;
+        const tchar_t *separator_lookup = (*element)->EbmlPath;
         (*element)->Level = -1;
         while ((separator_lookup = tcschr(separator_lookup, '\\')) != NULL)
         {
@@ -180,7 +180,7 @@ void LinkElementParents(array *Elements)
         {
             SpecElement *Parent = FindElementParent(Elements, *element);
             if (Parent == NULL)
-                fprintf(stderr, "did not find a parent for element '%s' path %s\n", (*element)->Name, (*element)->Path);
+                fprintf(stderr, "did not find a parent for element '%s' path %s\n", (*element)->Name, (*element)->EbmlPath);
             else
             {
                 NodeTree_SetParent((SpecElement*)(*element), Parent, NULL);
@@ -206,7 +206,7 @@ void ReadSpecElement(SpecElement *elt, parser *p)
 			else if (tcsisame_ascii(String,T("cppname")))
                 tcscpy_s(elt->CppName, TSIZEOF(elt->CppName), Value);
             else if (tcsisame_ascii(String,T("path"))) {
-                tcscpy_s(elt->Path, TSIZEOF(elt->Path), Value);
+                tcscpy_s(elt->EbmlPath, TSIZEOF(elt->EbmlPath), Value);
             }
             else if (tcsisame_ascii(String,T("level"))) {
                 ExprIsInt(&s,&intval);
