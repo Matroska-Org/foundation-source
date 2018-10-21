@@ -524,19 +524,19 @@ int main(void)
         fprintf(stderr, "missing source file ebml_matroska.xml\n");
         goto done;
     }
-    bool_t created = PathIsFolder(&p.Base, "libmatroska") || FolderCreate(&p.Base, "libmatroska");
+    bool_t created = PathIsFolder(&p.Base, T("libmatroska")) || FolderCreate(&p.Base, T("libmatroska"));
     if (!created)
     {
         fprintf(stderr, "failed to create the libmatroska folder\n");
         goto done;
     }
-    created = PathIsFolder(&p.Base, "libmatroska/src") || FolderCreate(&p.Base, "libmatroska/src");
+    created = PathIsFolder(&p.Base, T("libmatroska/src")) || FolderCreate(&p.Base, T("libmatroska/src"));
     if (!created)
     {
         fprintf(stderr, "failed to create the libmatroska/src folder\n");
         goto done;
     }
-    created = PathIsFolder(&p.Base, "libmatroska/matroska") || FolderCreate(&p.Base, "libmatroska/matroska");
+    created = PathIsFolder(&p.Base, T("libmatroska/matroska")) || FolderCreate(&p.Base, T("libmatroska/matroska"));
     if (!created)
     {
         fprintf(stderr, "failed to create the libmatroska/matroska folder\n");
