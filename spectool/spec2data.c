@@ -304,7 +304,7 @@ int main(void)
     ParserContext_Init(&p,NULL,NULL,NULL);
     StdAfx_Init((nodemodule*)&p);
 
-    Input = StreamOpen(&p,T("spec.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    Input = StreamOpen(&p,T("ebml_matroska.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     Output = StreamOpen(&p,T("specdata.xml"),SFLAG_WRONLY|SFLAG_CREATE);
 
     memset(&parseIn, 0, sizeof(parseIn));

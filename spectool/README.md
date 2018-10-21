@@ -34,11 +34,11 @@ The resulting utilties will appear within the `~/foundation-source/releases` dir
 
 # Using spectools
 
-The spectools utilities should be executed from within the `~/foundation-source/spectool` directory. For instance, to create `spec.xml` (a Drupal friendly specification table) from `specdata.xml` (an EBML Schema, run.:
+The spectools utilities should be executed from within the `~/foundation-source/spectool` directory. For instance, to create `spec.xml` (a Drupal friendly specification table) from `ebml_matroska.xml`:
 
 ```
 cd spectool
-../releases/gcc_osx_x64/spec2data
+../releases/gcc_osx_x64/data2spec
 ```
 
 Note: the subdirectory of `../releases` (i.e. `gcc_osx_x64`) is contextual based on your operating system.

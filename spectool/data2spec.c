@@ -488,6 +488,9 @@ static void OutputElement(SpecElement *elt, textwriter *TBody, table_extras *Ext
             TextElementEndData(&Td, T("*"));
 
         TextElementBegin(&Td, &Tr, T("td"));
+        if (elt->Restriction[0]) {
+            stcatprintf_s(elt->Description, TSIZEOF(elt->Description), T("<br>\n%s"), elt->Restriction);
+        }
         if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("& "),T("&amp; "));
         if (elt->Description[0]) tcsreplace(elt->Description,TSIZEOF(elt->Description),T("<br/>"),T("<br>\n")); // Drupal doesn't like <br/>
         TextElementEndData(&Td, elt->Description);
@@ -563,13 +566,13 @@ int main(void)
     ParserContext_Init(&p,NULL,NULL,NULL);
     StdAfx_Init((nodemodule*)&p);
 
-    Input = StreamOpen(&p,T("specdata.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    Input = StreamOpen(&p,T("ebml_matroska.xml"),SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     Output = StreamOpen(&p,T("spec.xml"),SFLAG_WRONLY|SFLAG_CREATE);
 
     memset(&parseIn, 0, sizeof(parseIn));
     ArrayInit(&Elements);
 
-    if (ParserStreamXML(&parseIn, Input, &p, T("table"), 0)==ERR_NONE)
+    if (ParserStreamXML(&parseIn, Input, &p, T("EBMLSchema"), 0) == ERR_NONE)
     {
         textwriter Table, TBody;
         table_extras Extras;
@@ -580,6 +583,7 @@ int main(void)
         Extras.CurrLevel = -1;
 
         ReadLevel(&parseIn, &Elements);
+        LinkElementParents(&Elements);
 
         Table.Stream = Output;
         TextElementXML(&p, &Table, T("table"));
