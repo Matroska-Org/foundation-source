@@ -252,11 +252,11 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 	}
 	File->pSegmentInfo = SegmentInfo->ElementPosition;
 	File->SegmentInfo = SegmentInfo;
-	File->Seg.TimecodeScale = MATROSKA_ContextTimecodeScale.DefaultValue;
+	File->Seg.TimecodeScale = MATROSKA_ContextTimestampScale.DefaultValue;
 
 	for (Elt = EBML_MasterChildren(SegmentInfo);Elt;Elt = EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTimecodeScale.Id)
+		if (Elt->Context->Id == MATROSKA_ContextTimestampScale.Id)
 		{
 			File->Seg.TimecodeScale = EBML_IntegerValue(Elt);
 			if (File->Seg.TimecodeScale==0)
@@ -357,7 +357,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 	track.Default = MATROSKA_ContextTrackDefault.DefaultValue;
 	track.Lacing = MATROSKA_ContextTrackLacing.DefaultValue;
 	track.DecodeAll = MATROSKA_ContextTrackCodecDecodeAll.DefaultValue;
-	track.TimecodeScale = (float)MATROSKA_ContextTrackTimecodeScale.DefaultValue;
+	track.TimecodeScale = (float)MATROSKA_ContextTrackTimestampScale.DefaultValue;
 	memcpy(track.Language, "eng", 4);
 
 	for (Elt = EBML_MasterChildren(Track);Elt;Elt = EBML_MasterNext(Elt))
@@ -403,7 +403,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 		}
 		else if (Elt->Context->Id == MATROSKA_ContextTrackDefaultDuration.Id)
 			track.DefaultDuration = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextTrackTimecodeScale.Id)
+		else if (Elt->Context->Id == MATROSKA_ContextTrackTimestampScale.Id)
 			track.TimecodeScale = (float)((ebml_float*)Elt)->Value;
 		else if (Elt->Context->Id == MATROSKA_ContextTrackMaxBlockAdditionID.Id)
 			track.MaxBlockAdditionID = (size_t)EBML_IntegerValue(Elt);

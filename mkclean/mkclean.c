@@ -326,7 +326,7 @@ static void SetClusterPrevSize(array *Clusters, stream *Input)
             if (Elt)
             {
                 EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
-                Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimecode);
+                Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimestamp);
                 if (Elt2)
                     NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
                 ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
@@ -381,7 +381,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                 if (Elt)
                 {
                     EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
-                    Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimecode);
+                    Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimestamp);
                     if (Elt2)
                         NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
                     ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
@@ -392,7 +392,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
             if (Elt)
                 Elt2 = Elt; // make sure the Cluster Position is just after the PrevSize
             else
-                Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimecode); // make sure the Cluster Position is just after the ClusterTimecode
+                Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimestamp); // make sure the Cluster Position is just after the ClusterTimecode
             if (Elt2 && DstProfile!=PROFILE_WEBM)
             {
                 Elt = EBML_MasterGetChild(*Cluster, &MATROSKA_ContextPosition);
@@ -500,7 +500,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 	{
         if (Offset != INVALID_TIMECODE_T)
         {
-            Time = (ebml_integer*)EBML_MasterGetChild((ebml_master*)*Cluster, &MATROSKA_ContextTimecode);
+            Time = (ebml_integer*)EBML_MasterGetChild((ebml_master*)*Cluster, &MATROSKA_ContextTimestamp);
             if (Time)
                 EBML_IntegerSetValue(Time, Offset + EBML_IntegerValue(Time));
         }
@@ -1154,7 +1154,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                                         NodeDelete((node*)Elt);
                                         Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextDefaultDuration);
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackTimecodeScale);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackTimestampScale);
                                         NodeDelete((node*)Elt);
                                         Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMaxBlockAdditionID);
                                         NodeDelete((node*)Elt);
@@ -1755,7 +1755,7 @@ int main(int argc, const char *argv[])
     WSegmentInfo = (ebml_master*)EBML_ElementCopy(RSegmentInfo, NULL);
     EBML_MasterUseChecksum(WSegmentInfo,!Unsafe);
 
-	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,&MATROSKA_ContextTimecodeScale);
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,&MATROSKA_ContextTimestampScale);
 	if (!RLevel1)
 	{
 		TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
@@ -1791,7 +1791,7 @@ int main(int argc, const char *argv[])
     }
 
     // reorder elements in WSegmentInfo
-    Elt2 = EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextTimecodeScale);
+    Elt2 = EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextTimestampScale);
     if (Elt2)
         NodeTree_SetParent(Elt2,WSegmentInfo,EBML_MasterChildren(WSegmentInfo));
     if (!Elt2)

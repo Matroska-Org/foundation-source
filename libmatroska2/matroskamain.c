@@ -492,9 +492,9 @@ static int MATROSKA_BlockCmp(const matroska_block *BlockA, const matroska_block 
 static int ClusterEltCmp(const matroska_cluster* Cluster, const ebml_element** a,const ebml_element** b)
 {
     const matroska_block *BlockA = NULL,*BlockB = NULL;
-    if (EBML_ElementIsType(*a, &MATROSKA_ContextTimecode))
+    if (EBML_ElementIsType(*a, &MATROSKA_ContextTimestamp))
         return -1;
-    if (EBML_ElementIsType(*b, &MATROSKA_ContextTimecode))
+    if (EBML_ElementIsType(*b, &MATROSKA_ContextTimestamp))
         return 1;
 
     if (EBML_ElementIsType(*a, &MATROSKA_ContextSimpleBlock))
@@ -527,7 +527,7 @@ void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode)
 
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
     Cluster->GlobalTimecode = Timecode;
-    TimecodeElt = (ebml_integer*)EBML_MasterGetChild((ebml_master*)Cluster,&MATROSKA_ContextTimecode);
+    TimecodeElt = (ebml_integer*)EBML_MasterGetChild((ebml_master*)Cluster,&MATROSKA_ContextTimestamp);
 #if defined(CONFIG_EBML_WRITING)
 	assert(Cluster->WriteSegInfo);
 	EBML_IntegerSetValue(TimecodeElt, Scale64(Timecode,1,MATROSKA_SegmentInfoTimecodeScale(Cluster->WriteSegInfo)));
@@ -565,7 +565,7 @@ timecode_t MATROSKA_ClusterTimecode(matroska_cluster *Cluster)
     assert(EBML_ElementIsType((ebml_element*)Cluster, &MATROSKA_ContextCluster));
     if (Cluster->GlobalTimecode == INVALID_TIMECODE_T)
     {
-        ebml_integer *Timecode = (ebml_integer*)EBML_MasterFindChild((ebml_master*)Cluster,&MATROSKA_ContextTimecode);
+        ebml_integer *Timecode = (ebml_integer*)EBML_MasterFindChild((ebml_master*)Cluster,&MATROSKA_ContextTimestamp);
         if (Timecode)
             Cluster->GlobalTimecode = EBML_IntegerValue(Timecode) * MATROSKA_SegmentInfoTimecodeScale(Cluster->ReadSegInfo);
     }
@@ -710,10 +710,10 @@ timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_master *SegmentInfo)
     if (SegmentInfo)
     {
         assert(EBML_ElementIsType((ebml_element*)SegmentInfo, &MATROSKA_ContextInfo));
-        TimecodeScale = (ebml_integer*)EBML_MasterFindChild((ebml_master*)SegmentInfo,&MATROSKA_ContextTimecodeScale);
+        TimecodeScale = (ebml_integer*)EBML_MasterFindChild((ebml_master*)SegmentInfo,&MATROSKA_ContextTimestampScale);
     }
     if (!TimecodeScale)
-        return MATROSKA_ContextTimecodeScale.DefaultValue;
+        return MATROSKA_ContextTimestampScale.DefaultValue;
     return EBML_IntegerValue(TimecodeScale);
 }
 
@@ -721,9 +721,9 @@ double MATROSKA_TrackTimecodeScale(const ebml_master *Track)
 {
     ebml_element *TimecodeScale;
     assert(EBML_ElementIsType((ebml_element*)Track, &MATROSKA_ContextTrackEntry));
-    TimecodeScale = EBML_MasterFindChild((ebml_master*)Track,&MATROSKA_ContextTrackTimecodeScale);
+    TimecodeScale = EBML_MasterFindChild((ebml_master*)Track,&MATROSKA_ContextTrackTimestampScale);
     if (!TimecodeScale)
-        return MATROSKA_ContextTrackTimecodeScale.DefaultValue;
+        return MATROSKA_ContextTrackTimestampScale.DefaultValue;
     return ((ebml_float*)TimecodeScale)->Value;
 }
 
