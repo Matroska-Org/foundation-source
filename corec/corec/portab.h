@@ -373,7 +373,7 @@ typedef uint64_t uint_fast64_t;
   #define NOINLINE
 #endif
 
-#if !defined(IX86) || defined(__CW32__)
+#if (!defined(IX86) && !defined(_M_X64)) || defined(__CW32__)
 #define __stdcall
 #define __cdecl
 #define STDCALL
