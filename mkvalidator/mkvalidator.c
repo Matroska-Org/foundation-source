@@ -192,7 +192,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 		}
 		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
 		{
-			VoidAmount = EBML_ElementFullSize(SubElt,0);
+			VoidAmount += EBML_ElementFullSize(SubElt,0);
 		}
 		else if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
 		{
