@@ -1402,7 +1402,7 @@ int main(int argc, const char *argv[])
             OutputWarning(0xB8,T("Track #%d is defined but has no frame"),TI->Num);
     }
 
-	if (VoidAmount > 4*1024)
+	if (VoidAmount > 6*1024)
 		OutputWarning(0xD0,T("There are %") TPRId64 T(" bytes of void data\r\n"),VoidAmount);
 
 	if (!Quiet && Result==0)
