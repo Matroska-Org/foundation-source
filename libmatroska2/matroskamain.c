@@ -739,15 +739,15 @@ timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue)
 
 filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue)
 {
-    ebml_element *TimeCode;
+    ebml_element *ClusterPosition;
     assert(EBML_ElementIsType((ebml_element*)Cue, &MATROSKA_ContextCuePoint));
-    TimeCode = EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
-    if (!TimeCode)
-        return INVALID_TIMECODE_T;
-    TimeCode = EBML_MasterFindChild((ebml_master*)TimeCode,&MATROSKA_ContextCueClusterPosition);
-    if (!TimeCode)
-        return INVALID_TIMECODE_T;
-    return EBML_IntegerValue((ebml_integer*)TimeCode);
+    ClusterPosition = EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
+    if (!ClusterPosition)
+        return INVALID_FILEPOS_T;
+    ClusterPosition = EBML_MasterFindChild((ebml_master*)ClusterPosition,&MATROSKA_ContextCueClusterPosition);
+    if (!ClusterPosition)
+        return INVALID_FILEPOS_T;
+    return EBML_IntegerValue((ebml_integer*)ClusterPosition);
 }
 
 err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
