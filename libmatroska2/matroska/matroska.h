@@ -192,6 +192,7 @@ EBML_DLL err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameN
 EBML_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t ClusterTimecode);
 
 
+EBML_DLL ebml_element *MATROSKA_GetNextBlockForTimecode(matroska_cluster *Cluster, const ebml_element *Current, timecode_t Timecode, int16_t Track, int Outer);
 EBML_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
 EBML_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched);
 
