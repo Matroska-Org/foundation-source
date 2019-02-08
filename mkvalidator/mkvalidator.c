@@ -854,42 +854,133 @@ static int CheckLacingKeyframe(void)
 	return Result;
 }
 
-static int CheckCueEntries(ebml_master *Cues)
+static int CheckCueEntries(ebml_master *Cues, filepos_t SegmentDataOffset)
 {
 	int Result = 0;
-	timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
-	int16_t TrackNumEntry;
-	matroska_cluster **Cluster;
-	matroska_block *Block;
-    int ClustNum = 0;
 
 	if (!RSegmentInfo)
 		Result |= OutputError(0x310,T("A Cues (index) is defined but no SegmentInfo was found"));
 	else if (ARRAYCOUNT(RClusters,matroska_cluster*))
 	{
-		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindChild(Cues, &MATROSKA_ContextCuePoint);
+        matroska_cluster **Cluster  = ARRAYBEGIN(RClusters,matroska_cluster*);
+        matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindChild(Cues, &MATROSKA_ContextCuePoint);
+        timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
+        int CueNum = 0;
+
 		while (CuePoint)
 		{
-            if (!Quiet && ClustNum++ % 24 == 0)
+            if (!Quiet && CueNum++ % 24 == 0)
                 TextWrite(StdErr,T("."));
 			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
 			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
-			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
+
+            if (TimecodeEntry == INVALID_TIMECODE_T)
+                goto NextCuePoint;
 
 			if (TimecodeEntry < PrevTimecode && PrevTimecode != INVALID_TIMECODE_T)
 				OutputWarning(0x311,T("The Cues entry for timecode %") TPRId64 T(" ms is listed after entry %") TPRId64 T(" ms"),Scale64(TimecodeEntry,1,1000000),Scale64(PrevTimecode,1,1000000));
 
-			// find a matching Block
-			for (Cluster = ARRAYBEGIN(RClusters,matroska_cluster*);Cluster != ARRAYEND(RClusters,matroska_cluster*); ++Cluster)
-			{
-				Block = MATROSKA_GetBlockForTimecode(*Cluster, TimecodeEntry, TrackNumEntry);
-				if (Block)
-					break;
-			}
-			if (Cluster == ARRAYEND(RClusters,matroska_cluster*))
-				Result |= OutputError(0x312,T("CueEntry Track #%d and timecode %") TPRId64 T(" ms not found"),(int)TrackNumEntry,Scale64(TimecodeEntry,1,1000000));
-			PrevTimecode = TimecodeEntry;
-			CuePoint = (matroska_cuepoint*)EBML_MasterFindNextElt(Cues, (ebml_element*)CuePoint, 0, 0);
+            for (ebml_element *CueTrackPositions = EBML_MasterFindChild(CuePoint, &MATROSKA_ContextCueTrackPositions);
+                 CueTrackPositions; CueTrackPositions = EBML_MasterNextChild(CuePoint, CueTrackPositions))
+            {
+                ebml_element *Block = NULL, *Element = EBML_MasterFindChild(CueTrackPositions,&MATROSKA_ContextCueTrack);
+                filepos_t ClusterOffset, CueRelativePosition;
+                int Direction;
+                int16_t TrackNumEntry;
+                tchar_t Error[384];
+
+                if (!Element)
+                    continue;
+
+                TrackNumEntry = EL_Int(Element);
+
+                Element = EBML_MasterFindChild(CueTrackPositions, &MATROSKA_ContextCueClusterPosition);
+                if (!Element)
+                    continue;
+
+                ClusterOffset = EL_Int(Element) + SegmentDataOffset;
+
+                Element = EBML_MasterFindChild(CueTrackPositions, &MATROSKA_ContextCueRelativePosition);
+                CueRelativePosition = Element ? EL_Int(Element) : INVALID_FILEPOS_T;
+
+                Direction = EL_Pos(*Cluster) <= ClusterOffset ? 1 : -1;
+
+                do
+                {
+                    if (EL_Pos(*Cluster) == ClusterOffset)
+                    {
+                        Block = MATROSKA_GetNextBlockForTimecode(*Cluster, NULL, TimecodeEntry, TrackNumEntry, 1);
+                        break;
+                    }
+
+                    if ((Direction == 1 && (EL_Pos(*Cluster) > ClusterOffset || Cluster == ARRAYEND(RClusters, matroska_cluster*) - 1)) ||
+                        (Direction ==-1 && (EL_Pos(*Cluster) < ClusterOffset || Cluster == ARRAYBEGIN(RClusters, matroska_cluster*))))
+                        break;
+
+                    Cluster += Direction;
+                }
+                while (1);
+
+                if (Block)
+                {
+                    ebml_element *PreviousBlock;
+
+                    if (CueRelativePosition == INVALID_FILEPOS_T || EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster) == CueRelativePosition)
+                        continue;
+
+                    while (Block && EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster) < CueRelativePosition)
+                    {
+                        PreviousBlock = Block;
+                        Block = MATROSKA_GetNextBlockForTimecode(*Cluster, PreviousBlock, TimecodeEntry, TrackNumEntry, 1);
+                    }
+
+                    Block = Block ? Block : PreviousBlock;
+
+                    if (EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster) == CueRelativePosition)
+                        continue;
+                }
+
+                stprintf_s(Error, TSIZEOF(Error), T("An invalid Cues entry points to a (Simple)Block in track #%d with timecode %")
+                           TPRId64 T(" ms supposedly in the cluster with offset %") TPRId64, TrackNumEntry, Scale64(TimecodeEntry,1,1000000), ClusterOffset);
+
+                if (CueRelativePosition != INVALID_FILEPOS_T)
+                    stcatprintf_s(Error, TSIZEOF(Error), T(" (relative offset %") TPRId64 T(")"), CueRelativePosition);
+
+                if (Block)
+                {
+                    stcatprintf_s(Error, TSIZEOF(Error), T(". The actual relative offset is %") TPRId64 T("."),
+                                                         EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster));
+                    Result |= OutputError(0x314, Error);
+                    continue;
+                }
+
+                if (EL_Pos(*Cluster) != ClusterOffset)
+                    tcscat_s(Error, TSIZEOF(Error), T(". No cluster with this offset exists"));
+
+                for (Cluster = ARRAYBEGIN(RClusters, matroska_cluster*); Cluster != ARRAYEND(RClusters, matroska_cluster*); ++Cluster)
+                {
+                    Block = MATROSKA_GetNextBlockForTimecode(*Cluster, NULL, TimecodeEntry, TrackNumEntry, 1);
+                    if (Block)
+                        break;
+                }
+
+                if (!Block)
+                {
+                    tcscat_s(Error, TSIZEOF(Error), T(". No (Simple)Block with this timecode exists in this track at all."));
+                    Result |= OutputError(0x312, Error);
+                }
+                else
+                {
+                    stcatprintf_s(Error, TSIZEOF(Error), T(". A (Simple)Block with this timecode is in the cluster with offset %") TPRId64
+                                  T(" (relative offset %") TPRId64 T(")."), EL_Pos(*Cluster), EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster));
+                    Result |= OutputError(0x313, Error);
+                }
+            }
+
+            PrevTimecode = TimecodeEntry;
+
+        NextCuePoint:
+            CuePoint = (matroska_cuepoint*)EBML_MasterFindNextElt(Cues, (ebml_element*)CuePoint, 0, 0);
 		}
 	}
 	return Result;
@@ -1384,7 +1475,7 @@ int main(int argc, const char *argv[])
 			    OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
         }
 		else
-			Result |= CheckCueEntries(RCues);
+			Result |= CheckCueEntries(RCues, EBML_ElementPositionData((ebml_element*)RSegment));
 		if (!RTrackInfo)
 		{
 			Result = OutputError(0x41,T("The segment has Clusters but no TrackInfo section"));
