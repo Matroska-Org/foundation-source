@@ -698,7 +698,6 @@ uint16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
 bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 {
     ebml_master *BlockGroup;
-    ebml_integer *Duration;
 
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     if (Block->IsKeyframe)
@@ -711,14 +710,7 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
     if (!BlockGroup || !Node_IsPartOf(BlockGroup,MATROSKA_BLOCKGROUP_CLASS))
         return 0;
 
-    if (EBML_MasterFindChild(BlockGroup,MATROSKA_getContextReferenceBlock()))
-        return 0;
-
-    Duration = (ebml_integer*)EBML_MasterFindChild(BlockGroup,MATROSKA_getContextBlockDuration());
-    if (Duration!=NULL && EBML_IntegerValue(Duration)==0)
-        return 0;
-
-    return 1;
+    return EBML_MasterFindChild(BlockGroup,MATROSKA_getContextReferenceBlock()) == NULL;
 }
 
 bool_t MATROSKA_BlockDiscardable(const matroska_block *Block)
