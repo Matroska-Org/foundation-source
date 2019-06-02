@@ -1,5 +1,5 @@
 /*
- * DO NOT EDIT, GENERATED WITH DATA2LIB2
+ * DO NOT EDIT, GENERATED WITH schema_2_matroska_sem_h.xsl
  * https://github.com/Matroska-Org/foundation-source/tree/master/spectool
  *
  * $Id$
