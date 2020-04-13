@@ -1,0 +1,3 @@
+#define PROJECT_VERSION T("@mkvalidator_VERSION_MAJOR@.@mkvalidator_VERSION_MINOR@.@mkvalidator_VERSION_PATCH@")
+#define MKVALIDATOR_VERSION ((@mkvalidator_VERSION_MAJOR@ << 24) | (@mkvalidator_VERSION_MINOR@ << 16) | @mkvalidator_VERSION_PATCH@)
+#define PROJECT_NAME    T("@PROJECT_NAME@")

@@ -1,0 +1,3 @@
+#define PROJECT_VERSION T("@mkparts_VERSION_MAJOR@.@mkparts_VERSION_MINOR@.@mkparts_VERSION_PATCH@")
+#define MKPARTS_VERSION ((@mkparts_VERSION_MAJOR@ << 24) | (@mkparts_VERSION_MINOR@ << 16) | @mkparts_VERSION_PATCH@)
+#define PROJECT_NAME    T("@PROJECT_NAME@")

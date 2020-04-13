@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "mkclean_project.h"
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
+#include "mkclean_project.h"
 
 /*!
  * \todo write the CRC-32 on Clusters too (make it faster in libebml2)
