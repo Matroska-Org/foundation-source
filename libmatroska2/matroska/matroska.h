@@ -166,7 +166,14 @@ EBML_DLL int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackE
 EBML_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope);
 EBML_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize);
 EBML_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry);
+#if defined(CONFIG_ZLIB)
 EBML_DLL err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
+#else // !CONFIG_ZLIB
+static INLINE err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+{
+    return ERR_NOT_SUPPORTED;
+}
+#endif // !CONFIG_ZLIB
 #endif
 
 EBML_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!
