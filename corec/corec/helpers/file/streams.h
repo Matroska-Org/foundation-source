@@ -137,9 +137,6 @@ typedef struct streamselect streamselect;
 struct streamselect
 {
     err_t (*Func)(streamselect*);
-#ifdef TARGET_PALMOS
-    int LibRef;
-#endif
     int Max;
     void* Rd;
     void* Wr;

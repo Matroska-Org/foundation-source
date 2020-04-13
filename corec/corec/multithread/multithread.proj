@@ -5,7 +5,6 @@ GROUP(CONFIG_MULTITHREAD) multithread
   SOURCE(TARGET_WIN) multithread_win32.c
   SOURCE(TARGET_LINUX || TARGET_OSX || TARGET_ANDROID) multithread_pthread.c
   SOURCE(TARGET_SYMBIAN) multithread_symbian.cpp 
-  SOURCE(TARGET_PALMOS) multithread_palmos.c
   SOURCE(TARGET_PS2SDK) multithread_ps2sdk.c
   USE(TARGET_PS2SDK) ps2timer
   LIBS(TARGET_LINUX) pthread

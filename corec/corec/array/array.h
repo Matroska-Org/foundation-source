@@ -110,20 +110,6 @@ typedef struct block
 } block;
 //end TODO
 
-#ifdef TARGET_PALMOS
-
-typedef struct arrayblock
-{
-	array Array;
-	block Block;
-
-} arrayblock;
-
-ARRAY_DLL void ArrayBlockClear(arrayblock*);
-ARRAY_DLL void ArrayBlockLock(arrayblock*);
-
-#else
-
 typedef struct arrayblock
 {
 	array Array;
@@ -132,8 +118,6 @@ typedef struct arrayblock
 
 #define ArrayBlockClear(a) ArrayClear(&(a)->Array)
 #define ArrayBlockLock(a) {}
-
-#endif
 
 #define SAFETAIL	256
 
