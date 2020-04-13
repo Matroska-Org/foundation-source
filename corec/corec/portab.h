@@ -41,13 +41,7 @@
 #undef IS_LITTLE_ENDIAN
 #undef IS_BIG_ENDIAN
 
-#if defined(_EE)
-
-#define TARGET_PS2SDK
-#define TARGET_DESKTOP
-#define RESOURCE_COREC
-
-#elif defined(__SYMBIAN32__)
+#if defined(__SYMBIAN32__)
 
 #if defined(__SERIES60_3X__)
 #define SYMBIAN90
@@ -323,7 +317,7 @@ typedef unsigned char uint_fast8_t;
 typedef signed long long int_fast64_t;
 typedef unsigned long long uint_fast64_t;
 
-#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_PS2SDK) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
+#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
 
 #include <inttypes.h>
 
@@ -546,7 +540,7 @@ typedef char tchar_t;
 #endif
 
 #ifndef SIZEOF_WCHAR
-#if defined(TARGET_OSX) || defined(TARGET_LINUX) || defined(TARGET_PS2SDK)
+#if defined(TARGET_OSX) || defined(TARGET_LINUX)
 #define SIZEOF_WCHAR    4
 #else
 #define SIZEOF_WCHAR    2

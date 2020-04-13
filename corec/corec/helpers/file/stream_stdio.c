@@ -90,7 +90,7 @@ static err_t CreateStdIn(stdio_stream *p)
 
 static err_t GetTty(stdio_stream *p, dataid UNUSED_PARAM(Id), bool_t *Value, size_t UNUSED_PARAM(Size))
 {
-#if defined(TARGET_WINCE) || defined(TARGET_PS2SDK)
+#if defined(TARGET_WINCE)
     *Value = 0;
 #elif defined(TARGET_WIN)
     *Value = _isatty(_fileno(p->Stream))!=0;

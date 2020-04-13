@@ -12,16 +12,9 @@ GROUP file
   SOURCE tools.c
 
   SOURCE(TARGET_LINUX || TARGET_OSX || TARGET_ANDROID) file_libc.c {class File_Class:1}
-  SOURCE(TARGET_PS2SDK) file_ps2sdk.c {class File_Class:1 reg FileXio:2}
   SOURCE(TARGET_SYMBIAN) file_symbian.cpp {class File_Class:1}
   SOURCE(TARGET_WIN) file_win32.c {class File_Class:1}
   SOURCE(CONFIG_STDIO) stream_stdio.c {class Stdio_Class:2}
   
   LIBS(TARGET_WIN && !TARGET_WINCE) shell32.lib
-
-  USE(TARGET_PS2SDK) ps2sdk_filexio
-  USE(TARGET_PS2SDK) ps2sdk_iomanx_irx
-  USE(TARGET_PS2SDK) ps2sdk_filexio_irx
-  USE(TARGET_PS2SDK) ps2sdk_usbd_irx
-  USE(TARGET_PS2SDK) ps2sdk_usbhdfsd_irx
 }

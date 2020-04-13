@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 DATE_DLL systick_t GetTimeTick(void);
-#if defined(TARGET_WIN) || defined(TARGET_PS2SDK) || defined(TARGET_LINUX) || defined(TARGET_OSX) || defined(TARGET_ANDROID)
+#if defined(TARGET_WIN) || defined(TARGET_LINUX) || defined(TARGET_OSX) || defined(TARGET_ANDROID)
 #define GetTimeFreq()  1000
 #else
 DATE_DLL int GetTimeFreq();
