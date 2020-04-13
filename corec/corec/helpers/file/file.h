@@ -48,6 +48,8 @@ extern "C" {
 #define FILE_CLASS      FOURCC('F','I','L','E')
 #define VFS_CLASS       FOURCC('V','F','S','_')
 
+FILE_DLL void CoreC_FileInit(nodemodule* Module);
+
 FILE_DLL bool_t FileExists(nodecontext*, const tchar_t*);
 FILE_DLL bool_t FileMove(nodecontext*, const tchar_t* In,const tchar_t* Out);
 FILE_DLL datetime_t FileDateTime(nodecontext*, const tchar_t*);
