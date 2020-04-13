@@ -785,3 +785,21 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
     return Result;
 }
 
+extern const nodemeta BufStream_Class[];
+extern const nodemeta MemStream_Class[];
+extern const nodemeta Streams_Class[];
+extern const nodemeta File_Class[];
+#if defined(CONFIG_STDIO)
+extern const nodemeta Stdio_Class[];
+#endif
+
+void CoreC_FileInit(nodemodule* Module)
+{
+	NodeRegisterClassEx(Module,BufStream_Class);
+	NodeRegisterClassEx(Module,MemStream_Class);
+	NodeRegisterClassEx(Module,Streams_Class);
+	NodeRegisterClassEx(Module,File_Class);
+#if defined(CONFIG_STDIO)
+	NodeRegisterClassEx(Module,Stdio_Class);
+#endif
+}
