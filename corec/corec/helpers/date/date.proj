@@ -5,7 +5,6 @@ GROUP date
   SOURCE(TARGET_WIN) date_win32.c
   SOURCE(TARGET_LINUX || TARGET_OSX || TARGET_ANDROID) date_libc.c
   SOURCE(TARGET_SYMBIAN) date_symbian.cpp
-  SOURCE(TARGET_PALMOS) date_palmos.c
   SOURCE(TARGET_PS2SDK) date_ps2sdk.c
   USE(TARGET_PS2SDK) ps2timer
   USE(TARGET_PS2SDK) ps2sdk_cdvd

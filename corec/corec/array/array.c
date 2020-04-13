@@ -536,42 +536,6 @@ void ArrayRandomize(array* Array,size_t Width,uint32_t RndSeed)
     }
 }
 
-
-#ifdef TARGET_PALMOS
-
-// TODO: move this to base/mem and depend on "mem" platform dependently(?)
-#include "common.h"
-// end TODO
-
-void ArrayBlockClear(arrayblock* p)
-{
-	if (p->Block.Ptr)
-    {
-		FreeBlock(NULL,&p->Block);
-        p->Array._Begin = NULL;
-        p->Array._End = NULL;
-    }
-    else
-        ArrayClear(&p->Array);
-}
-
-void ArrayBlockLock(arrayblock* p)
-{
-	if (!p->Block.Ptr && p->Array._End != p->Array._Begin)
-	{
-		size_t n = p->Array._End-p->Array._Begin;
-		if (AllocBlock(NULL,n,&p->Block,1,HEAP_STORAGE))
-		{
-			WriteBlock(&p->Block,0,p->Array._Begin,n);
-			ArrayClear(&p->Array);
-			p->Array._Begin = (uint8_t*)p->Block.Ptr;
-			p->Array._End = p->Array._Begin + n;
-		}
-	}
-}
-
-#endif
-
 void Fifo_Clear(cc_fifo* p)
 {
 	ArrayClear(&p->_Base);

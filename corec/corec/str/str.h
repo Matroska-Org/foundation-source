@@ -87,8 +87,6 @@ STR_DLL size_t utf16len(const utf16_t *);
 #ifndef stricmp
 #if defined(TARGET_WIN)
 #define stricmp(x,y) _stricmp(x,y)
-#elif defined(TARGET_PALMOS)
-#define stricmp(x,y) tcsicmp(x,y)
 #else
 #define stricmp(x,y) strcasecmp(x,y)
 #endif

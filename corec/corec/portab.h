@@ -30,11 +30,6 @@
 #ifndef __PORTAB_H
 #define __PORTAB_H
 
-#if defined(__GNUC__) && defined(__palmos__)
-#undef __WCHAR_TYPE__
-#define __WCHAR_TYPE__ unsigned short
-#endif
-
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -46,13 +41,7 @@
 #undef IS_LITTLE_ENDIAN
 #undef IS_BIG_ENDIAN
 
-#if defined(__palmos__)
-
-#define TARGET_PALMOS
-#define NO_FLOATINGPOINT
-#define CONFIG_BLOCK_RDONLY
-
-#elif defined(_EE)
+#if defined(_EE)
 
 #define TARGET_PS2SDK
 #define TARGET_DESKTOP
@@ -517,7 +506,7 @@ typedef struct cc_rect
 
 #if defined(UNICODE)
 
-#if defined(__GNUC__) && !defined(TARGET_SYMBIAN) && !defined(TARGET_PALMOS)
+#if defined(__GNUC__) && !defined(TARGET_SYMBIAN)
 #include <wchar.h>
 #endif
 
@@ -660,12 +649,6 @@ void * __alloca(size_t size);
 #define alloca(size) __builtin_alloca(size)
 #endif
 
-#if defined(TARGET_PALMOS)
-extern int rand();
-extern void srand(unsigned int);
-extern void qsort(void* const base,size_t,size_t,int(*cmp)(const void*,const void*));
-#endif
-
 #if defined(ARM) && !defined(TARGET_WINCE)
 //fixed size stack:
 //  symbian
@@ -684,15 +667,6 @@ static INLINE void* SwapSP(void* in)
 
 #endif /* __GNUC__ */
 
-#if defined(TARGET_PALMOS) && defined(IX86)
-extern void* malloc_palmos(size_t);
-extern void* realloc_palmos(void*,size_t);
-extern void free_palmos(void*);
-#define malloc(n) malloc_palmos(n)
-#define realloc(p,n) realloc_palmos(p,n)
-#define free(p) free_palmos(p)
-#endif
-
 #if defined(_MSC_VER) && defined(TARGET_WIN)
 #define TRY_BEGIN __try {
 #define TRY_END   ;} __except (1) {}
@@ -706,7 +680,7 @@ extern void free_palmos(void*);
 #ifndef NDEBUG
 #if defined(TARGET_OSX)
 #include </usr/include/assert.h>
-#elif !defined(TARGET_WINCE) && !defined(TARGET_PALMOS)
+#elif !defined(TARGET_WINCE)
 #include <assert.h>
 #else
 #ifdef LIBC_EXPORTS
@@ -722,14 +696,6 @@ ASSERT_DLL void _Assert(const char* Exp, const char* File, int Line);
 #define assert(x)   ((void)0)
 #endif
 #endif // NDEBUG
-
-#if defined(__palmos__)
-#if _MSC_VER > 1000
-#pragma warning( disable:4068 4204 )
-#endif
-#undef BIG_ENDIAN
-#define USE_TRAPS 0
-#endif
 
 #if defined(COMPILER_GCC) && (!defined(TARGET_SYMBIAN) || defined(SYMBIAN90))
 #define UNUSED_PARAM(x) (x) __attribute__ ((unused))

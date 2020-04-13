@@ -100,12 +100,6 @@ FILE_DLL stream *FileTemp(anynode*);
 FILE_DLL bool_t FileTempName(anynode*,tchar_t *Out, size_t OutLen);
 FILE_DLL err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item);
 
-#if defined(TARGET_PALMOS)
-FILE_DLL const tchar_t* VFSToVol(const tchar_t* URL,uint16_t* Vol);
-FILE_DLL bool_t VFSFromVol(uint16_t Vol,const tchar_t* Path,tchar_t* URL,int URLLen);
-FILE_DLL bool_t DBFrom(uint16_t Card,uint32_t DB,tchar_t* URL,int URLLen);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

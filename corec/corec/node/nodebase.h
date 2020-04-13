@@ -520,9 +520,6 @@ struct nodecontext
     void (*LuaAddRef)(void* Cookie, int* Ref);
 #endif
 	void (*ReportError)(nodecontext*, node* Node, fourcc_t MsgClass, int MsgNo, va_list Args);
-#if defined(TARGET_PALMOS)
-	fourcc_t ProjFourCC;
-#endif
     int Build;
     int Revision;
     array Collect;
@@ -538,7 +535,7 @@ struct nodecontext
 #define NODECONTEXT_PROJECT_NAME        0x100
 #define NODECONTEXT_PROJECT_VENDOR      0x101
 #define NODECONTEXT_PROJECT_VERSION     0x102
-#define NODECONTEXT_PROJECT_FOURCC      0x103
+// #define NODECONTEXT_PROJECT_FOURCC      0x103
 #define NODECONTEXT_PROJECT_HELP        0x104
 #define NODECONTEXT_PROJECT_BUILD       0x105
 #define NODECONTEXT_PROJECT_MIME        0x106
