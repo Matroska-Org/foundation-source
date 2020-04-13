@@ -23,14 +23,7 @@ or
 ./coremake vs9_x64
 
 
-3a/ build the spec tools
-
-make -C spectool
-
-the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
-coremake target you used on step 2.
-
-3b/ build mkvalidator
+3a/ build mkvalidator
 
 make -C mkvalidator
 
@@ -38,7 +31,7 @@ the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> be
 coremake target you used on step 2.
 
 
-3c/ build mkclean
+3b/ build mkclean
 
 make -C mkclean
 

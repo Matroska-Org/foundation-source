@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+echo "Generate the source package for @PROJECT_NAME@-@PROJECT_VERSION@"
+rm -rf @PROJECT_NAME@-@PROJECT_VERSION@
+../corec/tools/branch/branch src.br
+rm -rf @PROJECT_NAME@-@PROJECT_VERSION@.tar.bz2
+tar cvfj @PROJECT_NAME@-@PROJECT_VERSION@.tar.bz2 @PROJECT_NAME@-@PROJECT_VERSION@

@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "mkvalidator_project.h"
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
+#include "mkvalidator_project.h"
 
 /*!
  * \todo verify the track timecode scale is not null

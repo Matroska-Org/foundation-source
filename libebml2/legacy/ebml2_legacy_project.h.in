@@ -1,0 +1,14 @@
+#ifndef T
+#define T(x) x
+#define HAS_DEFINED_T
+#endif /* T */
+
+#define PROJECT_VERSION T("@ebml2_legacy_VERSION_MAJOR@.@ebml2_legacy_VERSION_MINOR@.@ebml2_legacy_VERSION_PATCH@")
+#define LIBEBML2_LEGACY_VERSION ((@ebml2_legacy_VERSION_MAJOR@ << 24) | (@ebml2_legacy_VERSION_MINOR@ << 16) | @ebml2_legacy_VERSION_PATCH@)
+#define PROJECT_NAME    T("@PROJECT_NAME@")
+
+#ifdef HAS_DEFINED_T
+#undef T
+#undef HAS_DEFINED_T
+#endif /* HAS_DEFINED_T */
+
