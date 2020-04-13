@@ -8,6 +8,6 @@ GROUP charconvert
   SOURCE(TARGET_SYMBIAN) charconvert_symbian.cpp
   FRAMEWORK(TARGET_OSX) CoreFoundation
   SOURCE(TARGET_OSX) charconvert_osx.c
-  SOURCE(TARGET_PS2SDK || TARGET_ANDROID) charconvert_utf8.c
+  SOURCE(TARGET_ANDROID) charconvert_utf8.c
   HEADER charconvert.h
 }

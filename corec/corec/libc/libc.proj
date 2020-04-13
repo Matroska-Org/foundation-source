@@ -8,10 +8,6 @@ GROUP libc
     SOURCE wince/assert.c
     SYSINCLUDE wince
   ENDIF
-  IF TARGET_PS2SDK
-    USE ps2event
-    SYSINCLUDE ps2sdk
-  ENDIF
   IF TARGET_IPHONE_SDK
     SYSINCLUDE iphone
   ENDIF

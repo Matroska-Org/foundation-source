@@ -71,9 +71,6 @@ void AddPathDelimiter(tchar_t* Path,size_t PathLen)
         else
 	    	tcscat_s(Path,PathLen,T("/"));
 	}
-#elif defined(TARGET_PS2SDK)
-	if (!n || (n>0 && Path[n-1] != '/' && Path[n-1] != '\\' && Path[n-1] != ':'))
-		tcscat_s(Path,PathLen,T("/"));
 #else
 	if (!n || (n>0 && Path[n-1] != '/'))
 		tcscat_s(Path,PathLen,T("/"));
@@ -251,17 +248,6 @@ void SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int 
 	if (!p2 || (p3 && p3>p2))
         p2 = p3;
 
-#ifdef TARGET_PS2SDK
-    // "host:test.elf" -> "host:"
-    // "host:/test.elf" -> "host:/" (keeping end delimiter)
-    if ((p2 && p2>p && p2[-1]==':') || (!p2 && (p2 = tcschr(p,':'))!=NULL))
-	{
-		if (Dir)
-			tcsncpy_s(Dir,DirLen,URL,p2-URL+1);
-		URL = p2+1;
-	}
-	else
-#endif
 	if (p2)
 	{
 		if (Dir)
@@ -371,12 +357,6 @@ bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
 	if (!a || (b && b>a))
 		a=b;
 
-#ifdef TARGET_PS2SDK
-    if (!a && (a = tcschr(c,':'))!=NULL)
-        if (a[1]==0)
-            a = NULL;
-#endif
-
 	if (!a)
 	{
         if (tcsicmp(Mime, T("smb")) == 0) {
@@ -399,11 +379,6 @@ bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
 
 	if (a==c)
 		*a = 0;
-
-#ifdef TARGET_PS2SDK
-    if (a>c && a[-1]==':')
-        *a = 0;
-#endif
 
 	while (--a>=c && (*a=='\\' || *a=='/'))
 		*a = 0;
