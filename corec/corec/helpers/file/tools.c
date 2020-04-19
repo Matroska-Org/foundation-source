@@ -453,20 +453,6 @@ void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
 		for (i=Abs;*i;++i)
 			if (*i == '/')
 				*i = '\\';
-
-#if defined(TARGET_WINCE)
-        if (Abs[0]!='\\')
-        {
-            size_t n = tcslen(Abs)+1;
-            if (n>=AbsLen)
-            {
-                n=AbsLen-1;
-                Abs[n-1]=0;
-            }
-            memmove(Abs+1,Abs,n*sizeof(tchar_t));
-            Abs[0]='\\';
-        }
-#endif
 #endif
     }
 }

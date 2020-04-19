@@ -31,8 +31,6 @@
 
 #if defined(TARGET_WIN)
 
-#define FILE_FUNC_ID  FOURCC('F','L','I','D')
-
 #ifndef STRICT
 #define STRICT
 #endif
@@ -46,11 +44,6 @@
 #ifndef FOF_NO_UI
 #define FOF_NO_UI (0x04|0x10|0x400|0x200)
 #endif
-
-#if defined(TARGET_WINCE)
-static HMODULE CEShellDLL = NULL;
-#endif
-static int (WINAPI* FuncSHFileOperation)(SHFILEOPSTRUCT*) = NULL;
 
 #ifndef ERROR_INVALID_DRIVE_OBJECT
 #define ERROR_INVALID_DRIVE_OBJECT		4321L
@@ -144,75 +137,6 @@ static err_t Open(filestream* p, const tchar_t* URL, int Flags)
 		else
 		{
 			p->Pos = 0;
-
-#if defined(TARGET_WINCE)
-
-			// wince shortcut handling
-			if (p->Length < MAXPATH && !(Flags & (SFLAG_CREATE|SFLAG_WRONLY)))
-			{
-				uint32_t Readed;
-				char ShortCut[MAXPATH];
-				tchar_t URL[MAXPATH];
-				char* ch;
-
-				if (ReadFile(p->Handle,ShortCut,(DWORD)p->Length,&Readed,NULL))
-				{
-					ShortCut[Readed] = 0;
-
-					for (ch=ShortCut;*ch && *ch!='#';++ch)
-						if (!IsDigit(*ch))
-							break;
-
-					if (ch[0] == '#' && ch[1]!=':')
-					{
-						char* Head = ++ch;
-						char* Tail;
-
-						if (*ch == '"')
-						{
-							Head++;
-							ch = strchr(ch+1,'"');
-							if (ch)
-								*(ch++) = 0;
-						}
-
-						if (ch)
-						{
-							Tail = strchr(ch,13);
-							if (Tail)
-							{
-								*Tail = 0;
-								ch = Tail+1;
-							}
-							if (!strchr(ch,13))
-							{
-								ch = strchr(ch,10);
-								if (!ch || !strchr(ch+1,10))
-								{
-									if (ch) *ch = 0;
-
-									// we don't want to depend on parser and charconvert in file
-									// Node_FromStr(p,URL,TSIZEOF(URL),Head);
-#ifdef COREMAKE_UNICODE
-									if (!MultiByteToWideChar(CP_ACP,0,Head,-1,URL,TSIZEOF(URL)))
-									{
-										tchar_t* Out = URL;
-										size_t OutLen = TSIZEOF(URL);
-										for (;OutLen>1 && *Head;++Head,--OutLen,++Out)
-											*Out = (char)(*Head>255?'*':*Head);
-										*Out = 0;	
-									}
-#endif
-									return Open(p,URL,Flags);
-								}
-							}
-						}
-					}
-
-					p->Pos = SetFilePointer(p->Handle,0,NULL,FILE_BEGIN);
-				}
-			}
-#endif
 		}
 	}
 	return ERR_NONE;
@@ -351,13 +275,11 @@ static err_t OpenDir(filestream* p,const tchar_t* URL,int UNUSED_PARAM(Flags))
 	}
     p->DriveNo = -1;
 
-#if !defined(TARGET_WINCE)
     if (!URL[0])
     {
         p->DriveNo = 0;
     }
     else
-#endif
     {
 		Attrib = GetFileAttributes(URL);
 		if (Attrib == (DWORD)-1)
@@ -382,7 +304,6 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 	Item->FileName[0] = 0;
 	Item->DisplayName[0] = 0;
 
-#if !defined(TARGET_WINCE)
     if (p->DriveNo>=0)
     {
         size_t n = GetLogicalDriveStrings(0,NULL);
@@ -407,7 +328,6 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
         }
     }
     else
-#endif
     {
 	    while (!Item->FileName[0] && p->Find != INVALID_HANDLE_VALUE)
 	    {
@@ -462,26 +382,6 @@ static void Delete(filestream* p)
 		FindClose(p->Find);
 }
 
-static err_t CreateFunc(node* UNUSED_PARAM(p))
-{
-#if defined(TARGET_WINCE)
-	CEShellDLL = LoadLibrary(T("ceshell.dll"));
-	if (CEShellDLL)
-		*(FARPROC*)(void*)&FuncSHFileOperation = GetProcAddress(CEShellDLL,MAKEINTRESOURCE(14));
-#else
-    FuncSHFileOperation = SHFileOperation;
-#endif
-
-    return ERR_NONE;
-}
-
-static void DeleteFunc(node* UNUSED_PARAM(p))
-{
-#if defined(TARGET_WINCE)
-	if (CEShellDLL) FreeLibrary(CEShellDLL);
-#endif
-}
-
 META_START(File_Class,FILE_CLASS)
 META_CLASS(SIZE,sizeof(filestream))
 META_CLASS(PRIORITY,PRI_MINIMUM)
@@ -499,13 +399,8 @@ META_DATA_RDONLY(TYPE_STRING,STREAM_URL,filestream,URL)
 META_PARAM(SET,STREAM_LENGTH,SetLength)
 META_DATA(TYPE_FILEPOS,STREAM_LENGTH,filestream,Length)
 META_PARAM(STRING,NODE_PROTOCOL,T("file"))
-META_END_CONTINUE(STREAM_CLASS)
+META_END(STREAM_CLASS)
 
-META_START_CONTINUE(FILE_FUNC_ID)
-META_CLASS(FLAGS,CFLAG_SINGLETON)
-META_CLASS(CREATE,CreateFunc)
-META_CLASS(DELETE,DeleteFunc)
-META_END(NODE_CLASS)
 
 bool_t FolderCreate(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
@@ -531,7 +426,7 @@ static bool_t FileRecycle(const tchar_t* Path)
     PathEnded[l]=0;
     DelStruct.pFrom = PathEnded;
     DelStruct.fFlags = FOF_ALLOWUNDO|FOF_NO_UI;
-    Ret = FuncSHFileOperation(&DelStruct);
+    Ret = SHFileOperation(&DelStruct);
     return Ret == 0;
 }
 
@@ -547,7 +442,7 @@ bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force,
         }
     }
 
-    if (!Safe || !FuncSHFileOperation)
+    if (!Safe)
     	return DeleteFile(Path) != FALSE;
     else
         return FileRecycle(Path);
@@ -565,7 +460,7 @@ bool_t FolderErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Forc
         }
     }
 
-    if (!Safe || !FuncSHFileOperation)
+    if (!Safe)
     	return RemoveDirectory(Path) != FALSE;
     else
         return FileRecycle(Path);

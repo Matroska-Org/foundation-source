@@ -35,11 +35,6 @@
 
 /* force some defines */
 
-#if defined(TARGET_WINCE)
-#undef COREMAKE_UNICODE
-#define COREMAKE_UNICODE /* platforms where Unicode is mandatory */
-#endif
-
 #if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE)
 #undef CONFIG_DYNCODE
 #define CONFIG_DYNCODE /* platforms when dynamic code can be used */
@@ -50,11 +45,11 @@
 #define CONFIG_UNALIGNED_ACCESS /* pointers can use unaligned memory */
 #endif
 
-#if defined(TARGET_WIN32) || defined(TARGET_WIN64) || defined(TARGET_WINCE) || defined(TARGET_OSX) || defined(TARGET_LINUX)
+#if defined(TARGET_WIN32) || defined(TARGET_WIN64) || defined(TARGET_OSX) || defined(TARGET_LINUX)
 #define CONFIG_FILEPOS_64 /* platforms where 64 bits file position/size should be favoured */
 #endif
 
-#if defined(TARGET_WINCE) || defined(ARM) || defined(MIPS)
+#if defined(ARM) || defined(MIPS)
 #define CONFIG_FIXED_POINT /* platforms where fixed point arithmetic processing should favoured */
 #endif
 

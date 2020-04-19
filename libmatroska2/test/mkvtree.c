@@ -67,26 +67,7 @@ void DebugMessage(const tchar_t* Msg,...)
     static char s8[1024];
     size_t i;
     if (!f)
-#if defined(TARGET_WINCE)
-    {
-        tchar_t DocPath[MAXPATH];
-        char LogPath[MAXPATH];
-        charconv *ToStr = CharConvOpen(NULL,CHARSET_DEFAULT);
-        GetDocumentPath(NULL,DocPath,TSIZEOF(DocPath),FTYPE_LOG); // more visible via ActiveSync
-        if (!DocPath[0])
-            tcscpy_s(DocPath,TSIZEOF(DocPath),T("\\My Documents"));
-        if (!PathIsFolder(NULL,DocPath))
-            FolderCreate(NULL,DocPath);
-        tcscat_s(DocPath,TSIZEOF(DocPath),T("\\corelog.txt"));
-        CharConvST(ToStr,LogPath,sizeof(LogPath),DocPath);
-        CharConvClose(ToStr);
-        f=fopen(LogPath,"a+b");
-        if (!f)
-            f=fopen("\\corelog.txt","a+b");
-    }
-#else
         f=fopen("\\corelog.txt","a+b");
-#endif
     for (i=0;s[i];++i)
         s8[i]=(char)s[i];
     s8[i]=0;
