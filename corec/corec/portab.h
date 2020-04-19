@@ -41,41 +41,7 @@
 #undef IS_LITTLE_ENDIAN
 #undef IS_BIG_ENDIAN
 
-#if defined(__SYMBIAN32__)
-
-#if defined(__SERIES60_3X__)
-#define SYMBIAN90
-#define SERIES60
-#elif defined(__SERIES60_10__)
-#define SYMBIAN60
-#define SERIES60
-#elif defined(__SERIES60_20__)
-#define SYMBIAN70
-#define SERIES60
-#elif defined(__SERIES80__)
-#define SYMBIAN70
-#define SERIES80
-#elif defined(__SERIES90__)
-#define SYMBIAN70
-#define SERIES90
-#elif defined(__UIQ3__)
-#define SYMBIAN90
-#define UIQ
-#elif defined(__UIQ__)
-#define SYMBIAN70
-#define UIQ
-#endif
-
-#define TARGET_SYMBIAN
-#ifndef UNICODE
-#define UNICODE
-#endif
-
-#ifdef __MARM__
-#define ARM
-#endif
-
-#elif defined(_WIN32_WCE)
+#if defined(_WIN32_WCE)
 
 #if !defined(CONFIG_WINCE2) && (_WIN32_WCE>=200 && _WIN32_WCE<300)
 #define CONFIG_WINCE2
@@ -296,28 +262,7 @@ typedef signed int intptr_t;
 
 #include <stdlib.h>
 
-#if defined(TARGET_SYMBIAN)
-
-typedef signed long int32_t;
-typedef unsigned long uint32_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef signed long long int64_t;
-typedef unsigned long long uint64_t;
-typedef uint32_t uintptr_t;
-typedef int32_t intptr_t;
-typedef signed int int_fast32_t;
-typedef unsigned int uint_fast32_t;
-typedef signed int int_fast16_t;
-typedef unsigned int uint_fast16_t;
-typedef signed char int_fast8_t;
-typedef unsigned char uint_fast8_t;
-typedef signed long long int_fast64_t;
-typedef unsigned long long uint_fast64_t;
-
-#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
+#if !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
 
 #include <inttypes.h>
 
@@ -500,7 +445,7 @@ typedef struct cc_rect
 
 #if defined(UNICODE)
 
-#if defined(__GNUC__) && !defined(TARGET_SYMBIAN)
+#if defined(__GNUC__)
 #include <wchar.h>
 #endif
 
@@ -558,7 +503,7 @@ typedef uint16_t utf16_t;
 #define stprintf !UNSAFE!
 #define vstprintf !UNSAFE!
 
-#if defined(_WIN32) || defined(TARGET_SYMBIAN)
+#if defined(_WIN32)
 #define DLLEXPORT __declspec(dllexport)
 #define DLLIMPORT __declspec(dllimport)
 #define DLLHIDDEN
@@ -691,10 +636,8 @@ ASSERT_DLL void _Assert(const char* Exp, const char* File, int Line);
 #endif
 #endif // NDEBUG
 
-#if defined(COMPILER_GCC) && (!defined(TARGET_SYMBIAN) || defined(SYMBIAN90))
+#if defined(COMPILER_GCC)
 #define UNUSED_PARAM(x) (x) __attribute__ ((unused))
-#elif (defined(TARGET_SYMBIAN) && !defined(ARM)) || defined(__cplusplus)
-#define UNUSED_PARAM(x)
 #else
 #define UNUSED_PARAM(x) (x)
 #endif

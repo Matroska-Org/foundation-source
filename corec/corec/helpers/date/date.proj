@@ -4,6 +4,4 @@ GROUP date
   HEADER date.h
   SOURCE(TARGET_WIN) date_win32.c
   SOURCE(TARGET_LINUX || TARGET_OSX || TARGET_ANDROID) date_libc.c
-  SOURCE(TARGET_SYMBIAN) date_symbian.cpp
-  LIBS(TARGET_SYMBIAN && SYMBIAN90) tzclient.lib 
 }

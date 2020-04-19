@@ -1528,7 +1528,7 @@ err_t TextWrite(textwriter* p, const tchar_t* Msg)
 		
 	i = strlen(s);
 	
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
 	{
 		char* nl = s;
 		while (i+1<sizeof(s) && (nl = strchr(nl,10))!=NULL)

@@ -35,14 +35,9 @@
 
 /* force some defines */
 
-#if defined(TARGET_WINCE) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WINCE)
 #undef COREMAKE_UNICODE
 #define COREMAKE_UNICODE /* platforms where Unicode is mandatory */
-#endif
-
-#if defined(TARGET_SYMBIAN)
-#undef COREMAKE_STATIC /* platforms where dynamic libraries are not supported */
-#define COREMAKE_STATIC
 #endif
 
 #if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE_SDK)
@@ -59,7 +54,7 @@
 #define CONFIG_FILEPOS_64 /* platforms where 64 bits file position/size should be favoured */
 #endif
 
-#if defined(TARGET_WINCE) || defined(TARGET_SYMBIAN) || defined(ARM) || defined(MIPS)
+#if defined(TARGET_WINCE) || defined(ARM) || defined(MIPS)
 #define CONFIG_FIXED_POINT /* platforms where fixed point arithmetic processing should favoured */
 #endif
 
@@ -69,15 +64,15 @@
 #undef COREMAKE_UNICODE /* platforms where Unicode is handled via UTF-8 strings */
 #endif
 
-#if !defined(ARM) || defined(TARGET_SYMBIAN) || defined(TARGET_IPHONE)
+#if !defined(ARM) || defined(TARGET_IPHONE)
 #undef CONFIG_WMMX /* platforms that don't support Wireless MMX CPUs/instructions */
 #endif
 
-#if !defined(ARM) || defined(TARGET_SYMBIAN)
+#if !defined(ARM)
 #undef CONFIG_ARMV6 /* platforms that don't support ARMv6 CPUs/instructions */
 #endif
 
-#if !defined(IX86) || defined(TARGET_SYMBIAN)
+#if !defined(IX86)
 #undef CONFIG_MMX /* platforms that don't support MMX CPUs/instructions */
 #endif
 

@@ -12,7 +12,6 @@ GROUP node
   HEADER nodebase.h
   HEADER nodetree.h
   HEADER nodetools.h
-  HEADER(TARGET_SYMBIAN) node_symbian.h
 
   INSTALL(CONFIG_CORECDOC) corec.html
 }
