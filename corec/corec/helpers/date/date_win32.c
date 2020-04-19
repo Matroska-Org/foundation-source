@@ -50,17 +50,10 @@ static FILETIME fTimeCache[MAX_CACHED_YEAR - MIN_CACHED_YEAR + 2][2];
 #define TIME_ZONE_ID_INVALID ((DWORD)0xFFFFFFFF)
 #endif
 
-#if defined(TARGET_WINCE)
 systick_t GetTimeTick()
 {
 	return GetTickCount();
 }
-#else
-systick_t GetTimeTick()
-{
-	return timeGetTime();
-}
-#endif
 
 datetime_t FileTimeToRel(FILETIME *fTime)
 {

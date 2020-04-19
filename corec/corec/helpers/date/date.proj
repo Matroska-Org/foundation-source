@@ -9,6 +9,5 @@ GROUP date
   SOURCE(TARGET_PS2SDK) date_ps2sdk.c
   USE(TARGET_PS2SDK) ps2timer
   USE(TARGET_PS2SDK) ps2sdk_cdvd
-  LIBS(TARGET_WIN && !TARGET_WINCE) winmm.lib 
   LIBS(TARGET_SYMBIAN && SYMBIAN90) tzclient.lib 
 }
