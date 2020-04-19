@@ -762,8 +762,12 @@ typedef int_fast32_t filepos_t;
 
 #define INVALID_FILEPOS_T  ((filepos_t)-1)
 
+#if defined(TARGET_WIN)
+typedef unsigned long systick_t; /* DWORD */
+#else
 typedef int systick_t;
-#define INVALID_SYSTICK_T  ((int)-1)
+#endif
+#define INVALID_SYSTICK_T  ((systick_t)-1)
 
 #if defined(CONFIG_SAFE_C)
 // change the low level APIs to be safer on windows and other OSes
