@@ -40,20 +40,6 @@
 
 #if defined(CONFIG_MULTITHREAD)
 
-#if defined(TARGET_WINCE)
-static BOOL (WINAPI* FuncCeSetThreadQuantum)(HANDLE, DWORD) = NULL;
-static NOINLINE bool_t FindCeSetThreadQuantum()
-{
-    // slow, but multithread safe
-	HMODULE CoreDLL = GetModuleHandleW(L"coredll.dll");
-	if (CoreDLL)
-		*(FARPROC*)(void*)&FuncCeSetThreadQuantum = GetProcAddressW(CoreDLL,L"CeSetThreadQuantum");
-    return FuncCeSetThreadQuantum != NULL;
-}
-#undef CreateEvent
-#define CreateEvent CreateEventW
-#endif
-
 void* LockCreate()
 {
 #ifndef LOCK_TIMEOUT
@@ -102,11 +88,7 @@ void LockLeave(void* p)
 int ThreadGetPriority(void* Thread)
 {
 	int v = GetThreadPriority(Thread);
-#if defined(TARGET_WINCE)
-	v = v - THREAD_PRIORITY_NORMAL;
-#else
 	v = THREAD_PRIORITY_NORMAL - v;
-#endif
     if (v>1)
         return MULTITHREAD_PRIORITY_IDLE;
     if (v==1)
@@ -132,21 +114,12 @@ void ThreadSetPriority(void* Thread,int Priority)
     else
         v=-2;
 
-#if defined(TARGET_WINCE)
-	v = THREAD_PRIORITY_NORMAL + v;
-	if (v > THREAD_PRIORITY_IDLE)
-		v = THREAD_PRIORITY_IDLE;
-	if (v < THREAD_PRIORITY_TIME_CRITICAL)
-		v = THREAD_PRIORITY_TIME_CRITICAL;
-	SetThreadPriority(Thread,v);
-#else
 	v = THREAD_PRIORITY_NORMAL - v;
 	if (v < THREAD_PRIORITY_IDLE)
 		v = THREAD_PRIORITY_IDLE;
 	if (v > THREAD_PRIORITY_TIME_CRITICAL)
 		v = THREAD_PRIORITY_TIME_CRITICAL;
 	SetThreadPriority(Thread,v);
-#endif
 }
 
 uintptr_t ThreadId() { return GetCurrentThreadId(); }
@@ -194,14 +167,9 @@ void* ThreadCreate(int(THREADCALL *Start)(void*),void* Parameter)
 	DWORD Id;
 	HANDLE Handle = CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)Start,Parameter,0,&Id);
 
-#if defined(TARGET_WINCE)
-	if (Handle && (FuncCeSetThreadQuantum || FindCeSetThreadQuantum()))
-		FuncCeSetThreadQuantum(Handle,25);
-#endif
 	return Handle;
 }
 
-#if !defined(TARGET_WINCE)
 static DWORD (WINAPI* FuncSetThreadIdealProcessor)(HANDLE, DWORD) = NULL;
 static BOOL (WINAPI* FuncGetProcessAffinityMask)(HANDLE, uintptr_t*, uintptr_t*) = NULL;
 static bool_t FindSetThreadIdealProcessor()
@@ -220,27 +188,22 @@ static bool_t FindGetProcessAffinityMask()
 		*(FARPROC*)(void*)&FuncGetProcessAffinityMask = GetProcAddress(DLL,"GetProcessAffinityMask");
     return FuncGetProcessAffinityMask != NULL;
 }
-#endif
 
 void ThreadCPU(void* Handle,int CPU)
 {
-#if !defined(TARGET_WINCE)
 	if (CPU<0)
 		CPU = MAXIMUM_PROCESSORS;
 	if (FuncSetThreadIdealProcessor || FindSetThreadIdealProcessor())
     	FuncSetThreadIdealProcessor(Handle,CPU);
-#endif
 }
 
 uint32_t ThreadCPUMask()
 {
 	uintptr_t a=0;
-#if !defined(TARGET_WINCE)
 	uintptr_t b;
 	if ((!FuncGetProcessAffinityMask && !FindGetProcessAffinityMask()) || 
 		!FuncGetProcessAffinityMask(GetCurrentProcess(),&a,&b))
 		a = 0;
-#endif
 	return (uint32_t)a;
 }
 

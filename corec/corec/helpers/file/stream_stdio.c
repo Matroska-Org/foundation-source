@@ -31,10 +31,8 @@
 
 #include <stdio.h>
 #if defined(TARGET_WIN)
-#if !defined(TARGET_WINCE)
 #include <fcntl.h>
 #include <io.h>
-#endif
 #else
 #include <unistd.h>
 #endif
@@ -81,7 +79,7 @@ static err_t Flush(stdio_stream *p)
 
 static err_t CreateStdIn(stdio_stream *p)
 {
-#if defined(TARGET_WIN) && !defined(TARGET_WINCE)
+#if defined(TARGET_WIN)
     _setmode(_fileno(stdin),_O_BINARY);
 #endif
     p->Stream = stdin;
@@ -90,9 +88,7 @@ static err_t CreateStdIn(stdio_stream *p)
 
 static err_t GetTty(stdio_stream *p, dataid UNUSED_PARAM(Id), bool_t *Value, size_t UNUSED_PARAM(Size))
 {
-#if defined(TARGET_WINCE)
-    *Value = 0;
-#elif defined(TARGET_WIN)
+#if defined(TARGET_WIN)
     *Value = _isatty(_fileno(p->Stream))!=0;
 #else
     *Value = isatty(fileno(p->Stream))!=0;
@@ -102,7 +98,7 @@ static err_t GetTty(stdio_stream *p, dataid UNUSED_PARAM(Id), bool_t *Value, siz
 
 static err_t CreateStdOut(stdio_stream *p)
 {
-#if defined(TARGET_WIN) && !defined(TARGET_WINCE)
+#if defined(TARGET_WIN)
     _setmode(_fileno(stdout),_O_BINARY);
 #endif
     p->Stream = stdout;
@@ -111,7 +107,7 @@ static err_t CreateStdOut(stdio_stream *p)
 
 static err_t CreateStdErr(stdio_stream *p)
 {
-#if defined(TARGET_WIN) && !defined(TARGET_WINCE)
+#if defined(TARGET_WIN)
     _setmode(_fileno(stderr),_O_BINARY);
 #endif
     p->Stream = stderr;
