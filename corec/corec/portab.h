@@ -109,10 +109,6 @@
 
 #define TARGET_LINUX
 
-#ifndef TARGET_QTOPIA // qtopia defines desktop manually
-#define TARGET_DESKTOP // not necessarily
-#endif
-
 #else
 #error Platform not supported by Core-C!
 #endif
