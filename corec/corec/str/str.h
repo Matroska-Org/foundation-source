@@ -92,13 +92,6 @@ STR_DLL size_t utf16len(const utf16_t *);
 #endif
 #endif
 
-#ifdef TARGET_SYMBIAN
-STR_DLL int wcsncmp(const tchar_t *,const tchar_t *,size_t);
-STR_DLL tchar_t* wcschr(const tchar_t *, tchar_t);
-STR_DLL tchar_t* wcsrchr(const tchar_t *, tchar_t);
-STR_DLL tchar_t* wcsstr(const tchar_t*,const tchar_t*);
-#endif
-
 STR_DLL size_t tcsbytes(const tchar_t*);
 
 #ifdef __cplusplus

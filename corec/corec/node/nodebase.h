@@ -525,9 +525,6 @@ struct nodecontext
     array Collect;
     bool_t InCollect;
     fourcc_t DynamicClass;
-#if defined(TARGET_SYMBIAN)
-    void *FsSession;
-#endif
     uint16_t AppId;
 };
 

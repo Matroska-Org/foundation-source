@@ -62,7 +62,7 @@ bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 void AddPathDelimiter(tchar_t* Path,size_t PathLen)
 {
     size_t n = tcslen(Path);
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
     bool_t HasProtocol = GetProtocol(Path,NULL,0,NULL)==Path;
 	if (!n || (n>0 && (HasProtocol || Path[n-1] != '/') && (!HasProtocol || Path[n-1] != '\\')))
 	{
@@ -81,7 +81,7 @@ void RemovePathDelimiter(tchar_t* Path)
 {
     size_t n = tcslen(Path);
 	const tchar_t* s = GetProtocol(Path,NULL,0,NULL);
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
     bool_t HasProtocol = s==Path;
 	if (s[0] && n>0 && ((HasProtocol && Path[n-1] == '\\') || (!HasProtocol && Path[n-1] == '/')))
 #else
@@ -422,7 +422,7 @@ void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base)
 		const tchar_t* MimeEnd = GetProtocol(Base,NULL,0,NULL);
 		tcscpy_s(Abs,AbsLen,Base);
 
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
 		if (MimeEnd==Base)
 			AddPathDelimiter(Abs,AbsLen);
 		else
@@ -448,7 +448,7 @@ void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
     }
     else
     {
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
         tchar_t *i;
 		for (i=Abs;*i;++i)
 			if (*i == '/')
@@ -477,7 +477,7 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
     Folder = tcsstr(Abs,T("://")); // skip the protocol
     if (Folder)
         Abs = Folder+3;
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
     Back = tcsstr(Abs,T("\\\\"));
 #else
     Back = tcsstr(Abs,T("//"));
@@ -485,14 +485,14 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
     while (Back)
     {
         memmove(Back,Back+1,tcsbytes(Back+1));
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
         Back = tcsstr(Abs,T("\\\\"));
 #else
         Back = tcsstr(Abs,T("//"));
 #endif
     }
 
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
     Back = tcsstr(Abs,T("\\.."));
 #else
     Back = tcsstr(Abs,T("/.."));
@@ -502,7 +502,7 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
         Folder = Back;
         while (--Folder >= Abs)
         {
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
             if (*Folder == T('\\'))
 #else
             if (*Folder == T('/'))
@@ -512,7 +512,7 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
                 break;
             }
         }
-#if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
+#if defined(TARGET_WIN)
         Back = tcsstr(Abs,T("\\.."));
 #else
         Back = tcsstr(Abs,T("/.."));

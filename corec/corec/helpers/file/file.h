@@ -104,14 +104,4 @@ FILE_DLL err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item);
 }
 #endif
 
-#if defined(TARGET_SYMBIAN) && defined(__cplusplus) // symbian headers are not compatible with C
-#include <e32std.h>
-#include <e32hal.h>
-#include <f32file.h>
-static INLINE RFs& Node_FsSession(anynode *AnyNode)
-{
-	return *static_cast<RFs*>(Node_Context(AnyNode)->FsSession);
-}
-#endif
-
 #endif

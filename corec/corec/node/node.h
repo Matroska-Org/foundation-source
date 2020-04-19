@@ -57,8 +57,4 @@ extern "C" {
 }
 #endif
 
-#if defined(TARGET_SYMBIAN)
-#include "node_symbian.h"
-#endif
-
 #endif /* __NODE_H */

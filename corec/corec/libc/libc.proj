@@ -1,8 +1,5 @@
 GROUP libc
 {
-  IF TARGET_SYMBIAN
-    SYSINCLUDE symbian
-  ENDIF
   IF TARGET_WINCE
     USEINCLUDE corec
     SOURCE wince/assert.c
