@@ -436,9 +436,9 @@ typedef unsigned __int64 uint_fast64_t;
 #define PRId64  "I64d"
 #define PRIu64  "I64u"
 #define PRIx64  "I64x"
-#define TPRId64  L"I64d"
-#define TPRIu64  L"I64u"
-#define TPRIx64  L"I64x"
+#define TPRId64  T("I64d")
+#define TPRIu64  T("I64u")
+#define TPRIx64  T("I64x")
 #else
 #define LL(x)   x##ll
 #define ULL(x)  x##ull
