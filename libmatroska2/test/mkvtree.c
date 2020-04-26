@@ -99,7 +99,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementDataSize(Element, 1) == INVALID_FILEPOS_T)
             fprintf(stdout,"(master)");
         else if (!EBML_ElementIsFiniteSize(Element))
-            fprintf(stdout,"(master) [unknown size]",EBML_ElementDataSize(Element, 1));
+            fprintf(stdout,"(master) [unknown size]");
         else
             fprintf(stdout,"(master) [%"PRId64" bytes]",EBML_ElementDataSize(Element, 1));
         EndLine(Element);
@@ -233,7 +233,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             fprintf(stdout,"[%x]",Id & 0xFF);
             Id >>= 8;
         }
-        fprintf(stdout,">",EBML_ElementClassID(Element));
+        fprintf(stdout,"%X>",EBML_ElementClassID(Element));
 #endif
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
         EndLine(Element);
