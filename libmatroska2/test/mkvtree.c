@@ -281,8 +281,8 @@ int main(int argc, const char *argv[])
     ParserContext_Init(&p,NULL,NULL,NULL);
 #else
     NodeContext_Init(&p,NULL,NULL,NULL);
-#endif
 	StdAfx_Init((nodemodule*)&p);
+#endif
     // EBML & Matroska Init
     MATROSKA_Init((nodecontext*)&p);
 
