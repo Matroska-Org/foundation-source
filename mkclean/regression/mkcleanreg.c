@@ -163,6 +163,7 @@ int main(int argc, const char *argv[])
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
+    Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VENDOR,TYPE_STRING,"Matroska");
     ProjectSettings((nodecontext*)&p);
 
     StdErr = &_StdErr;
