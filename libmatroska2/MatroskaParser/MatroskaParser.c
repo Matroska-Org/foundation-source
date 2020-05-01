@@ -34,6 +34,8 @@
 #define snprintf _snprintf
 #endif
 
+const nodemeta HaaliStream_Class[];
+
 #define HAALI_STREAM_CLASS FOURCC('H','A','L','S')
 typedef struct haali_stream
 {
@@ -74,6 +76,8 @@ struct MatroskaFile
 	array Tags;
 	array Chapters;
 	array Attachments;
+
+	parsercontext p;
 };
 
 void mkv_SetTrackMask(MatroskaFile *File, int Mask)
@@ -1044,6 +1048,11 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 	}
 
 	memset(File,0,sizeof(*File));
+	// Core-C, EBML & Matroska Init
+	ParserContext_Init(&File->p,NULL,NULL,NULL);
+	MATROSKA_Init(&File->p);
+	NodeRegisterClassEx(&File->p.Base.Base, HaaliStream_Class);
+
 	File->pSegmentInfo = INVALID_FILEPOS_T;
 	File->pTracks = INVALID_FILEPOS_T;
 	File->pCues = INVALID_FILEPOS_T;
@@ -1056,7 +1065,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 	io->ioseek(io,0,SEEK_SET);
 
 	// find a segment
-	File->Input = (haali_stream*)NodeCreate(io->AnyNode,HAALI_STREAM_CLASS);
+	File->Input = (haali_stream*)NodeCreate(&File->p,HAALI_STREAM_CLASS);
 	if (!File->Input)
 	{
 		strncpy(err_msg,"Out of memory",err_msgSize);
@@ -1227,12 +1236,13 @@ static void releaseTags(array *Tags, MatroskaFile *File)
 
 void mkv_Close(MatroskaFile *File)
 {
-	if (File->Seg.Filename) File->Input->io->memfree(File->Input->io, File->Seg.Filename);
-	if (File->Seg.PrevFilename) File->Input->io->memfree(File->Input->io, File->Seg.PrevFilename);
-	if (File->Seg.NextFilename) File->Input->io->memfree(File->Input->io, File->Seg.NextFilename);
-	if (File->Seg.Title) File->Input->io->memfree(File->Input->io, File->Seg.Title);
-	if (File->Seg.MuxingApp) File->Input->io->memfree(File->Input->io, File->Seg.MuxingApp);
-	if (File->Seg.WritingApp) File->Input->io->memfree(File->Input->io, File->Seg.WritingApp);
+	haali_stream *Input = File->Input;
+	if (File->Seg.Filename) Input->io->memfree(Input->io, File->Seg.Filename);
+	if (File->Seg.PrevFilename) Input->io->memfree(Input->io, File->Seg.PrevFilename);
+	if (File->Seg.NextFilename) Input->io->memfree(Input->io, File->Seg.NextFilename);
+	if (File->Seg.Title) Input->io->memfree(Input->io, File->Seg.Title);
+	if (File->Seg.MuxingApp) Input->io->memfree(Input->io, File->Seg.MuxingApp);
+	if (File->Seg.WritingApp) Input->io->memfree(Input->io, File->Seg.WritingApp);
 
 	ArrayClear(&File->Tracks);
     releaseAttachments(&File->Attachments, File);
@@ -1243,7 +1253,12 @@ void mkv_Close(MatroskaFile *File)
 	if (File->CueList) NodeDelete((node*)File->CueList);
 	if (File->SegmentInfo) NodeDelete((node*)File->SegmentInfo);
 	if (File->Segment) NodeDelete((node*)File->Segment);
-	if (File->Input) NodeDelete((node*)File->Input);
+
+	// Core-C, EBML & Matroska Done
+	MATROSKA_Done(&File->p.Base);
+	ParserContext_Done(&File->p.Base);
+
+	Input->io->memfree(Input, File);
 }
 
 int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *StartTime, ulonglong *EndTime, ulonglong *FilePos, unsigned int *FrameSize,
