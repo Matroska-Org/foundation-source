@@ -615,7 +615,6 @@ NODE_DLL datetime_t Node_GetDataDatetime(const node*, dataid Id);
 // functions which should be exported in node DLLs
 
 DLLEXPORT err_t DLLRegister(nodemodule*);
-DLLEXPORT void DLLUnRegister(nodemodule*);
 DLLEXPORT void DLLTest(void);
 DLLEXPORT void DLLTest2(void);
 
