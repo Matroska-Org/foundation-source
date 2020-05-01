@@ -29,6 +29,9 @@
 
 #include "parser.h"
 
+extern const nodemeta LangStr_Class[];
+extern const nodemeta UrlPart_Class[];
+
 static const tchar_t* ExternalStr(nodecontext* p,fourcc_t Class,int Id)
 {
     return StrTab_Find(&((parsercontext*)p)->StrTab,Class,Id);
@@ -47,6 +50,9 @@ void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memhea
 	p->FromWcs   = CharConvOpen(CHARSET_WCHAR,NULL);
 	p->ToUtf16   = CharConvOpen(NULL,CHARSET_UTF16);
 	p->FromUtf16 = CharConvOpen(CHARSET_UTF16,NULL);
+
+	NodeRegisterClassEx(&p->Base.Base,LangStr_Class);
+	NodeRegisterClassEx(&p->Base.Base,UrlPart_Class);
 }
 
 void ParserContext_Done(parsercontext* p)
