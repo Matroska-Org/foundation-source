@@ -53,7 +53,7 @@
 #define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)
 #define Ebml_Next(x)      (ebml_element*)NodeTree_Next(x)
 
-static nodecontext ccContext;
+static parsercontext ccContext;
 
 using namespace LIBEBML_NAMESPACE;
 
@@ -242,9 +242,9 @@ DEFINE_EBML_UINTEGER  (EMaxSizeLength, ::EBML_ContextMaxSizeLength.Id, EbmlHead,
 
 void ebml_init()
 {
-    NodeContext_Init(&ccContext,NULL,NULL,NULL);
+    ParserContext_Init(&ccContext, NULL, NULL, NULL);
     EBML_Init(&ccContext);
-    NodeRegisterClassEx((nodemodule*)&ccContext,IOCallback_Class);
+    NodeRegisterClassEx(&ccContext.Base.Base,IOCallback_Class);
 
     ::EBML_ContextHead.PostCreate = EbmlHead::PostCreate;
     ::EBML_ContextDocType.PostCreate = EDocType::PostCreate;
@@ -259,7 +259,7 @@ void ebml_init()
 void ebml_done()
 {
     EBML_Done(&ccContext);
-    NodeContext_Done(&ccContext);
+    ParserContext_Done(&ccContext);
 }
 
 

@@ -66,8 +66,8 @@
 #define MATROSKA_DISPLAY_UNIT_DAR    3
 
 
-EBML_DLL err_t MATROSKA_Init(nodecontext *p);
-EBML_DLL err_t MATROSKA_Done(nodecontext *p);
+EBML_DLL err_t MATROSKA_Init(parsercontext *p);
+EBML_DLL void MATROSKA_Done(parsercontext *p);
 
 #define INVALID_TIMECODE_T      MAX_INT64
 typedef int64_t    timecode_t; // in nanoseconds

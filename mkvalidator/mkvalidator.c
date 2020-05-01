@@ -885,7 +885,7 @@ int main(int argc, const char *argv[])
 	Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_NAME,TYPE_STRING,PROJECT_NAME);
 
     // EBML & Matroska Init
-    MATROSKA_Init((nodecontext*)&p);
+    MATROSKA_Init(&p);
 
     ArrayInit(&RClusters);
     ArrayInit(&Tracks);
@@ -1431,7 +1431,7 @@ exit:
         StreamClose(Input);
 
     // EBML & Matroska ending
-    MATROSKA_Done((nodecontext*)&p);
+    MATROSKA_Done(&p);
 
     // Core-C ending
     ParserContext_Done(&p);

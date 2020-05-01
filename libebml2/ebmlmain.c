@@ -35,59 +35,27 @@
 # endif
 #endif
 
-extern const nodemeta BufStream_Class[];
-extern const nodemeta MemStream_Class[];
-extern const nodemeta Streams_Class[];
-#if defined(CONFIG_EBML_UNICODE)
-extern const nodemeta LangStr_Class[];
-extern const nodemeta UrlPart_Class[];
-# if defined(CONFIG_STDIO)
-extern const nodemeta Stdio_Class[];
-# endif
-#endif
-
-extern const nodemeta EBMLElement_Class[];
-extern const nodemeta EBMLMaster_Class[];
-extern const nodemeta EBMLBinary_Class[];
-extern const nodemeta EBMLString_Class[];
-extern const nodemeta EBMLInteger_Class[];
-extern const nodemeta EBMLCRC_Class[];
-extern const nodemeta EBMLDate_Class[];
-extern const nodemeta EBMLVoid_Class[];
-
-err_t EBML_Init(nodecontext *p)
+err_t EBML_Init(parsercontext *p)
 {
     // TODO: only when used as standalone (no coremake & core-c in the rest of the project)
 #if defined(EBML_LIBRARY)
     Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,PROJECT_NAME T(" v") PROJECT_VERSION);
 #endif
 
-    NodeRegisterClassEx(&p->Base,BufStream_Class);
-	NodeRegisterClassEx(&p->Base,MemStream_Class);
-	NodeRegisterClassEx(&p->Base,Streams_Class);
-#if defined(CONFIG_EBML_UNICODE)
-	NodeRegisterClassEx(&p->Base,LangStr_Class);
-	NodeRegisterClassEx(&p->Base,UrlPart_Class);
-# if defined(CONFIG_STDIO)
-	NodeRegisterClassEx(&p->Base,Stdio_Class);
-# endif
-#endif
-
-    NodeRegisterClassEx(&p->Base,EBMLElement_Class);
-	NodeRegisterClassEx(&p->Base,EBMLMaster_Class);
-	NodeRegisterClassEx(&p->Base,EBMLBinary_Class);
-	NodeRegisterClassEx(&p->Base,EBMLString_Class);
-	NodeRegisterClassEx(&p->Base,EBMLInteger_Class);
-	NodeRegisterClassEx(&p->Base,EBMLDate_Class);
-	NodeRegisterClassEx(&p->Base,EBMLCRC_Class);
-	NodeRegisterClassEx(&p->Base,EBMLVoid_Class);
+    NodeRegisterClassEx(&p->Base.Base,EBMLElement_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLMaster_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLBinary_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLString_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLInteger_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLDate_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLCRC_Class);
+	NodeRegisterClassEx(&p->Base.Base,EBMLVoid_Class);
 
     return ERR_NONE;
 }
 
-err_t EBML_Done(nodecontext *p)
+void EBML_Done(parsercontext *p)
 {
-    return ERR_NONE;
 }
 
 CONTEXT_CONST ebml_context EBML_ContextDummy = {0xFF, EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};

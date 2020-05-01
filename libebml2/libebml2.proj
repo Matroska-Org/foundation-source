@@ -23,14 +23,14 @@ GROUP ebml2_group
   HEADER ebml/ebml_internal.h
 
   SOURCE ebmlmain.c
-  SOURCE ebmlelement.c {class EBMLElement_Class}
-  SOURCE ebmlmaster.c  {class EBMLMaster_Class}
-  SOURCE ebmlbinary.c  {class EBMLBinary_Class}
-  SOURCE ebmlstring.c  {class EBMLString_Class}
-  SOURCE ebmlnumber.c  {class EBMLInteger_Class}
-  SOURCE ebmlcrc.c     {class EBMLCRC_Class}
-  SOURCE ebmldate.c    {class EBMLDate_Class}
-  SOURCE ebmlvoid.c    {class EBMLVoid_Class}
+  SOURCE ebmlelement.c
+  SOURCE ebmlmaster.c
+  SOURCE ebmlbinary.c
+  SOURCE ebmlstring.c
+  SOURCE ebmlnumber.c
+  SOURCE ebmlcrc.c
+  SOURCE ebmldate.c
+  SOURCE ebmlvoid.c
   HEADER ebmlcrc.h
 }
 
