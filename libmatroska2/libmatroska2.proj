@@ -22,7 +22,7 @@ GROUP matroska2_group
   INCLUDE .
   EXPINCLUDE .
   
-  SOURCE matroskamain.c {class Matroska_Class}
+  SOURCE matroskamain.c
   SOURCE matroskablock.c
   SOURCE matroska_sem.c
   HEADER matroska/matroska.h

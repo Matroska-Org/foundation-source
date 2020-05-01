@@ -76,4 +76,6 @@ struct matroska_block
 #define MATROSKA_ATTACHMENT_CLASS FOURCC('M','K','A','T')
 #define MATROSKA_TRACKENTRY_CLASS FOURCC('M','K','T','E')
 
+extern const nodemeta Matroska_Class[];
+
 #endif /* LIBMATROSKA2_INTERNAL_H */
