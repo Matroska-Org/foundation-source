@@ -14,7 +14,7 @@ GROUP corec
   IF CONFIG_SAFE_C
     HEADER banned.h
   ENDIF
-  HEADER(!COREMAKE_CONFIG_HELPER) confhelper.h
+  HEADER confhelper.h
 }
 
 LIB coreclib
