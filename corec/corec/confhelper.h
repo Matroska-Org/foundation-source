@@ -31,8 +31,6 @@
 #ifndef __CONFIG_HELPER_H
 #define __CONFIG_HELPER_H
 
-/**** SHOULD MATCH THE ONE OF COREMAKE ****/
-
 /* force some defines */
 
 #if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE)
