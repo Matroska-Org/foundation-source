@@ -62,25 +62,25 @@ err_t EBML_Init(nodecontext *p)
     Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,PROJECT_NAME T(" v") PROJECT_VERSION);
 #endif
 
-    NodeRegisterClassEx((nodemodule*)p,BufStream_Class);
-	NodeRegisterClassEx((nodemodule*)p,MemStream_Class);
-	NodeRegisterClassEx((nodemodule*)p,Streams_Class);
+    NodeRegisterClassEx(&p->Base,BufStream_Class);
+	NodeRegisterClassEx(&p->Base,MemStream_Class);
+	NodeRegisterClassEx(&p->Base,Streams_Class);
 #if defined(CONFIG_EBML_UNICODE)
-	NodeRegisterClassEx((nodemodule*)p,LangStr_Class);
-	NodeRegisterClassEx((nodemodule*)p,UrlPart_Class);
+	NodeRegisterClassEx(&p->Base,LangStr_Class);
+	NodeRegisterClassEx(&p->Base,UrlPart_Class);
 # if defined(CONFIG_STDIO)
-	NodeRegisterClassEx((nodemodule*)p,Stdio_Class);
+	NodeRegisterClassEx(&p->Base,Stdio_Class);
 # endif
 #endif
 
-    NodeRegisterClassEx((nodemodule*)p,EBMLElement_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLMaster_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLBinary_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLString_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLInteger_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLDate_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLCRC_Class);
-	NodeRegisterClassEx((nodemodule*)p,EBMLVoid_Class);
+    NodeRegisterClassEx(&p->Base,EBMLElement_Class);
+	NodeRegisterClassEx(&p->Base,EBMLMaster_Class);
+	NodeRegisterClassEx(&p->Base,EBMLBinary_Class);
+	NodeRegisterClassEx(&p->Base,EBMLString_Class);
+	NodeRegisterClassEx(&p->Base,EBMLInteger_Class);
+	NodeRegisterClassEx(&p->Base,EBMLDate_Class);
+	NodeRegisterClassEx(&p->Base,EBMLCRC_Class);
+	NodeRegisterClassEx(&p->Base,EBMLVoid_Class);
 
     return ERR_NONE;
 }
