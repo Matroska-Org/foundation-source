@@ -521,23 +521,16 @@ struct nodecontext
 #endif
 	void (*ReportError)(nodecontext*, node* Node, fourcc_t MsgClass, int MsgNo, va_list Args);
     int Build;
-    int Revision;
     array Collect;
     bool_t InCollect;
     fourcc_t DynamicClass;
-    uint16_t AppId;
 };
 
 #define NODECONTEXT_CLASS		        FOURCC('N','C','T','X')
-#define NODECONTEXT_PROJECT_NAME        0x100
-#define NODECONTEXT_PROJECT_VENDOR      0x101
-#define NODECONTEXT_PROJECT_VERSION     0x102
-// #define NODECONTEXT_PROJECT_FOURCC      0x103
-#define NODECONTEXT_PROJECT_HELP        0x104
-#define NODECONTEXT_PROJECT_BUILD       0x105
-#define NODECONTEXT_PROJECT_MIME        0x106
-#define NODECONTEXT_PROJECT_APPID       0x107
-#define NODECONTEXT_PROJECT_PATH        0x108
+#define NODECONTEXT_PROJECT_NAME        0x100 // string
+#define NODECONTEXT_PROJECT_VENDOR      0x101 // string
+#define NODECONTEXT_PROJECT_VERSION     0x102 // string
+#define NODECONTEXT_PROJECT_BUILD       0x103 // int
 
 // notify
 #define NODECONTEXT_CRASH               0x201
