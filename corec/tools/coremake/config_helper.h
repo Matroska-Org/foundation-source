@@ -43,7 +43,7 @@
 #define COREMAKE_STATIC
 #endif
 
-#if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE_SDK)
+#if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE)
 #undef CONFIG_DYNCODE
 #define CONFIG_DYNCODE /* platforms when dynamic code can be used */
 #endif

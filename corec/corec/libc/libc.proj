@@ -5,9 +5,6 @@ GROUP libc
     SOURCE wince/assert.c
     SYSINCLUDE wince
   ENDIF
-  IF TARGET_IPHONE_SDK
-    SYSINCLUDE iphone
-  ENDIF
 }
 
 GROUP con_to_exe
