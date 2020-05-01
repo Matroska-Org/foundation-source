@@ -27,6 +27,7 @@
  */
 
 #include "MatroskaParser.h"
+#include "matroska/matroska_sem.h"
 
 #define MAX_TRACKS 32 // safety
 
@@ -196,7 +197,7 @@ static bool_t parseSeekHead(ebml_element *SeekHead, MatroskaFile *File, char *er
 	filepos_t SegStart = EBML_ElementPositionData(File->Segment);
 	assert(SegStart!=INVALID_FILEPOS_T);
 
-	RContext.Context = SeekHead->Context;
+	RContext.Context = EBMLElement_Context(SeekHead);
 	if (EBML_ElementIsFiniteSize(SeekHead))
 		RContext.EndPosition = EBML_ElementPositionEnd(SeekHead);
 	else
@@ -242,7 +243,7 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 	ebml_element *Elt;
 	double duration = -1.0;
 
-	RContext.Context = SegmentInfo->Context;
+	RContext.Context = EBMLElement_Context(SegmentInfo);
 	if (EBML_ElementIsFiniteSize(SegmentInfo))
 		RContext.EndPosition = EBML_ElementPositionEnd(SegmentInfo);
 	else
@@ -260,7 +261,7 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 
 	for (Elt = EBML_MasterChildren(SegmentInfo);Elt;Elt = EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTimestampScale.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTimestampScale.Id)
 		{
 			File->Seg.TimecodeScale = EBML_IntegerValue(Elt);
 			if (File->Seg.TimecodeScale==0)
@@ -269,30 +270,30 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 				return 0;
 			}
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextDuration.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextDuration.Id)
 		{
 			duration = ((ebml_float*)Elt)->Value;
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextSegmentDate.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextSegmentDate.Id)
 		{
 			File->Seg.DateUTC = EBML_DateTime((ebml_date*)Elt);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextSegmentTitle.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextSegmentTitle.Id)
 		{
 			File->Seg.Title = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(File->Seg.Title,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextMuxingApp.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextMuxingApp.Id)
 		{
 			File->Seg.MuxingApp = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(File->Seg.MuxingApp,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextWritingApp.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextWritingApp.Id)
 		{
 			File->Seg.WritingApp = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(File->Seg.WritingApp,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextSegmentUid.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextSegmentUid.Id)
 		{
 			if (Elt->DataSize!=16)
 			{
@@ -301,7 +302,7 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 			}
 			memcpy(File->Seg.UID,EBML_BinaryGetData((ebml_binary*)Elt),sizeof(File->Seg.UID));
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextPrevUid.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextPrevUid.Id)
 		{
 			if (Elt->DataSize!=16)
 			{
@@ -310,7 +311,7 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 			}
 			memcpy(File->Seg.PrevUID,EBML_BinaryGetData((ebml_binary*)Elt),sizeof(File->Seg.PrevUID));
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextNextUid.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextNextUid.Id)
 		{
 			if (Elt->DataSize!=16)
 			{
@@ -319,17 +320,17 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 			}
 			memcpy(File->Seg.NextUID,EBML_BinaryGetData((ebml_binary*)Elt),sizeof(File->Seg.NextUID));
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextSegmentFilename.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextSegmentFilename.Id)
 		{
 			File->Seg.Filename = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(File->Seg.Filename,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextPrevFilename.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextPrevFilename.Id)
 		{
 			File->Seg.PrevFilename = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(File->Seg.Filename,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextNextFilename.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextNextFilename.Id)
 		{
 			File->Seg.NextFilename = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(File->Seg.Filename,((ebml_string*)Elt)->Buffer);
@@ -366,11 +367,11 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 
 	for (Elt = EBML_MasterChildren(Track);Elt;Elt = EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTrackNumber.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackNumber.Id)
 			track.Number = (int)EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextTrackNumber.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackNumber.Id)
 			track.UID = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextTrackType.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackType.Id)
 		{
 			if (EBML_IntegerValue(Elt)==0 || EBML_IntegerValue(Elt)>254)
 			{
@@ -379,15 +380,15 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 			}
 			track.Type = (uint8_t)EBML_IntegerValue(Elt);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackEnabled.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackEnabled.Id)
 			track.Enabled = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextTrackDefault.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackDefault.Id)
 			track.Default = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextTrackLacing.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackLacing.Id)
 			track.Lacing = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextTrackCodecDecodeAll.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackCodecDecodeAll.Id)
 			track.DecodeAll = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextTrackMinCache.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackMinCache.Id)
 		{
 			if (EBML_IntegerValue(Elt) > 0xFF)
 			{
@@ -396,7 +397,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 			}
 			track.MinCache = (uint8_t)EBML_IntegerValue(Elt);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackMaxCache.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackMaxCache.Id)
 		{
 			if (EBML_IntegerValue(Elt) > 0x7FFFFFFF)
 			{
@@ -405,24 +406,24 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 			}
 			track.MaxCache = (size_t)EBML_IntegerValue(Elt);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackDefaultDuration.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackDefaultDuration.Id)
 			track.DefaultDuration = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextTrackTimestampScale.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackTimestampScale.Id)
 			track.TimecodeScale = (float)((ebml_float*)Elt)->Value;
-		else if (Elt->Context->Id == MATROSKA_ContextTrackMaxBlockAdditionID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackMaxBlockAdditionID.Id)
 			track.MaxBlockAdditionID = (size_t)EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextTrackLanguage.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackLanguage.Id)
 		{
 			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
 			memcpy(track.Language,((ebml_string*)Elt)->Buffer,copy);
 			memset(track.Language + copy,0,4-copy);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackCodecID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackCodecID.Id)
 		{
 			track.CodecID = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(track.CodecID,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackCodecPrivate.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackCodecPrivate.Id)
 		{
 			if (Elt->DataSize > 256*1024)
 			{
@@ -433,7 +434,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 			track.CodecPrivate = File->Input->io->memalloc(File->Input->io, track.CodecPrivateSize);
 			memcpy(track.CodecPrivate,EBML_BinaryGetData((ebml_binary*)Elt),track.CodecPrivateSize);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackOverlay.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackOverlay.Id)
 		{
 			if (EBML_IntegerValue(Elt)==0 || EBML_IntegerValue(Elt)>254)
 			{
@@ -442,7 +443,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 			}
 			track.TrackOverlay = (uint8_t)EBML_IntegerValue(Elt);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackVideo.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackVideo.Id)
 		{
 			for (TElt = EBML_MasterChildren(Elt);TElt;TElt = EBML_MasterNext(TElt))
 			{
@@ -564,7 +565,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 					track.AV.Video.GammaValue = (float)((ebml_float*)TElt)->Value;
 			}
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTrackAudio.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackAudio.Id)
 		{
 			track.AV.Audio.Channels = (uint8_t)MATROSKA_ContextTrackAudioChannels.DefaultValue;
 			track.AV.Audio.SamplingFreq = (float)MATROSKA_ContextTrackAudioSamplingFreq.DefaultValue;
@@ -650,7 +651,7 @@ static bool_t parseTracks(ebml_element *Tracks, MatroskaFile *File, char *err_ms
 
 	for (Elt = EBML_MasterChildren(Tracks);Elt;Elt = EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTrackEntry.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTrackEntry.Id)
 			if (!parseTrackEntry(Elt, File, err_msg, err_msgSize))
 				break;
 	}
@@ -760,18 +761,18 @@ static bool_t addChapterDisplay(ebml_element *ChapterDisplay, MatroskaFile *File
 
 	for (Elt=EBML_MasterChildren(ChapterDisplay); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextChapterString.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterString.Id)
 		{
 			pDisplay->String = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(pDisplay->String,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextChapterLanguage.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterLanguage.Id)
 		{
 			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
 			memcpy(pDisplay->Language,((ebml_string*)Elt)->Buffer,copy);
 			memset(pDisplay->Language + copy,0,4-copy);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextChapterCountry.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterCountry.Id)
 		{
 			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
 			memcpy(pDisplay->Country,((ebml_string*)Elt)->Buffer,copy);
@@ -790,7 +791,7 @@ static bool_t parseChapter(ebml_element *Chapter, MatroskaFile *File, char *err_
 	pChapter = &Chap;
 	for (Elt=EBML_MasterChildren(Chapter); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextChapterAtom.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterAtom.Id)
 		{
 			if (!ArrayAppend(&Parent->aChildren,&Chap,sizeof(Chap),512))
 				return 0;
@@ -801,26 +802,26 @@ static bool_t parseChapter(ebml_element *Chapter, MatroskaFile *File, char *err_
 				ArrayRemove(&Parent->aChildren,struct Chapter,pChapter,NULL,NULL);
 		}
 		// Atom
-		else if (Elt->Context->Id == MATROSKA_ContextChapterUID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterUID.Id)
 			Parent->UID = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextChapterTimeStart.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterTimeStart.Id)
 			Parent->Start = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextChapterTimeEnd.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterTimeEnd.Id)
 			Parent->End = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextChapterHidden.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterHidden.Id)
 			Parent->Hidden = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextChapterEnabled.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterEnabled.Id)
 			Parent->Enabled = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextChapterDisplay.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterDisplay.Id)
 			addChapterDisplay(Elt, File, Parent);
 		// Edition
-		else if (Elt->Context->Id == MATROSKA_ContextEditionUID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextEditionUID.Id)
 			Parent->UID = EBML_IntegerValue(Elt);
-		else if (Elt->Context->Id == MATROSKA_ContextEditionHidden.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextEditionHidden.Id)
 			Parent->Hidden = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextEditionDefault.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextEditionDefault.Id)
 			Parent->Default = EBML_IntegerValue(Elt)!=0;
-		else if (Elt->Context->Id == MATROSKA_ContextEditionOrdered.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextEditionOrdered.Id)
 			Parent->Ordered = EBML_IntegerValue(Elt)!=0;
 	}
 
@@ -860,7 +861,7 @@ static bool_t parseChapters(ebml_element *Chapters, MatroskaFile *File, char *er
 	Chap.Default = MATROSKA_ContextEditionDefault.DefaultValue;
 	for (Elt=EBML_MasterChildren(Chapters); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextChapterEntry.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextChapterEntry.Id)
 		{
 			if (!ArrayAppend(&File->Chapters,&Chap,sizeof(Chap),512))
 				return 0;
@@ -889,7 +890,7 @@ static bool_t parseTargets(ebml_element *Targets, MatroskaFile *File, char *err_
 	memset(pTarget,0,sizeof(*pTarget));
 	for (Elt=EBML_MasterChildren(Targets); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTagTargetTrackUID.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagTargetTrackUID.Id)
 		{
 			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
 				return 0;
@@ -898,7 +899,7 @@ static bool_t parseTargets(ebml_element *Targets, MatroskaFile *File, char *err_
 			pTarget->UID = EBML_IntegerValue(Elt);
 			pTarget->Level = Level;
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTagTargetChapterUID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagTargetChapterUID.Id)
 		{
 			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
 				return 0;
@@ -907,7 +908,7 @@ static bool_t parseTargets(ebml_element *Targets, MatroskaFile *File, char *err_
 			pTarget->UID = EBML_IntegerValue(Elt);
 			pTarget->Level = Level;
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTagTargetAttachmentUID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagTargetAttachmentUID.Id)
 		{
 			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
 				return 0;
@@ -916,7 +917,7 @@ static bool_t parseTargets(ebml_element *Targets, MatroskaFile *File, char *err_
 			pTarget->UID = EBML_IntegerValue(Elt);
 			pTarget->Level = Level;
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTagTargetEditionUID.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagTargetEditionUID.Id)
 		{
 			if (!ArrayAppend(&Parent->aTargets,&Target,sizeof(Target),512))
 				return 0;
@@ -940,23 +941,23 @@ static bool_t parseSimpleTag(ebml_element *SimpleTag, MatroskaFile *File, char *
 	memcpy(simpleTag.Language, (const char*)MATROSKA_ContextTagLanguage.DefaultValue, 4);
 	for (Elt=EBML_MasterChildren(SimpleTag); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTagName.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagName.Id)
 		{
 			simpleTag.Name = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(simpleTag.Name,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTagString.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagString.Id)
 		{
 			simpleTag.Value = File->Input->io->memalloc(File->Input->io, (size_t)(Elt->DataSize+1));
 			strcpy(simpleTag.Value,((ebml_string*)Elt)->Buffer);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTagLanguage.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagLanguage.Id)
 		{
 			size_t copy = (Elt->DataSize>3) ? 3 : (size_t)Elt->DataSize;
 			memcpy(simpleTag.Language,((ebml_string*)Elt)->Buffer,copy);
 			memset(simpleTag.Language + copy,0,4-copy);
 		}
-		else if (Elt->Context->Id == MATROSKA_ContextTagString.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagString.Id)
 			simpleTag.Default = EBML_IntegerValue(Elt)!=0;
 	}
 	
@@ -983,9 +984,9 @@ static bool_t parseTag(ebml_element *Tag, MatroskaFile *File, char *err_msg, siz
 
 	for (Elt=EBML_MasterChildren(Tag); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTagTargets.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTagTargets.Id)
 			parseTargets(Elt,File,err_msg,err_msgSize,Parent);
-		else if (Elt->Context->Id == MATROSKA_ContextSimpleTag.Id)
+		else if (EBML_ElementClassID(Elt) == MATROSKA_ContextSimpleTag.Id)
 			parseSimpleTag(Elt,File,err_msg,err_msgSize,Parent);
 	}
 
@@ -1021,7 +1022,7 @@ static bool_t parseTags(ebml_element *Tags, MatroskaFile *File, char *err_msg, s
 	memset(pTag,0,sizeof(*pTag));
 	for (Elt=EBML_MasterChildren(Tags); Elt; Elt=EBML_MasterNext(Elt))
 	{
-		if (Elt->Context->Id == MATROSKA_ContextTag.Id)
+		if (EBML_ElementClassID(Elt) == MATROSKA_ContextTag.Id)
 		{
 			if (!ArrayAppend(&File->Tags,&Tag,sizeof(Tag),512))
 				return 0;
@@ -1166,7 +1167,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 	{
 		for (Elt = EBML_MasterChildren(File->CueList);Elt;Elt = EBML_MasterNext(Elt))
 		{
-			if (Elt->Context->Id == MATROSKA_ContextCuePoint.Id)
+			if (EBML_ElementClassID(Elt) == MATROSKA_ContextCuePoint.Id)
 				MATROSKA_LinkCueSegmentInfo((matroska_cuepoint*)Elt, File->SegmentInfo);
 		}
 
@@ -1333,7 +1334,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			}
 
 			Skip = 0;
-			if (Elt->Context->Id == MATROSKA_ContextClusterTimecode.Id)
+			if (EBML_ElementClassID(Elt) == MATROSKA_ContextClusterTimecode.Id)
 			{
 				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
@@ -1344,7 +1345,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				NodeDelete((node*)Elt);
 				Elt = NULL;
 			}
-			else if (Elt->Context->Id == MATROSKA_ContextClusterSimpleBlock.Id)
+			else if (EBML_ElementClassID(Elt) == MATROSKA_ContextClusterSimpleBlock.Id)
 			{
 				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
@@ -1363,7 +1364,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 					File->CurrentBlock = (matroska_block*)Elt;
 				}
 			}
-			else if (Elt->Context->Id == MATROSKA_ContextClusterBlockGroup.Id)
+			else if (EBML_ElementClassID(Elt) == MATROSKA_ContextClusterBlockGroup.Id)
 			{
 				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
