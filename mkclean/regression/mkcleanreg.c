@@ -26,7 +26,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "mkcleanreg_stdafx.h"
 #include "mkcleanreg_project.h"
 #include "corec/helpers/parser/parser.h"
 #include "corec/helpers/md5/md5.h"
@@ -166,7 +165,6 @@ int main(int argc, const char *argv[])
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VENDOR,TYPE_STRING,"Matroska");
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VERSION,TYPE_STRING,PROJECT_VERSION);
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_NAME,TYPE_STRING,PROJECT_NAME);
-    ProjectSettings((nodecontext*)&p);
 
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));

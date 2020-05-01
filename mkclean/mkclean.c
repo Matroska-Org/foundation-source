@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "mkclean_stdafx.h"
 #include "mkclean_project.h"
 #ifndef CONFIG_EBML_UNICODE
 #define CONFIG_EBML_UNICODE
@@ -1427,7 +1426,6 @@ int main(int argc, const char *argv[])
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VENDOR,TYPE_STRING,"Matroska");
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VERSION,TYPE_STRING,PROJECT_VERSION);
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_NAME,TYPE_STRING,PROJECT_NAME);
-    ProjectSettings((nodecontext*)&p);
 
     // EBML & Matroska Init
     MATROSKA_Init((nodecontext*)&p);
