@@ -53,6 +53,7 @@ void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memhea
 
 	NodeRegisterClassEx(&p->Base.Base,LangStr_Class);
 	NodeRegisterClassEx(&p->Base.Base,UrlPart_Class);
+	CoreC_FileInit(&p->Base.Base);
 }
 
 void ParserContext_Done(parsercontext* p)
