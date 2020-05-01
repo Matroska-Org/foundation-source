@@ -166,11 +166,7 @@ static void OutputTree(stream *Input)
 
 int main(int argc, const char *argv[])
 {
-#if defined(CONFIG_EBML_UNICODE)
     parsercontext p;
-#else
-    nodecontext p;
-#endif
     stream *Input;
 
     if (argc != 2)
@@ -180,14 +176,9 @@ int main(int argc, const char *argv[])
     }
 
     // Core-C init phase
-#if defined(CONFIG_EBML_UNICODE)
     ParserContext_Init(&p,NULL,NULL,NULL);
-#else
-    NodeContext_Init(&p,NULL,NULL,NULL);
-    CoreC_FileInit(&p.Base);
-#endif
     // EBML Init
-    EBML_Init((nodecontext*)&p);
+    EBML_Init(&p);
 
     // open the file to parse
     Input = StreamOpen(&p,argv[1],SFLAG_RDONLY);
@@ -201,13 +192,9 @@ int main(int argc, const char *argv[])
     }
 
     // EBML ending
-    EBML_Done((nodecontext*)&p);
+    EBML_Done(&p);
     // Core-C ending
-#if defined(CONFIG_EBML_UNICODE)
     ParserContext_Done(&p);
-#else
-    NodeContext_Done(&p);
-#endif
 
     return 0;
 }

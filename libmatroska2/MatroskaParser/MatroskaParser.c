@@ -1256,8 +1256,8 @@ void mkv_Close(MatroskaFile *File)
 	if (File->Segment) NodeDelete((node*)File->Segment);
 
 	// Core-C, EBML & Matroska Done
-	MATROSKA_Done(&File->p.Base);
-	ParserContext_Done(&File->p.Base);
+	MATROSKA_Done(&File->p);
+	ParserContext_Done(&File->p);
 
 	Input->io->memfree(Input, File);
 }

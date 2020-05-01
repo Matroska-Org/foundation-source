@@ -110,6 +110,15 @@ struct ebml_dummy
 
 };
 
+extern const nodemeta EBMLElement_Class[];
+extern const nodemeta EBMLMaster_Class[];
+extern const nodemeta EBMLBinary_Class[];
+extern const nodemeta EBMLString_Class[];
+extern const nodemeta EBMLInteger_Class[];
+extern const nodemeta EBMLCRC_Class[];
+extern const nodemeta EBMLDate_Class[];
+extern const nodemeta EBMLVoid_Class[];
+
 #ifdef __cplusplus
 }
 #endif

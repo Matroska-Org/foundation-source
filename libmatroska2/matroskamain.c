@@ -50,15 +50,12 @@ const ebml_semantic EBML_SemanticMatroska[] = {
 };
 const ebml_context MATROSKA_ContextStream = {FOURCC('M','K','X','_'), EBML_MASTER_CLASS, 0, 0, "Matroska Stream", EBML_SemanticMatroska, EBML_SemanticGlobals, NULL};
 
-err_t MATROSKA_Init(nodecontext *p)
+err_t MATROSKA_Init(parsercontext *p)
 {
-#if defined(MATROSKA_LIBRARY)
-    tchar_t LibName[MAXPATH];
-#endif
     err_t Err = EBML_Init(p);
     if (Err == ERR_NONE)
     {
-        NodeRegisterClassEx(&p->Base,Matroska_Class);
+        NodeRegisterClassEx(&p->Base.Base,Matroska_Class);
 
 #if defined(MATROSKA_LIBRARY)
         Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,PROJECT_NAME T(" v") PROJECT_VERSION);
@@ -67,9 +64,9 @@ err_t MATROSKA_Init(nodecontext *p)
     return Err;
 }
 
-err_t MATROSKA_Done(nodecontext *p)
+void MATROSKA_Done(parsercontext *p)
 {
-    return EBML_Done(p);
+    EBML_Done(p);
 }
 
 

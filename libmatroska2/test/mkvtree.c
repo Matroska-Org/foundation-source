@@ -256,11 +256,7 @@ static void OutputTree(stream *Input)
 
 int main(int argc, const char *argv[])
 {
-#if defined(CONFIG_EBML_UNICODE)
     parsercontext p;
-#else
-    nodecontext p;
-#endif
     stream *Input;
     tchar_t Path[MAXPATHFULL];
 
@@ -276,14 +272,9 @@ int main(int argc, const char *argv[])
         ShowPos = 1;
 
     // Core-C init phase
-#if defined(CONFIG_EBML_UNICODE)
     ParserContext_Init(&p,NULL,NULL,NULL);
-#else
-    NodeContext_Init(&p,NULL,NULL,NULL);
-    CoreC_FileInit(&p.Base);
-#endif
     // EBML & Matroska Init
-    MATROSKA_Init((nodecontext*)&p);
+    MATROSKA_Init(&p);
 
     // open the file to parse
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
@@ -298,13 +289,9 @@ int main(int argc, const char *argv[])
     }
 
     // EBML & Matroska ending
-    MATROSKA_Done((nodecontext*)&p);
+    MATROSKA_Done(&p);
     // Core-C ending
-#if defined(CONFIG_EBML_UNICODE)
     ParserContext_Done(&p);
-#else
-    NodeContext_Done(&p);
-#endif
 
     return 0;
 }
