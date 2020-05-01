@@ -53,11 +53,6 @@ typedef struct InputStream
 	void *(*memalloc)(struct InputStream *cc,size_t size);
 	void *(*memrealloc)(struct InputStream *cc,void *mem,size_t newsize);
 	void (*memfree)(struct InputStream *cc,void *mem);
-
-#if defined(NO_MATROSKA2_GLOBAL)
-	anynode *AnyNode;
-#endif
-
 } InputStream;
 
 typedef struct TrackInfo
