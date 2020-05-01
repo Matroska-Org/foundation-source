@@ -6,7 +6,7 @@ GROUP parser
   
   DEFINE COREC_PARSER
 
-  SOURCE parser2.c { class LangStr_Class }
+  SOURCE parser2.c
   HEADER parser.h
 
   SOURCE strtab.c
@@ -27,6 +27,6 @@ GROUP parser
   SOURCE nodelookup.c
   HEADER nodelookup.h
 
-  SOURCE urlpart.c {class UrlPart_Class}
+  SOURCE urlpart.c
   HEADER urlpart.h
 }
