@@ -26,9 +26,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "mkclean_project.h"
-#ifndef CONFIG_EBML_UNICODE
-#define CONFIG_EBML_UNICODE
-#endif
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
 
