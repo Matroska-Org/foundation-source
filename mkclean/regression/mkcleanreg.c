@@ -165,6 +165,7 @@ int main(int argc, const char *argv[])
     ParserContext_Init(&p,NULL,NULL,NULL);
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VENDOR,TYPE_STRING,"Matroska");
     Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_VERSION,TYPE_STRING,PROJECT_VERSION);
+    Node_SetData(&p.Base.Base.Base,NODECONTEXT_PROJECT_NAME,TYPE_STRING,PROJECT_NAME);
     ProjectSettings((nodecontext*)&p);
 
     StdErr = &_StdErr;
