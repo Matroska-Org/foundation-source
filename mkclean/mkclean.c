@@ -1530,10 +1530,10 @@ int main(int argc, const char *argv[])
     
     if (argc < (1+InputPathIndex) || ShowVersion)
     {
-        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010-2011 Matroska Foundation\r\n"));
+        TextWrite(StdErr,PROJECT_NAME T(" v") PROJECT_VERSION T(", Copyright (c) 2010-2020 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
-            TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> [matroska_dst]\r\n"));
+            TextWrite(StdErr,T("Usage: ") PROJECT_NAME T(" [options] <matroska_src> [matroska_dst]\r\n"));
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
 		    TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));
@@ -1553,7 +1553,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
             TextWrite(StdErr,T("  --alt-3d <t>  the track with ID <v> has alternate 3D fields (left first)\r\n"));
 		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
-            TextWrite(StdErr,T("  --version     show the version of mkclean\r\n"));
+            TextWrite(StdErr,T("  --version     show the version of ") PROJECT_NAME T("\r\n"));
             TextWrite(StdErr,T("  --help        show this screen\r\n"));
         }
         Path[0] = 0;
@@ -1927,13 +1927,13 @@ int main(int argc, const char *argv[])
     if (Regression)
     {
         if (s[0])
-            stprintf_s(String,TSIZEOF(String),T("mkclean regression from %s"),s);
+            stprintf_s(String,TSIZEOF(String),PROJECT_NAME T(" regression from %s"),s);
         else
-            stprintf_s(String,TSIZEOF(String),T("mkclean regression"));
+            stprintf_s(String,TSIZEOF(String),PROJECT_NAME T(" regression"));
     }
     else
     {
-	    stprintf_s(String,TSIZEOF(String),T("mkclean %s"),PROJECT_VERSION);
+	    stprintf_s(String,TSIZEOF(String),PROJECT_NAME T(" ") PROJECT_VERSION);
 	    if (Remux || Optimize || Live || UnOptimize || ARRAYCOUNT(Alternate3DTracks, block_info*))
 		    tcscat_s(String,TSIZEOF(String),T(" "));
 	    if (Remux)

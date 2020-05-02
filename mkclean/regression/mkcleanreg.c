@@ -210,10 +210,10 @@ int main(int argc, const char *argv[])
 
     if (Result!=0 || ShowVersion)
     {
-        TextWrite(StdErr,T("mkcleanreg v") PROJECT_VERSION T(", Copyright (c) 2010 Matroska Foundation\r\n"));
+        TextWrite(StdErr,PROJECT_NAME T(" v") PROJECT_VERSION T(", Copyright (c) 2010-2020 Matroska Foundation\r\n"));
         if (argc < 1 || ShowUsage)
         {
-            TextWrite(StdErr,T("Usage: mkcleanreg [options] <regression_list>\r\n"));
+            TextWrite(StdErr,T("Usage: ") PROJECT_NAME T(" [options] <regression_list>\r\n"));
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --mkclean <path> path to mkclean to test (default is current path)\r\n"));
             TextWrite(StdErr,T("  --generate       output is usable as a regression list file\r\n"));
