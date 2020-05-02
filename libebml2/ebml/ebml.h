@@ -72,7 +72,7 @@ extern "C" {
 #elif defined(EBML2_IMPORTS)
 #define EBML_DLL DLLIMPORT
 #else
-#define EBML_DLL
+#define EBML_DLL extern
 #endif
 
 typedef struct ebml_context ebml_context;
