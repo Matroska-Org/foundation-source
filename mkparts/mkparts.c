@@ -186,14 +186,14 @@ int main(int argc, const char *argv[])
 
     if (argc < 2 || ShowVersion)
     {
-        TextWrite(StdErr,T("mkparts v") PROJECT_VERSION T(", Copyright (c) 2011 Matroska Foundation\r\n"));
+        TextWrite(StdErr,PROJECT_NAME T(" v") PROJECT_VERSION T(", Copyright (c) 2011-2020 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
-            Result = OutputError(1,T("Usage: mkparts [options] <matroska_src>"));
+            Result = OutputError(1,T("Usage: ") PROJECT_NAME T(" [options] <matroska_src>"));
 		    TextWrite(StdErr,T("Options:\r\n"));
 		    TextWrite(StdErr,T("  --split     split concatenated segments into different files\r\n"));
             TextWrite(StdErr,T("  --quiet     don't ouput progress and file info\r\n"));
-            TextWrite(StdErr,T("  --version   show the version of mkparts\r\n"));
+            TextWrite(StdErr,T("  --version   show the version of ") PROJECT_NAME T("\r\n"));
             TextWrite(StdErr,T("  --help      show this screen\r\n"));
         }
         goto exit;

@@ -59,8 +59,7 @@ err_t MATROSKA_Init(nodecontext *p)
     if (Err == ERR_NONE)
     {
 #if defined(MATROSKA_LIBRARY)
-        tcscpy_s(LibName,TSIZEOF(LibName),PROJECT_NAME T(" v") PROJECT_VERSION);
-        Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,LibName);
+        Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,PROJECT_NAME T(" v") PROJECT_VERSION);
 #endif
     }
     return Err;
