@@ -112,6 +112,9 @@
 #endif
 
 #if defined(TARGET_LINUX) || defined(TARGET_ANDROID)
+
+#undef UNICODE /* platforms where Unicode is handled via UTF-8 strings */
+
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/endian.h>
 #else
@@ -591,7 +594,7 @@ static INLINE void* SwapSP(void* in)
 #define UNUSED_PARAM(x) (x)
 #endif
 
-#include "config.h"
+#include "corec_config.h"
 #include "confhelper.h"
 
 #if defined(TARGET_IPHONE) && !defined(__ARM_NEON__)

@@ -12,20 +12,25 @@ set(ebml2_group_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlnumber.c
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlstring.c
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlvoid.c
-  ${CMAKE_CURRENT_BINARY_DIR}/ebml2_project.h
 )
 set(ebml2_group_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ebml/ebml.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/ebmlcrc.h
+  ${CMAKE_CURRENT_BINARY_DIR}/ebml/ebml_config.h
 )
 set(ebml2_group_INTERNAL_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ebml/ebml_internal.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ebmlcrc.h
 )
 add_library("ebml2_group" INTERFACE)
-target_sources("ebml2_group" INTERFACE ${ebml2_group_SOURCES} ${ebml2_group_PUBLIC_HEADERS} ${ebml2_group_INTERNAL_HEADERS})
+target_sources("ebml2_group" INTERFACE 
+  ${ebml2_group_SOURCES} 
+  ${ebml2_group_PUBLIC_HEADERS} 
+  ${ebml2_group_INTERNAL_HEADERS}
+)
 target_link_libraries("ebml2_group" INTERFACE "corec_node")
 target_compile_definitions("ebml2_group" INTERFACE HAS_EBML2)
 target_include_directories("ebml2_group" INTERFACE ".")
+configure_file(ebml_config.h.in ebml/ebml_config.h)
 target_include_directories("ebml2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
   set_target_properties("ebml2_group" PROPERTIES 
@@ -36,9 +41,6 @@ endif()
 # the library needs to be static as it shares constants variables
 add_library("ebml2" STATIC)
 target_link_libraries("ebml2" PUBLIC "ebml2_group")
-target_compile_definitions("ebml2" PRIVATE EBML_LIBRARY)
-configure_file(ebml2_project.h.in ebml2_project.h)
-configure_file(config.h.in config.h)
 
 # TODO fix build
 add_executable("ebmltree" test/ebmltree.c)

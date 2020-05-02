@@ -11,15 +11,17 @@ set(matroska2_SOURCES
 set(matroska2_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/matroska/matroska.h
   ${CMAKE_CURRENT_SOURCE_DIR}/matroska/matroska_sem.h
+  ${CMAKE_CURRENT_BINARY_DIR}/matroska/matroska_config.h
+)
+set(matroska2_INTERNAL_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/matroska/matroska_internal.h
 )
 
 add_library("matroska2_group" INTERFACE)
-target_sources("matroska2_group" INTERFACE ${matroska2_SOURCES} ${matroska2_PUBLIC_HEADERS})
+target_sources("matroska2_group" INTERFACE ${matroska2_SOURCES} ${matroska2_PUBLIC_HEADERS} ${matroska2_INTERNAL_HEADERS})
 target_include_directories("matroska2_group" INTERFACE ".")
 target_compile_definitions("matroska2_group" INTERFACE HAS_MATROSKA2)
 target_link_libraries("matroska2_group" INTERFACE "ebml2_group")
-configure_file(matroska2_project.h.in matroska2_project.h)
 target_include_directories("matroska2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
 if (CONFIG_ZLIB)
@@ -39,16 +41,13 @@ endif(CONFIG_CODEC_HELPER)
 # set_target_properties("matroska2_group" PROPERTIES 
 #   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
 # )
+configure_file(matroska_config.h.in matroska/matroska_config.h)
+target_include_directories("matroska2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
 # the library needs to be static as it shares constants variables
 add_library("matroska2" STATIC)
-target_link_libraries("matroska2" PRIVATE "matroska2_group")
+target_link_libraries("matroska2" PUBLIC "matroska2_group")
 target_include_directories("matroska2" PUBLIC ".")
-# TODO dirty until we use installed headers
-target_include_directories("matroska2" PUBLIC "../libebml2")
-target_compile_definitions("matroska2" PRIVATE MATROSKA_LIBRARY)
-configure_file(config.h.in config.h)
-target_include_directories("matroska2" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable("mkvtree" test/mkvtree.c)
 target_link_libraries("mkvtree" PRIVATE "matroska2_group" "corec_parser")

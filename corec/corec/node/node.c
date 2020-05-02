@@ -2770,6 +2770,8 @@ void NodeContext_Init(nodecontext* p,const nodemeta* Custom, const cc_memheap* H
     }
 
     Node_Constructor(p,(node*)p,0,ClassId);
+
+    Node_SetData(p,NODECONTEXT_COREC_VERSION,TYPE_STRING,T("corec v") COREC_PROJECT_VERSION);
 }
 
 void NodeContext_Done(nodecontext* p)

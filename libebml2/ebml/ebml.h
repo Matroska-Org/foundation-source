@@ -31,6 +31,7 @@
 
 #include "corec/node/node.h"
 #include "corec/helpers/parser/parser.h"
+#include "ebml/ebml_config.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -39,9 +39,6 @@
 #if defined(CONFIG_LZO1X)
 #include "minilzo.h"
 #endif
-#if defined(MATROSKA_LIBRARY)
-#include "matroska2_project.h"
-#endif
 
 const ebml_semantic EBML_SemanticMatroska[] = {
     {1, 0, &EBML_ContextHead        ,0},
@@ -57,9 +54,7 @@ err_t MATROSKA_Init(parsercontext *p)
     {
         NodeRegisterClassEx(&p->Base.Base,Matroska_Class);
 
-#if defined(MATROSKA_LIBRARY)
-        Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,PROJECT_NAME T(" v") PROJECT_VERSION);
-#endif
+        Node_SetData(p,CONTEXT_LIBMATROSKA_VERSION,TYPE_STRING,T("libmatroska2 v") LIBMATROSKA2_PROJECT_VERSION);
     }
     return Err;
 }

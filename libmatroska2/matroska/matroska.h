@@ -29,6 +29,7 @@
 #define MATROSKA_MATROSKA_H
 
 #include "ebml/ebml.h"
+#include "matroska/matroska_config.h"
 
 #if defined(MATROSKA2_EXPORTS)
 #define MATROSKA_DLL DLLEXPORT

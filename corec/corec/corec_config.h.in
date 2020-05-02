@@ -1,0 +1,10 @@
+#cmakedefine CONFIG_DEBUGCHECKS
+#cmakedefine CONFIG_DEBUG_LEAKS
+#cmakedefine CONFIG_STDIO
+#cmakedefine CONFIG_MULTITHREAD
+#cmakedefine CONFIG_SAFE_C
+#cmakedefine CONFIG_ZLIB
+#cmakedefine CONFIG_UNICODE
+
+#define COREC_PROJECT_VERSION T("@corec_VERSION_MAJOR@.@corec_VERSION_MINOR@.@corec_VERSION_PATCH@")
+#define COREC_VERSION ((@corec_VERSION_MAJOR@ << 24) | (@corec_VERSION_MINOR@ << 16) | @corec_VERSION_PATCH@)

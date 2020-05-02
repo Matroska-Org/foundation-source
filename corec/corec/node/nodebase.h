@@ -531,6 +531,7 @@ struct nodecontext
 #define NODECONTEXT_PROJECT_VENDOR      0x101 // string
 #define NODECONTEXT_PROJECT_VERSION     0x102 // string
 #define NODECONTEXT_PROJECT_BUILD       0x103 // int
+#define NODECONTEXT_COREC_VERSION       0x104 // string
 
 // notify
 #define NODECONTEXT_CRASH               0x201
