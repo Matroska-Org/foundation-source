@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 
-#define CONFIG_EBML_UNICODE
 #include "matroska/matroska.h"
 
 static int ShowPos = 0;

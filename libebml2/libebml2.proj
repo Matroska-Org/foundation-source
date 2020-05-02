@@ -14,10 +14,6 @@ GROUP ebml2_group
   ELSE
     USE coreclib
   ENDIF
-  IF CONFIG_UNICODE
-    DEFINE CONFIG_EBML_UNICODE
-    EXPDEFINE CONFIG_EBML_UNICODE
-  ENDIF
 
   HEADER ebml/ebml.h
   HEADER ebml/ebml_internal.h

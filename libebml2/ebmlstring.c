@@ -28,7 +28,6 @@
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
 
-#if defined(CONFIG_EBML_UNICODE)
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
 {
     char Data[2048];
@@ -38,7 +37,6 @@ err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
     Data[sizeof(Data)-1] = 0;
     return EBML_StringSetValue(Element,Data);
 }
-#endif
 
 err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
 {
@@ -60,11 +58,9 @@ void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
 	}
 	else
 	{
-#if defined(CONFIG_EBML_UNICODE)
 		if (Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
 			Node_FromUTF8(Element,Out,OutLen,Element->Buffer);
 		else
-#endif
 			Node_FromStr(Element,Out,OutLen,Element->Buffer);
 	}
 }
