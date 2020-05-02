@@ -1,7 +1,0 @@
-#define CONFIG_EBML_WRITING
-#cmakedefine CONFIG_DEBUGCHECKS
-#cmakedefine CONFIG_DEBUG_LEAKS
-#cmakedefine CONFIG_STDIO
-#cmakedefine CONFIG_MULTITHREAD
-#cmakedefine CONFIG_SAFE_C
-#cmakedefine CONFIG_ZLIB

@@ -1,0 +1,8 @@
+// for libmatroska2
+#cmakedefine CONFIG_MATROSKA2
+#cmakedefine CONFIG_LZO1X
+#cmakedefine CONFIG_BZLIB
+#cmakedefine CONFIG_CODEC_HELPER
+
+#define LIBMATROSKA2_PROJECT_VERSION T("@matroska2_VERSION_MAJOR@.@matroska2_VERSION_MINOR@.@matroska2_VERSION_PATCH@")
+#define LIBMATROSKA2_VERSION ((@matroska2_VERSION_MAJOR@ << 24) | (@matroska2_VERSION_MINOR@ << 16) | @matroska2_VERSION_PATCH@)

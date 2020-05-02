@@ -1,8 +1,11 @@
+project("corec" VERSION 1.0.0)
+
 option(CONFIG_STDIO "Build Core-C file API with stdio support" ON)
 option(CONFIG_MULTITHREAD "Enable multithread support in Core-C" OFF)
 option(CONFIG_DEBUGCHECKS "Add extra checks in Core-C objects/helpers in debug builds" ON)
 option(CONFIG_DEBUG_LEAKS "Debug leaks in Core-C objects in debug builds" OFF)
 option(CONFIG_SAFE_C "Notify unsafe C legacy calls" OFF)
+option(CONFIG_UNICODE "Use wide char for tchar_t (except Linux, OSX, Android)" ON)
 
 # Base core API
 add_library("corec_bare" INTERFACE)
@@ -14,6 +17,7 @@ set(corec_base_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/portab.h
   ${CMAKE_CURRENT_SOURCE_DIR}/confhelper.h
   ${CMAKE_CURRENT_SOURCE_DIR}/banned.h
+  ${CMAKE_CURRENT_BINARY_DIR}/corec_config.h
 )
 target_sources("corec_bare" INTERFACE ${corec_base_PUBLIC_HEADERS})
 target_include_directories("corec_bare" INTERFACE "..")
@@ -22,6 +26,8 @@ if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
     PUBLIC_HEADER "${corec_base_PUBLIC_HEADERS}"
   )
 endif()
+configure_file(corec_config.h.in corec_config.h)
+target_include_directories("corec_bare" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Node API
 set(corec_node_SOURCES
@@ -48,7 +54,6 @@ target_link_libraries("corec_node" INTERFACE "corec_array" "corec_str" "corec_fi
 if(CONFIG_MULTITHREAD)
   target_link_libraries("corec_node" INTERFACE "corec_multithread")
 endif(CONFIG_MULTITHREAD)
-
 
 # Array API
 set(corec_array_SOURCES
@@ -122,8 +127,6 @@ endif()
 add_subdirectory("helpers")
 
 add_library("corec")
-configure_file(full_config.h.in full/config.h)
-target_include_directories("corec" PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/full)
 target_compile_definitions("corec" PRIVATE BUILDING_COREC_LIBRARY)
 if (BUILD_SHARED_LIBS)
   target_link_libraries("corec" PRIVATE "corec_node" "corec_parser" "corec_system" "corec_md5")

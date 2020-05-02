@@ -6,7 +6,6 @@ add_executable("mkclean" mkclean.c)
 add_executable("mkWDclean" mkclean.c)
 
 configure_file(mkclean_project.h.in mkclean_project.h)
-configure_file(config.h.in config.h)
 target_include_directories("mkclean" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories("mkWDclean" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 

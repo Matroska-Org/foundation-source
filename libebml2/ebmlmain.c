@@ -27,20 +27,10 @@
  */
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
-#if defined(EBML_LIBRARY)
-# if defined(EBML_LEGACY_API)
-#  include "ebml2_legacy_project.h"
-# else
-#  include "ebml2_project.h"
-# endif
-#endif
 
 err_t EBML_Init(parsercontext *p)
 {
-    // TODO: only when used as standalone (no coremake & core-c in the rest of the project)
-#if defined(EBML_LIBRARY)
-    Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,PROJECT_NAME T(" v") PROJECT_VERSION);
-#endif
+    Node_SetData(p,CONTEXT_LIBEBML_VERSION,TYPE_STRING,T("libebml2 v") LIBEBML2_PROJECT_VERSION);
 
     NodeRegisterClassEx(&p->Base.Base,EBMLElement_Class);
 	NodeRegisterClassEx(&p->Base.Base,EBMLMaster_Class);

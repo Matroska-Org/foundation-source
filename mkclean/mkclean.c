@@ -29,6 +29,10 @@
 #include "matroska/matroska_sem.h"
 #include "mkclean_project.h"
 
+#ifndef CONFIG_EBML_WRITING
+#error libebml2 wasn't built with writing support!
+#endif
+
 /*!
  * \todo write the CRC-32 on Clusters too (make it faster in libebml2)
  * \todo discards tracks that has the same UID
