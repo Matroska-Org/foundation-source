@@ -50,12 +50,12 @@ void CharConvSS(charconv* CC, char* Out, size_t OutLen, const char* In)
 	if (OutLen>0)
 	{
 		WCHAR Temp[1024];
-		UINT OutCode = LOWORD((DWORD)CC);
-		UINT InCode = HIWORD((DWORD)CC);
+		UINT OutCode = LOWORD(CC);
+		UINT InCode = HIWORD(CC);
 
 		if (InCode == OutCode ||
 			!MultiByteToWideChar(InCode,0,In,-1,Temp,512) ||
-			!WideCharToMultiByte(OutCode,0,Temp,-1,Out,OutLen,0,0))
+			!WideCharToMultiByte(OutCode,0,Temp,-1,Out,(int)OutLen,0,0))
 		{
 			size_t n = min(strlen(In),OutLen-1);
 			memcpy(Out,In,n*sizeof(char));
@@ -66,8 +66,8 @@ void CharConvSS(charconv* CC, char* Out, size_t OutLen, const char* In)
 
 void CharConvWS(charconv* CC, wchar_t* Out, size_t OutLen, const char* In)
 {
-	UINT InCode = HIWORD((DWORD)CC);
-	if (!MultiByteToWideChar(InCode,0,In,-1,Out,OutLen))
+	UINT InCode = HIWORD(CC);
+	if (!MultiByteToWideChar(InCode,0,In,-1,Out,(int)OutLen))
 	{
 		for (;OutLen>1 && *In;++In,--OutLen,++Out)
 			*Out = (wchar_t)*In;
@@ -77,8 +77,8 @@ void CharConvWS(charconv* CC, wchar_t* Out, size_t OutLen, const char* In)
 
 void CharConvSW(charconv* CC, char* Out, size_t OutLen, const wchar_t* In)
 {
-	UINT OutCode = LOWORD((DWORD)CC);
-	if (!WideCharToMultiByte(OutCode,0,In,-1,Out,OutLen,0,0))
+	UINT OutCode = LOWORD(CC);
+	if (!WideCharToMultiByte(OutCode,0,In,-1,Out,(int)OutLen,0,0))
 	{
 		for (;OutLen>1 && *In;++In,--OutLen,++Out)
 			*Out = (char)(*In>255?'*':*In);
@@ -155,7 +155,7 @@ static NOINLINE UINT GetCodePage(const tchar_t* Name, bool_t To)
 
 charconv* CharConvOpen(const tchar_t* From, const tchar_t* To)
 {
-	return (charconv*)MAKELONG(GetCodePage(To,1),GetCodePage(From,0));
+	return (charconv*)(intptr_t)MAKELONG(GetCodePage(To,1),GetCodePage(From,0));
 }
 
 void CharConvClose(charconv* UNUSED_PARAM(p))

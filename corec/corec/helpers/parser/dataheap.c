@@ -124,7 +124,7 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
 
     if (Size==DATAALIGN(3*sizeof(void*)))
     {
-        dataheap_free* i;
+        dataheap_free* hf;
         if (!p->Free3)
         {
             Block.Count = 0;
@@ -141,16 +141,16 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
 
             for (n=1;n<BUFFER_SIZE-3;n+=3)
             {
-                i=(dataheap_free*)(Block.Data+n);
-                i->Next = p->Free3;
-                p->Free3 = i;
+                hf=(dataheap_free*)(Block.Data+n);
+                hf->Next = p->Free3;
+                p->Free3 = hf;
             }
         }
 
-        i=p->Free3;
-        p->Free3 = i->Next;
+        hf=p->Free3;
+        p->Free3 = hf->Next;
         LockLeave(p->Lock);
-        return i;
+        return hf;
     }
 
     DataHeap_Check(p);
