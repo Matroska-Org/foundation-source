@@ -233,7 +233,7 @@ typedef signed int intptr_t;
 
 #include <stdlib.h>
 
-#if !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
+#if !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__) && __STDC_VERSION__ < 199901L
 
 #include <inttypes.h>
 
@@ -256,8 +256,6 @@ typedef uint8_t uint_fast8_t;
 typedef int64_t int_fast64_t;
 typedef uint64_t uint_fast64_t;
 
-#else
-#include <stdint.h>
 #endif
 
 #if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0) && !defined(always_inline)
@@ -290,7 +288,58 @@ typedef uint64_t uint_fast64_t;
 
 #endif /* _MSC_VER */
 
-#if !defined(_STDINT_H) && !defined(_STDINT_H_) && !defined(_UINT64_T_DECLARED) // could be used elsewhere
+#ifndef ZLIB_INTERNAL
+
+#undef T
+#define TSIZEOF(name)	(sizeof(name)/sizeof(tchar_t))
+
+#if defined(UNICODE)
+
+#if defined(__GNUC__)
+#include <wchar.h>
+#endif
+
+#if defined(__GNUC__) && (__GNUC__<3) && defined(__cplusplus)
+typedef __wchar_t tchar_t;
+#else
+typedef wchar_t tchar_t;
+#endif
+
+#define tcsstr wcsstr
+#define tcslen wcslen
+#define tcschr wcschr
+#define tcsrchr wcsrchr
+#define tcscoll wcscoll
+#define tcstod wcstod
+#define tcscspn wcscspn
+#define tcspbrk wcspbrk
+#define tcstoul wcstoul
+#define tcsftime wcsftime
+#define T(a) L ## a
+#else /* UNICODE */
+typedef char tchar_t;
+#define tcsstr strstr
+#define tcslen strlen
+#define tcschr strchr
+#define tcsrchr strrchr
+#define tcscoll strcoll
+#define tcstod strtod
+#define tcscspn strcspn
+#define tcspbrk strpbrk
+#define tcstoul strtoul
+#define tcsftime strftime
+#define T(a) a
+#endif /* UNICODE */
+
+#define T__(x) T(x)
+#endif /* ZLIB_INTERNAL */
+
+#include "corec_config.h"
+#include "confhelper.h"
+
+#if defined(HAVE_STDINT_H)
+#include <stdint.h>
+#elif !defined(_STDINT_H) && !defined(_STDINT_H_) && !defined(_UINT64_T_DECLARED) // could be used elsewhere
 
 typedef signed long int32_t;
 typedef unsigned long uint32_t;
@@ -310,7 +359,7 @@ typedef signed char int_fast8_t;
 typedef unsigned char uint_fast8_t;
 typedef signed __int64 int_fast64_t;
 typedef unsigned __int64 uint_fast64_t;
-#else
+#else /* !IX86_64 && !IA64 */
 #if _MSC_VER >= 1400
 typedef __w64 signed int int_fast32_t;
 typedef __w64 unsigned int uint_fast32_t;
@@ -326,8 +375,8 @@ typedef signed char int_fast8_t;
 typedef unsigned char uint_fast8_t;
 typedef signed __int64 int_fast64_t;
 typedef unsigned __int64 uint_fast64_t;
-#endif
-#endif
+#endif /* !IX86_64 && !IA64 */
+#endif /* _STDINT_H | _STDINT_H_ | _UINT64_T_DECLARED */
 
 #ifdef _MSC_VER
 #define LL(x)   x##i64
@@ -408,52 +457,6 @@ typedef struct cc_rect
 	int Height;
 
 } cc_rect;
-
-#ifndef ZLIB_INTERNAL
-
-#undef T
-#define TSIZEOF(name)	(sizeof(name)/sizeof(tchar_t))
-
-#if defined(UNICODE)
-
-#if defined(__GNUC__)
-#include <wchar.h>
-#endif
-
-#if defined(__GNUC__) && (__GNUC__<3) && defined(__cplusplus)
-typedef __wchar_t tchar_t;
-#else
-typedef wchar_t tchar_t;
-#endif
-
-#define tcsstr wcsstr
-#define tcslen wcslen
-#define tcschr wcschr
-#define tcsrchr wcsrchr
-#define tcscoll wcscoll
-#define tcstod wcstod
-#define tcscspn wcscspn
-#define tcspbrk wcspbrk
-#define tcstoul wcstoul
-#define tcsftime wcsftime
-#define T(a) L ## a
-#else /* UNICODE */
-typedef char tchar_t;
-#define tcsstr strstr
-#define tcslen strlen
-#define tcschr strchr
-#define tcsrchr strrchr
-#define tcscoll strcoll
-#define tcstod strtod
-#define tcscspn strcspn
-#define tcspbrk strpbrk
-#define tcstoul strtoul
-#define tcsftime strftime
-#define T(a) a
-#endif /* UNICODE */
-
-#define T__(x) T(x)
-#endif
 
 #ifndef SIZEOF_WCHAR
 #if defined(TARGET_OSX) || defined(TARGET_LINUX)
@@ -593,9 +596,6 @@ static INLINE void* SwapSP(void* in)
 #else
 #define UNUSED_PARAM(x) (x)
 #endif
-
-#include "corec_config.h"
-#include "confhelper.h"
 
 #if defined(TARGET_IPHONE) && !defined(__ARM_NEON__)
 #undef CONFIG_NEON

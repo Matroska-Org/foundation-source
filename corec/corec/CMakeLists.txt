@@ -1,11 +1,15 @@
 project("corec" VERSION 1.0.0)
 
+include(CheckIncludeFile)
+
 option(CONFIG_STDIO "Build Core-C file API with stdio support" ON)
 option(CONFIG_MULTITHREAD "Enable multithread support in Core-C" OFF)
 option(CONFIG_DEBUGCHECKS "Add extra checks in Core-C objects/helpers in debug builds" ON)
 option(CONFIG_DEBUG_LEAKS "Debug leaks in Core-C objects in debug builds" OFF)
 option(CONFIG_SAFE_C "Notify unsafe C legacy calls" OFF)
 option(CONFIG_UNICODE "Use wide char for tchar_t (except Linux, OSX, Android)" ON)
+
+check_include_file(stdint.h    HAVE_STDINT_H)
 
 # Base core API
 add_library("corec_bare" INTERFACE)
