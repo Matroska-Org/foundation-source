@@ -374,8 +374,6 @@ typedef uint64_t uint_fast64_t;
 #endif
 
 #if (!defined(IX86) && !defined(_M_X64)) || defined(__CW32__)
-#define __stdcall
-#define __cdecl
 #define STDCALL
 #define CDECL
 #else
