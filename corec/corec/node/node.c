@@ -510,13 +510,13 @@ static NOINLINE bool_t DataFree(nodecontext* p, node* Node, nodedata** i, bool_t
     else
     if (Type == TYPE_NOTIFYEX)
     {
-        notifyex *n=(notifyex*)NodeData_Data(Data);
-        if (n->Free)
-            n->Free(n->FreeCookie,n->This);
+        notifyex *nx=(notifyex*)NodeData_Data(Data);
+        if (nx->Free)
+            nx->Free(nx->FreeCookie,nx->This);
     }
 
     *i = Data->Next;
-    MemHeap_Free(p->NodeHeap,Data,sizeof(nodedata)+Node_DataSize(Node,Data->Code>>8,Type,NodeData_Data(Data),META_PARAM_UNSET)); // META_PARAM_UNSET is neutral for the type
+    MemHeap_Free(p->NodeHeap,Data,sizeof(nodedata)+Node_DataSize(Node,(dataid)(Data->Code>>8),Type,NodeData_Data(Data),META_PARAM_UNSET)); // META_PARAM_UNSET is neutral for the type
     return 1;
 }
 
@@ -1275,10 +1275,10 @@ static void InitClass(nodecontext* p,nodeclass* Class)
 
 	    if (Class->State>=CLASS_INITED)
         {
-            nodeclass** i;
-    	    for (i=ARRAYBEGIN(p->NodeClass,nodeclass*);i!=ARRAYEND(p->NodeClass,nodeclass*);++i)
-	    	    if ((*i)->ParentClass == Class)
-		    	    InitClass(p,*i);
+            nodeclass** nc;
+    	    for (nc=ARRAYBEGIN(p->NodeClass,nodeclass*);nc!=ARRAYEND(p->NodeClass,nodeclass*);++nc)
+	    	    if ((*nc)->ParentClass == Class)
+		    	    InitClass(p,*nc);
         }
     }
 }
@@ -1371,8 +1371,6 @@ nodeclass* NodeContext_CreateClass(nodecontext* p, fourcc_t ClassId, size_t VMTS
 
 	if (!Class)
 	{
-   	    nodeclass** i;
-
 		Class = (nodeclass*) MemHeap_Alloc(p->NodeHeap,Size,0);
 		if (!Class)
 			return NULL;
@@ -2370,7 +2368,6 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
                         if ((Type & TYPE_MASK) == TYPE_BOOL_BIT)
                         {
                             bool_t v;
-                            uint32_t Bit;
                             assert(Lookup[Mid+1].Id == Id && Lookup[Mid+1].Meta->Meta==META_PARAM_BIT);
                             Bit = (uint32_t)Lookup[Mid+1].Meta->Data;
                             v = (*(uint32_t*)Ptr & Bit) != 0;
@@ -2580,7 +2577,6 @@ static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
                         if ((Type & TYPE_MASK) == TYPE_BOOL_BIT)
                         {
                             bool_t v;
-                            uint32_t Bit;
                             assert(Lookup[Mid+1].Id == Id && Lookup[Mid+1].Meta->Meta==META_PARAM_BIT);
                             Bit = (uint32_t)Lookup[Mid+1].Meta->Data;
                             v = (*(uint32_t*)Ptr & Bit) != 0;
@@ -2954,9 +2950,9 @@ void Node_Copy(node* p, node* Src, array* Dup)
         datatype Type = i->Code & TYPE_MASK;
         if (Type == TYPE_EXPRSTRING || Type == TYPE_EXPRPARAM || Type == TYPE_EXPR)
         {
-            void* Data = Node_AddData(p,i->Code>>8,Type,NodeData_Data(i));
-            if (Type == TYPE_EXPR && Data)
-                NodeClass_Context(Class)->ExprDup(p,(nodeexpr*)Data,Dup);
+            nodeexpr* expr = Node_AddData(p,(dataid)(i->Code>>8),Type,NodeData_Data(i));
+            if (Type == TYPE_EXPR && expr)
+                NodeClass_Context(Class)->ExprDup(p,expr,Dup);
         }
     }
 

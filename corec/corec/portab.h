@@ -761,7 +761,7 @@ typedef int_fast32_t filepos_t;
 #define INVALID_FILEPOS_T  ((filepos_t)-1)
 
 #if defined(TARGET_WIN)
-typedef unsigned long systick_t; /* DWORD */
+typedef long systick_t; /* same size as DWORD */
 #else
 typedef int systick_t;
 #endif

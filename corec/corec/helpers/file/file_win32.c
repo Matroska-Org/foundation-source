@@ -396,9 +396,9 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 
             if (Drives[0])
             {
-                size_t n = tcslen(Drives);
-                if (Drives[n-1] == '\\')
-                    Drives[n-1] = 0;
+                size_t len = tcslen(Drives);
+                if (Drives[len-1] == '\\')
+                    Drives[len-1] = 0;
                 tcscpy_s(Item->FileName,TSIZEOF(Item->FileName),Drives);
                 Item->ModifiedDate = INVALID_DATETIME_T;
                 Item->Size = INVALID_FILEPOS_T;

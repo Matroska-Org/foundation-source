@@ -1306,7 +1306,6 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
 	case TYPE_INT:
         if ((Flags & TUNIT_MASK)==TUNIT_PERCENT)
         {
-            cc_fraction f;
             StringToFraction(Value,&f,1);
             *(int*)Data = ScaleRound(PERCENT_ONE,f.Num,f.Den);
         }
@@ -1426,7 +1425,7 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
 
         for (;;)
         {
-            size_t Size = sizeof(Data);
+            Size = sizeof(Data);
 
             if (!ExprToData(Data,&Size,Flags,State,&Expr))
                 break;
@@ -1620,7 +1619,6 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
 	case TYPE_INT:
         if ((Type & TUNIT_MASK)==TUNIT_PERCENT)
         {
-            cc_fraction f;
             f.Num = *(int*)Data;
             f.Den = PERCENT_ONE;
             FractionToString(Value,ValueLen,&f,-1,1);
