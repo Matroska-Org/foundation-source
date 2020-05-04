@@ -4,9 +4,12 @@
 #cmakedefine CONFIG_MULTITHREAD
 #cmakedefine CONFIG_SAFE_C
 #cmakedefine CONFIG_ZLIB
-#cmakedefine CONFIG_UNICODE
+
+#define @CONFIG_UNICODE_MODE@
 
 #cmakedefine HAVE_STDINT_H
+
+#include "corec/confhelper.h"
 
 #define COREC_PROJECT_VERSION T("@corec_VERSION_MAJOR@.@corec_VERSION_MINOR@.@corec_VERSION_PATCH@")
 #define COREC_VERSION ((@corec_VERSION_MAJOR@ << 24) | (@corec_VERSION_MINOR@ << 16) | @corec_VERSION_PATCH@)
