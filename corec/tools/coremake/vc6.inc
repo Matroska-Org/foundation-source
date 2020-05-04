@@ -7,7 +7,7 @@ CONFIG
 TARG_DEBUG = Debug
 TARG_RELEASE = Release
 
-IFDEF COREMAKE_UNICODE
+IFDEF CONFIG_UNICODE
   TARG_DEBUG = %(TARG_DEBUG) Unicode
   TARG_RELEASE = %(TARG_RELEASE) Unicode
 ENDIF
@@ -24,7 +24,7 @@ ENDIF
 
 FOR EACH WORKSPACE
 
-  FILE %(¯PATH)%(NAME).dsw
+  FILE %(Â¯PATH)%(NAME).dsw
   PRINTNLDOS Microsoft Developer Studio Workspace File, Format Version 6.00
   PRINTNLDOS # WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
   PRINTNLDOS 
@@ -32,7 +32,7 @@ FOR EACH WORKSPACE
     IF (%(TYPE)!=LIB_CSHARP) && (%(TYPE)!=DLL_CSHARP) && (%(TYPE)!=CON_CSHARP) && (%(TYPE)!=EXE_CSHARP)
       PRINTNLDOS ###############################################################################
       PRINTNLDOS 
-      PRINTNLDOS Project: "%(NAME)"=%(¯!PATH)%(NAME).dsp - Package Owner=<4>
+      PRINTNLDOS Project: "%(NAME)"=%(Â¯!PATH)%(NAME).dsp - Package Owner=<4>
       PRINTNLDOS 
       PRINTNLDOS Package=<5>
       PRINTNLDOS {{{
@@ -86,7 +86,7 @@ FOR EACH WORKSPACE
         ../EXE += "%(NAME)"
       ENDIF
     ENDFOR
-    FILE %(¯PATH)Makefile.vc6
+    FILE %(Â¯PATH)Makefile.vc6
     PRINTNL all: %(EXE)
     PRINTNL 
     FOR EACH USE
@@ -96,23 +96,23 @@ FOR EACH WORKSPACE
       PRINTNL 	@del /q %(../NAME).log.tmp
       IF %(NSI)!=""
         IF %(EXEPROTECT)!=""
-          TARGET = %(¯~!OUTPUTPATH)release\%(OUTPUT)
+          TARGET = %(Â¯~!OUTPUTPATH)release\%(OUTPUT)
           PRINTNL 	@%(EXEPROTECT)
           FOR EACH USE
             IF %(TYPE)==DLL
-              TARGET = %(¯~!OUTPUTPATH)release\%(OUTPUT)
+              TARGET = %(Â¯~!OUTPUTPATH)release\%(OUTPUT)
               PRINTNL 	@%(../EXEPROTECT)
             ENDIF
           ENDFOR
         ENDIF
         COMPILE %(NSI) %(PATH)%(NAME)_win32.nsi
-        PRINTNL 	@makensis.exe /V2 %(¯!PATH)%(NAME)_win32.nsi /O%(NAME)_nsi.log
+        PRINTNL 	@makensis.exe /V2 %(Â¯!PATH)%(NAME)_win32.nsi /O%(NAME)_nsi.log
       ENDIF
       PRINTNL 
     ENDFOR
     PRINTNL clean:
-    PRINTNL 	@if exist %(¯~!§BUILDPATH) rmdir /s /q %(¯~!§BUILDPATH)
-    PRINTNL 	@if exist %(¯~!§OUTPUTPATH) rmdir /s /q %(¯~!§OUTPUTPATH)
+    PRINTNL 	@if exist %(Â¯~!Â§BUILDPATH) rmdir /s /q %(Â¯~!Â§BUILDPATH)
+    PRINTNL 	@if exist %(Â¯~!Â§OUTPUTPATH) rmdir /s /q %(Â¯~!Â§OUTPUTPATH)
   ENDIF
 
 ENDFOR
@@ -127,7 +127,7 @@ FOR EACH LIB,DLL,EXE,CON
     DEFINE += __palmos__
   ENDIF
 
-  IFNDEF COREMAKE_UNICODE
+  IFNDEF CONFIG_UNICODE
     DEFINE += _MBCS
   ELSE
     DEFINE += UNICODE
@@ -191,7 +191,7 @@ FOR EACH LIB,DLL,EXE,CON
     SOURCE += %(DEF)
   ENDIF
 
-  FILE %(¯PATH)%(NAME).dsp
+  FILE %(Â¯PATH)%(NAME).dsp
 
   IF "%(USELIB)"
     LIBS += %(USELIB:%=%_%(PLATFORMLIB).lib)
@@ -205,9 +205,9 @@ FOR EACH LIB,DLL,EXE,CON
   ENDFOR
   
   IF %(HAS_IDL)
-    INCLUDE += %(¯|BUILDPATH)%(~§PATH)
-    INCLUDE_DEBUG   += %(¯|OUTPUTPATH)debug\%(OUTPUT_DIR)
-    INCLUDE_RELEASE += %(¯|OUTPUTPATH)release\%(OUTPUT_DIR)
+    INCLUDE += %(Â¯|BUILDPATH)%(~Â§PATH)
+    INCLUDE_DEBUG   += %(Â¯|OUTPUTPATH)debug\%(OUTPUT_DIR)
+    INCLUDE_RELEASE += %(Â¯|OUTPUTPATH)release\%(OUTPUT_DIR)
   ENDIF
 
   IF %(PRECOMPILED_HEADER)!=""
@@ -277,8 +277,8 @@ FOR EACH LIB,DLL,EXE,CON
     PRINTNLDOS # PROP BASE Use_MFC 0
   ENDIF
   PRINTNLDOS # PROP BASE Use_Debug_Libraries 0
-  PRINTNLDOS # PROP BASE Output_Dir "%(¯~!OUTPUTPATH)release\%(OUTPUT_DIR)"
-  PRINTNLDOS # PROP BASE Intermediate_Dir "%(¯~!BUILDPATH)release\%(~PATH)"
+  PRINTNLDOS # PROP BASE Output_Dir "%(Â¯~!OUTPUTPATH)release\%(OUTPUT_DIR)"
+  PRINTNLDOS # PROP BASE Intermediate_Dir "%(Â¯~!BUILDPATH)release\%(~PATH)"
   PRINTNLDOS # PROP BASE Target_Dir ""
   IF "%(USE_MFC)"
     IF %(USE_MFC)=="dll"
@@ -290,8 +290,8 @@ FOR EACH LIB,DLL,EXE,CON
     PRINTNLDOS # PROP Use_MFC 0
   ENDIF
   PRINTNLDOS # PROP Use_Debug_Libraries 0
-  PRINTNLDOS # PROP Output_Dir "%(¯~!OUTPUTPATH)release\%(OUTPUT_DIR)"
-  PRINTNLDOS # PROP Intermediate_Dir "%(¯~!BUILDPATH)release\%(~PATH)"
+  PRINTNLDOS # PROP Output_Dir "%(Â¯~!OUTPUTPATH)release\%(OUTPUT_DIR)"
+  PRINTNLDOS # PROP Intermediate_Dir "%(Â¯~!BUILDPATH)release\%(~PATH)"
   PRINTNLDOS # PROP Ignore_Export_Lib 0
   PRINTNLDOS # PROP Target_Dir ""
   PRINTNLDOS # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "NDEBUG" %(CFLAGS) %(CONFIG_INCLUDE:%=/I "%") %(@INCLUDE_RELEASE:%=/I "%") %(PRECOMP_OPTION) /FD /c
@@ -312,7 +312,7 @@ FOR EACH LIB,DLL,EXE,CON
   ELSE
   PRINTNLDOS LINK32=link.exe
   PRINTNLDOS # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib %(LIBS) %(LIBS_RELEASE) %(MFCFLAGS) /nologo %(TARGLINK) %(@LIBINCLUDE:%=/libpath:%) %(@LIBINCLUDE_RELEASE:%=/libpath:%) /machine:I386
-  PRINTNLDOS # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib %(LIBS) %(LIBS_RELEASE) %(MFCFLAGS) /nologo %(TARGLINK) %(@LIBINCLUDE:%=/libpath:%) %(@LIBINCLUDE_RELEASE:%=/libpath:%) /map /machine:I386 /out:"%(¯~!OUTPUTPATH)release/%(OUTPUT)"
+  PRINTNLDOS # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib %(LIBS) %(LIBS_RELEASE) %(MFCFLAGS) /nologo %(TARGLINK) %(@LIBINCLUDE:%=/libpath:%) %(@LIBINCLUDE_RELEASE:%=/libpath:%) /map /machine:I386 /out:"%(Â¯~!OUTPUTPATH)release/%(OUTPUT)"
   ENDIF
   IF (%(TYPE)==EXE) && defined(TARGET_PALMOS)
     PRINTNLDOS # Begin Special Build Tool
@@ -333,8 +333,8 @@ FOR EACH LIB,DLL,EXE,CON
     PRINTNLDOS # PROP BASE Use_MFC 0
   ENDIF
   PRINTNLDOS # PROP BASE Use_Debug_Libraries 1
-  PRINTNLDOS # PROP BASE Output_Dir "%(¯~!OUTPUTPATH)debug\%(OUTPUT_DIR)"
-  PRINTNLDOS # PROP BASE Intermediate_Dir "%(¯~!BUILDPATH)debug\%(~PATH)"
+  PRINTNLDOS # PROP BASE Output_Dir "%(Â¯~!OUTPUTPATH)debug\%(OUTPUT_DIR)"
+  PRINTNLDOS # PROP BASE Intermediate_Dir "%(Â¯~!BUILDPATH)debug\%(~PATH)"
   PRINTNLDOS # PROP BASE Target_Dir ""
   IF "%(USE_MFC)"
     IF %(USE_MFC)=="dll"
@@ -346,8 +346,8 @@ FOR EACH LIB,DLL,EXE,CON
     PRINTNLDOS # PROP Use_MFC 0
   ENDIF
   PRINTNLDOS # PROP Use_Debug_Libraries 1
-  PRINTNLDOS # PROP Output_Dir "%(¯~!OUTPUTPATH)debug\%(OUTPUT_DIR)"
-  PRINTNLDOS # PROP Intermediate_Dir "%(¯~!BUILDPATH)debug\%(~PATH)"
+  PRINTNLDOS # PROP Output_Dir "%(Â¯~!OUTPUTPATH)debug\%(OUTPUT_DIR)"
+  PRINTNLDOS # PROP Intermediate_Dir "%(Â¯~!BUILDPATH)debug\%(~PATH)"
   PRINTNLDOS # PROP Ignore_Export_Lib 0
   PRINTNLDOS # PROP Target_Dir ""
   PRINTNLDOS # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od  /D "_DEBUG" %(CFLAGS) %(CONFIG_INCLUDE:%=/I "%") %(@INCLUDE_DEBUG:%=/I "%") %(PRECOMP_OPTION) /FD /GZ /c
@@ -368,7 +368,7 @@ FOR EACH LIB,DLL,EXE,CON
   ELSE
   PRINTNLDOS LINK32=link.exe
   PRINTNLDOS # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib %(LIBS) %(LIBS_DEBUG) %(MFCFLAGS) /nologo %(TARGLINK) %(@LIBINCLUDE:%=/libpath:%) %(@LIBINCLUDE_DEBUG:%=/libpath:%) /debug /machine:I386 /pdbtype:sept
-  PRINTNLDOS # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib %(LIBS) %(LIBS_DEBUG) %(MFCFLAGS) /nologo %(TARGLINK) %(@LIBINCLUDE:%=/libpath:%) %(@LIBINCLUDE_DEBUG:%=/libpath:%) /debug /machine:I386 /out:"%(¯~!OUTPUTPATH)debug/%(OUTPUT)" /pdbtype:sept
+  PRINTNLDOS # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib %(LIBS) %(LIBS_DEBUG) %(MFCFLAGS) /nologo %(TARGLINK) %(@LIBINCLUDE:%=/libpath:%) %(@LIBINCLUDE_DEBUG:%=/libpath:%) /debug /machine:I386 /out:"%(Â¯~!OUTPUTPATH)debug/%(OUTPUT)" /pdbtype:sept
   ENDIF
   IF (%(TYPE)==EXE) && defined(TARGET_PALMOS)
     PRINTNLDOS # Begin Special Build Tool
@@ -403,7 +403,7 @@ FOR EACH LIB,DLL,EXE,CON
       PRINTNLDOS 
       PRINTNLDOS # PROP Ignore_Default_Tool 1
       PRINTNLDOS # Begin Custom Build
-      PRINTNLDOS IntDir=%(¯~!BUILDPATH)release\%(~PATH)
+      PRINTNLDOS IntDir=%(Â¯~!BUILDPATH)release\%(~PATH)
       PRINTNLDOS InputPath=%(~!NAME)
       PRINTNLDOS InputName=%(<NAME)
       PRINTNLDOS 
@@ -416,7 +416,7 @@ FOR EACH LIB,DLL,EXE,CON
       PRINTNLDOS 
       PRINTNLDOS # PROP Ignore_Default_Tool 1
       PRINTNLDOS # Begin Custom Build
-      PRINTNLDOS IntDir=%(¯~!BUILDPATH)debug\%(~PATH)
+      PRINTNLDOS IntDir=%(Â¯~!BUILDPATH)debug\%(~PATH)
       PRINTNLDOS InputPath=%(~!NAME)
       PRINTNLDOS InputName=%(<NAME)
       PRINTNLDOS 
@@ -430,17 +430,17 @@ FOR EACH LIB,DLL,EXE,CON
     ELSE
       IF (%(>NAME)==idl)
         PRINTNLDOS !IF  "$(CFG)" == "%(PRJNAME) - Win32 %(TARG_RELEASE)"
-        PRINTNLDOS # ADD MTL /tlb "%(¯~!OUTPUTPATH)release\%(OUTPUT_DIR)%(PRJNAME).tlb" /h "%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.h" /iid "%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.c"
+        PRINTNLDOS # ADD MTL /tlb "%(Â¯~!OUTPUTPATH)release\%(OUTPUT_DIR)%(PRJNAME).tlb" /h "%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.h" /iid "%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.c"
         PRINTNLDOS 
         PRINTNLDOS !ELSEIF  "$(CFG)" == "%(PRJNAME) - Win32 %(TARG_DEBUG)"
-        PRINTNLDOS # ADD MTL /tlb "%(¯~!OUTPUTPATH)debug\%(OUTPUT_DIR)%(PRJNAME).tlb" /h "%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.h" /iid "%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.c"
+        PRINTNLDOS # ADD MTL /tlb "%(Â¯~!OUTPUTPATH)debug\%(OUTPUT_DIR)%(PRJNAME).tlb" /h "%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.h" /iid "%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.c"
         PRINTNLDOS 
         PRINTNLDOS !ENDIF 
         IF %(cmarshal)!=""
           PRINTNLDOS # End Source File
           PRINTNLDOS # Begin Source File
           PRINTNLDOS 
-          PRINTNLDOS SOURCE="%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.c"
+          PRINTNLDOS SOURCE="%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.c"
         ENDIF
       ELSE 
         IF (%(_copy_item))
@@ -448,7 +448,7 @@ FOR EACH LIB,DLL,EXE,CON
           PRINTNLDOS 
           PRINTNLDOS # PROP Ignore_Default_Tool 1
           PRINTNLDOS # Begin Custom Build
-          PRINTNLDOS TargetDir=%(¯~!OUTPUTPATH)release
+          PRINTNLDOS TargetDir=%(Â¯~!OUTPUTPATH)release
           PRINTNLDOS InputPath=%(~!NAME)
           PRINTNLDOS InputName=%(<NAME)
           PRINTNLDOS 
@@ -461,7 +461,7 @@ FOR EACH LIB,DLL,EXE,CON
           PRINTNLDOS 
           PRINTNLDOS # PROP Ignore_Default_Tool 1
           PRINTNLDOS # Begin Custom Build
-          PRINTNLDOS TargetDir=%(¯~!OUTPUTPATH)debug
+          PRINTNLDOS TargetDir=%(Â¯~!OUTPUTPATH)debug
           PRINTNLDOS InputPath=%(~!NAME)
           PRINTNLDOS InputName=%(<NAME)
           PRINTNLDOS 

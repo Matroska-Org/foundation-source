@@ -2,7 +2,7 @@ IF DEFINED(COREMAKE_MSVCRT) || "%(USE_MFC)"=="dll"
   USE_DLL_RUNTIME=1
 ENDIF
 
-IFDEF COREMAKE_UNICODE
+IFDEF CONFIG_UNICODE
   DEFINE += UNICODE
 ENDIF
 
@@ -55,7 +55,7 @@ IF "%(PRECOMPILED_HEADER)"
 ENDIF
 
 IF "%(OUTPUT_DIR)"!=""
-  OUTPUTDIR = \%(~§OUTPUT_DIR)
+  OUTPUTDIR = \%(~Â§OUTPUT_DIR)
 ENDIF
 
 // trick because it's not possible to do the basic assignment with &
@@ -68,8 +68,8 @@ IF "%(PROJ_IS_ICL)"
   PRINTNL     <ProjectConfiguration Include="%(TARG_DEBUG)|%(TARGNAME)">
   PRINTNL       <Tool
   PRINTNL         Name="GeneralTool"
-PRINTNL       OutputDirectory="%(¯~!OUTPUTPATH)debug%(OUTPUTDIR)"
-PRINTNL       IntermediateDirectory="%(¯~!BUILDPATH)debug\%(~§PATH)\%(NAME)"
+PRINTNL       OutputDirectory="%(Â¯~!OUTPUTPATH)debug%(OUTPUTDIR)"
+PRINTNL       IntermediateDirectory="%(Â¯~!BUILDPATH)debug\%(~Â§PATH)\%(NAME)"
 PRINTNL       ConfigurationType="%(TARGCONFTYPE)"
 ELSE
   PRINTNL     <ProjectConfiguration Include="%(TARG_DEBUG)|%(TARGNAME)">
@@ -81,8 +81,8 @@ IF "%(PROJ_IS_ICL)"
   PRINTNL     <ProjectConfiguration Include="%(TARG_RELEASE)|%(TARGNAME)">
   PRINTNL       <Tool
   PRINTNL         Name="GeneralTool"
-PRINTNL       OutputDirectory="%(¯~!OUTPUTPATH)release%(OUTPUTDIR)"
-PRINTNL       IntermediateDirectory="%(¯~!BUILDPATH)release\%(~§PATH)\%(NAME)"
+PRINTNL       OutputDirectory="%(Â¯~!OUTPUTPATH)release%(OUTPUTDIR)"
+PRINTNL       IntermediateDirectory="%(Â¯~!BUILDPATH)release\%(~Â§PATH)\%(NAME)"
 PRINTNL       ConfigurationType="%(TARGCONFTYPE)"
 ELSE
   PRINTNL     <ProjectConfiguration Include="%(TARG_RELEASE)|%(TARGNAME)">
@@ -133,15 +133,15 @@ PRINTNL   <PropertyGroup>
 PRINTNL     <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
 PRINTNL   </PropertyGroup>
 PRINTNL   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_DEBUG)|%(TARGNAME)'">
-PRINTNL     <OutDir>%(¯~!OUTPUTPATH)debug%(~§OUTPUTDIR)\</OutDir>
-PRINTNL     <IntDir>%(¯~!BUILDPATH)debug\%(~§PATH)\%(NAME)\</IntDir>
+PRINTNL     <OutDir>%(Â¯~!OUTPUTPATH)debug%(~Â§OUTPUTDIR)\</OutDir>
+PRINTNL     <IntDir>%(Â¯~!BUILDPATH)debug\%(~Â§PATH)\%(NAME)\</IntDir>
 IFDEF COMPILER_CLANG
   PRINTNL     <UseMultiToolTask>true</UseMultiToolTask>
 ENDIF
 PRINTNL   </PropertyGroup>
 PRINTNL   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%(TARG_RELEASE)|%(TARGNAME)'">
-PRINTNL     <OutDir>%(¯~!OUTPUTPATH)release%(~§OUTPUTDIR)\</OutDir>
-PRINTNL     <IntDir>%(¯~!BUILDPATH)release\%(~§PATH)\%(NAME)\</IntDir>
+PRINTNL     <OutDir>%(Â¯~!OUTPUTPATH)release%(~Â§OUTPUTDIR)\</OutDir>
+PRINTNL     <IntDir>%(Â¯~!BUILDPATH)release\%(~Â§PATH)\%(NAME)\</IntDir>
 IFDEF COMPILER_CLANG
   PRINTNL     <UseMultiToolTask>true</UseMultiToolTask>
 ENDIF
@@ -152,7 +152,7 @@ PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&D
 PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <MkTypLibCompatible>false</MkTypLibCompatible>
 PRINTNL       <TypeLibraryName>$(TargetDir)$(ProjectName).tlb</TypeLibraryName>
-PRINTNL       <OutputDirectory>%(¯~!BUILDPATH)%(~§PATH)</OutputDirectory>
+PRINTNL       <OutputDirectory>%(Â¯~!BUILDPATH)%(~Â§PATH)</OutputDirectory>
 PRINTNL       <HeaderFileName>%%(Filename)_i.h</HeaderFileName>
 PRINTNL     </Midl>
 PRINTNL     <ClCompile>
@@ -178,11 +178,11 @@ ELIF "%(LIMIT_INLINE)"
   PRINTNL       <InlineFunctionExpansion>1</InlineFunctionExpansion>
 ENDIF
 IF ("%(HAS_IDL)") || ("%(HEADER_QT4)"!="") || ("%(UI_FORM_QT4)"!="")
-  INCLUDE += %(¯|BUILDPATH)%(PATH)
+  INCLUDE += %(Â¯|BUILDPATH)%(PATH)
 ENDIF
 IF "%(HEADER_QT4)"!=""
-  INCLUDE_DEBUG += %(¯|BUILDPATH)debug\%(PATH)GeneratedFiles
-  INCLUDE_RELEASE += %(¯|BUILDPATH)release\%(PATH)GeneratedFiles
+  INCLUDE_DEBUG += %(Â¯|BUILDPATH)debug\%(PATH)GeneratedFiles
+  INCLUDE_RELEASE += %(Â¯|BUILDPATH)release\%(PATH)GeneratedFiles
 ENDIF
 PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_DEBUG:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <PreprocessorDefinitions>_DEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&DEFINE_DEBUG:%=;%)</PreprocessorDefinitions>
@@ -303,7 +303,7 @@ PRINTNL       <PreprocessorDefinitions>NDEBUG%(&TARGDEF:%=;%)%(&DEFINE:%=;%)%(&D
 PRINTNL       <AdditionalIncludeDirectories>%(@&CONFIG_INCLUDE:%=;%)%(@&INCLUDE:%=;%)%(@&INCLUDE_RELEASE:%=;%)%(@&SYSINCLUDE:%=;%);%(&TARGINC)</AdditionalIncludeDirectories>
 PRINTNL       <MkTypLibCompatible>false</MkTypLibCompatible>
 PRINTNL       <TypeLibraryName>$(TargetDir)$(ProjectName).tlb</TypeLibraryName>
-PRINTNL       <OutputDirectory>%(¯~!BUILDPATH)%(~§PATH)</OutputDirectory>
+PRINTNL       <OutputDirectory>%(Â¯~!BUILDPATH)%(~Â§PATH)</OutputDirectory>
 PRINTNL       <HeaderFileName>%%(Filename)_i.h</HeaderFileName>
 PRINTNL     </Midl>
 PRINTNL     <ClCompile>
@@ -443,7 +443,7 @@ ENDIF
 PRINTNL   </ItemDefinitionGroup>
 PRINTNL   <ItemGroup>
 FOR EACH USE, DEP
-  PRINTNL     <ProjectReference Include="%(¯~!PATH)%(NAME).vcxproj">
+  PRINTNL     <ProjectReference Include="%(Â¯~!PATH)%(NAME).vcxproj">
   PRINTNL       <Project>%(GUID)</Project>
   PRINTNL     </ProjectReference>
 ENDFOR
@@ -803,13 +803,13 @@ IF "%(HEADER_QT4)"!=""||"%(RESOURCE_QT4)"!=""||"%(XRC_SOURCE)"!=""||"%(HAS_IDL)"
   FOR EACH SOURCE
     IF (%(>NAME)==idl) && %(hmarshal)!=""
       PRINTNL       <File
-      PRINTNL         RelativePath="%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.h"
+      PRINTNL         RelativePath="%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.h"
       PRINTNL         >
       PRINTNL       </File>
     ENDIF
     IF (%(>NAME)==idl) && %(cmarshal)!=""
       PRINTNL       <File
-      PRINTNL         RelativePath="%(¯~!BUILDPATH)%(~§PATH)\%(<NAME)_i.c"
+      PRINTNL         RelativePath="%(Â¯~!BUILDPATH)%(~Â§PATH)\%(<NAME)_i.c"
       PRINTNL         >
       IF "%(PRECOMPILED_HEADER)"
         PRINTNL          <FileConfiguration
@@ -834,14 +834,14 @@ IF "%(HEADER_QT4)"!=""||"%(RESOURCE_QT4)"!=""||"%(XRC_SOURCE)"!=""||"%(HAS_IDL)"
   ENDFOR
   FOR EACH XRC_SOURCE
     PRINTNL       <File
-    PRINTNL         RelativePath="%(¯~!BUILDPATH)%(~PATH)xrc_%(~<!NAME).cpp"
+    PRINTNL         RelativePath="%(Â¯~!BUILDPATH)%(~PATH)xrc_%(~<!NAME).cpp"
     PRINTNL         >
     PRINTNL       </File>
   ENDFOR
   FOR EACH HEADER_QT4
    IF (%(>NAME)!=cpp)
     PRINTNL       <File
-    PRINTNL         RelativePath="%(¯~!BUILDPATH)debug\%(PATH)GeneratedFiles\moc_%(~<!NAME).cpp"
+    PRINTNL         RelativePath="%(Â¯~!BUILDPATH)debug\%(PATH)GeneratedFiles\moc_%(~<!NAME).cpp"
     PRINTNL         >
     PRINTNL        <FileConfiguration
     PRINTNL          Name="%(TARG_RELEASE)|%(TARGNAME)"
@@ -854,7 +854,7 @@ IF "%(HEADER_QT4)"!=""||"%(RESOURCE_QT4)"!=""||"%(XRC_SOURCE)"!=""||"%(HAS_IDL)"
     PRINTNL        </FileConfiguration>
     PRINTNL      </File>
     PRINTNL      <File
-    PRINTNL        RelativePath="%(¯~!BUILDPATH)release\%(PATH)GeneratedFiles\moc_%(~<!NAME).cpp"
+    PRINTNL        RelativePath="%(Â¯~!BUILDPATH)release\%(PATH)GeneratedFiles\moc_%(~<!NAME).cpp"
     PRINTNL        >
     PRINTNL        <FileConfiguration
     PRINTNL          Name="%(TARG_DEBUG)|%(TARGNAME)"
@@ -870,7 +870,7 @@ IF "%(HEADER_QT4)"!=""||"%(RESOURCE_QT4)"!=""||"%(XRC_SOURCE)"!=""||"%(HAS_IDL)"
   ENDFOR
   FOR EACH RESOURCE_QT4
     PRINTNL       <File
-    PRINTNL         RelativePath="%(¯~!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp"
+    PRINTNL         RelativePath="%(Â¯~!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp"
     PRINTNL         >
     IF "%(PRECOMPILED_HEADER)"!="" && "%(PRECOMPILED_HEADER_FORCED)"=="no"
       PRINTNL         <FileConfiguration
@@ -906,9 +906,9 @@ IF "%(RESOURCE_QT4)"!=""
       PRINTNL           <Tool
       PRINTNL             Name="%(CUSTOM_TOOL)"
       PRINTNL             Description="Rcc&apos;ing %(~!NAME)..."
-      PRINTNL             CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -compress 1 -name %(~<!NAME) %(~!NAME) -o &quot;%(¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp&quot;%(CMD_NEWLINE)"
+      PRINTNL             CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -compress 1 -name %(~<!NAME) %(~!NAME) -o &quot;%(Â¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp&quot;%(CMD_NEWLINE)"
       PRINTNL             AdditionalDependencies="$(QTDIR)\bin\rcc.exe"
-      PRINTNL             Outputs="%(¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp"
+      PRINTNL             Outputs="%(Â¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp"
       PRINTNL           />
       PRINTNL         </FileConfiguration>
       PRINTNL         <FileConfiguration
@@ -917,9 +917,9 @@ IF "%(RESOURCE_QT4)"!=""
       PRINTNL           <Tool
       PRINTNL             Name="%(CUSTOM_TOOL)"
       PRINTNL             Description="Rcc&apos;ing %(~!NAME)..."
-      PRINTNL             CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name %(~<!NAME) %(~!NAME) -o &quot;%(¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp&quot;%(CMD_NEWLINE)"
+      PRINTNL             CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name %(~<!NAME) %(~!NAME) -o &quot;%(Â¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp&quot;%(CMD_NEWLINE)"
       PRINTNL             AdditionalDependencies="$(QTDIR)\bin\rcc.exe"
-      PRINTNL             Outputs="%(¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp"
+      PRINTNL             Outputs="%(Â¯!BUILDPATH)%(PATH)GeneratedFiles\qrc_%(~<!NAME).cpp"
       PRINTNL           />
       PRINTNL         </FileConfiguration>
     PRINTNL       </File>

@@ -15,7 +15,7 @@ CON node_test
 CON string_test
 {
   USE str
-  USE(COREMAKE_UNICODE) charconvert
+  USE(CONFIG_UNICODE) charconvert
   SOURCE string_test.c
 }
 
