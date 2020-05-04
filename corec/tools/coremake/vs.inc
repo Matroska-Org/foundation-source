@@ -14,7 +14,7 @@ ENDIF
 CONFIG
 
 #ifdef TARGET_WINCE
-#define COREMAKE_UNICODE
+#define CONFIG_UNICODE
 #endif
 
 #include "winrc.inc"
@@ -22,7 +22,7 @@ CONFIG
 TARG_DEBUG = Debug
 TARG_RELEASE = Release
 
-IFDEF COREMAKE_UNICODE
+IFDEF CONFIG_UNICODE
   TARG_DEBUG = %(TARG_DEBUG) Unicode
   TARG_RELEASE = %(TARG_RELEASE) Unicode
 ENDIF
@@ -50,7 +50,7 @@ ENDIF
 
 FOR EACH WORKSPACE
 
-  FILE %(¯PATH)%(NAME).sln
+  FILE %(Â¯PATH)%(NAME).sln
   IF "%(VSVERSION)"=="8.00"
     PRINTNL Microsoft Visual Studio Solution File, Format Version 9.00
     PRINTNL # Visual %(VSBUILDER)
@@ -87,7 +87,7 @@ FOR EACH WORKSPACE
         PRINTNL Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "%(NAME)", "%(~!PATH)%(NAME).csproj", "%(GUID)"
       ENDIF
     ELSE
-      PRINTNL Project("%(PROJECT_GUID)") = "%(NAME)", "%(¯~!PATH)%(NAME).%(PROJECT_EXT)", "%(GUID)"
+      PRINTNL Project("%(PROJECT_GUID)") = "%(NAME)", "%(Â¯~!PATH)%(NAME).%(PROJECT_EXT)", "%(GUID)"
     ENDIF
     IF "%(USE)"!="" && "%(VSVERSION)"!="14.00" && "%(VSVERSION)"!="15.00"
       PRINTNL 	ProjectSection(ProjectDependencies) = postProject
@@ -100,7 +100,7 @@ FOR EACH WORKSPACE
     ENDIF
     PRINTNL EndProject
     IF %(CAB)!="" && %(CABWIZ)!="" && %(../HAS_CSHARP)!=""
-      PRINTNL Project("{B900F1C2-3D47-4FEC-85B3-04AAF18C3634}") = "%(PROJECT_NAME)", "%(¯~!PATH)%(NAME)_cab.vddproj", "%(GUID2)"
+      PRINTNL Project("{B900F1C2-3D47-4FEC-85B3-04AAF18C3634}") = "%(PROJECT_NAME)", "%(Â¯~!PATH)%(NAME)_cab.vddproj", "%(GUID2)"
       PRINTNL 	ProjectSection(ProjectDependencies) = postProject
       PRINTNL 		%(PROJECT_GUID) = %(PROJECT_GUID)
       PRINTNL 	EndProjectSection
@@ -208,7 +208,7 @@ FOR EACH WORKSPACE
       ../TARGBUILD = %(TARG_RELEASE)|%(TARGNAME)
     ENDIF
     EXE =
-    FILE %(¯PATH)Makefile.vs
+    FILE %(Â¯PATH)Makefile.vs
     FOR EACH USE
       IF (%(TYPE)==EXE) || (%(TYPE)==CON) || (%(TYPE)==DLL) || (%(TYPE)==CON_CSHARP) || (%(TYPE)==EXE_CSHARP) || (%(TYPE)==DLL_CSHARP)
         IF %(CAB)=="" || %(../HAS_CSHARP)==""
@@ -236,28 +236,28 @@ FOR EACH WORKSPACE
       PRINTNL "%(NAME)":
       PRINTNL 	@%(DEVENV) %(../NAME).sln /build "%(TARGBUILD)" /project "%(NAME)" /out "%(../NAME).log"
       IF %(EXEPROTECT)!=""
-        TARGET = %(¯~!OUTPUTPATH)release\%(OUTPUT)
+        TARGET = %(Â¯~!OUTPUTPATH)release\%(OUTPUT)
 // already done as post process        PRINTNL 	@-%(EXEPROTECT)
         FOR EACH USE
           IF %(TYPE)==DLL
-            TARGET = %(¯~!OUTPUTPATH)release\%(OUTPUT)
+            TARGET = %(Â¯~!OUTPUTPATH)release\%(OUTPUT)
 // UPX fails with DLLs in WM6.1            PRINTNL 	@-%(../EXEPROTECT)
           ENDIF
         ENDFOR
       ENDIF
 // do it as post build      IF %(CAB)!="" && %(CABWIZ)!="" && %(../HAS_CSHARP)==""
-//        PRINTNL 	@%(CABWIZ) "%(¯~!PATH)%(NAME)_wince.inf" /dest "%(¯~|OUTPUTPATH)" %(CABWIZCLI)
-//        PRINTNL 	@move "%(¯~!OUTPUTPATH)%(NAME)_wince.CAB" "%(¯~!OUTPUTPATH)%(PROJECT_NAME).%(CABNAME).cab"
+//        PRINTNL 	@%(CABWIZ) "%(Â¯~!PATH)%(NAME)_wince.inf" /dest "%(Â¯~|OUTPUTPATH)" %(CABWIZCLI)
+//        PRINTNL 	@move "%(Â¯~!OUTPUTPATH)%(NAME)_wince.CAB" "%(Â¯~!OUTPUTPATH)%(PROJECT_NAME).%(CABNAME).cab"
 //      ENDIF
       IF %(NSI)!=""
-        COMPILE %(NSI) %(¯PATH)%(NAME)_win32.nsi
-        PRINTNL 	@makensis.exe /V2 %(¯!PATH)%(NAME)_win32.nsi /O%(NAME)_nsi.log
+        COMPILE %(NSI) %(Â¯PATH)%(NAME)_win32.nsi
+        PRINTNL 	@makensis.exe /V2 %(Â¯!PATH)%(NAME)_win32.nsi /O%(NAME)_nsi.log
       ENDIF
       PRINTNL 
     ENDFOR
     PRINTNL clean:
-    PRINTNL 	@if exist %(¯~!§BUILDPATH) rmdir /s /q %(¯~!§BUILDPATH)
-    PRINTNL 	@if exist %(¯~!§OUTPUTPATH) rmdir /s /q %(¯~!§OUTPUTPATH)
+    PRINTNL 	@if exist %(Â¯~!Â§BUILDPATH) rmdir /s /q %(Â¯~!Â§BUILDPATH)
+    PRINTNL 	@if exist %(Â¯~!Â§OUTPUTPATH) rmdir /s /q %(Â¯~!Â§OUTPUTPATH)
   ENDIF
 
 ENDFOR
@@ -265,7 +265,7 @@ ENDFOR
 
 FOR EACH LIB,DLL,EXE,CON
   IF "%(TRANSLATION_QT4)"!=""
-    FILE %(¯PATH)%(NAME).tmp.pro
+    FILE %(Â¯PATH)%(NAME).tmp.pro
     #include "qmake.inc"
   ENDIF
 ENDFOR
@@ -319,7 +319,7 @@ FOR EACH LIB,DLL,EXE,CON,GENERATE
 
   #include "wincab.inc"
   IF %(CAB)!="" && %(CABWIZ)!=""
-    FILE %(¯PATH)%(NAME)_cab.vddproj
+    FILE %(Â¯PATH)%(NAME)_cab.vddproj
     PRINTNL "DeployProject"
     PRINTNL {
     PRINTNL "VSVersion" = "3:701"
@@ -829,7 +829,7 @@ FOR EACH LIB,DLL,EXE,CON,GENERATE
   IF DEFINED(COMPILER_ICL11)
     VS_PROJECT_TYPE=Intel C++ Project
     VSNESTED=%(NAME).vcproj
-    FILE %(¯PATH)%(NAME).icproj
+    FILE %(Â¯PATH)%(NAME).icproj
     PRINTNL <?xml version="1.0" encoding="Windows-1252"?>
     PRINTNL <VisualStudioProject
     PRINTNL 	ProjectType="%(VS_PROJECT_TYPE)"
@@ -860,11 +860,11 @@ FOR EACH LIB,DLL,EXE,CON,GENERATE
     VSNESTED=%(NAME).vcproj
     PROJ_IS_ICL=yes
     PRECOMPILED_HEADER=
-    FILE %(¯PATH)%(NAME).icproj
+    FILE %(Â¯PATH)%(NAME).icproj
     #include "vsproj.inc"
     IFDEF TARGET_WINCE
-//      FILE %(¯PATH)%(NAME).icproj.%(MACHINE).%(USER).user
-//      FILE %(¯PATH)%(NAME).icproj.user
+//      FILE %(Â¯PATH)%(NAME).icproj.%(MACHINE).%(USER).user
+//      FILE %(Â¯PATH)%(NAME).icproj.user
 //      IF defined(COREMAKE_STATIC)
 //        EXECUTABLE_RELEASE = "%CSIDL_PROGRAM_FILES%\%(PROJECT_PATH)\$(TargetFileName)"
 //      ELSE
@@ -874,7 +874,7 @@ FOR EACH LIB,DLL,EXE,CON,GENERATE
 //      #include "vsproj-user.inc"
     ENDIF
     IFDEF TARGET_PALMOS
-      FILE %(¯PATH)%(NAME).icproj.user
+      FILE %(Â¯PATH)%(NAME).icproj.user
       EXECUTABLE_RELEASE = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\release\PalmSim_54_rel.exe
       EXECUTABLE_DEBUG = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\debug\PalmSim_54_dbg.exe
       #include "vsproj-user.inc"
@@ -900,14 +900,14 @@ FOR EACH LIB,DLL,EXE,CON,GENERATE
   LINKER_TOOL=VCLinkerTool
   CMD_NEWLINE=#x0D;&#x0A;
   IF "%(VSVERSION)"=="14.00" || "%(VSVERSION)"=="15.00"
-    FILE %(¯PATH)%(NAME).vcxproj
+    FILE %(Â¯PATH)%(NAME).vcxproj
     #include "vcxproj.inc"
   ELSE
-    FILE %(¯PATH)%(NAME).vcproj
+    FILE %(Â¯PATH)%(NAME).vcproj
     #include "vsproj.inc"
     IFDEF TARGET_WINCE
-//    FILE %(¯PATH)%(NAME).vcproj.%(MACHINE).%(USER).user
-//    FILE %(¯PATH)%(NAME).vcproj.user
+//    FILE %(Â¯PATH)%(NAME).vcproj.%(MACHINE).%(USER).user
+//    FILE %(Â¯PATH)%(NAME).vcproj.user
 //    IF defined(COREMAKE_STATIC)
 //      EXECUTABLE_RELEASE = "%CSIDL_PROGRAM_FILES%\%(PROJECT_PATH)\$(TargetFileName)"
 //    ELSE
@@ -917,7 +917,7 @@ FOR EACH LIB,DLL,EXE,CON,GENERATE
 //    #include "vsproj-user.inc"
     ENDIF
     IFDEF TARGET_PALMOS
-      FILE %(¯PATH)%(NAME).vcproj.user
+      FILE %(Â¯PATH)%(NAME).vcproj.user
       EXECUTABLE_RELEASE = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\release\PalmSim_54_rel.exe
       EXECUTABLE_DEBUG = %(~PALMSDK5R4)\tools\Palm_OS_54_Simulator\debug\PalmSim_54_dbg.exe
       WORKINGDIR_DEBUG = %(~`|OUTPUTPATH)
@@ -1069,7 +1069,7 @@ FOR EACH LIB_CSHARP,DLL_CSHARP,EXE_CSHARP,CON_CSHARP
     IF %(TYPE)==LIB_CSHARP || %(TYPE)==DLL_CSHARP || %(TYPE)==EXE_CSHARP || %(TYPE)==CON_CSHARP
       PRINTNL     <ProjectReference Include="%(~!PATH)%(NAME).csproj">
     ELSE
-      PRINTNL     <ProjectReference Include="%(¯~!PATH)%(NAME).%(PROJECT_EXT)">
+      PRINTNL     <ProjectReference Include="%(Â¯~!PATH)%(NAME).%(PROJECT_EXT)">
     ENDIF
     PRINTNL       <Project>%(GUID)</Project>
     PRINTNL       <Name>%(NAME)</Name>

@@ -34,8 +34,8 @@
 /* force some defines */
 
 #if defined(TARGET_WINCE) || defined(TARGET_SYMBIAN)
-#undef COREMAKE_UNICODE
-#define COREMAKE_UNICODE /* platforms where Unicode is mandatory */
+#undef CONFIG_UNICODE
+#define CONFIG_UNICODE /* platforms where Unicode is mandatory */
 #endif
 
 #if (defined(TARGET_PALMOS) && defined(IX86)) || defined(TARGET_SYMBIAN)
@@ -64,7 +64,7 @@
 /* forbid some defines */
 
 #if defined(TARGET_PALMOS) || defined(TARGET_LINUX) || defined(TARGET_PS2SDK)
-#undef COREMAKE_UNICODE /* platforms where Unicode is handled via UTF-8 strings */
+#undef CONFIG_UNICODE /* platforms where Unicode is handled via UTF-8 strings */
 #endif
 
 #if defined(TARGET_PALMOS)

@@ -54,7 +54,7 @@
 /* forbid some defines */
 
 #if defined(TARGET_LINUX)
-#undef COREMAKE_UNICODE /* platforms where Unicode is handled via UTF-8 strings */
+#undef CONFIG_UNICODE /* platforms where Unicode is handled via UTF-8 strings */
 #endif
 
 #if !defined(ARM) || defined(TARGET_IPHONE)
