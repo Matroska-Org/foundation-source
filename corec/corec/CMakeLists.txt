@@ -7,7 +7,16 @@ option(CONFIG_MULTITHREAD "Enable multithread support in Core-C" OFF)
 option(CONFIG_DEBUGCHECKS "Add extra checks in Core-C objects/helpers in debug builds" ON)
 option(CONFIG_DEBUG_LEAKS "Debug leaks in Core-C objects in debug builds" OFF)
 option(CONFIG_SAFE_C "Notify unsafe C legacy calls" OFF)
-option(CONFIG_UNICODE "Use wide char for tchar_t (except Linux, OSX, Android)" ON)
+
+set(CONFIG_UNICODE "best" CACHE STRING "Select the type of tchar_t (best, wchar, utf8)")
+set_property(CACHE CONFIG_UNICODE PROPERTY STRINGS "best;utf8;wchar")
+if(${CONFIG_UNICODE} STREQUAL "utf8")
+  set(CONFIG_UNICODE_MODE CONFIG_UNICODE_UTF8)
+elseif(${CONFIG_UNICODE} STREQUAL "wchar")
+  set(CONFIG_UNICODE_MODE CONFIG_UNICODE_WCHAR)
+else(${CONFIG_UNICODE} STREQUAL "best")
+  set(CONFIG_UNICODE_MODE CONFIG_UNICODE_BEST)
+endif()
 
 check_include_file(stdint.h    HAVE_STDINT_H)
 

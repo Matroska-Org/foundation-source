@@ -60,7 +60,6 @@
 #endif
 
 #define TARGET_OSX
-#undef UNICODE // tchar_t is UTF-8 for OS X
 
 #ifdef TARGET_OS_IPHONE // defined in TargetConditionals.h
 #define TARGET_IPHONE
@@ -112,8 +111,6 @@
 #endif
 
 #if defined(TARGET_LINUX) || defined(TARGET_ANDROID)
-
-#undef UNICODE /* platforms where Unicode is handled via UTF-8 strings */
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/endian.h>
@@ -288,54 +285,7 @@ typedef uint64_t uint_fast64_t;
 
 #endif /* _MSC_VER */
 
-#ifndef ZLIB_INTERNAL
-
-#undef T
-#define TSIZEOF(name)	(sizeof(name)/sizeof(tchar_t))
-
-#if defined(UNICODE)
-
-#if defined(__GNUC__)
-#include <wchar.h>
-#endif
-
-#if defined(__GNUC__) && (__GNUC__<3) && defined(__cplusplus)
-typedef __wchar_t tchar_t;
-#else
-typedef wchar_t tchar_t;
-#endif
-
-#define tcsstr wcsstr
-#define tcslen wcslen
-#define tcschr wcschr
-#define tcsrchr wcsrchr
-#define tcscoll wcscoll
-#define tcstod wcstod
-#define tcscspn wcscspn
-#define tcspbrk wcspbrk
-#define tcstoul wcstoul
-#define tcsftime wcsftime
-#define T(a) L ## a
-#else /* UNICODE */
-typedef char tchar_t;
-#define tcsstr strstr
-#define tcslen strlen
-#define tcschr strchr
-#define tcsrchr strrchr
-#define tcscoll strcoll
-#define tcstod strtod
-#define tcscspn strcspn
-#define tcspbrk strpbrk
-#define tcstoul strtoul
-#define tcsftime strftime
-#define T(a) a
-#endif /* UNICODE */
-
-#define T__(x) T(x)
-#endif /* ZLIB_INTERNAL */
-
 #include "corec_config.h"
-#include "confhelper.h"
 
 #if defined(HAVE_STDINT_H)
 #include <stdint.h>
