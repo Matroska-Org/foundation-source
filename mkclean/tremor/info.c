@@ -52,42 +52,6 @@ static int tagcompare(const char *s1, const char *s2, int n){
   return 0;
 }
 
-char *vorbis_comment_query(vorbis_comment *vc, char *tag, int count){
-  long i;
-  int found = 0;
-  int taglen = strlen(tag)+1; /* +1 for the = we append */
-  char *fulltag = (char *)alloca(taglen+ 1);
-
-  strcpy(fulltag, tag);
-  strcat(fulltag, "=");
-  
-  for(i=0;i<vc->comments;i++){
-    if(!tagcompare(vc->user_comments[i], fulltag, taglen)){
-      if(count == found)
-	/* We return a pointer to the data, not a copy */
-      	return vc->user_comments[i] + taglen;
-      else
-	found++;
-    }
-  }
-  return NULL; /* didn't find anything */
-}
-
-int vorbis_comment_query_count(vorbis_comment *vc, char *tag){
-  int i,count=0;
-  int taglen = strlen(tag)+1; /* +1 for the = we append */
-  char *fulltag = (char *)alloca(taglen+1);
-  strcpy(fulltag,tag);
-  strcat(fulltag, "=");
-
-  for(i=0;i<vc->comments;i++){
-    if(!tagcompare(vc->user_comments[i], fulltag, taglen))
-      count++;
-  }
-
-  return count;
-}
-
 void vorbis_comment_clear(vorbis_comment *vc){
   if(vc){
     long i;
@@ -98,13 +62,6 @@ void vorbis_comment_clear(vorbis_comment *vc){
     if(vc->vendor)_ogg_free(vc->vendor);
     memset(vc,0,sizeof(*vc));
   }
-}
-
-/* blocksize 0 is guaranteed to be short, 1 is guarantted to be long.
-   They may be equal, but short will never ge greater than long */
-int vorbis_info_blocksize(vorbis_info *vi,int zo){
-  codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
-  return ci ? ci->blocksizes[zo] : -1;
 }
 
 /* used by synthesis, which has a full, alloced vi */
@@ -291,31 +248,6 @@ static int _vorbis_unpack_books(vorbis_info *vi,oggpack_buffer *opb){
  err_out:
   vorbis_info_clear(vi);
   return(OV_EBADHEADER);
-}
-
-/* Is this packet a vorbis ID header? */
-int vorbis_synthesis_idheader(ogg_packet *op){
-  oggpack_buffer opb;
-  char buffer[6];
-
-  if(op){
-    oggpack_readinit(&opb,op->packet);
-
-    if(!op->b_o_s)
-      return(0); /* Not the initial packet */
-
-    if(oggpack_read(&opb,8) != 1)
-      return 0; /* not an ID header */
-
-    memset(buffer,0,6);
-    _v_readstring(&opb,buffer,6);
-    if(memcmp(buffer,"vorbis",6))
-      return 0; /* not vorbis */
-
-    return 1;
-  }
-
-  return 0;
 }
 
 /* The Vorbis header is in three packets; the initial small packet in
