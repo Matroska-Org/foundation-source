@@ -75,6 +75,8 @@ STR_DLL void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list 
 STR_DLL tchar_t* tcsreplace(tchar_t* Out,size_t OutLen, const tchar_t *Src, const tchar_t *Dst);
 STR_DLL tchar_t* tcsreplacechar(tchar_t *ts, tchar_t From, tchar_t To);
 
+STR_DLL size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
+
 static INLINE tchar_t* tcsclr_s(tchar_t *ts, size_t len)   
 {
     if (ts && len)

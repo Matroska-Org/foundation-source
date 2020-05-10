@@ -28,9 +28,6 @@
  ****************************************************************************/
 
 #include "str.h"
-#if defined(COREC_PARSER)
-#include "corec/helpers/parser/parser.h"
-#endif
 
 static INLINE int ascii_upper(int ch)
 {
@@ -646,9 +643,6 @@ do_exponent:
                 break;
             case 'r':
                 {
-#if !defined(COREC_PARSER)
-                    va_arg(Arg,fourcc_t); // skip the param
-#else
                     fourcc_t FourCC = va_arg(Arg,fourcc_t);
                     if (OutLen > 4)
                     {
@@ -656,7 +650,6 @@ do_exponent:
                         Out+=Written;
                         OutLen+=Written;
                     }
-#endif
                 }
                 break;
 			}
@@ -945,4 +938,27 @@ tchar_t* tcsreplacechar(tchar_t *ts, tchar_t From, tchar_t To)
         if (*p == From)
             *p = To;
     return ts;
+}
+
+size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC)
+{
+    size_t i=0;
+    if (OutLen)
+    {
+	    union
+	    {
+		    fourcc_t d;
+		    uint8_t a[4];
+	    } s;
+
+	    s.d = FourCC;
+	    for (i=0;i<4 && i<OutLen-1;++i)
+            Out[i] = s.a[i];
+
+        while (i>0 && Out[i-1]=='_')
+            --i;
+
+        Out[i] = 0;
+    }
+    return i;
 }

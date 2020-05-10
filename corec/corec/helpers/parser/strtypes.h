@@ -30,7 +30,6 @@
 #ifndef __STRTYPES_H
 #define __STRTYPES_H
 
-NODE_DLL size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
 NODE_DLL fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper);
 NODE_DLL void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* Fraction, int Percent, int Decimal);
 NODE_DLL void StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent);

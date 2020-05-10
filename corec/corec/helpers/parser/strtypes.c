@@ -50,29 +50,6 @@ fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper)
 	return FOURCC((uint8_t)s[0],(uint8_t)s[1],(uint8_t)s[2],(uint8_t)s[3]);
 }
 
-size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC)
-{
-    size_t i=0;
-    if (OutLen)
-    {
-	    union
-	    {
-		    fourcc_t d;
-		    uint8_t a[4];
-	    } s;
-
-	    s.d = FourCC;
-	    for (i=0;i<4 && i<OutLen-1;++i)
-            Out[i] = s.a[i];
-
-        while (i>0 && Out[i-1]=='_')
-            --i;
-
-        Out[i] = 0;
-    }
-    return i;
-}
-
 void GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid* p)
 {
 	stprintf_s(Out,OutLen,T("%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x"),
