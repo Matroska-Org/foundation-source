@@ -59,8 +59,8 @@ MULTITHREAD_DLL void LockLeave(void*);
 #else
 #define LockCreate() ((void*)1)
 #define LockDelete(p)
-#define LockEnter(p)
-#define LockLeave(p)
+#define LockEnter(p)  ((void)p)
+#define LockLeave(p)  ((void)p)
 #endif
 
 MULTITHREAD_DLL void ThreadSleepMs(int msTime);
