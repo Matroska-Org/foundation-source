@@ -36,7 +36,7 @@ int RunCommand(anynode *p, const tchar_t *Cmd, const tchar_t *CmdParams, bool_t 
 {
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
-    DWORD returnCode;
+    DWORD returnCode = -654321;
     tchar_t Command[4096];
     int Flags = Silent ? CREATE_NO_WINDOW : 0;
 
