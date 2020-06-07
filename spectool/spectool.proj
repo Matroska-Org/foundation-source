@@ -20,14 +20,6 @@ CON data2spec
   HEADER spec_element.h
 }
 
-CON data2lib
-{
-  USE parser
-  SOURCE data2lib.c {class SpecElement_Class}
-  SOURCE spec_element.c
-  HEADER spec_element.h
-}
-
 WORKSPACE spectool
 {
   USE tabler
