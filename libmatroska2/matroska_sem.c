@@ -84,7 +84,7 @@ const ebml_semantic EBML_SemanticInfo[] = {
     {1, 1, &MATROSKA_ContextTimestampScale, 0},
     {0, 1, &MATROSKA_ContextDuration, 0},
     {0, 1, &MATROSKA_ContextDateUTC, 0},
-    {0, 1, &MATROSKA_ContextTitle, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextTitle, 0},
     {1, 1, &MATROSKA_ContextMuxingApp, 0},
     {1, 1, &MATROSKA_ContextWritingApp, 0},
     {0, 0, NULL ,0} // end of the table
@@ -107,14 +107,14 @@ const ebml_context MATROSKA_ContextBlockAddID = {0xEE, EBML_INTEGER_CLASS, 1, (i
 const ebml_context MATROSKA_ContextBlockAdditional = {0xA5, EBML_BINARY_CLASS, 0, 0, "BlockAdditional", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticBlockMore[] = {
-    {1, 1, &MATROSKA_ContextBlockAddID, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextBlockAdditional, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextBlockAddID, 0},
+    {1, 1, &MATROSKA_ContextBlockAdditional, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextBlockMore = {0xA6, EBML_MASTER_CLASS, 0, 0, "BlockMore", EBML_SemanticBlockMore, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticBlockAdditions[] = {
-    {1, 0, &MATROSKA_ContextBlockMore, PROFILE_WEBM},
+    {1, 0, &MATROSKA_ContextBlockMore, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextBlockAdditions = {0x75A1, EBML_MASTER_CLASS, 0, 0, "BlockAdditions", EBML_SemanticBlockAdditions, EBML_SemanticGlobals, NULL};
@@ -158,7 +158,7 @@ const ebml_context MATROSKA_ContextReferenceFrame = {0xC8, EBML_MASTER_CLASS, 0,
 const ebml_semantic EBML_SemanticBlockGroup[] = {
     {1, 1, &MATROSKA_ContextBlock, 0},
     {0, 1, &MATROSKA_ContextBlockVirtual, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextBlockAdditions, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextBlockAdditions, 0},
     {0, 1, &MATROSKA_ContextBlockDuration, 0},
     {1, 1, &MATROSKA_ContextReferencePriority, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextReferenceBlock, 0},
@@ -512,8 +512,8 @@ const ebml_context MATROSKA_ContextCueReference = {0xDB, EBML_MASTER_CLASS, 0, 0
 const ebml_semantic EBML_SemanticCueTrackPositions[] = {
     {1, 1, &MATROSKA_ContextCueTrack, 0},
     {1, 1, &MATROSKA_ContextCueClusterPosition, 0},
-    {0, 1, &MATROSKA_ContextCueRelativePosition, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextCueDuration, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextCueRelativePosition, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
+    {0, 1, &MATROSKA_ContextCueDuration, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
     {0, 1, &MATROSKA_ContextCueBlockNumber, 0},
     {0, 1, &MATROSKA_ContextCueCodecState, PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextCueReference, PROFILE_MATROSKA_V1|PROFILE_DIVX|PROFILE_WEBM},
@@ -589,7 +589,7 @@ const ebml_semantic EBML_SemanticChapterDisplay[] = {
     {1, 1, &MATROSKA_ContextChapString, 0},
     {1, 0, &MATROSKA_ContextChapLanguage, 0},
     {0, 1, &MATROSKA_ContextChapLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 0, &MATROSKA_ContextChapCountry, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextChapCountry, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextChapterDisplay = {0x80, EBML_MASTER_CLASS, 0, 0, "ChapterDisplay", EBML_SemanticChapterDisplay, EBML_SemanticGlobals, NULL};
@@ -618,7 +618,7 @@ const ebml_semantic EBML_SemanticChapterAtom[] = {
     {1, 1, &MATROSKA_ContextChapterUID, 0},
     {0, 1, &MATROSKA_ContextChapterStringUID, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_DIVX},
     {1, 1, &MATROSKA_ContextChapterTimeStart, 0},
-    {0, 1, &MATROSKA_ContextChapterTimeEnd, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChapterTimeEnd, 0},
     {1, 1, &MATROSKA_ContextChapterFlagHidden, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterFlagEnabled, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterSegmentUID, PROFILE_WEBM},
