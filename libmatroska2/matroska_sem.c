@@ -602,7 +602,7 @@ const ebml_context MATROSKA_ContextChapCountry = {0x437E, EBML_STRING_CLASS, 0, 
 const ebml_semantic EBML_SemanticChapterDisplay[] = {
     {1, 1, &MATROSKA_ContextChapString, 0},
     {1, 0, &MATROSKA_ContextChapLanguage, 0},
-    {0, 1, &MATROSKA_ContextChapLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextChapLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextChapCountry, 0},
     {0, 0, NULL ,0} // end of the table
 };
