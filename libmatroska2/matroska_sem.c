@@ -442,7 +442,7 @@ const ebml_semantic EBML_SemanticContentEncoding[] = {
     {1, 1, &MATROSKA_ContextContentEncodingScope, 0},
     {1, 1, &MATROSKA_ContextContentEncodingType, 0},
     {0, 1, &MATROSKA_ContextContentCompression, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextContentEncryption, 0},
+    {0, 1, &MATROSKA_ContextContentEncryption, 0},
     {0, 0, NULL ,0} // end of the table
 };
 const ebml_context MATROSKA_ContextContentEncoding = {0x6240, EBML_MASTER_CLASS, 0, 0, "ContentEncoding", EBML_SemanticContentEncoding, EBML_SemanticGlobals, NULL};
