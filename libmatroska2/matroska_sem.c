@@ -426,7 +426,7 @@ const ebml_context MATROSKA_ContextContentSigAlgo = {0x47E5, EBML_INTEGER_CLASS,
 const ebml_context MATROSKA_ContextContentSigHashAlgo = {0x47E6, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ContentSigHashAlgo", NULL, EBML_SemanticGlobals, NULL};
 
 const ebml_semantic EBML_SemanticContentEncryption[] = {
-    {0, 1, &MATROSKA_ContextContentEncAlgo, 0},
+    {1, 1, &MATROSKA_ContextContentEncAlgo, 0},
     {0, 1, &MATROSKA_ContextContentEncKeyID, 0},
     {0, 1, &MATROSKA_ContextContentEncAESSettings, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX},
     {0, 1, &MATROSKA_ContextContentSignature, PROFILE_WEBM},
