@@ -197,6 +197,19 @@ const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration = {0x234E7A, EBML
 const ebml_context MATROSKA_ContextTrackTimestampScale = {0x23314F, EBML_FLOAT_CLASS, 1, (intptr_t)1.0, "TrackTimestampScale", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextTrackOffset = {0x537F, EBML_SINTEGER_CLASS, 1, (intptr_t)0, "TrackOffset", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextMaxBlockAdditionID = {0x55EE, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MaxBlockAdditionID", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextBlockAddIDValue = {0x41F0, EBML_INTEGER_CLASS, 0, 0, "BlockAddIDValue", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextBlockAddIDName = {0x41A4, EBML_STRING_CLASS, 0, 0, "BlockAddIDName", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextBlockAddIDType = {0x41E7, EBML_INTEGER_CLASS, 1, (intptr_t)0, "BlockAddIDType", NULL, EBML_SemanticGlobals, NULL};
+const ebml_context MATROSKA_ContextBlockAddIDExtraData = {0x41ED, EBML_BINARY_CLASS, 0, 0, "BlockAddIDExtraData", NULL, EBML_SemanticGlobals, NULL};
+
+const ebml_semantic EBML_SemanticBlockAdditionMapping[] = {
+    {1, 1, &MATROSKA_ContextBlockAddIDValue, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextBlockAddIDName, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextBlockAddIDType, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextBlockAddIDExtraData, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, NULL ,0} // end of the table
+};
+const ebml_context MATROSKA_ContextBlockAdditionMapping = {0x41E4, EBML_MASTER_CLASS, 0, 0, "BlockAdditionMapping", EBML_SemanticBlockAdditionMapping, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextName = {0x536E, EBML_UNISTRING_CLASS, 0, 0, "Name", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextLanguage = {0x22B59C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "Language", NULL, EBML_SemanticGlobals, NULL};
 const ebml_context MATROSKA_ContextLanguageIETF = {0x22B59D, EBML_STRING_CLASS, 0, 0, "LanguageIETF", NULL, EBML_SemanticGlobals, NULL};
@@ -455,6 +468,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextTrackTimestampScale, PROFILE_MATROSKA_V4|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTrackOffset, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextMaxBlockAdditionID, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextBlockAdditionMapping, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextName, 0},
     {0, 1, &MATROSKA_ContextLanguage, 0},
     {0, 1, &MATROSKA_ContextLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},

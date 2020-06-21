@@ -113,6 +113,12 @@ extern const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration;
 extern const ebml_context MATROSKA_ContextTrackTimestampScale;
 extern const ebml_context MATROSKA_ContextTrackOffset;
 extern const ebml_context MATROSKA_ContextMaxBlockAdditionID;
+extern const ebml_context MATROSKA_ContextBlockAddIDValue;
+extern const ebml_context MATROSKA_ContextBlockAddIDName;
+extern const ebml_context MATROSKA_ContextBlockAddIDType;
+extern const ebml_context MATROSKA_ContextBlockAddIDExtraData;
+extern const ebml_context MATROSKA_ContextBlockAdditionMapping;
+
 extern const ebml_context MATROSKA_ContextName;
 extern const ebml_context MATROSKA_ContextLanguage;
 extern const ebml_context MATROSKA_ContextLanguageIETF;
