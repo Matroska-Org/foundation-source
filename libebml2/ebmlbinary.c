@@ -27,7 +27,7 @@
  */
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
-#include "ebml2.h"
+#include "ebml/ebml2.h"
 
 static err_t ReadData(ebml_binary *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {

@@ -33,7 +33,7 @@
 # else
 #  include "ebml2_project.h"
 #  include "corec/corec_exports.h"
-#  include "ebml2.h"
+#  include "ebml/ebml2.h"
 # endif
 #endif
 

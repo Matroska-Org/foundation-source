@@ -28,7 +28,7 @@
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
 
-#include "ebml2.h"
+#include "ebml/ebml2.h"
 
 struct ebml_crc
 {

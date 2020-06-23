@@ -28,7 +28,8 @@
 #include "corec/helpers/parser/parser.h"
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
-#include "ebml2.h"
+
+#include "ebml/ebml2.h"
 
 static bool_t ValidateSize(const ebml_element *p)
 {

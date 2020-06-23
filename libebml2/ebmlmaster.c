@@ -30,7 +30,7 @@
 #include "ebml/ebml_internal.h"
 #include "ebmlcrc.h"
 
-#include "ebml2.h"
+#include "ebml/ebml2.h"
 
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)
 {
