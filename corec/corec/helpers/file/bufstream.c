@@ -28,7 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
-
+#include "corec/corec_exports.h"
 #define BUFSTREAM_SIZE      4096
 
 typedef struct bufstream

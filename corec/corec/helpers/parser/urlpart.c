@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "parser.h"
+#include "corec/corec_exports.h"
 
 #define	URLPART_ID        FOURCC('U','P','A','T')
 #define URLPART_URL       0x100

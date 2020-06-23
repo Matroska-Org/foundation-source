@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "corec/corec_exports.h"
 
 //TODO: include from somewhere else or not depend on them at all
 #ifdef CONFIG_BLOCK_RDONLY

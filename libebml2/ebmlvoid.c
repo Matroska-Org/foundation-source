@@ -28,6 +28,8 @@
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
 
+#include "ebml2.h"
+
 static bool_t IsDefaultValue(const ebml_element *Element)
 {
     return 0;

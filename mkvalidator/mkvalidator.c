@@ -33,6 +33,9 @@
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
 
+#include "matroska2_stdafx.h"
+#include "ebml2_stdafx.h"
+
 /*!
  * \todo verify the track timecode scale is not null
  * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
@@ -900,7 +903,8 @@ int main(int argc, const char *argv[])
 
     // Core-C init phase
     ParserContext_Init(&p,NULL,NULL,NULL);
-	StdAfx_Init((nodemodule*)&p);
+    EBML_StdAfx_Init((nodemodule*)&p);
+    MATROSKA_StdAfx_Init((nodemodule*)&p);
     ProjectSettings((nodecontext*)&p);
 
     // EBML & Matroska Init
@@ -1453,7 +1457,8 @@ exit:
     MATROSKA_Done((nodecontext*)&p);
 
     // Core-C ending
-	StdAfx_Done((nodemodule*)&p);
+    MATROSKA_StdAfx_Done((nodemodule*)&p);
+    EBML_StdAfx_Done((nodemodule*)&p);
     ParserContext_Done(&p);
 
     return Result;

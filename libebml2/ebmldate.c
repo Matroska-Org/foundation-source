@@ -28,6 +28,8 @@
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
 
+#include "ebml2.h"
+
 datetime_t EBML_DateTime(const ebml_date *Element)
 {
     assert(Node_IsPartOf(Element,EBML_DATE_CLASS));

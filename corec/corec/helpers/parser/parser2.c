@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "parser.h"
+#include "corec/corec_exports.h"
 
 static const tchar_t* ExternalStr(nodecontext* p,fourcc_t Class,int Id)
 {

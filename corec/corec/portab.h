@@ -512,10 +512,7 @@ typedef struct cc_rect
 
 } cc_rect;
 
-#ifndef ZLIB_INTERNAL
-
-#undef T
-#define TSIZEOF(name)	(sizeof(name)/sizeof(tchar_t))
+/*#ifndef ZLIB_INTERNAL*/
 
 #if defined(UNICODE)
 
@@ -554,9 +551,10 @@ typedef char tchar_t;
 #define tcsftime strftime
 #define T(a) a
 #endif /* UNICODE */
-
+//#undef T
+#define TSIZEOF(name)	(sizeof(name)/sizeof(tchar_t))
 #define T__(x) T(x)
-#endif
+/*#endif*/
 
 #ifndef SIZEOF_WCHAR
 #if defined(TARGET_OSX) || defined(TARGET_LINUX) || defined(TARGET_PS2SDK)

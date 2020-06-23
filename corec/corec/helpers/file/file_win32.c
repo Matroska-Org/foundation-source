@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "corec/corec_exports.h"
 
 #if defined(TARGET_WIN)
 

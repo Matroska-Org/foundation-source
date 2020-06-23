@@ -32,12 +32,11 @@
 #  include "ebml2_legacy_project.h"
 # else
 #  include "ebml2_project.h"
+#  include "corec/corec_exports.h"
+#  include "ebml2.h"
 # endif
 #endif
 
-extern const nodemeta BufStream_Class[];
-extern const nodemeta MemStream_Class[];
-extern const nodemeta Streams_Class[];
 #if defined(CONFIG_EBML_UNICODE)
 extern const nodemeta LangStr_Class[];
 extern const nodemeta UrlPart_Class[];
@@ -45,15 +44,6 @@ extern const nodemeta UrlPart_Class[];
 extern const nodemeta Stdio_Class[];
 # endif
 #endif
-
-extern const nodemeta EBMLElement_Class[];
-extern const nodemeta EBMLMaster_Class[];
-extern const nodemeta EBMLBinary_Class[];
-extern const nodemeta EBMLString_Class[];
-extern const nodemeta EBMLInteger_Class[];
-extern const nodemeta EBMLCRC_Class[];
-extern const nodemeta EBMLDate_Class[];
-extern const nodemeta EBMLVoid_Class[];
 
 err_t EBML_Init(nodecontext *p)
 {
