@@ -28,7 +28,7 @@
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
 #include "matroska/matroska_internal.h"
-#include "matroska2.h"
+#include "matroska/matroska2.h"
 #if defined(HAVE_ZLIB)
 #include "zlib/zlib.h"
 #elif defined(CONFIG_ZLIB)
@@ -1588,7 +1588,7 @@ err_t UnCompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, array *OutBu
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+err_t MATROSKA_CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
 {
     err_t Err = ERR_NONE;
     z_stream stream;
@@ -1654,7 +1654,7 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
         OutSize = *Size;
         assert(Element->Base.Base.bValueIsSet);
 #if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
-        if (!Element->Base.Base.bValueIsSet || CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
+        if (!Element->Base.Base.bValueIsSet || MATROSKA_CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
 #else
         if (!Element->Base.Base.bValueIsSet)
 #endif
@@ -1905,7 +1905,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
                 }
                 OutBuf = ARRAYBEGIN(TmpBuf,uint8_t);
                 ToWrite = ARRAYCOUNT(TmpBuf,uint8_t);
-                if (CompressFrameZLib(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
+                if (MATROSKA_CompressFrameZLib(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
                 {
                     ArrayClear(&TmpBuf);
                     Err = ERR_OUT_OF_MEMORY;
@@ -2310,7 +2310,7 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
             {
                 size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
                 uint8_t *Compressed = malloc(CompressedSize);
-                if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE)
+                if (MATROSKA_CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE)
                 {
                     if (EBML_BinarySetData(CodecPrivate, Compressed, CompressedSize)==ERR_NONE)
                         Element->CodecPrivateCompressed = 1;

@@ -1,5 +1,5 @@
 /* inflate.h -- internal inflate state definition
- * Copyright (C) 1995-2009 Mark Adler
+ * Copyright (C) 1995-2016 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -7,6 +7,9 @@
    part of the implementation of the compression library and is
    subject to change. Applications should only use zlib.h.
  */
+
+#ifndef INFLATE_H_
+#define INFLATE_H_
 
 /* define NO_GZIP when compiling if you want to disable gzip header and
    trailer decoding by inflate().  NO_GZIP would be used to avoid linking in
@@ -18,7 +21,7 @@
 
 /* Possible inflate modes between inflate() calls */
 typedef enum {
-    HEAD,       /* i: waiting for magic header */
+    HEAD = 16180,   /* i: waiting for magic header */
     FLAGS,      /* i: waiting for method and flags (gzip) */
     TIME,       /* i: waiting for modification time (gzip) */
     OS,         /* i: waiting for extra flags and operating system (gzip) */
@@ -77,46 +80,55 @@ typedef enum {
         CHECK -> LENGTH -> DONE
  */
 
-/* state maintained between inflate() calls.  Approximately 10K bytes. */
+/* State maintained between inflate() calls -- approximately 7K bytes, not
+   including the allocated sliding window, which is up to 32K bytes. */
 struct inflate_state {
+    PREFIX3(stream) *strm;             /* pointer back to this zlib stream */
     inflate_mode mode;          /* current inflate mode */
     int last;                   /* true if processing last block */
-    int wrap;                   /* bit 0 true for zlib, bit 1 true for gzip */
+    int wrap;                   /* bit 0 true for zlib, bit 1 true for gzip,
+                                   bit 2 true to validate check value */
     int havedict;               /* true if dictionary provided */
-    int flags;                  /* gzip header method and flags (0 if zlib) */
+    int flags;                  /* gzip header method and flags, 0 if zlib, or
+                                   -1 if raw or no header yet */
     unsigned dmax;              /* zlib header max distance (INFLATE_STRICT) */
     unsigned long check;        /* protected copy of check value */
     unsigned long total;        /* protected copy of output count */
-    gz_headerp head;            /* where to save gzip header information */
+    PREFIX(gz_headerp) head;    /* where to save gzip header information */
         /* sliding window */
     unsigned wbits;             /* log base 2 of requested window size */
-    unsigned wsize;             /* window size or zero if not using window */
-    unsigned whave;             /* valid bytes in the window */
-    unsigned wnext;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if needed */
+    uint32_t wsize;             /* window size or zero if not using window */
+    uint32_t whave;             /* valid bytes in the window */
+    uint32_t wnext;             /* window write index */
+    unsigned char *window;      /* allocated sliding window, if needed */
         /* bit accumulator */
-    unsigned long hold;         /* input bit accumulator */
+    uint32_t hold;              /* input bit accumulator */
     unsigned bits;              /* number of bits in "in" */
         /* for string and stored block copying */
-    unsigned length;            /* literal or length of data to copy */
+    uint32_t length;            /* literal or length of data to copy */
     unsigned offset;            /* distance back to copy string from */
         /* for table and code decoding */
     unsigned extra;             /* extra bits needed */
         /* fixed and dynamic code tables */
-    code const FAR *lencode;    /* starting table for length/literal codes */
-    code const FAR *distcode;   /* starting table for distance codes */
+    code const *lencode;        /* starting table for length/literal codes */
+    code const *distcode;       /* starting table for distance codes */
     unsigned lenbits;           /* index bits for lencode */
     unsigned distbits;          /* index bits for distcode */
         /* dynamic table building */
     unsigned ncode;             /* number of code length code lengths */
     unsigned nlen;              /* number of length code lengths */
     unsigned ndist;             /* number of distance code lengths */
-    unsigned have;              /* number of code lengths in lens[] */
-    code FAR *next;             /* next available space in codes[] */
-    unsigned short lens[320];   /* temporary storage for code lengths */
-    unsigned short work[288];   /* work area for code table building */
+    uint32_t have;              /* number of code lengths in lens[] */
+    code *next;                 /* next available space in codes[] */
+    uint16_t lens[320];         /* temporary storage for code lengths */
+    uint16_t work[288];         /* work area for code table building */
     code codes[ENOUGH];         /* space for code tables */
     int sane;                   /* if false, allow invalid distance too far */
     int back;                   /* bits back of last unprocessed length/lit */
     unsigned was;               /* initial length of match */
 };
+
+int ZLIB_INTERNAL inflate_ensure_window(struct inflate_state *state);
+void ZLIB_INTERNAL fixedtables(struct inflate_state *state);
+
+#endif /* INFLATE_H_ */

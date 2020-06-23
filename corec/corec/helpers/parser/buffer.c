@@ -41,7 +41,7 @@ static size_t SizeAlign(size_t Total, size_t Align)
 	return (Total + Align) & ~Align;
 }
 
-void BufferClear(buffer* p)
+void NODE_BufferClear(buffer* p)
 {
 	free(p->Begin);
 	p->End = NULL;
@@ -50,7 +50,7 @@ void BufferClear(buffer* p)
 	p->Write = NULL;
 }
 
-bool_t BufferAlloc(buffer* p, size_t Total, size_t Align)
+bool_t NODE_BufferAlloc(buffer* p, size_t Total, size_t Align)
 {
     size_t Read = p->Read - p->Begin;
     size_t Write = p->Write - p->Begin;
@@ -68,17 +68,17 @@ bool_t BufferAlloc(buffer* p, size_t Total, size_t Align)
 	return 1;
 }
 
-void BufferDrop(buffer* p)
+void NODE_BufferDrop(buffer* p)
 {
 	p->Write = p->Begin;
 	p->Read = p->Begin;
 }
 
-uint8_t* BufferWrite(buffer* p, const void* Ptr, size_t Length, size_t Align)
+uint8_t* NODE_BufferWrite(buffer* p, const void* Ptr, size_t Length, size_t Align)
 {
     uint8_t* Write = p->Write + Length;
 
-	if (Write > p->End && !BufferAlloc(p,Write-p->Begin,Align))
+	if (Write > p->End && !NODE_BufferAlloc(p,Write-p->Begin,Align))
 		return 0;
 
     Write = p->Write;
@@ -90,7 +90,7 @@ uint8_t* BufferWrite(buffer* p, const void* Ptr, size_t Length, size_t Align)
 	return Write;
 }
 
-const uint8_t* BufferRead(buffer* p, size_t Length)
+const uint8_t* NODE_BufferRead(buffer* p, size_t Length)
 {
     uint8_t* Read = p->Read;
 
@@ -101,7 +101,7 @@ const uint8_t* BufferRead(buffer* p, size_t Length)
 	return Read;
 }
 
-void BufferPack(buffer* p, size_t Length)
+void NODE_BufferPack(buffer* p, size_t Length)
 {
 	uint8_t* Read = p->Read + Length;
 

@@ -664,8 +664,8 @@ typedef	int (*memcollect)(void* Cookie, int Level);
 
 #define COLLECT_FOUND           -1 // return value when memory was collected on that level
 
-NODE_DLL bool_t NodeHibernate(anynode*); //TODO: rename
-NODE_DLL void Mem_AddCollector(anynode*, memcollect Func, void* Cookie);
-NODE_DLL void Mem_RemoveCollector(anynode*, memcollect Func, void* Cookie);
+NODE_DLL bool_t NODE_NodeHibernate(anynode*); //TODO: rename
+NODE_DLL void MEM_AddCollector(anynode*, memcollect Func, void* Cookie);
+NODE_DLL void MEM_RemoveCollector(anynode*, memcollect Func, void* Cookie);
 
 #endif

@@ -84,7 +84,7 @@
 
 typedef	const tchar_t* (*hotkeygetname)(void* Param,uint32_t Key);
 
-NODE_DLL void HotKeyToString(tchar_t* Out, size_t OutLen, uint32_t HotKey, hotkeygetname GetName, void* GetNameParam);
-NODE_DLL uint32_t StringToHotKey(const tchar_t* In);
+NODE_DLL void KEY_HotKeyToString(tchar_t* Out, size_t OutLen, uint32_t HotKey, hotkeygetname GetName, void* GetNameParam);
+NODE_DLL uint32_t KEY_StringToHotKey(const tchar_t* In);
 
 #endif

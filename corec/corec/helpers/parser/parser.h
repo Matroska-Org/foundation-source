@@ -69,17 +69,17 @@ typedef struct parsercontext
 
 } parsercontext;
 
-NODE_DLL void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memheap* Heap, const cc_memheap* ConstHeap);
-NODE_DLL void ParserContext_Done(parsercontext* p);
+NODE_DLL void NODE_ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memheap* Heap, const cc_memheap* ConstHeap);
+NODE_DLL void NODE_ParserContext_Done(parsercontext* p);
 
-NODE_DLL void Node_ToUTF8(anynode*, char* Out,size_t OutLen, const tchar_t*);
-NODE_DLL void Node_FromUTF8(anynode*, tchar_t* Out,size_t OutLen, const char*);
-NODE_DLL void Node_ToStr(anynode*, char* Out,size_t OutLen, const tchar_t*);
-NODE_DLL void Node_FromStr(anynode*, tchar_t* Out,size_t OutLen, const char*);
-NODE_DLL void Node_ToWcs(anynode*, wchar_t* Out,size_t OutLen, const tchar_t*);
-NODE_DLL void Node_FromWcs(anynode*, tchar_t* Out,size_t OutLen, const wchar_t*);
-NODE_DLL void Node_ToUTF16(anynode*, utf16_t* Out,size_t OutLen, const tchar_t*);
-NODE_DLL void Node_FromUTF16(anynode*, tchar_t* Out,size_t OutLen, const utf16_t*);
+NODE_DLL void NODE_ToUTF8(anynode*, char* Out,size_t OutLen, const tchar_t*);
+NODE_DLL void NODE_FromUTF8(anynode*, tchar_t* Out,size_t OutLen, const char*);
+NODE_DLL void NODE_ToStr(anynode*, char* Out,size_t OutLen, const tchar_t*);
+NODE_DLL void NODE_FromStr(anynode*, tchar_t* Out,size_t OutLen, const char*);
+NODE_DLL void NODE_ToWcs(anynode*, wchar_t* Out,size_t OutLen, const tchar_t*);
+NODE_DLL void NODE_FromWcs(anynode*, tchar_t* Out,size_t OutLen, const wchar_t*);
+NODE_DLL void NODE_ToUTF16(anynode*, utf16_t* Out,size_t OutLen, const tchar_t*);
+NODE_DLL void NODE_FromUTF16(anynode*, tchar_t* Out,size_t OutLen, const utf16_t*);
 
 typedef bool_t (*exprmacro)(void* Cookie, const tchar_t* Name, size_t NameLen, tchar_t* Out, size_t OutLen);
 
@@ -96,7 +96,7 @@ typedef struct exprstate
 
 } exprstate;
 
-NODE_DLL void ExprState(exprstate* State, node*, dataid Id, dataflags Flags);
+NODE_DLL void NODE_ExprState(exprstate* State, node*, dataid Id, dataflags Flags);
 
 typedef err_t (*parserexpradd)(node* Node, const datadef* DataDef, exprstate* State, const tchar_t* Expr, bool_t Save);
 
@@ -116,50 +116,50 @@ typedef struct parser
 
 } parser;
 
-NODE_DLL err_t ParserStream(parser*, stream* Stream, parsercontext* Context);
-NODE_DLL err_t ParserStreamXML(parser*, stream* Stream, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs);
-NODE_DLL void ParserCC(parser*, charconv* CC, bool_t OwnCC);
-NODE_DLL void ParserBOM(parser*);
+NODE_DLL err_t NODE_ParserStream(parser*, stream* Stream, parsercontext* Context);
+NODE_DLL err_t NODE_ParserStreamXML(parser*, stream* Stream, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs);
+NODE_DLL void NODE_ParserCC(parser*, charconv* CC, bool_t OwnCC);
+NODE_DLL void NODE_ParserBOM(parser*);
 
-NODE_DLL err_t ParserFill(parser*,size_t AdditionalNeeded); // non-blocking stream could return ERR_NEED_MORE_DATA
-NODE_DLL err_t ParserFillLine(parser*); // non-blocking stream could return ERR_NEED_MORE_DATA
-NODE_DLL void ParserDataFeed(parser* p,const void* Ptr,size_t Len);
-NODE_DLL err_t ParserSkip(parser*, intptr_t* Skip);
-NODE_DLL err_t ParserRead(parser*, void* Data, size_t Size, size_t* Readed);
-NODE_DLL err_t ParserReadEx(parser*, void* Data, size_t Size, size_t* Readed, bool_t Fill);
-NODE_DLL intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter);
-NODE_DLL void ParserSkipAfter(parser* p, int Delimiter);
-NODE_DLL bool_t ParserLine(parser*, tchar_t* Out, size_t OutLen);
-NODE_DLL bool_t ParserBigLine(parser*);
-NODE_DLL bool_t ParserIsToken(parser*, const tchar_t* Token); // case insensitive, ascii
-NODE_DLL bool_t ParserIsFormat(parser*, const tchar_t* Name, void *Value);
-NODE_DLL const uint8_t* ParserPeek(parser*, size_t Len);
-NODE_DLL const uint8_t* ParserPeekEx(parser*, size_t Len, bool_t Fill, err_t*);
+NODE_DLL err_t NODE_ParserFill(parser*,size_t AdditionalNeeded); // non-blocking stream could return ERR_NEED_MORE_DATA
+NODE_DLL err_t NODE_ParserFillLine(parser*); // non-blocking stream could return ERR_NEED_MORE_DATA
+NODE_DLL void NODE_ParserDataFeed(parser* p,const void* Ptr,size_t Len);
+NODE_DLL err_t NODE_ParserSkip(parser*, intptr_t* Skip);
+NODE_DLL err_t NODE_ParserRead(parser*, void* Data, size_t Size, size_t* Readed);
+NODE_DLL err_t NODE_ParserReadEx(parser*, void* Data, size_t Size, size_t* Readed, bool_t Fill);
+NODE_DLL intptr_t NODE_ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter);
+NODE_DLL void NODE_ParserSkipAfter(parser* p, int Delimiter);
+NODE_DLL bool_t NODE_ParserLine(parser*, tchar_t* Out, size_t OutLen);
+NODE_DLL bool_t NODE_ParserBigLine(parser*);
+NODE_DLL bool_t NODE_ParserIsToken(parser*, const tchar_t* Token); // case insensitive, ascii
+NODE_DLL bool_t NODE_ParserIsFormat(parser*, const tchar_t* Name, void *Value);
+NODE_DLL const uint8_t* NODE_ParserPeek(parser*, size_t Len);
+NODE_DLL const uint8_t* NODE_ParserPeekEx(parser*, size_t Len, bool_t Fill, err_t*);
 
-NODE_DLL bool_t ParserIsRootElement(parser*, tchar_t* Root, size_t RootLen);
-NODE_DLL bool_t ParserIsElement(parser*, tchar_t* Name, size_t NameLen);
-NODE_DLL bool_t ParserIsElementNested(parser*, tchar_t* Name, size_t NameLen);
-NODE_DLL bool_t ParserElementContent(parser*, tchar_t* Out, size_t OutLen);
+NODE_DLL bool_t NODE_ParserIsRootElement(parser*, tchar_t* Root, size_t RootLen);
+NODE_DLL bool_t NODE_ParserIsElement(parser*, tchar_t* Name, size_t NameLen);
+NODE_DLL bool_t NODE_ParserIsElementNested(parser*, tchar_t* Name, size_t NameLen);
+NODE_DLL bool_t NODE_ParserElementContent(parser*, tchar_t* Out, size_t OutLen);
 /** Skip all the attributes of the current element and position after the '>' */
-NODE_DLL void ParserElementSkip(parser* p);
-NODE_DLL void ParserElementSkipNested(parser* p);
+NODE_DLL void NODE_ParserElementSkip(parser* p);
+NODE_DLL void NODE_ParserElementSkipNested(parser* p);
 
-NODE_DLL bool_t ParserIsAttrib(parser*, tchar_t* Name, size_t NameLen);
-NODE_DLL bool_t ParserAttribString(parser*, tchar_t* Out, size_t OutLen);
-NODE_DLL bool_t ParserAttrib(parser*, void* Data, size_t Size, dataflags Flags, exprstate* State);
-NODE_DLL bool_t ParserAttribData(parser*, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave);
-NODE_DLL bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave);
-NODE_DLL bool_t ParserAttribLangStr(parser* p, parsercontext* Context, fourcc_t Class, dataid Id);
-NODE_DLL void ParserAttribSkip(parser*);
+NODE_DLL bool_t NODE_ParserIsAttrib(parser*, tchar_t* Name, size_t NameLen);
+NODE_DLL bool_t NODE_ParserAttribString(parser*, tchar_t* Out, size_t OutLen);
+NODE_DLL bool_t NODE_ParserAttrib(parser*, void* Data, size_t Size, dataflags Flags, exprstate* State);
+NODE_DLL bool_t NODE_ParserAttribData(parser*, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave);
+NODE_DLL bool_t NODE_ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave);
+NODE_DLL bool_t NODE_ParserAttribLangStr(parser* p, parsercontext* Context, fourcc_t Class, dataid Id);
+NODE_DLL void NODE_ParserAttribSkip(parser*);
 
 
-NODE_DLL void ParserHTMLChars(parser*,tchar_t*,size_t);
-NODE_DLL void ParserHTMLToURL(tchar_t*,size_t);
+NODE_DLL void NODE_ParserHTMLChars(parser*,tchar_t*,size_t);
+NODE_DLL void NODE_ParserHTMLToURL(tchar_t*,size_t);
 
-NODE_DLL void ParserURLToHTML(tchar_t*,size_t);
+NODE_DLL void NODE_ParserURLToHTML(tchar_t*,size_t);
 
-NODE_DLL void ParserImport(parser* Parser,node* Node);
-NODE_DLL void ParserImportNested(parser* Parser,node* Node);
+NODE_DLL void NODE_ParserImport(parser* Parser,node* Node);
+NODE_DLL void NODE_ParserImportNested(parser* Parser,node* Node);
 
 typedef struct textwriter
 {
@@ -175,66 +175,66 @@ typedef struct textwriter
 
 } textwriter;
 
-NODE_DLL err_t TextWrite(textwriter*, const tchar_t*);
-NODE_DLL err_t TextPrintf(textwriter*, const tchar_t* Msg,...)
+NODE_DLL err_t NODE_TextWrite(textwriter*, const tchar_t*);
+NODE_DLL err_t NODE_TextPrintf(textwriter*, const tchar_t* Msg,...)
 #if defined(__GNUC__) && !defined(_MSC_VER)
     __attribute__ ((format(printf, 2, 3)))
 #endif
     ;
-NODE_DLL void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root);
-NODE_DLL void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element);
-NODE_DLL void TextElementEnd(textwriter*);
-NODE_DLL void TextElementAppendData(textwriter* Text, const tchar_t *Value);
-NODE_DLL void TextElementEndData(textwriter* Text, const tchar_t *Value);
-NODE_DLL void TextAttrib(textwriter*, const tchar_t* Name, const void* Data, dataflags Type);
-NODE_DLL void TextAttribEx(textwriter*,const tchar_t* Name, const void* Data, size_t Size, dataflags Type);
-NODE_DLL void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter);
+NODE_DLL void NODE_TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root);
+NODE_DLL void NODE_TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element);
+NODE_DLL void NODE_TextElementEnd(textwriter*);
+NODE_DLL void NODE_TextElementAppendData(textwriter* Text, const tchar_t *Value);
+NODE_DLL void NODE_TextElementEndData(textwriter* Text, const tchar_t *Value);
+NODE_DLL void NODE_TextAttrib(textwriter*, const tchar_t* Name, const void* Data, dataflags Type);
+NODE_DLL void NODE_TextAttribEx(textwriter*,const tchar_t* Name, const void* Data, size_t Size, dataflags Type);
+NODE_DLL void NODE_TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter);
 
-NODE_DLL bool_t StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t** Expr);
-NODE_DLL bool_t StringToNode(node** Data, exprstate* State, const tchar_t** Expr);
-NODE_DLL bool_t StringToData(void* Data, size_t Size, dataflags Type, exprstate* State, const tchar_t* Value);
-NODE_DLL bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, size_t Size, dataflags Type);
-NODE_DLL bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base);
-NODE_DLL bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* Base);
+NODE_DLL bool_t NODE_StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t** Expr);
+NODE_DLL bool_t NODE_StringToNode(node** Data, exprstate* State, const tchar_t** Expr);
+NODE_DLL bool_t NODE_StringToData(void* Data, size_t Size, dataflags Type, exprstate* State, const tchar_t* Value);
+NODE_DLL bool_t NODE_DataToString(tchar_t* Value, size_t ValueLen, const void* Data, size_t Size, dataflags Type);
+NODE_DLL bool_t NODE_PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base);
+NODE_DLL bool_t NODE_NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* Base);
 
-NODE_DLL void ExprSkipSpace(const tchar_t** p);
-NODE_DLL void ExprTrimSpace(tchar_t** p);
-NODE_DLL bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen);
-NODE_DLL bool_t ExprSkipAfter(const tchar_t** p,int ch); //ch=0 for general space
-NODE_DLL bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name);
-NODE_DLL bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
+NODE_DLL void NODE_ExprSkipSpace(const tchar_t** p);
+NODE_DLL void NODE_ExprTrimSpace(tchar_t** p);
+NODE_DLL bool_t NODE_ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen);
+NODE_DLL bool_t NODE_ExprSkipAfter(const tchar_t** p,int ch); //ch=0 for general space
+NODE_DLL bool_t NODE_ExprIsToken(const tchar_t** p,const tchar_t* Name);
+NODE_DLL bool_t NODE_ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
 #if defined(__GNUC__) && !defined(_MSC_VER)
     __attribute__ ((format(printf, 2, 3)))
 #endif
     ;
-NODE_DLL bool_t ExprIsSymbol(const tchar_t** p,int ch);
-NODE_DLL bool_t ExprIsSymbol2(const tchar_t** p,int ch, int ch2);
-NODE_DLL void ExprParamEnd(const tchar_t** p);
-NODE_DLL bool_t ExprParamNext(const tchar_t** p);
-NODE_DLL bool_t ExprIsFrac(const tchar_t** p,cc_fraction*); // no space skipping!
-NODE_DLL bool_t ExprIsInt(const tchar_t** p,intptr_t*); // no space skipping!
-NODE_DLL bool_t ExprIsInt64(const tchar_t** p,int64_t*); // no space skipping!
-NODE_DLL bool_t ExprIsIntEx(const tchar_t** p,int size,intptr_t*); // no space skipping!
-NODE_DLL bool_t ExprIsInt64Ex(const tchar_t** p,int size,int64_t*); // no space skipping!
-NODE_DLL bool_t ExprIsHex(const tchar_t** p,intptr_t*); // no space skipping!
-NODE_DLL bool_t ExprIsRGB(const tchar_t** p,intptr_t*); // no space skipping!
-NODE_DLL bool_t ExprIsFourCC(const tchar_t** p,intptr_t*); // no space skipping!
-NODE_DLL bool_t ExprIsPoint(const tchar_t** p,cc_point*);
-NODE_DLL bool_t ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const tchar_t* Delimiter);
-NODE_DLL size_t ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize);
+NODE_DLL bool_t NODE_ExprIsSymbol(const tchar_t** p,int ch);
+NODE_DLL bool_t NODE_ExprIsSymbol2(const tchar_t** p,int ch, int ch2);
+NODE_DLL void NODE_ExprParamEnd(const tchar_t** p);
+NODE_DLL bool_t NODE_ExprParamNext(const tchar_t** p);
+NODE_DLL bool_t NODE_ExprIsFrac(const tchar_t** p,cc_fraction*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsInt(const tchar_t** p,intptr_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsInt64(const tchar_t** p,int64_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsIntEx(const tchar_t** p,int size,intptr_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsInt64Ex(const tchar_t** p,int size,int64_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsHex(const tchar_t** p,intptr_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsRGB(const tchar_t** p,intptr_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsFourCC(const tchar_t** p,intptr_t*); // no space skipping!
+NODE_DLL bool_t NODE_ExprIsPoint(const tchar_t** p,cc_point*);
+NODE_DLL bool_t NODE_ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const tchar_t* Delimiter);
+NODE_DLL size_t NODE_ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize);
 
-NODE_DLL void SimplifyFrac(cc_fraction*, int64_t Num, int64_t Den);
-NODE_DLL void DoubleToFrac(cc_fraction*, int64_t v);
+NODE_DLL void NODE_SimplifyFrac(cc_fraction*, int64_t Num, int64_t Den);
+NODE_DLL void NODE_DoubleToFrac(cc_fraction*, int64_t v);
 
-NODE_DLL bool_t BufferToBase64(tchar_t *Out, size_t OutLen, const uint8_t *Buffer, size_t BufferSize);
-NODE_DLL uint32_t StringToIP(const tchar_t *Addr);
+NODE_DLL bool_t NODE_BufferToBase64(tchar_t *Out, size_t OutLen, const uint8_t *Buffer, size_t BufferSize);
+NODE_DLL uint32_t NODE_StringToIP(const tchar_t *Addr);
 
-NODE_DLL err_t Stream_Printf(stream*, const tchar_t* Msg,...)
+NODE_DLL err_t NODE_Stream_Printf(stream*, const tchar_t* Msg,...)
 #if defined(__GNUC__) && !defined(_MSC_VER)
     __attribute__ ((format(printf, 2, 3)))
 #endif
     ;
-NODE_DLL void NodeDump(nodecontext*,textwriter*);
+NODE_DLL void NODE_Dump(nodecontext*,textwriter*);
 
 #ifdef __cplusplus
 }

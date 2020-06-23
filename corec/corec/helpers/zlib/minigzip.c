@@ -17,6 +17,7 @@
 
 #include "zlib.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef STDC
 #  include <string.h>
@@ -54,7 +55,7 @@
 #endif
 
 #if !defined(Z_HAVE_UNISTD_H) && !defined(_LARGEFILE64_SOURCE)
-#ifndef WIN32 /* unlink already in stdio.h for WIN32 */
+#ifndef _WIN32 /* unlink already in stdio.h for WIN32 */
   extern int unlink OF((const char *));
 #endif
 #endif

@@ -203,7 +203,7 @@ void StrTab_GetPosName(strtab *p, size_t Pos, tchar_t *Out, size_t OutLen)
     if (Pos < ARRAYCOUNT(p->Table,stringdef*))
     {
         stringdef *i = ARRAYBEGIN(p->Table,stringdef*)[Pos];
-        FourCCToString(Out,OutLen,i->Class);
+        STR_FourCCToString(Out,OutLen,i->Class);
         stprintf_s(Out+4,OutLen-4,T("%04X"),i->Id);
     }
 }

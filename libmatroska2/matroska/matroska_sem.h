@@ -34,301 +34,302 @@
 #ifndef MATROSKA_SEMANTIC_H
 #define MATROSKA_SEMANTIC_H
 
-EBML_DLL extern const ebml_context MATROSKA_ContextSeekID;
-EBML_DLL extern const ebml_context MATROSKA_ContextSeekPosition;
-EBML_DLL extern const ebml_context MATROSKA_ContextSeek;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSeekID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSeekPosition;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSeek;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextSeekHead;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSeekHead;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextSegmentUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextSegmentFilename;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrevUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrevFilename;
-EBML_DLL extern const ebml_context MATROSKA_ContextNextUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextNextFilename;
-EBML_DLL extern const ebml_context MATROSKA_ContextSegmentFamily;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTranslateEditionUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTranslateCodec;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTranslateID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTranslate;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSegmentUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSegmentFilename;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrevUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrevFilename;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextNextUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextNextFilename;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSegmentFamily;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTranslateEditionUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTranslateCodec;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTranslateID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTranslate;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTimestampScale;
-EBML_DLL extern const ebml_context MATROSKA_ContextDuration;
-EBML_DLL extern const ebml_context MATROSKA_ContextDateUTC;
-EBML_DLL extern const ebml_context MATROSKA_ContextTitle;
-EBML_DLL extern const ebml_context MATROSKA_ContextMuxingApp;
-EBML_DLL extern const ebml_context MATROSKA_ContextWritingApp;
-EBML_DLL extern const ebml_context MATROSKA_ContextInfo;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTimestampScale;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDuration;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDateUTC;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTitle;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMuxingApp;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextWritingApp;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextInfo;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTimestamp;
-EBML_DLL extern const ebml_context MATROSKA_ContextSilentTrackNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextSilentTracks;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTimestamp;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSilentTrackNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSilentTracks;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextPosition;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrevSize;
-EBML_DLL extern const ebml_context MATROSKA_ContextSimpleBlock;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlock;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockVirtual;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAddID;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAdditional;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockMore;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPosition;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrevSize;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSimpleBlock;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlock;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockVirtual;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAddID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAdditional;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockMore;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAdditions;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAdditions;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockDuration;
-EBML_DLL extern const ebml_context MATROSKA_ContextReferencePriority;
-EBML_DLL extern const ebml_context MATROSKA_ContextReferenceBlock;
-EBML_DLL extern const ebml_context MATROSKA_ContextReferenceVirtual;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecState;
-EBML_DLL extern const ebml_context MATROSKA_ContextDiscardPadding;
-EBML_DLL extern const ebml_context MATROSKA_ContextLaceNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextFrameNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAdditionID;
-EBML_DLL extern const ebml_context MATROSKA_ContextDelay;
-EBML_DLL extern const ebml_context MATROSKA_ContextSliceDuration;
-EBML_DLL extern const ebml_context MATROSKA_ContextTimeSlice;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockDuration;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextReferencePriority;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextReferenceBlock;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextReferenceVirtual;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecState;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDiscardPadding;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextLaceNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFrameNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAdditionID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDelay;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSliceDuration;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTimeSlice;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextSlices;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSlices;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextReferenceOffset;
-EBML_DLL extern const ebml_context MATROSKA_ContextReferenceTimestamp;
-EBML_DLL extern const ebml_context MATROSKA_ContextReferenceFrame;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextReferenceOffset;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextReferenceTimestamp;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextReferenceFrame;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockGroup;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockGroup;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextEncryptedBlock;
-EBML_DLL extern const ebml_context MATROSKA_ContextCluster;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextEncryptedBlock;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCluster;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackType;
-EBML_DLL extern const ebml_context MATROSKA_ContextFlagEnabled;
-EBML_DLL extern const ebml_context MATROSKA_ContextFlagDefault;
-EBML_DLL extern const ebml_context MATROSKA_ContextFlagForced;
-EBML_DLL extern const ebml_context MATROSKA_ContextFlagLacing;
-EBML_DLL extern const ebml_context MATROSKA_ContextMinCache;
-EBML_DLL extern const ebml_context MATROSKA_ContextMaxCache;
-EBML_DLL extern const ebml_context MATROSKA_ContextDefaultDuration;
-EBML_DLL extern const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackTimestampScale;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackOffset;
-EBML_DLL extern const ebml_context MATROSKA_ContextMaxBlockAdditionID;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAddIDValue;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAddIDName;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAddIDType;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAddIDExtraData;
-EBML_DLL extern const ebml_context MATROSKA_ContextBlockAdditionMapping;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFlagEnabled;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFlagDefault;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFlagForced;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFlagLacing;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMinCache;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMaxCache;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDefaultDuration;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDefaultDecodedFieldDuration;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackTimestampScale;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackOffset;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMaxBlockAdditionID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAddIDValue;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAddIDName;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAddIDType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAddIDExtraData;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBlockAdditionMapping;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextName;
-EBML_DLL extern const ebml_context MATROSKA_ContextLanguage;
-EBML_DLL extern const ebml_context MATROSKA_ContextLanguageIETF;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecID;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecPrivate;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecName;
-EBML_DLL extern const ebml_context MATROSKA_ContextAttachmentLink;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecSettings;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecInfoURL;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecDownloadURL;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecDecodeAll;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackOverlay;
-EBML_DLL extern const ebml_context MATROSKA_ContextCodecDelay;
-EBML_DLL extern const ebml_context MATROSKA_ContextSeekPreRoll;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackTranslateEditionUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackTranslateCodec;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackTranslateTrackID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackTranslate;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextName;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextLanguage;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextLanguageIETF;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecPrivate;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecName;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAttachmentLink;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecSettings;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecInfoURL;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecDownloadURL;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecDecodeAll;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackOverlay;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCodecDelay;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSeekPreRoll;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackTranslateEditionUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackTranslateCodec;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackTranslateTrackID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackTranslate;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextFlagInterlaced;
-EBML_DLL extern const ebml_context MATROSKA_ContextFieldOrder;
-EBML_DLL extern const ebml_context MATROSKA_ContextStereoMode;
-EBML_DLL extern const ebml_context MATROSKA_ContextAlphaMode;
-EBML_DLL extern const ebml_context MATROSKA_ContextOldStereoMode;
-EBML_DLL extern const ebml_context MATROSKA_ContextPixelWidth;
-EBML_DLL extern const ebml_context MATROSKA_ContextPixelHeight;
-EBML_DLL extern const ebml_context MATROSKA_ContextPixelCropBottom;
-EBML_DLL extern const ebml_context MATROSKA_ContextPixelCropTop;
-EBML_DLL extern const ebml_context MATROSKA_ContextPixelCropLeft;
-EBML_DLL extern const ebml_context MATROSKA_ContextPixelCropRight;
-EBML_DLL extern const ebml_context MATROSKA_ContextDisplayWidth;
-EBML_DLL extern const ebml_context MATROSKA_ContextDisplayHeight;
-EBML_DLL extern const ebml_context MATROSKA_ContextDisplayUnit;
-EBML_DLL extern const ebml_context MATROSKA_ContextAspectRatioType;
-EBML_DLL extern const ebml_context MATROSKA_ContextColourSpace;
-EBML_DLL extern const ebml_context MATROSKA_ContextGammaValue;
-EBML_DLL extern const ebml_context MATROSKA_ContextFrameRate;
-EBML_DLL extern const ebml_context MATROSKA_ContextMatrixCoefficients;
-EBML_DLL extern const ebml_context MATROSKA_ContextBitsPerChannel;
-EBML_DLL extern const ebml_context MATROSKA_ContextChromaSubsamplingHorz;
-EBML_DLL extern const ebml_context MATROSKA_ContextChromaSubsamplingVert;
-EBML_DLL extern const ebml_context MATROSKA_ContextCbSubsamplingHorz;
-EBML_DLL extern const ebml_context MATROSKA_ContextCbSubsamplingVert;
-EBML_DLL extern const ebml_context MATROSKA_ContextChromaSitingHorz;
-EBML_DLL extern const ebml_context MATROSKA_ContextChromaSitingVert;
-EBML_DLL extern const ebml_context MATROSKA_ContextRange;
-EBML_DLL extern const ebml_context MATROSKA_ContextTransferCharacteristics;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaries;
-EBML_DLL extern const ebml_context MATROSKA_ContextMaxCLL;
-EBML_DLL extern const ebml_context MATROSKA_ContextMaxFALL;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaryRChromaticityX;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaryRChromaticityY;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaryGChromaticityX;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaryGChromaticityY;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaryBChromaticityX;
-EBML_DLL extern const ebml_context MATROSKA_ContextPrimaryBChromaticityY;
-EBML_DLL extern const ebml_context MATROSKA_ContextWhitePointChromaticityX;
-EBML_DLL extern const ebml_context MATROSKA_ContextWhitePointChromaticityY;
-EBML_DLL extern const ebml_context MATROSKA_ContextLuminanceMax;
-EBML_DLL extern const ebml_context MATROSKA_ContextLuminanceMin;
-EBML_DLL extern const ebml_context MATROSKA_ContextMasteringMetadata;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFlagInterlaced;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFieldOrder;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextStereoMode;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAlphaMode;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextOldStereoMode;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPixelWidth;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPixelHeight;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPixelCropBottom;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPixelCropTop;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPixelCropLeft;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPixelCropRight;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDisplayWidth;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDisplayHeight;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextDisplayUnit;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAspectRatioType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextColourSpace;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextGammaValue;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFrameRate;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMatrixCoefficients;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBitsPerChannel;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChromaSubsamplingHorz;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChromaSubsamplingVert;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCbSubsamplingHorz;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCbSubsamplingVert;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChromaSitingHorz;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChromaSitingVert;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextRange;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTransferCharacteristics;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaries;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMaxCLL;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMaxFALL;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaryRChromaticityX;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaryRChromaticityY;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaryGChromaticityX;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaryGChromaticityY;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaryBChromaticityX;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextPrimaryBChromaticityY;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextWhitePointChromaticityX;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextWhitePointChromaticityY;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextLuminanceMax;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextLuminanceMin;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextMasteringMetadata;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextColour;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextColour;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextProjectionType;
-EBML_DLL extern const ebml_context MATROSKA_ContextProjectionPrivate;
-EBML_DLL extern const ebml_context MATROSKA_ContextProjectionPoseYaw;
-EBML_DLL extern const ebml_context MATROSKA_ContextProjectionPosePitch;
-EBML_DLL extern const ebml_context MATROSKA_ContextProjectionPoseRoll;
-EBML_DLL extern const ebml_context MATROSKA_ContextProjection;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextProjectionType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextProjectionPrivate;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextProjectionPoseYaw;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextProjectionPosePitch;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextProjectionPoseRoll;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextProjection;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextVideo;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextVideo;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextSamplingFrequency;
-EBML_DLL extern const ebml_context MATROSKA_ContextOutputSamplingFrequency;
-EBML_DLL extern const ebml_context MATROSKA_ContextChannels;
-EBML_DLL extern const ebml_context MATROSKA_ContextChannelPositions;
-EBML_DLL extern const ebml_context MATROSKA_ContextBitDepth;
-EBML_DLL extern const ebml_context MATROSKA_ContextAudio;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSamplingFrequency;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextOutputSamplingFrequency;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChannels;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChannelPositions;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextBitDepth;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAudio;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackPlaneUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackPlaneType;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackPlane;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackPlaneUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackPlaneType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackPlane;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackCombinePlanes;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackCombinePlanes;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackJoinUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackJoinBlocks;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackJoinUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackJoinBlocks;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackOperation;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackOperation;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrickTrackUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrickTrackSegmentUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrickTrackFlag;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrickMasterTrackUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTrickMasterTrackSegmentUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncodingOrder;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncodingScope;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncodingType;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentCompAlgo;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentCompSettings;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentCompression;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrickTrackUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrickTrackSegmentUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrickTrackFlag;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrickMasterTrackUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrickMasterTrackSegmentUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncodingOrder;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncodingScope;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncodingType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentCompAlgo;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentCompSettings;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentCompression;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncAlgo;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncKeyID;
-EBML_DLL extern const ebml_context MATROSKA_ContextAESSettingsCipherMode;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncAESSettings;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncAlgo;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncKeyID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAESSettingsCipherMode;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncAESSettings;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextContentSignature;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentSigKeyID;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentSigAlgo;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentSigHashAlgo;
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncryption;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentSignature;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentSigKeyID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentSigAlgo;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentSigHashAlgo;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncryption;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncoding;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncoding;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextContentEncodings;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextContentEncodings;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTrackEntry;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTrackEntry;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTracks;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTracks;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextCueTime;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueTrack;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueClusterPosition;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueRelativePosition;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueDuration;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueBlockNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueCodecState;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueRefTime;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueRefCluster;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueRefNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueRefCodecState;
-EBML_DLL extern const ebml_context MATROSKA_ContextCueReference;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueTime;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueTrack;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueClusterPosition;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueRelativePosition;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueDuration;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueBlockNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueCodecState;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueRefTime;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueRefCluster;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueRefNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueRefCodecState;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueReference;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextCueTrackPositions;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCueTrackPositions;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextCuePoint;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCuePoint;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextCues;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextCues;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextFileDescription;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileName;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileMimeType;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileData;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileReferral;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileUsedStartTime;
-EBML_DLL extern const ebml_context MATROSKA_ContextFileUsedEndTime;
-EBML_DLL extern const ebml_context MATROSKA_ContextAttachedFile;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileDescription;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileName;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileMimeType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileData;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileReferral;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileUsedStartTime;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextFileUsedEndTime;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAttachedFile;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextAttachments;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextAttachments;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextEditionUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextEditionFlagHidden;
-EBML_DLL extern const ebml_context MATROSKA_ContextEditionFlagDefault;
-EBML_DLL extern const ebml_context MATROSKA_ContextEditionFlagOrdered;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterStringUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTimeStart;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTimeEnd;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterFlagHidden;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterFlagEnabled;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterSegmentUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterSegmentEditionUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterPhysicalEquiv;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTrackNumber;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterTrack;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextEditionUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextEditionFlagHidden;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextEditionFlagDefault;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextEditionFlagOrdered;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterStringUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTimeStart;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTimeEnd;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterFlagHidden;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterFlagEnabled;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterSegmentUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterSegmentEditionUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterPhysicalEquiv;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTrackNumber;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterTrack;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextChapString;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapLanguage;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapLanguageIETF;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapCountry;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterDisplay;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapString;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapLanguage;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapLanguageIETF;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapCountry;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterDisplay;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextChapProcessCodecID;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapProcessPrivate;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapProcessTime;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapProcessData;
-EBML_DLL extern const ebml_context MATROSKA_ContextChapProcessCommand;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapProcessCodecID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapProcessPrivate;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapProcessTime;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapProcessData;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapProcessCommand;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextChapProcess;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapProcess;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextChapterAtom;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapterAtom;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextEditionEntry;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextEditionEntry;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextChapters;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextChapters;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTargetTypeValue;
-EBML_DLL extern const ebml_context MATROSKA_ContextTargetType;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagTrackUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagEditionUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagChapterUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagAttachmentUID;
-EBML_DLL extern const ebml_context MATROSKA_ContextTargets;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTargetTypeValue;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTargetType;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagTrackUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagEditionUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagChapterUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagAttachmentUID;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTargets;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTagName;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagLanguage;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagLanguageIETF;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagDefault;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagString;
-EBML_DLL extern const ebml_context MATROSKA_ContextTagBinary;
-EBML_DLL extern const ebml_context MATROSKA_ContextSimpleTag;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagName;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagLanguage;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagLanguageIETF;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagDefault;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagString;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTagBinary;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSimpleTag;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTag;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTag;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextTags;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextTags;
 
-EBML_DLL extern const ebml_context MATROSKA_ContextSegment;
+MATROSKA_DLL extern const ebml_context MATROSKA_ContextSegment;
 
 #endif // MATROSKA_SEMANTIC_H
+
 

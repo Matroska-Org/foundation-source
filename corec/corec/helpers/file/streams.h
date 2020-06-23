@@ -72,7 +72,7 @@
 #define SFLAG_WRONLY               0x2
 #define SFLAG_CREATE               0x4
 #define SFLAG_SILENT               0x8
-#define SFLAG_BUFFERED            0x10   // used only by StreamOpen helper function
+#define SFLAG_BUFFERED            0x10   // used only by FIFO_StreamOpen helper function
 #define SFLAG_REOPEN              0x20   // private inside stream
 #define SFLAG_NO_PRAGMA           0x40
 #define SFLAG_NO_PROXY            0x80
@@ -80,7 +80,7 @@
 #define SFLAG_NO_RETRY           0x200
 #define SFLAG_HIDDEN             0x400
 #define SFLAG_NO_CACHING         0x800
-#define SFLAG_NON_BLOCKING      0x1000   // used only by StreamOpen helper function
+#define SFLAG_NON_BLOCKING      0x1000   // used only by FIFO_StreamOpen helper function
 #define SFLAG_CREATE_BLOCKING   0x2000
 #define SFLAG_FORCE_CACHING     0x4000
 #define SFLAG_LONGTERM_CACHING  0x8000
@@ -211,11 +211,11 @@ typedef struct stream_vmt
 
 //---------------------------------------------------------------------------
 
-FILE_DLL stream* GetStream(anynode*, const tchar_t* URL, int Flags);
-FILE_DLL stream* StreamOpen(anynode*, const tchar_t* URL, int Flags);
-FILE_DLL void StreamClose(stream*);
-FILE_DLL bool_t StreamGenExts(anynode*,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter);
-FILE_DLL char StreamExtType(anynode*, fourcc_t ClassFilter, const tchar_t *Ext);
-FILE_DLL int StreamProtocolPriority(anynode*, const tchar_t* URL);
+FILE_DLL stream* FIFO_GetStream(anynode*, const tchar_t* URL, int Flags);
+FILE_DLL stream* FIFO_StreamOpen(anynode*, const tchar_t* URL, int Flags);
+FILE_DLL void FIFO_StreamClose(stream*);
+FILE_DLL bool_t FIFO_StreamGenExts(anynode*,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter);
+FILE_DLL char FIFO_StreamExtType(anynode*, fourcc_t ClassFilter, const tchar_t *Ext);
+FILE_DLL int FIFO_StreamProtocolPriority(anynode*, const tchar_t* URL);
 
 #endif

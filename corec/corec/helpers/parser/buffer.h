@@ -39,11 +39,11 @@ typedef struct buffer
 
 } buffer;
 
-NODE_DLL void BufferClear(buffer*);
-NODE_DLL void BufferDrop(buffer*);
-NODE_DLL bool_t BufferAlloc(buffer* p, size_t Size, size_t Align);
-NODE_DLL uint8_t* BufferWrite(buffer*, const void* Ptr, size_t Length, size_t Align);
-NODE_DLL const uint8_t* BufferRead(buffer*, size_t Length);
-NODE_DLL void BufferPack(buffer*, size_t Readed);
+NODE_DLL void NODE_BufferClear(buffer*);
+NODE_DLL void NODE_BufferDrop(buffer*);
+NODE_DLL bool_t NODE_BufferAlloc(buffer* p, size_t Size, size_t Align);
+NODE_DLL uint8_t* NODE_BufferWrite(buffer*, const void* Ptr, size_t Length, size_t Align);
+NODE_DLL const uint8_t* NODE_BufferRead(buffer*, size_t Length);
+NODE_DLL void NODE_BufferPack(buffer*, size_t Readed);
 
 #endif

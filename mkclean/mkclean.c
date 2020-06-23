@@ -74,7 +74,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #ifdef LOGTIME
     {
         tchar_t timed[1024];
-        SysTickToString(timed,TSIZEOF(timed),GetTimeTick(),1,1,0);
+        STR_SysTickToString(timed,TSIZEOF(timed),DATE_GetTimeTick(),1,1,0);
         stcatprintf_s(timed,TSIZEOF(timed),T(" %s"),s);
         s = timed;
     }
@@ -185,17 +185,17 @@ static bool_t MasterError(void *cookie, int type, const tchar_t *ClassName, cons
     if (type==MASTER_CHECK_PROFILE_INVALID)
     {
     	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
-        TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
+        NODE_TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
     }
     else if (type==MASTER_CHECK_MULTIPLE_UNIQUE)
     {
     	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
-        TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" has multiple versions of the unique element %s, skipping\r\n"),IdString,EBML_ElementPosition(i),ClassName);
+        NODE_TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" has multiple versions of the unique element %s, skipping\r\n"),IdString,EBML_ElementPosition(i),ClassName);
     }
     else if (type==MASTER_CHECK_MISSING_MANDATORY)
     {
     	EBML_ElementGetName(cookie,IdString,TSIZEOF(IdString));
-	    TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory element %s\r\n"),IdString,EBML_ElementPosition(cookie),ClassName);
+	    NODE_TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory element %s\r\n"),IdString,EBML_ElementPosition(cookie),ClassName);
     }
     return 1;
 }
@@ -423,13 +423,13 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
 static void ShowProgress(const ebml_element *RCluster, filepos_t TotalSize)
 {
     if (!Quiet)
-        TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),TotalSize)+1);
+        NODE_TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),TotalSize)+1);
 }
 
 static void EndProgress()
 {
     if (!Quiet)
-        TextPrintf(StdErr,T("Progress %d/%d: 100%%\r\n"), CurrentPhase, TotalPhases);
+        NODE_TextPrintf(StdErr,T("Progress %d/%d: 100%%\r\n"), CurrentPhase, TotalPhases);
 }
 
 static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, filepos_t TotalSize)
@@ -468,7 +468,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
         }
     }
 
-    TextPrintf(StdErr,T("Could not find the matching block for timecode %0.3f s\r\n"),CueTimecode/1000000000.0);
+    NODE_TextPrintf(StdErr,T("Could not find the matching block for timecode %0.3f s\r\n"),CueTimecode/1000000000.0);
     return NULL;
 }
 
@@ -488,7 +488,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 			{
 				if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
                 {
-					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' at %") TPRId64 T(" try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),EBML_ElementPosition(Block),GetProfileId(PROFILE_MATROSKA_V2));
+					NODE_TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' at %") TPRId64 T(" try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),EBML_ElementPosition(Block),GetProfileId(PROFILE_MATROSKA_V2));
 					return -32;
 				}
 			}
@@ -596,12 +596,12 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
-                TextPrintf(StdErr,T("Error reading\r\n"));
+                NODE_TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
             else if (EBML_IntegerValue((ebml_integer*)SubElement) > EBML_MAX_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
+                NODE_TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
                 break;
             }
         }
@@ -609,12 +609,12 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
-                TextPrintf(StdErr,T("Error reading\r\n"));
+                NODE_TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
             else if (EBML_IntegerValue((ebml_integer*)SubElement) > EBML_MAX_ID)
             {
-                TextPrintf(StdErr,T("EBML Max ID Length %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
+                NODE_TextPrintf(StdErr,T("EBML Max ID Length %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
                 break;
             }
         }
@@ -622,12 +622,12 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
-                TextPrintf(StdErr,T("Error reading\r\n"));
+                NODE_TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
             else if (EBML_IntegerValue((ebml_integer*)SubElement) > EBML_MAX_SIZE)
             {
-                TextPrintf(StdErr,T("EBML Max Coded Size %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
+                NODE_TextPrintf(StdErr,T("EBML Max Coded Size %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
                 break;
             }
         }
@@ -635,7 +635,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
-                TextPrintf(StdErr,T("Error reading\r\n"));
+                NODE_TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
             else
@@ -647,7 +647,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                     SrcProfile = PROFILE_WEBM;
                 else
                 {
-                    TextPrintf(StdErr,T("EBML DocType '%s' not supported\r\n"),String);
+                    NODE_TextPrintf(StdErr,T("EBML DocType '%s' not supported\r\n"),String);
                     break;
                 }
             }
@@ -656,12 +656,12 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
-                TextPrintf(StdErr,T("Error reading\r\n"));
+                NODE_TextPrintf(StdErr,T("Error reading\r\n"));
                 break;
             }
             else if (EBML_IntegerValue((ebml_integer*)SubElement) > MATROSKA_VERSION)
             {
-                TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
+                NODE_TextPrintf(StdErr,T("EBML Read version %") TPRId64 T(" not supported\r\n"),EBML_IntegerValue((ebml_integer*)SubElement));
                 break;
             }
             else
@@ -689,7 +689,7 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
         timecode_t OrigTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster);
         if (*PrevTimecode >= OrigTimecode)
         {
-            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timecode %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition((ebml_element*)Cluster),*PrevTimecode,OrigTimecode);
+            NODE_TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timecode %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition((ebml_element*)Cluster),*PrevTimecode,OrigTimecode);
             MATROSKA_ClusterSetTimecode((matroska_cluster*)Cluster, *PrevTimecode + MATROSKA_ClusterTimecodeScale((matroska_cluster*)Cluster, 0));
             CuesChanged = 1;
         }
@@ -701,12 +701,12 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
     UnReadClusterData(Cluster, 1);
 
     if (!Live && EBML_ElementPosition((ebml_element*)Cluster) != IntendedPosition)
-        TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),IntendedPosition);
+        NODE_TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),IntendedPosition);
     if (!Live && PrevSize!=INVALID_FILEPOS_T)
     {
         Elt = EBML_MasterGetChild(Cluster, &MATROSKA_ContextPrevSize);
         if (Elt && PrevSize!=EBML_IntegerValue((ebml_integer*)Elt))
-            TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),EBML_IntegerValue((ebml_integer*)Elt),PrevSize);
+            NODE_TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),EBML_IntegerValue((ebml_integer*)Elt),PrevSize);
     }
     return CuesChanged;
 }
@@ -769,7 +769,7 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 	}
 
 	if (!Track)
-		TextPrintf(StdErr,T("Could not find an audio or video track to use as main track"));
+		NODE_TextPrintf(StdErr,T("Could not find an audio or video track to use as main track"));
 
 	return Track;
 }
@@ -787,7 +787,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 	Track = GetMainTrack(Tracks, NULL);
 	if (!Track)
 	{
-		TextPrintf(StdErr,T("Could not generate the Cue entries"));
+		NODE_TextPrintf(StdErr,T("Could not generate the Cue entries"));
 		return 0;
 	}
 
@@ -833,7 +833,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 				CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,&MATROSKA_ContextCuePoint,1);
 				if (!CuePoint)
 				{
-					TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?\r\n"));
+					NODE_TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?\r\n"));
 					return 0;
 				}
 				MATROSKA_LinkCueSegmentInfo(CuePoint,WSegmentInfo);
@@ -850,7 +850,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 
 	if (!EBML_MasterChildren(Cues))
 	{
-		TextPrintf(StdErr,T("Failed to create the Cue entries, no Block found\r\n"));
+		NODE_TextPrintf(StdErr,T("Failed to create the Cue entries, no Block found\r\n"));
 		return 0;
 	}
 
@@ -928,7 +928,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackNumber);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track at %") TPRId64 T(" has no number set!\r\n"),EBML_ElementPosition((ebml_element*)CurTrack));
+			NODE_TextPrintf(StdErr,T("The track at %") TPRId64 T(" has no number set!\r\n"),EBML_ElementPosition((ebml_element*)CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -937,7 +937,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
 		if (!Elt && !EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackOperation))
 		{
-			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
+			NODE_TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -945,7 +945,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackType);
 		if (!Elt)
 		{
-			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no type set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
+			NODE_TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no type set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
@@ -962,7 +962,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             Height = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelHeight));
 	        if (Width==0 || Height==0)
 	        {
-		        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid pixel dimensions %dx%d!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),Width,Height);
+		        NODE_TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid pixel dimensions %dx%d!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),Width,Height);
 		        NodeDelete((node*)CurTrack);
 		        continue;
 	        }
@@ -998,7 +998,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     }
                     else if (EBML_IntegerValue((ebml_integer*)DisplayW)==0)
                     {
-		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display width %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),EBML_IntegerValue((ebml_integer*)DisplayW));
+		                NODE_TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display width %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),EBML_IntegerValue((ebml_integer*)DisplayW));
 		                NodeDelete((node*)CurTrack);
 		                continue;
                     }
@@ -1017,7 +1017,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     }
                     else if (EBML_IntegerValue((ebml_integer*)DisplayH)==0)
                     {
-		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),EBML_IntegerValue((ebml_integer*)DisplayH));
+		                NODE_TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),EBML_IntegerValue((ebml_integer*)DisplayH));
 		                NodeDelete((node*)CurTrack);
 		                continue;
                     }
@@ -1089,7 +1089,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     if (Width!=TRACK_OLD_STEREOMODE_MONO && Width <= 3) // upper values are probably the new ones
                     {
                         *DstProfile = PROFILE_MATROSKA_V3;
-                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                        NODE_TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
                         if (EBML_ElementIsType(Elt2, &MATROSKA_ContextOldStereoMode))
                             // replace the old by a new
                             Elt2->Context = &MATROSKA_ContextStereoMode;
@@ -1097,13 +1097,13 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                         // replace the old values with the new ones
                         if (Width==TRACK_OLD_STEREOMODE_BOTH)
                         {
-                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                            NODE_TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
                             EBML_IntegerSetValue((ebml_integer*)Elt2,TRACK_STEREO_MODE_SIDEBYSIDE_L);
                         }
                         else
                         {
                             EBML_IntegerSetValue((ebml_integer*)Elt2,TRACK_STEREO_MODE_MONO);
-                            TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==TRACK_OLD_STEREOMODE_LEFT?T("left"):T("right"));
+                            NODE_TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==TRACK_OLD_STEREOMODE_LEFT?T("left"):T("right"));
                             // look for the other track
                             for (OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,CurTrack);OtherTrack; OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,OtherTrack))
                             {
@@ -1120,7 +1120,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                                         ebml_master *CombinedTrack;
                                         int NewTrackUID;
 
-                                        TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==TRACK_OLD_STEREOMODE_RIGHT?T("left"):T("right"));
+                                        NODE_TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==TRACK_OLD_STEREOMODE_RIGHT?T("left"):T("right"));
                                         EBML_IntegerSetValue((ebml_integer*)OtherStereo,TRACK_STEREO_MODE_MONO);
 
                                         // create another track that is this one combined
@@ -1209,7 +1209,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                                 }
                             }
 
-                            TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==TRACK_OLD_STEREOMODE_RIGHT?T("left"):T("right"));
+                            NODE_TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==TRACK_OLD_STEREOMODE_RIGHT?T("left"):T("right"));
                         }
                     }
                 }
@@ -1234,7 +1234,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                   (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_OPUS")))
                 ))
             {
-                TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*DstProfile),TrackNum);
+                NODE_TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*DstProfile),TrackNum);
                 NodeDelete((node*)CurTrack);
                 continue;
             }
@@ -1468,7 +1468,7 @@ int main(int argc, const char *argv[])
     SplitPath(Path,NULL,0,String,TSIZEOF(String),NULL,0);
     UnOptimize = tcsisame_ascii(String,T("mkWDclean"));
     if (UnOptimize)
-        TextPrintf(StdErr,T("Running special mkWDclean mode, please fix your player instead of valid Matroska files\r\n"));
+        NODE_TextPrintf(StdErr,T("Running special mkWDclean mode, please fix your player instead of valid Matroska files\r\n"));
 	Path[0] = 0;
 
 	for (i=1;i<argc;++i)
@@ -1502,7 +1502,7 @@ int main(int argc, const char *argv[])
 				DstProfile = PROFILE_MATROSKA_V4;
 			else
 			{
-		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
+		        NODE_TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
                 Path[0] = 0;
 				Result = -8;
 				goto exit;
@@ -1516,7 +1516,7 @@ int main(int argc, const char *argv[])
 #else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 #endif
-			TimeCodeScale = StringToInt(Path,0);
+			TimeCodeScale = STR_StringToInt(Path,0);
 			InputPathIndex = i+1;
 		}
 		else if (tcsisame_ascii(Path,T("--alt-3d")) && i+1<argc-1)
@@ -1527,7 +1527,7 @@ int main(int argc, const char *argv[])
 #else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 #endif
-            TrackId = StringToInt(Path,0);
+            TrackId = STR_StringToInt(Path,0);
             if (ARRAYCOUNT(Alternate3DTracks, block_info*) < (TrackId+1))
             {
                 size_t OldSize = ARRAYCOUNT(Alternate3DTracks, block_info*);
@@ -1545,36 +1545,36 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--quiet"))) { Quiet = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--version"))) { ShowVersion = 1; InputPathIndex = i+1; }
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; InputPathIndex = i+1; }
-		else if (i<argc-2) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
+		else if (i<argc-2) NODE_TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
     
     if (argc < (1+InputPathIndex) || ShowVersion)
     {
-        TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010-2011 Matroska Foundation\r\n"));
+        NODE_TextWrite(StdErr,T("mkclean v") PROJECT_VERSION T(", Copyright (c) 2010-2011 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
-            TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> [matroska_dst]\r\n"));
-		    TextWrite(StdErr,T("Options:\r\n"));
-		    TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
-		    TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));
-		    TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
-		    TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
-		    TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
-		    TextWrite(StdErr,T("    3: 'matroska' v3\r\n"));
-		    TextWrite(StdErr,T("    4: 'webm'\r\n"));
-		    TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
-		    TextWrite(StdErr,T("    6: 'matroska' v4\r\n"));
-		    TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
-		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
-		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
-		    TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
-		    TextWrite(StdErr,T("  --optimize_nv use all possible optimization for the output file, except video tracks\r\n"));
-		    TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
-		    TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
-            TextWrite(StdErr,T("  --alt-3d <t>  the track with ID <v> has alternate 3D fields (left first)\r\n"));
-		    TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
-            TextWrite(StdErr,T("  --version     show the version of mkclean\r\n"));
-            TextWrite(StdErr,T("  --help        show this screen\r\n"));
+            NODE_TextWrite(StdErr,T("Usage: mkclean [options] <matroska_src> [matroska_dst]\r\n"));
+		    NODE_TextWrite(StdErr,T("Options:\r\n"));
+		    NODE_TextWrite(StdErr,T("  --keep-cues   keep the original Cues content and move it to the front\r\n"));
+		    NODE_TextWrite(StdErr,T("  --remux       redo the Clusters layout\r\n"));
+		    NODE_TextWrite(StdErr,T("  --doctype <v> force the doctype version\r\n"));
+		    NODE_TextWrite(StdErr,T("    1: 'matroska' v1\r\n"));
+		    NODE_TextWrite(StdErr,T("    2: 'matroska' v2\r\n"));
+		    NODE_TextWrite(StdErr,T("    3: 'matroska' v3\r\n"));
+		    NODE_TextWrite(StdErr,T("    4: 'webm'\r\n"));
+		    NODE_TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
+		    NODE_TextWrite(StdErr,T("    6: 'matroska' v4\r\n"));
+		    NODE_TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
+		    NODE_TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
+		    NODE_TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
+		    NODE_TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
+		    NODE_TextWrite(StdErr,T("  --optimize_nv use all possible optimization for the output file, except video tracks\r\n"));
+		    NODE_TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
+		    NODE_TextWrite(StdErr,T("  --regression  the output file is suitable for regression tests\r\n"));
+            NODE_TextWrite(StdErr,T("  --alt-3d <t>  the track with ID <v> has alternate 3D fields (left first)\r\n"));
+		    NODE_TextWrite(StdErr,T("  --quiet       only output errors\r\n"));
+            NODE_TextWrite(StdErr,T("  --version     show the version of mkclean\r\n"));
+            NODE_TextWrite(StdErr,T("  --help        show this screen\r\n"));
         }
         Path[0] = 0;
         Result = -1;
@@ -1586,10 +1586,10 @@ int main(int argc, const char *argv[])
 #else
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
 #endif
-    Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    Input = FIFO_StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
-        TextPrintf(StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
+        NODE_TextPrintf(StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
         Path[0] = 0;
         Result = -2;
         goto exit;
@@ -1620,10 +1620,10 @@ int main(int argc, const char *argv[])
 #else
         Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
 #endif
-    Output = StreamOpen(&p,Path,SFLAG_WRONLY|SFLAG_CREATE);
+    Output = FIFO_StreamOpen(&p,Path,SFLAG_WRONLY|SFLAG_CREATE);
     if (!Output)
     {
-        TextPrintf(StdErr,T("Could not open file \"%s\" for writing\r\n"),Path);
+        NODE_TextPrintf(StdErr,T("Could not open file \"%s\" for writing\r\n"),Path);
         Result = -3;
         goto exit;
     }
@@ -1636,7 +1636,7 @@ int main(int argc, const char *argv[])
     EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
     if (!EbmlHead || !EBML_ElementIsType((ebml_element*)EbmlHead, &EBML_ContextHead))
     {
-        TextWrite(StdErr,T("EBML head not found! Are you sure it's a matroska/webm file?\r\n"));
+        NODE_TextWrite(StdErr,T("EBML head not found! Are you sure it's a matroska/webm file?\r\n"));
         Result = -4;
         goto exit;
     }
@@ -1682,7 +1682,7 @@ int main(int argc, const char *argv[])
     RSegmentContext.UpContext = &RContext;
     RSegmentContext.Profile = SrcProfile;
 	UpperElement = 0;
-//TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
+//NODE_TextPrintf(StdErr,T("Loading the level1 elements in memory\r\n"));
     RLevel1 = (ebml_master*)EBML_FindNextElement(Input, &RSegmentContext, &UpperElement, 1);
     while (RLevel1)
     {
@@ -1748,7 +1748,7 @@ int main(int argc, const char *argv[])
 
     if (!RSegmentInfo)
     {
-        TextWrite(StdErr,T("The source Segment has no Segment Info section\r\n"));
+        NODE_TextWrite(StdErr,T("The source Segment has no Segment Info section\r\n"));
         Result = -6;
         goto exit;
     }
@@ -1758,7 +1758,7 @@ int main(int argc, const char *argv[])
 	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,&MATROSKA_ContextTimestampScale);
 	if (!RLevel1)
 	{
-		TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
+		NODE_TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
 		Result = -10;
 		goto exit;
 	}
@@ -1802,7 +1802,7 @@ int main(int argc, const char *argv[])
 
     if (!RTrackInfo && ARRAYCOUNT(RClusters,ebml_element*))
     {
-        TextWrite(StdErr,T("The source Segment has no Track Info section\r\n"));
+        NODE_TextWrite(StdErr,T("The source Segment has no Track Info section\r\n"));
         Result = -7;
         goto exit;
     }
@@ -1812,13 +1812,13 @@ int main(int argc, const char *argv[])
 		Result = CleanTracks(RTrackInfo, SrcProfile, &DstProfile, RAttachments, &Alternate3DTracks);
 		if (Result!=0)
 		{
-			TextWrite(StdErr,T("No Tracks left to use!\r\n"));
+			NODE_TextWrite(StdErr,T("No Tracks left to use!\r\n"));
 			goto exit;
 		}
 		WTrackInfo = (ebml_master*)EBML_ElementCopy(RTrackInfo, NULL);
 		if (WTrackInfo==NULL)
 		{
-			TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
+			NODE_TextWrite(StdErr,T("Failed to copy the track info!\r\n"));
 			goto exit;
 		}
         EBML_MasterUseChecksum(WTrackInfo,!Unsafe);
@@ -1879,7 +1879,7 @@ int main(int argc, const char *argv[])
 
     if (ARRAYCOUNT(Alternate3DTracks, block_info*) && DstProfile!=PROFILE_MATROSKA_V3 && DstProfile!=PROFILE_MATROSKA_V4)
     {
-        TextPrintf(StdErr,T("Using --alt-3d in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),GetProfileId(PROFILE_MATROSKA_V3));
+        NODE_TextPrintf(StdErr,T("Using --alt-3d in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),GetProfileId(PROFILE_MATROSKA_V3));
         goto exit;
     }
 
@@ -1916,7 +1916,7 @@ int main(int argc, const char *argv[])
     }
     if (EBML_ElementRenderHead((ebml_element*)WSegment,Output,0,NULL)!=ERR_NONE)
     {
-        TextWrite(StdErr,T("Failed to write the (temporary) Segment head\r\n"));
+        NODE_TextWrite(StdErr,T("Failed to write the (temporary) Segment head\r\n"));
         Result = -10;
         goto exit;
     }
@@ -1981,7 +1981,7 @@ int main(int argc, const char *argv[])
         if (Regression)
             EBML_DateSetDateTime((ebml_date*)RLevel1, 1);
         else
-		    EBML_DateSetDateTime((ebml_date*)RLevel1, GetTimeDate());
+		    EBML_DateSetDateTime((ebml_date*)RLevel1, DATE_GetTimeDate());
 		RLevel1 = NULL;
 	}
 
@@ -2016,7 +2016,7 @@ int main(int argc, const char *argv[])
 		}
 		else
 		{
-			TextWrite(StdErr,T("Warning: the source Segment has no Track Info section (can be a chapter file)\r\n"));
+			NODE_TextWrite(StdErr,T("Warning: the source Segment has no Track Info section (can be a chapter file)\r\n"));
 		}
 
 		// chapters
@@ -2027,7 +2027,7 @@ int main(int argc, const char *argv[])
                 EBML_ElementUpdateSize(RChapters, 0, 0);
 			if (!EBML_MasterCheckMandatory(RChapters,0))
 			{
-				TextWrite(StdErr,T("The Chapters section is missing mandatory elements, skipping\r\n"));
+				NODE_TextWrite(StdErr,T("The Chapters section is missing mandatory elements, skipping\r\n"));
 				NodeDelete((node*)RChapters);
 				RChapters = NULL;
 			}
@@ -2050,7 +2050,7 @@ int main(int argc, const char *argv[])
                 EBML_ElementUpdateSize(RAttachments, 0, 0);
 			if (!EBML_MasterCheckMandatory(RAttachments,0))
 			{
-				TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
+				NODE_TextWrite(StdErr,T("The Attachments section is missing mandatory elements, skipping\r\n"));
 				NodeDelete((node*)RAttachments);
 				RAttachments = NULL;
 			}
@@ -2072,7 +2072,7 @@ int main(int argc, const char *argv[])
                 EBML_ElementUpdateSize(RTags, 0, 0);
 			if (!EBML_MasterCheckMandatory(RTags,0))
 			{
-				TextWrite(StdErr,T("The Tags section is missing mandatory elements, skipping\r\n"));
+				NODE_TextWrite(StdErr,T("The Tags section is missing mandatory elements, skipping\r\n"));
 				NodeDelete((node*)RTags);
 				RTags = NULL;
 			}
@@ -2134,7 +2134,7 @@ int main(int argc, const char *argv[])
         ebml_element *Block, *GBlock;
         matroska_cluster **ClusterR;
 
-	    if (!Quiet) TextWrite(StdErr,T("Optimizing...\r\n"));
+	    if (!Quiet) NODE_TextWrite(StdErr,T("Optimizing...\r\n"));
 
 		ArrayResize(&TrackMaxHeader, sizeof(array)*(MaxTrackNum+1), 0);
 		ArrayZero(&TrackMaxHeader);
@@ -2204,7 +2204,7 @@ int main(int argc, const char *argv[])
 		block_info BlockInfo,*pBlockInfo;
 		err_t Result;
 
-		if (!Quiet) TextWrite(StdErr,T("Remuxing...\r\n"));
+		if (!Quiet) NODE_TextWrite(StdErr,T("Remuxing...\r\n"));
 		// count the number of useful tracks
 		Frame = 0;
 		for (Track=(ebml_master*)EBML_MasterChildren(WTrackInfo); Track; Track=(ebml_master*)EBML_MasterNext(Track))
@@ -2259,7 +2259,7 @@ int main(int argc, const char *argv[])
 			Track = GetMainTrack(WTrackInfo,&TrackOrder);
 			if (!Track)
 			{
-				TextWrite(StdErr,T("Impossible to remux without a proper track to use\r\n"));
+				NODE_TextWrite(StdErr,T("Impossible to remux without a proper track to use\r\n"));
 				goto exit;
 			}
 			Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
@@ -2270,7 +2270,7 @@ int main(int argc, const char *argv[])
 			{
 				if (!ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
 				{
-					if (!Quiet) TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
+					if (!Quiet) NODE_TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
 					for (Elt = EBML_MasterFindChild(WTrackInfo,&MATROSKA_ContextTrackEntry); Elt; Elt=EBML_MasterNextChild(WTrackInfo,Elt))
 					{
 						if (EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackNumber))==*pTrackOrder)
@@ -2321,7 +2321,7 @@ int main(int argc, const char *argv[])
 		}
 		if (!ARRAYCOUNT(KeyFrameTimecodes,timecode_t))
 		{
-			TextPrintf(StdErr,T("Impossible to remux, no keyframe found for track %d\r\n"),(int)MainTrack);
+			NODE_TextPrintf(StdErr,T("Impossible to remux, no keyframe found for track %d\r\n"),(int)MainTrack);
 			goto exit;
 		}
 
@@ -2349,7 +2349,7 @@ int main(int argc, const char *argv[])
 		}
 
 		// create each Cluster
-		if (!Quiet) TextWrite(StdErr,T("Reclustering...\r\n"));
+		if (!Quiet) NODE_TextWrite(StdErr,T("Reclustering...\r\n"));
 		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
 		{
 			bool_t ReachedClusterEnd = 0;
@@ -2462,7 +2462,7 @@ int main(int argc, const char *argv[])
 						if (MainBlockEnd!=INVALID_TIMECODE_T && BlockEnd>MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
 						{
 							// relacing
-                            //TextPrintf(StdErr,T("\rRelacing block track %d at %") TPRId64 T(" ends %") TPRId64 T(" next cluster at %") TPRId64 T("\r\n"),*pTrackOrder,pBlockInfo->DecodeTime,BlockEnd,MasterEndTimecode);
+                            //NODE_TextPrintf(StdErr,T("\rRelacing block track %d at %") TPRId64 T(" ends %") TPRId64 T(" next cluster at %") TPRId64 T("\r\n"),*pTrackOrder,pBlockInfo->DecodeTime,BlockEnd,MasterEndTimecode);
                             if (MATROSKA_BlockReadData(pBlockInfo->Block,Input)==ERR_NONE)
                             {
 						        bool_t HasDuration = MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE;
@@ -2529,9 +2529,9 @@ int main(int argc, const char *argv[])
 							    if (Result != ERR_NONE)
 							    {
 								    if (Result==ERR_INVALID_DATA)
-									    TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
+									    NODE_TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
 								    else
-									    TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+									    NODE_TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
 								    Result = -46;
 								    goto exit;
 							    }
@@ -2603,9 +2603,9 @@ int main(int argc, const char *argv[])
 							if (Result != ERR_NONE)
 							{
 								if (Result==ERR_INVALID_DATA)
-									TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
+									NODE_TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
 								else
-									TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
+									NODE_TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
 								Result = -46;
 								goto exit;
 							}
@@ -2723,7 +2723,7 @@ int main(int argc, const char *argv[])
                         size_t ExtraCompHeaderBytes = (encoding == MATROSKA_BLOCK_COMPR_NONE) ? 13 : 3; // extra bytes needed to add the comp header to the track
                         size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
                         uint8_t *Compressed = malloc(CompressedSize);
-                        if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE
+                        if (MATROSKA_CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE
                             && (CompressedSize + ExtraCompHeaderBytes) < CodecPrivate->Base.DataSize)
                         {
                             encoding = MATROSKA_BLOCK_COMPR_ZLIB;
@@ -2783,7 +2783,7 @@ int main(int argc, const char *argv[])
 			ReduceSize((ebml_element*)RCues);
 			if (!EBML_MasterCheckMandatory(RCues,0))
 			{
-				TextWrite(StdErr,T("The original Cues are missing mandatory elements, creating from scratch\r\n"));
+				NODE_TextWrite(StdErr,T("The original Cues are missing mandatory elements, creating from scratch\r\n"));
 				NodeDelete((node*)RCues);
 				RCues = NULL;
 			}
@@ -2796,7 +2796,7 @@ int main(int argc, const char *argv[])
 			// generate the cues
 			RCues = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
             EBML_MasterUseChecksum(RCues,!Unsafe);
-			if (!Quiet) TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
+			if (!Quiet) NODE_TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
 			CuesCreated = GenerateCueEntries(RCues,Clusters,WTrackInfo,WSegmentInfo,(ebml_element*)RSegment, TotalSize);
 			if (!CuesCreated)
 			{
@@ -2905,7 +2905,7 @@ int main(int argc, const char *argv[])
 		EBML_ElementFullSize((ebml_element*)WMetaSeek,0);
 		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekBefore)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the final Meta Seek\r\n"));
+			NODE_TextWrite(StdErr,T("Failed to write the final Meta Seek\r\n"));
 			Result = -22;
 			goto exit;
 		}
@@ -2916,7 +2916,7 @@ int main(int argc, const char *argv[])
         EBML_VoidSetFullSize(Void, ExtraVoidSize);
 		if (EBML_ElementRender((ebml_element*)Void,Output,0,0,1,&ClusterSize)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the Void after Meta Seek\r\n"));
+			NODE_TextWrite(StdErr,T("Failed to write the Void after Meta Seek\r\n"));
 			Result = -24;
 			goto exit;
 		}
@@ -2928,7 +2928,7 @@ int main(int argc, const char *argv[])
 
     if (EBML_ElementRender((ebml_element*)WSegmentInfo,Output,0,0,1,&ClusterSize)!=ERR_NONE)
     {
-        TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
+        NODE_TextWrite(StdErr,T("Failed to write the Segment Info\r\n"));
         Result = -11;
         goto exit;
     }
@@ -2937,7 +2937,7 @@ int main(int argc, const char *argv[])
     {
         if (EBML_ElementRender((ebml_element*)WTrackInfo,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Track Info\r\n"));
+            NODE_TextWrite(StdErr,T("Failed to write the Track Info\r\n"));
             Result = -12;
             goto exit;
         }
@@ -2947,7 +2947,7 @@ int main(int argc, const char *argv[])
     {
         if (EBML_ElementRender((ebml_element*)RChapters,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Chapters\r\n"));
+            NODE_TextWrite(StdErr,T("Failed to write the Chapters\r\n"));
             Result = -13;
             goto exit;
         }
@@ -2960,7 +2960,7 @@ int main(int argc, const char *argv[])
         ReduceSize((ebml_element*)RAttachments);
         if (EBML_ElementRender((ebml_element*)RAttachments,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Attachments\r\n"));
+            NODE_TextWrite(StdErr,T("Failed to write the Attachments\r\n"));
             Result = -17;
             goto exit;
         }
@@ -2971,7 +2971,7 @@ int main(int argc, const char *argv[])
     {
         if (EBML_ElementRender((ebml_element*)RTags,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Tags\r\n"));
+            NODE_TextWrite(StdErr,T("Failed to write the Tags\r\n"));
             Result = -14;
             goto exit;
         }
@@ -2982,7 +2982,7 @@ int main(int argc, const char *argv[])
     {
         if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&CuesSize)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Cues\r\n"));
+            NODE_TextWrite(StdErr,T("Failed to write the Cues\r\n"));
             Result = -15;
             goto exit;
         }
@@ -3013,7 +3013,7 @@ int main(int argc, const char *argv[])
 
         if (EBML_ElementRender((ebml_element*)RCues,Output,0,0,1,&ClusterSize)!=ERR_NONE)
         {
-            TextWrite(StdErr,T("Failed to write the Cues\r\n"));
+            NODE_TextWrite(StdErr,T("Failed to write the Cues\r\n"));
             Result = -16;
             goto exit;
         }
@@ -3029,7 +3029,7 @@ int main(int argc, const char *argv[])
             assert(ClusterSize == CuesSize);
             if (ClusterSize != CuesSize)
             {
-                TextWrite(StdErr,T("The Cues size changed after a Cluster timecode was altered!\r\n"));
+                NODE_TextWrite(StdErr,T("The Cues size changed after a Cluster timecode was altered!\r\n"));
                 Result = -18;
                 goto exit;
             }
@@ -3045,11 +3045,11 @@ int main(int argc, const char *argv[])
 			if (EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength((ebml_element*)WSegment),0) != EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength((ebml_element*)WSegment),0))
 			{
                 // TODO: this check is always false
-				TextPrintf(StdErr,T("The segment written is much bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize((ebml_element*)WSegment,0));
+				NODE_TextPrintf(StdErr,T("The segment written is much bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize((ebml_element*)WSegment,0));
 				Result = -20;
 				goto exit;
 			}
-			if (!Quiet) TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize((ebml_element*)WSegment,0));
+			if (!Quiet) NODE_TextPrintf(StdErr,T("The segment written is bigger than the original %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),SegmentSize,EBML_ElementDataSize((ebml_element*)WSegment,0));
 		}
 		if (EBML_CodedSizeLength(EBML_ElementDataSize((ebml_element*)WSegment,0),0,!Live) > EBML_CodedSizeLength(SegmentSize,0,!Live))
 			EBML_ElementSetSizeLength((ebml_element*)WSegment, EBML_CodedSizeLength(EBML_ElementDataSize((ebml_element*)WSegment,0),0,!Live));
@@ -3057,7 +3057,7 @@ int main(int argc, const char *argv[])
 		Stream_Seek(Output,EBML_ElementPosition((ebml_element*)WSegment),SEEK_SET);
 		if (EBML_ElementRenderHead((ebml_element*)WSegment, Output, 0, NULL)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the final Segment size !\r\n"));
+			NODE_TextWrite(StdErr,T("Failed to write the final Segment size !\r\n"));
 			Result = -21;
 			goto exit;
 		}
@@ -3067,19 +3067,19 @@ int main(int argc, const char *argv[])
 		//Stream_Seek(Output,EBML_ElementPosition(WMetaSeek,SEEK_SET);
 		if (EBML_ElementRender((ebml_element*)WMetaSeek,Output,0,0,1,&MetaSeekAfter)!=ERR_NONE)
 		{
-			TextWrite(StdErr,T("Failed to write the final Meta Seek\r\n"));
+			NODE_TextWrite(StdErr,T("Failed to write the final Meta Seek\r\n"));
 			Result = -22;
 			goto exit;
 		}
 		if (MetaSeekBefore != MetaSeekAfter)
 		{
-			TextPrintf(StdErr,T("The final Meta Seek size has changed %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),MetaSeekBefore,MetaSeekAfter);
+			NODE_TextPrintf(StdErr,T("The final Meta Seek size has changed %") TPRId64 T(" vs %") TPRId64 T(" !\r\n"),MetaSeekBefore,MetaSeekAfter);
 			Result = -23;
 			goto exit;
 		}
 	}
 
-    if (!Quiet) TextPrintf(StdErr,T("Finished cleaning & optimizing \"%s\"\r\n"),Path);
+    if (!Quiet) NODE_TextPrintf(StdErr,T("Finished cleaning & optimizing \"%s\"\r\n"),Path);
 
 exit:
     NodeDelete((node*)WSegment);
@@ -3107,9 +3107,9 @@ exit:
     NodeDelete((node*)RSegment);
     NodeDelete((node*)EbmlHead);
     if (Input)
-        StreamClose(Input);
+        FIFO_StreamClose(Input);
     if (Output)
-        StreamClose(Output);
+        FIFO_StreamClose(Output);
 
     if (Result<0 && Path[0])
         FileErase((nodecontext*)&p,Path,1,0);

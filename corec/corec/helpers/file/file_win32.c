@@ -193,7 +193,7 @@ static err_t Open(filestream* p, const tchar_t* URL, int Flags)
 									if (ch) *ch = 0;
 
 									// we don't want to depend on parser and charconvert in file
-									// Node_FromStr(p,URL,TSIZEOF(URL),Head);
+									// NODE_FromStr(p,URL,TSIZEOF(URL),Head);
 #ifdef COREMAKE_UNICODE
 									if (!MultiByteToWideChar(CP_ACP,0,Head,-1,URL,TSIZEOF(URL)))
 									{
@@ -368,7 +368,7 @@ static err_t OpenDir(filestream* p,const tchar_t* URL,int UNUSED_PARAM(Flags))
 			return ERR_NOT_DIRECTORY;
 
         tcscpy_s(Path,TSIZEOF(Path),URL);
-        AddPathDelimiter(Path,TSIZEOF(Path));
+        NODE_AddPathDelimiter(Path,TSIZEOF(Path));
         tcscat_s(Path,TSIZEOF(Path),T("*.*"));
 		p->Find = FindFirstFile(Path, &p->FindData);
     }
@@ -427,7 +427,7 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 			    else
 			    {
 				    Item->Size = (filepos_t)(((int64_t)p->FindData.nFileSizeHigh << 32) | p->FindData.nFileSizeLow);
-				    Item->Type = CheckExts(Item->FileName,Exts);
+				    Item->Type = NODE_CheckExts(Item->FileName,Exts);
 
 				    if (!Item->Type && ExtFilter)
 					    Item->FileName[0] = 0; // skip
@@ -508,12 +508,12 @@ META_CLASS(CREATE,CreateFunc)
 META_CLASS(DELETE,DeleteFunc)
 META_END(NODE_CLASS)
 
-bool_t FolderCreate(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
+bool_t NODE_FolderCreate(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
 	return CreateDirectory(Path,NULL) != FALSE;
 }
 
-bool_t FileExists(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
+bool_t NODE_FileExists(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
 	return GetFileAttributes(Path) != (DWORD)-1;
 }
@@ -536,7 +536,7 @@ static bool_t FileRecycle(const tchar_t* Path)
     return Ret == 0;
 }
 
-bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force, bool_t Safe)
+bool_t NODE_FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force, bool_t Safe)
 {
     if (Force)
     {
@@ -554,7 +554,7 @@ bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force,
         return FileRecycle(Path);
 }
 
-bool_t FolderErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force, bool_t Safe)
+bool_t NODE_FolderErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force, bool_t Safe)
 {
     if (Force)
     {
@@ -572,13 +572,13 @@ bool_t FolderErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Forc
         return FileRecycle(Path);
 }
 
-bool_t PathIsFolder(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
+bool_t NODE_PathIsFolder(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
     DWORD attr = GetFileAttributes(Path);
 	return (attr != (DWORD)-1) && (attr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
 }
 
-datetime_t FileDateTime(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
+datetime_t NODE_FileDateTime(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
 	datetime_t Date = INVALID_DATETIME_T;
 	HANDLE Find;
@@ -593,12 +593,12 @@ datetime_t FileDateTime(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 	return Date;
 }
 
-bool_t FileMove(nodecontext* UNUSED_PARAM(p),const tchar_t* In,const tchar_t* Out)
+bool_t NODE_FileMove(nodecontext* UNUSED_PARAM(p),const tchar_t* In,const tchar_t* Out)
 {
     return MoveFile(In,Out) != 0;
 }
 
-void FindFiles(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, const tchar_t* Mask, void(*Process)(const tchar_t*,void*),void* Param)
+void NODE_FindFiles(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, const tchar_t* Mask, void(*Process)(const tchar_t*,void*),void* Param)
 {
 	WIN32_FIND_DATA FindData;
 	tchar_t FindPath[MAXPATH];
@@ -622,7 +622,7 @@ void FindFiles(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, const tchar_t* 
 	}
 }
 
-stream *FileTemp(anynode* UNUSED_PARAM(Any))
+stream *NODE_FileTemp(anynode* UNUSED_PARAM(Any))
 {
 #ifndef TODO
     assert(NULL); // not supported yet
@@ -630,7 +630,7 @@ stream *FileTemp(anynode* UNUSED_PARAM(Any))
     return NULL;
 }
 
-bool_t FileTempName(anynode* UNUSED_PARAM(Any),tchar_t* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen))
+bool_t NODE_FileTempName(anynode* UNUSED_PARAM(Any),tchar_t* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen))
 {
 #ifndef TODO
     assert(NULL); // not supported yet
@@ -638,7 +638,7 @@ bool_t FileTempName(anynode* UNUSED_PARAM(Any),tchar_t* UNUSED_PARAM(Out), size_
     return 0;
 }
 
-FILE_DLL int64_t GetPathFreeSpace(nodecontext* UNUSED_PARAM(p), const tchar_t* Path)
+FILE_DLL int64_t NODE_GetPathFreeSpace(nodecontext* UNUSED_PARAM(p), const tchar_t* Path)
 {
     ULARGE_INTEGER lpFreeBytesAvailable;
     ULARGE_INTEGER lpTotal;

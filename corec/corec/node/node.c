@@ -3017,7 +3017,7 @@ typedef struct memcollectitem
 
 } memcollectitem;
 
-bool_t NodeHibernate(anynode* AnyNode)
+bool_t NODE_NodeHibernate(anynode* AnyNode)
 {
     nodecontext* p = Node_Context(AnyNode);
 	bool_t Changed = 0;
@@ -3054,7 +3054,7 @@ bool_t NodeHibernate(anynode* AnyNode)
 	return Changed;
 }
 
-void Mem_AddCollector(anynode* AnyNode, memcollect Func, void* Cookie)
+void MEM_AddCollector(anynode* AnyNode, memcollect Func, void* Cookie)
 {
     memcollectitem Item;
     Item.Func = Func;
@@ -3062,7 +3062,7 @@ void Mem_AddCollector(anynode* AnyNode, memcollect Func, void* Cookie)
     ArrayAppend(&Node_Context(AnyNode)->Collect,&Item,sizeof(Item),0);
 }
 
-void Mem_RemoveCollector(anynode* AnyNode, memcollect Func, void* Cookie)
+void MEM_RemoveCollector(anynode* AnyNode, memcollect Func, void* Cookie)
 {
     memcollectitem Item;
     Item.Func = Func;

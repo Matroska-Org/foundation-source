@@ -652,7 +652,7 @@ do_exponent:
                     fourcc_t FourCC = va_arg(Arg,fourcc_t);
                     if (OutLen > 4)
                     {
-                        size_t Written = FourCCToString(Out,OutLen,FourCC);
+                        size_t Written = STR_FourCCToString(Out,OutLen,FourCC);
                         Out+=Written;
                         OutLen+=Written;
                     }

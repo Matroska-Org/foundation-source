@@ -236,9 +236,12 @@
 
 #ifdef _MSC_VER
 
+#ifdef CONFIG_DEBUG_LEAKS
 #define _CRTDBG_MAP_ALLOC
+#endif
 #include <stdlib.h>
 #include <malloc.h>
+#include <stdint.h>
 #ifndef TARGET_WINCE
 #include <crtdbg.h>
 #endif
@@ -393,7 +396,7 @@ typedef uint64_t uint_fast64_t;
 
 #endif /* _MSC_VER */
 
-#if !defined(_STDINT_H) && !defined(_STDINT_H_) && !defined(_UINT64_T_DECLARED) // could be used elsewhere
+#if !defined(_STDINT) && !defined(_STDINT_H) && !defined(_STDINT_H_) && !defined(_UINT64_T_DECLARED) // could be used elsewhere
 
 typedef signed long int32_t;
 typedef unsigned long uint32_t;

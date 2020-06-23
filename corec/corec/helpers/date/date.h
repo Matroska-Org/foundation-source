@@ -44,7 +44,7 @@ extern "C" {
 #define DATE_DLL
 #endif
 
-DATE_DLL systick_t GetTimeTick(void);
+DATE_DLL systick_t DATE_GetTimeTick(void);
 #if defined(TARGET_WIN) || defined(TARGET_PS2SDK) || defined(TARGET_LINUX) || defined(TARGET_OSX) || defined(TARGET_ANDROID)
 #define GetTimeFreq()  1000
 #else
@@ -62,10 +62,10 @@ typedef struct datepack_t
     intptr_t WeekDay; // 1 = Sunday, 2 = Monday, etc
 } datepack_t;
 
-DATE_DLL datetime_t GetTimeDate(void); // UTC in s (reference is 1st January 2001 00:00:00.000 UTC, use a helper to get the localized string value)
-DATE_DLL datetime_t TimePackToRel(const datepack_t *tp, bool_t FromLocal);
-DATE_DLL bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t ToLocal);
-DATE_DLL bool_t GetIsDst(datetime_t t); // may not be correct on all platforms
+DATE_DLL datetime_t DATE_GetTimeDate(void); // UTC in s (reference is 1st January 2001 00:00:00.000 UTC, use a helper to get the localized string value)
+DATE_DLL datetime_t DATE_TimePackToRel(const datepack_t *tp, bool_t FromLocal);
+DATE_DLL bool_t DATE_GetDatePacked(datetime_t t, datepack_t *tp, bool_t ToLocal);
+DATE_DLL bool_t DATE_GetIsDst(datetime_t t); // may not be correct on all platforms
 
 #ifdef __cplusplus
 }

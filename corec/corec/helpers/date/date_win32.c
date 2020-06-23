@@ -51,12 +51,12 @@ static FILETIME fTimeCache[MAX_CACHED_YEAR - MIN_CACHED_YEAR + 2][2];
 #endif
 
 #if defined(TARGET_WINCE)
-systick_t GetTimeTick()
+systick_t DATE_GetTimeTick()
 {
 	return GetTickCount();
 }
 #else
-systick_t GetTimeTick()
+systick_t DATE_GetTimeTick()
 {
 	return timeGetTime();
 }
@@ -150,7 +150,7 @@ static void ConvertDaylightDateToFileTime(int Year, SYSTEMTIME *Date, FILETIME *
     SystemTimeToFileTime(&TimeStruct, fTime);
 }
 
-datetime_t GetTimeDate()
+datetime_t DATE_GetTimeDate()
 {
     SYSTEMTIME sysTimeStruct;
     FILETIME fTime;
@@ -162,7 +162,7 @@ datetime_t GetTimeDate()
     return INVALID_DATETIME_T;
 }
 
-datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
+datetime_t DATE_TimePackToRel(const datepack_t *tp, bool_t Local)
 {
     SYSTEMTIME TimeStruct = {0};
     FILETIME fTime;
@@ -202,7 +202,7 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
     if (Local) {
         GetFixedTZ();
         t += fix_tz.Bias * 60;
-        if (GetIsDst(t)) // test with UTC time without daylight (not perfect at the edges)
+        if (DATE_GetIsDst(t)) // test with UTC time without daylight (not perfect at the edges)
             t += fix_tz.DaylightBias * 60;
         else
             t += fix_tz.StandardBias * 60;
@@ -214,7 +214,7 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
     return t;
 }
 
-bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
+bool_t DATE_GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
 {
     SYSTEMTIME TimeStruct = {0};
     FILETIME fTime = {0};
@@ -225,7 +225,7 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
 #ifndef TARGET_WIN2K
     if (Local) {
         GetFixedTZ();
-        if (GetIsDst(t))
+        if (DATE_GetIsDst(t))
             t -= fix_tz.DaylightBias * 60;
         else
             t -= fix_tz.StandardBias * 60;
@@ -260,7 +260,7 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
     return 1;
 }
 
-bool_t GetIsDst(datetime_t t)
+bool_t DATE_GetIsDst(datetime_t t)
 {
 #ifdef TARGET_WIN2K
     FILETIME fTime = {0};

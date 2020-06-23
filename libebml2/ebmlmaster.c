@@ -419,7 +419,7 @@ processCrc:
         Element->CheckSumStatus = EBML_CRCMatches(CRCElement, CRCData, CRCDataSize)?2:1;
         if (CRCData == ARRAYBEGIN(CrcBuffer,uint8_t))
         {
-            StreamClose(ReadStream);
+            FIFO_StreamClose(ReadStream);
             ArrayClear(&CrcBuffer);
         }
     }
@@ -529,7 +529,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                                 *Rendered = Written + CrcSize;
                             }
                         }
-                        StreamClose(VOutput);
+                        FIFO_StreamClose(VOutput);
                     }
                 }
                 else
@@ -637,7 +637,7 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
 			    {
                     if (s->DisabledProfile & ProfileMask)
                     {
-				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+                        NODE_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,i))
                         {
                             EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
@@ -648,7 +648,7 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
                     }
                     if (s->Unique && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     {
-		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+                        NODE_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
                         {
                             EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
@@ -667,7 +667,7 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
 	{
 	    if (s->Mandatory && !s->eClass->HasDefault && !EBML_MasterFindChild(Element,s->eClass))
 	    {
-		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+            NODE_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
             if (ErrCallback)
                 ErrCallback(cookie,MASTER_CHECK_MISSING_MANDATORY,ClassString,NULL);
 	    }

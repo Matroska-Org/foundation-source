@@ -1,59 +1,85 @@
 /* uncompr.c -- decompress a memory buffer
- * Copyright (C) 1995-2003, 2010 Jean-loup Gailly.
+ * Copyright (C) 1995-2003, 2010, 2014, 2016 Jean-loup Gailly, Mark Adler.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-/* @(#) $Id$ */
-
-#define ZLIB_INTERNAL
-#include "zlib.h"
+//#define ZLIB_INTERNAL
+#include "zbuild.h"
+#ifdef ZLIB_COMPAT
+#  include "zlib.h"
+#else
+#  include "zlib-ng.h"
+#endif
 
 /* ===========================================================================
-     Decompresses the source buffer into the destination buffer.  sourceLen is
-   the byte length of the source buffer. Upon entry, destLen is the total
-   size of the destination buffer, which must be large enough to hold the
-   entire uncompressed data. (The size of the uncompressed data must have
-   been saved previously by the compressor and transmitted to the decompressor
-   by some mechanism outside the scope of this compression library.)
-   Upon exit, destLen is the actual size of the compressed buffer.
+     Decompresses the source buffer into the destination buffer.  *sourceLen is
+   the byte length of the source buffer. Upon entry, *destLen is the total size
+   of the destination buffer, which must be large enough to hold the entire
+   uncompressed data. (The size of the uncompressed data must have been saved
+   previously by the compressor and transmitted to the decompressor by some
+   mechanism outside the scope of this compression library.) Upon exit,
+   *destLen is the size of the decompressed data and *sourceLen is the number
+   of source bytes consumed. Upon return, source + *sourceLen points to the
+   first unused input byte.
 
-     uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
-   enough memory, Z_BUF_ERROR if there was not enough room in the output
-   buffer, or Z_DATA_ERROR if the input data was corrupted.
+     uncompress returns Z_OK if success, Z_MEM_ERROR if there was not enough
+   memory, Z_BUF_ERROR if there was not enough room in the output buffer, or
+   Z_DATA_ERROR if the input data was corrupted, including if the input data is
+   an incomplete zlib stream.
 */
-int ZEXPORT uncompress (dest, destLen, source, sourceLen)
-    Bytef *dest;
-    uLongf *destLen;
-    const Bytef *source;
-    uLong sourceLen;
-{
-    z_stream stream;
+int ZEXPORT PREFIX(uncompress2)(unsigned char *dest, z_size_t *destLen, const unsigned char *source, z_size_t *sourceLen) {
+    PREFIX3(stream) stream;
     int err;
+    const unsigned int max = (unsigned int)-1;
+    z_size_t len, left;
+    unsigned char buf[1];    /* for detection of incomplete stream when *destLen == 0 */
 
-    stream.next_in = (Bytef*)source;
-    stream.avail_in = (uInt)sourceLen;
-    /* Check for source > 64K on 16-bit machine: */
-    if ((uLong)stream.avail_in != sourceLen) return Z_BUF_ERROR;
+    len = *sourceLen;
+    if (*destLen) {
+        left = *destLen;
+        *destLen = 0;
+    } else {
+        left = 1;
+        dest = buf;
+    }
 
-    stream.next_out = dest;
-    stream.avail_out = (uInt)*destLen;
-    if ((uLong)stream.avail_out != *destLen) return Z_BUF_ERROR;
+    stream.next_in = (const unsigned char *)source;
+    stream.avail_in = 0;
+    stream.zalloc = NULL;
+    stream.zfree = NULL;
+    stream.opaque = NULL;
 
-    stream.zalloc = (alloc_func)0;
-    stream.zfree = (free_func)0;
-
-    err = inflateInit(&stream);
+    err = PREFIX(inflateInit)(&stream);
     if (err != Z_OK) return err;
 
-    err = inflate(&stream, Z_FINISH);
-    if (err != Z_STREAM_END) {
-        inflateEnd(&stream);
-        if (err == Z_NEED_DICT || (err == Z_BUF_ERROR && stream.avail_in == 0))
-            return Z_DATA_ERROR;
-        return err;
-    }
-    *destLen = stream.total_out;
+    stream.next_out = dest;
+    stream.avail_out = 0;
 
-    err = inflateEnd(&stream);
-    return err;
+    do {
+        if (stream.avail_out == 0) {
+            stream.avail_out = left > (unsigned long)max ? max : (unsigned int)left;
+            left -= stream.avail_out;
+        }
+        if (stream.avail_in == 0) {
+            stream.avail_in = len > (unsigned long)max ? max : (unsigned int)len;
+            len -= stream.avail_in;
+        }
+        err = PREFIX(inflate)(&stream, Z_NO_FLUSH);
+    } while (err == Z_OK);
+
+    *sourceLen -= len + stream.avail_in;
+    if (dest != buf)
+        *destLen = (z_size_t)stream.total_out;
+    else if (stream.total_out && err == Z_BUF_ERROR)
+        left = 1;
+
+    PREFIX(inflateEnd)(&stream);
+    return err == Z_STREAM_END ? Z_OK :
+           err == Z_NEED_DICT ? Z_DATA_ERROR  :
+           err == Z_BUF_ERROR && left + stream.avail_out ? Z_DATA_ERROR :
+           err;
+}
+
+int ZEXPORT PREFIX(uncompress)(unsigned char *dest, z_size_t *destLen, const unsigned char *source, z_size_t sourceLen) {
+    return PREFIX(uncompress2)(dest, destLen, source, &sourceLen);
 }

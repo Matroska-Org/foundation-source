@@ -68,7 +68,7 @@ void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
 			Node_FromUTF8(Element,Out,OutLen,Element->Buffer);
 		else
 #endif
-			Node_FromStr(Element,Out,OutLen,Element->Buffer);
+            NODE_FromStr(Element,Out,OutLen,Element->Buffer);
 	}
 }
 

@@ -30,6 +30,6 @@
 #ifndef __URLPART_H
 #define __URLPART_H
 
-NODE_DLL err_t CreateUrlPart(nodecontext *Context, tchar_t *Out, size_t OutLen, const tchar_t *URL, filepos_t Offset, size_t Length, const tchar_t *Mime);
+NODE_DLL err_t NODE_CreateUrlPart(nodecontext *Context, tchar_t *Out, size_t OutLen, const tchar_t *URL, filepos_t Offset, size_t Length, const tchar_t *Mime);
 
 #endif /* __URLPART_H */

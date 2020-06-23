@@ -30,28 +30,28 @@
 #ifndef __STRTYPES_H
 #define __STRTYPES_H
 
-NODE_DLL size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
-NODE_DLL fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper);
-NODE_DLL void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* Fraction, int Percent, int Decimal);
-NODE_DLL void StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent);
-NODE_DLL int StringToInt(const tchar_t* In, int Hex);
-NODE_DLL int64_t StringToInt64(const tchar_t* In);
-NODE_DLL void IntToString(tchar_t* Out, size_t OutLen, int32_t Int, bool_t Hex);
-NODE_DLL void Int64ToString(tchar_t* Out, size_t OutLen, int64_t Int, bool_t Hex);
-NODE_DLL void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
-NODE_DLL void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
-NODE_DLL tick_t StringToTick(const tchar_t* In);
-NODE_DLL systick_t StringToSysTick(const tchar_t* In);
-NODE_DLL void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB);
-NODE_DLL rgbval_t StringToRGB(const tchar_t* In);
-NODE_DLL void GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid*);
-NODE_DLL bool_t StringToGUID(const tchar_t* In, cc_guid*);
-NODE_DLL void StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *URL);
-NODE_DLL void URLToString(tchar_t* Out, size_t OutLen, const tchar_t *URL);
-NODE_DLL void LangToIso639_1(tchar_t *Out, size_t OutLen, fourcc_t Lang);
-NODE_DLL void ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate);
-NODE_DLL datetime_t RFC822ToRel(const tchar_t *);
-NODE_DLL datetime_t ISO8601ToRel(const tchar_t *);
-NODE_DLL size_t StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *dp);
+NODE_DLL size_t STR_FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
+NODE_DLL fourcc_t STR_StringToFourCC(const tchar_t* In, bool_t Upper);
+NODE_DLL void STR_FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* Fraction, int Percent, int Decimal);
+NODE_DLL void STR_StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent);
+NODE_DLL int STR_StringToInt(const tchar_t* In, int Hex);
+NODE_DLL int64_t STR_StringToInt64(const tchar_t* In);
+NODE_DLL void STR_IntToString(tchar_t* Out, size_t OutLen, int32_t Int, bool_t Hex);
+NODE_DLL void STR_Int64ToString(tchar_t* Out, size_t OutLen, int64_t Int, bool_t Hex);
+NODE_DLL void STR_TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
+NODE_DLL void STR_SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
+NODE_DLL tick_t STR_StringToTick(const tchar_t* In);
+NODE_DLL systick_t STR_StringToSysTick(const tchar_t* In);
+NODE_DLL void STR_RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB);
+NODE_DLL rgbval_t STR_StringToRGB(const tchar_t* In);
+NODE_DLL void STR_GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid*);
+NODE_DLL bool_t STR_StringToGUID(const tchar_t* In, cc_guid*);
+NODE_DLL void STR_StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *URL);
+NODE_DLL void STR_URLToString(tchar_t* Out, size_t OutLen, const tchar_t *URL);
+NODE_DLL void STR_LangToIso639_1(tchar_t *Out, size_t OutLen, fourcc_t Lang);
+NODE_DLL void STR_ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate);
+NODE_DLL datetime_t STR_RFC822ToRel(const tchar_t *);
+NODE_DLL datetime_t STR_ISO8601ToRel(const tchar_t *);
+NODE_DLL size_t STR_StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *dp);
 
 #endif

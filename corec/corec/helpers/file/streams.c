@@ -65,7 +65,7 @@ static stream* DummyDuplicate(void* p,int Flags)
 	if (Node_Get(p,STREAM_URL,URL,sizeof(URL)) != ERR_NONE)
 		return NULL;
 	
-    return StreamOpen(p,URL,Flags);
+    return FIFO_StreamOpen(p,URL,Flags);
 }
 
 static err_t DummyBlocking(void* UNUSED_PARAM(p),bool_t State)
@@ -242,9 +242,9 @@ META_VMT(TYPE_FUNC,stream_vmt,Blocking,ProcessBlocking)
 META_VMT(TYPE_FUNC,stream_vmt,Wait,ProcessWait)
 META_END(STREAM_CLASS) 
 
-stream* StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
+stream* FIFO_StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
 {
-	stream* File = GetStream(AnyNode,Path,Flags);
+	stream* File = FIFO_GetStream(AnyNode,Path,Flags);
 	if (File)
 	{
 		err_t Err = Stream_Open(File,Path,Flags);
@@ -266,12 +266,12 @@ stream* StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
 	return File;
 }
 
-void StreamClose(stream* File)
+void FIFO_StreamClose(stream* File)
 {
 	NodeDelete((node*)File);
 }
 
-bool_t StreamGenExts(anynode* AnyNode,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter)
+bool_t FIFO_StreamGenExts(anynode* AnyNode,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter)
 {
 	fourcc_t* i;
 	array List;
@@ -314,13 +314,13 @@ bool_t StreamGenExts(anynode* AnyNode,array* Exts, fourcc_t ClassFilter, const t
     return !ARRAYEMPTY(*Exts);
 }
 
-char StreamExtType(anynode* AnyNode, fourcc_t ClassFilter, const tchar_t *Ext)
+char FIFO_StreamExtType(anynode* AnyNode, fourcc_t ClassFilter, const tchar_t *Ext)
 {
     char Result = FTYPE_UNDEFINED;
     tchar_t *s;
     size_t i;
     array List;
-    StreamGenExts(AnyNode,&List,ClassFilter,NULL);
+    FIFO_StreamGenExts(AnyNode,&List,ClassFilter,NULL);
 
     for (s=ARRAYBEGIN(List,tchar_t);s;)
     {
@@ -340,13 +340,13 @@ char StreamExtType(anynode* AnyNode, fourcc_t ClassFilter, const tchar_t *Ext)
     return Result;
 }
 
-stream* GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
+stream* FIFO_GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
 {
 	tchar_t Protocol[MAXPROTOCOL];
 	stream* Stream = NULL;
     fourcc_t FourCC;
 
-    GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
+    NODE_GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
 
     FourCC = NodeEnumClassStr(AnyNode,NULL,STREAM_CLASS,NODE_PROTOCOL,Protocol);
 
@@ -373,10 +373,10 @@ stream* GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
 	return Stream;
 }
 
-int StreamProtocolPriority(anynode *AnyNode, const tchar_t* URL)
+int FIFO_StreamProtocolPriority(anynode *AnyNode, const tchar_t* URL)
 {
 	tchar_t Protocol[MAXPROTOCOL];
-    GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
+    NODE_GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
     if (tcsicmp(Protocol,T("file"))==0) // override for local files
         return PRI_MAXIMUM;
     return NodeClass_Priority(NodeContext_FindClass(AnyNode,NodeEnumClassStr(AnyNode,NULL,STREAM_CLASS,NODE_PROTOCOL,Protocol)));

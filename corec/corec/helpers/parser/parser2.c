@@ -35,7 +35,7 @@ static const tchar_t* ExternalStr(nodecontext* p,fourcc_t Class,int Id)
     return StrTab_Find(&((parsercontext*)p)->StrTab,Class,Id);
 }
 
-void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memheap* Heap, const cc_memheap* ConstHeap)
+void NODE_ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memheap* Heap, const cc_memheap* ConstHeap)
 {
     NodeContext_Init(&p->Base,Custom,Heap,ConstHeap);
     p->Base.ExternalStr = ExternalStr;
@@ -50,7 +50,7 @@ void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memhea
 	p->FromUtf16 = CharConvOpen(CHARSET_UTF16,NULL);
 }
 
-void ParserContext_Done(parsercontext* p)
+void NODE_ParserContext_Done(parsercontext* p)
 {
 	CharConvClose(p->ToUTF8);
 	CharConvClose(p->FromUTF8);
@@ -72,58 +72,58 @@ void ParserContext_Done(parsercontext* p)
     NodeContext_Done(&p->Base);
 }
 
-void Node_ToUTF8(anynode* p, char* Out,size_t OutLen, const tchar_t* In)
+void NODE_ToUTF8(anynode* p, char* Out,size_t OutLen, const tchar_t* In)
 {
     CharConvST(Parser_Context(p)->ToUTF8,Out,OutLen,In);
 }
 
-void Node_FromUTF8(anynode* p, tchar_t* Out,size_t OutLen, const char* In)
+void NODE_FromUTF8(anynode* p, tchar_t* Out,size_t OutLen, const char* In)
 {
     CharConvTS(Parser_Context(p)->FromUTF8,Out,OutLen,In);
 }
 
-void Node_ToStr(anynode* p, char* Out,size_t OutLen, const tchar_t* In)
+void NODE_ToStr(anynode* p, char* Out,size_t OutLen, const tchar_t* In)
 {
     CharConvST(Parser_Context(p)->ToStr,Out,OutLen,In);
 }
 
-void Node_FromStr(anynode* p, tchar_t* Out,size_t OutLen, const char* In)
+void NODE_FromStr(anynode* p, tchar_t* Out,size_t OutLen, const char* In)
 {
     CharConvTS(Parser_Context(p)->FromStr,Out,OutLen,In);
 }
 
-void Node_ToWcs(anynode* p, wchar_t* Out,size_t OutLen, const tchar_t* In)
+void NODE_ToWcs(anynode* p, wchar_t* Out,size_t OutLen, const tchar_t* In)
 {
     CharConvWT(Parser_Context(p)->ToWcs,Out,OutLen,In);
 }
 
-void Node_FromWcs(anynode* p, tchar_t* Out,size_t OutLen, const wchar_t* In)
+void NODE_FromWcs(anynode* p, tchar_t* Out,size_t OutLen, const wchar_t* In)
 {
     CharConvTW(Parser_Context(p)->FromWcs,Out,OutLen,In);
 }
 
-void Node_ToUTF16(anynode* p, utf16_t* Out,size_t OutLen, const tchar_t* In)
+void NODE_ToUTF16(anynode* p, utf16_t* Out,size_t OutLen, const tchar_t* In)
 {
     CharConvUT(Parser_Context(p)->ToUtf16,Out,OutLen,In);
 }
 
-void Node_FromUTF16(anynode* p, tchar_t* Out,size_t OutLen, const utf16_t* In)
+void NODE_FromUTF16(anynode* p, tchar_t* Out,size_t OutLen, const utf16_t* In)
 {
     CharConvTU(Parser_Context(p)->FromUtf16,Out,OutLen,In);
 }
 
-void ParserDataFeed(parser* p,const void* Ptr,size_t Len)
+void NODE_ParserDataFeed(parser* p,const void* Ptr,size_t Len)
 {
-	BufferWrite(&p->Buffer,Ptr,Len,4096);
+	NODE_BufferWrite(&p->Buffer,Ptr,Len,4096);
 }
 
-NOINLINE err_t ParserFill(parser* p,size_t Needed)
+NOINLINE err_t NODE_ParserFill(parser* p,size_t Needed)
 {
     // Needed may be zero (see http.c EnumDir())
 
     // pack buffer if more then half is done
 	if (p->Buffer.Read > p->Buffer.Begin + (p->Buffer.End - p->Buffer.Begin)/2)
-		BufferPack(&p->Buffer,0);
+		NODE_BufferPack(&p->Buffer,0);
 
 	for (;;)
     {
@@ -149,7 +149,7 @@ NOINLINE err_t ParserFill(parser* p,size_t Needed)
     return ERR_NONE;
 }
 
-NOINLINE err_t ParserFillLine(parser* p)
+NOINLINE err_t NODE_ParserFillLine(parser* p)
 {
     err_t Err;
     do
@@ -159,30 +159,30 @@ NOINLINE err_t ParserFillLine(parser* p)
             if (*i == '\n')
                 return ERR_NONE;
 
-        Err = ParserFill(p,1);
+        Err = NODE_ParserFill(p,1);
 
     } while (Err==ERR_NONE);
     return Err;
 }
 
-void ParserBOM(parser* p)
+void NODE_ParserBOM(parser* p)
 {
     //TODO: use BOM detection in more places (playlist,xml,...)
     //TODO: support 16bit LE/BE encodings
-    const uint8_t* BOM = ParserPeek(p,3);
+    const uint8_t* BOM = NODE_ParserPeek(p,3);
     if (BOM)
     {
         if (BOM[0]==0xEF && BOM[1]==0xBB && BOM[2]==0xBF)
         {
             intptr_t Skip = 3;
-            ParserSkip(p,&Skip);
+            NODE_ParserSkip(p,&Skip);
             if (p->Context)
-                ParserCC(p,p->Context->FromUTF8,0);
+                NODE_ParserCC(p,p->Context->FromUTF8,0);
         }
     }
 }
 
-NOINLINE void ParserCC(parser* p, charconv* CC, bool_t OwnCC)
+NOINLINE void NODE_ParserCC(parser* p, charconv* CC, bool_t OwnCC)
 {
     if (p->CC && p->OwnCC)
         CharConvClose(p->CC);
@@ -190,9 +190,9 @@ NOINLINE void ParserCC(parser* p, charconv* CC, bool_t OwnCC)
     p->OwnCC = (boolmem_t)OwnCC;
 }
 
-err_t ParserStream(parser* p, stream* Stream, parsercontext* Context)
+err_t NODE_ParserStream(parser* p, stream* Stream, parsercontext* Context)
 {
-    ParserCC(p,Context ? Context->FromStr:NULL, 0);
+    NODE_ParserCC(p,Context ? Context->FromStr:NULL, 0);
 
 	p->Stream = Stream;
     p->Element = 0;
@@ -204,11 +204,11 @@ err_t ParserStream(parser* p, stream* Stream, parsercontext* Context)
 	if (Stream)
 	{
 		if (!p->Buffer.Begin)
-			if (!BufferAlloc(&p->Buffer,4096,1))
+			if (!NODE_BufferAlloc(&p->Buffer,4096,1))
                 return ERR_OUT_OF_MEMORY;
 	}
     else {
-		BufferClear(&p->Buffer);
+		NODE_BufferClear(&p->Buffer);
         if (p->BigLine) {
             free(p->BigLine);
             p->BigLine = NULL;
@@ -217,7 +217,7 @@ err_t ParserStream(parser* p, stream* Stream, parsercontext* Context)
     return ERR_NONE;
 }
 
-err_t ParserSkip(parser* p, intptr_t* Skip)
+err_t NODE_ParserSkip(parser* p, intptr_t* Skip)
 {
     intptr_t n = min(*Skip,p->Buffer.Write - p->Buffer.Read);
     if (n>0)
@@ -228,7 +228,7 @@ err_t ParserSkip(parser* p, intptr_t* Skip)
     return Stream_Skip(p->Stream,Skip);
 }
 
-err_t ParserReadEx(parser* p, void* Data, size_t Size, size_t* Readed, bool_t Fill)
+err_t NODE_ParserReadEx(parser* p, void* Data, size_t Size, size_t* Readed, bool_t Fill)
 {
     if (!Fill)
     {
@@ -244,10 +244,10 @@ err_t ParserReadEx(parser* p, void* Data, size_t Size, size_t* Readed, bool_t Fi
             *Readed = n;
         return !Size ? ERR_NONE:ERR_NEED_MORE_DATA;
     }
-    return ParserRead(p,Data,Size,Readed);
+    return NODE_ParserRead(p,Data,Size,Readed);
 }
 
-err_t ParserRead(parser* p, void* Data, size_t Size, size_t* Readed)
+err_t NODE_ParserRead(parser* p, void* Data, size_t Size, size_t* Readed)
 {
     if (p->Buffer.Write > p->Buffer.Read)
     {
@@ -269,18 +269,18 @@ err_t ParserRead(parser* p, void* Data, size_t Size, size_t* Readed)
     return Stream_Read(p->Stream,Data,Size,Readed);
 }
 
-const uint8_t* ParserPeek(parser* p, size_t Len)
+const uint8_t* NODE_ParserPeek(parser* p, size_t Len)
 {
 	if (p->Buffer.Write < p->Buffer.Read+Len)
 	{
-		ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
+		NODE_ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
 		if (p->Buffer.Write < p->Buffer.Read+Len)
 			return NULL;
 	}
 	return p->Buffer.Read;
 }
 
-const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
+const uint8_t* NODE_ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
 {
 	if (p->Buffer.Write < p->Buffer.Read+Len)
 	{
@@ -289,7 +289,7 @@ const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
             *Err = ERR_NEED_MORE_DATA;
             return NULL;
         }
-		*Err = ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
+		*Err = NODE_ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
 		if (p->Buffer.Write < p->Buffer.Read+Len)
 			return NULL;
 	}
@@ -310,7 +310,7 @@ const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
 
 #define PARSER_FILL(p) \
     PARSER_SAVE(p) \
-    ParserFill(p,1); \
+    NODE_ParserFill(p,1); \
     PARSER_RESTART(p)
 
 static bool_t SkipAfter(parser* p, int ch)
@@ -333,7 +333,7 @@ static bool_t SkipAfter(parser* p, int ch)
     return 1;
 }
 
-bool_t ParserIsToken(parser* p, const tchar_t* Token)
+bool_t NODE_ParserIsToken(parser* p, const tchar_t* Token)
 {
     PARSER_BEGIN(p)
     // space skipping
@@ -365,7 +365,7 @@ bool_t ParserIsToken(parser* p, const tchar_t* Token)
     return 1;
 }
 
-NOINLINE bool_t ParserIsFormat(parser* p,const tchar_t* Token, void *Value)
+NOINLINE bool_t NODE_ParserIsFormat(parser* p,const tchar_t* Token, void *Value)
 {
     size_t i,j=0;
     tchar_t tBuffer[MAXDATA];
@@ -544,7 +544,7 @@ static const htmlchar HTMLChar[] =
 	{0,T("")}
 };
 
-void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
+void NODE_ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
 {
 	const tchar_t* i;
     utf16_t ch;
@@ -586,7 +586,7 @@ void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
             {
                 size_t Index=0;
                 UChar[0] = ch;
-                Node_FromUTF16(p->Context,Out,OutLen,UChar);
+                NODE_FromUTF16(p->Context,Out,OutLen,UChar);
                 for (Index=0;Index<OutLen && Out[Index];++Index) {}
 			    memmove(Out+Index,i+1,sizeof(tchar_t)*tcslen(i));
                 Out += Index - 1; // -1 for the ++ of the loop
@@ -596,7 +596,7 @@ void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
     }
 }
 
-void ParserHTMLToURL(tchar_t* URL, size_t OutLen)
+void NODE_ParserHTMLToURL(tchar_t* URL, size_t OutLen)
 {
 	for (;*URL && OutLen>0;++URL,--OutLen)
 		if (URL[0]=='%' && Hex(URL[1])>=0 && Hex(URL[2])>=0)
@@ -606,7 +606,7 @@ void ParserHTMLToURL(tchar_t* URL, size_t OutLen)
 		}
 }
 
-void ParserURLToHTML(tchar_t* p,size_t n)
+void NODE_ParserURLToHTML(tchar_t* p,size_t n)
 {
 	for (;*p && n>0;++p,--n)
 		if (*p == ' ' && n>=4)
@@ -621,16 +621,16 @@ void ParserURLToHTML(tchar_t* p,size_t n)
 		}
 }
 
-void ParserSkipAfter(parser* p, int Delimiter)
+void NODE_ParserSkipAfter(parser* p, int Delimiter)
 {
     tchar_t Del[2];
-    ParserReadUntil(p,NULL,0,Delimiter);
+    NODE_ParserReadUntil(p,NULL,0,Delimiter);
     Del[0] = (tchar_t)Delimiter;
     Del[1] = 0;
     IsToken(p,Del);
 }
 
-intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
+intptr_t NODE_ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
 {
     char* s = alloca(OutLen);
     size_t n=0;
@@ -681,7 +681,7 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
                 {
                     bool_t Found;
                     PARSER_SAVE(p);
-                    Found = ParserIsToken(p,T("]]>"));
+                    Found = NODE_ParserIsToken(p,T("]]>"));
                     PARSER_RESTART(p);
                     if (Found)
                         break;
@@ -709,42 +709,42 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
             s[min(n,OutLen-1)]=0;
             CharConvTS(p->CC,Out,OutLen,s);
 
-            if (Delimiter != '\n') // not ParserLine
-                ParserHTMLChars(p,Out,OutLen);
+            if (Delimiter != '\n') // not NODE_ParserLine
+                NODE_ParserHTMLChars(p,Out,OutLen);
             
             if (p->URL)
-                ParserHTMLToURL(Out,OutLen);
+                NODE_ParserHTMLToURL(Out,OutLen);
         }
     }
     return n;
 }
 
-bool_t ParserLine(parser* p, tchar_t* Out, size_t OutLen)
+bool_t NODE_ParserLine(parser* p, tchar_t* Out, size_t OutLen)
 {
-	return ParserReadUntil(p,Out,OutLen,'\n')>=0;
+	return NODE_ParserReadUntil(p,Out,OutLen,'\n')>=0;
 }
 
-bool_t ParserBigLine(parser* p)
+bool_t NODE_ParserBigLine(parser* p)
 {
     if (!p->BigLine) {
         p->BigLine = (tchar_t *) malloc(BIGLINE * sizeof(tchar_t));
         if (!p->BigLine)
             return 0;
     }
-    return ParserLine(p, p->BigLine, BIGLINE);
+    return NODE_ParserLine(p, p->BigLine, BIGLINE);
 }
 
-NOINLINE void ParserElementSkip(parser* p)
+NOINLINE void NODE_ParserElementSkip(parser* p)
 {
-    while (ParserIsAttrib(p,NULL,0))
-   		ParserAttribSkip(p);
+    while (NODE_ParserIsAttrib(p,NULL,0))
+   		NODE_ParserAttribSkip(p);
 }
 
-NOINLINE void ParserElementSkipNested(parser* p)
+NOINLINE void NODE_ParserElementSkipNested(parser* p)
 {
-    ParserElementSkip(p);
-    while (ParserIsElementNested(p,NULL,0))
-        ParserElementSkipNested(p);
+    NODE_ParserElementSkip(p);
+    while (NODE_ParserIsElementNested(p,NULL,0))
+        NODE_ParserElementSkipNested(p);
 }
 
 static NOINLINE bool_t ElementStart(parser* p)
@@ -777,12 +777,12 @@ static NOINLINE bool_t ElementStart(parser* p)
     return 0;
 }
 
-bool_t ParserIsElementNested(parser* p, tchar_t* Name, size_t NameLen)
+bool_t NODE_ParserIsElementNested(parser* p, tchar_t* Name, size_t NameLen)
 {
     bool_t Start = 1;
 
     if (p->Element)
-        ParserElementSkipNested(p);
+        NODE_ParserElementSkipNested(p);
 
     if (p->ElementEof || !(Start = ElementStart(p)) || IsToken(p,T("/")))
     {
@@ -792,14 +792,14 @@ bool_t ParserIsElementNested(parser* p, tchar_t* Name, size_t NameLen)
         p->Element = 0;
     }
     else
-        p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'>')>0);
+        p->Element = (boolmem_t)(NODE_ParserReadUntil(p,Name,NameLen,'>')>0);
 
     return p->Element;
 }
 
-bool_t ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
+bool_t NODE_ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
 {
-    ParserElementSkip(p);
+    NODE_ParserElementSkip(p);
 
 	if (!ElementStart(p))
     {
@@ -813,92 +813,92 @@ bool_t ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
 		    --NameLen;
 	    }
 
-        p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'>')>0);
+        p->Element = (boolmem_t)(NODE_ParserReadUntil(p,Name,NameLen,'>')>0);
     }
 
     return p->Element;
 }
 
-bool_t ParserElementContent(parser* p, tchar_t* Out, size_t OutLen)
+bool_t NODE_ParserElementContent(parser* p, tchar_t* Out, size_t OutLen)
 {
-	ParserElementSkip(p);
-    if (ParserReadUntil(p,Out,OutLen,'<')<0)
+	NODE_ParserElementSkip(p);
+    if (NODE_ParserReadUntil(p,Out,OutLen,'<')<0)
         return 0;
-    if (ParserIsToken(p,T("![CDATA[")))
-    	return ParserReadUntil(p,Out,OutLen,']')>=0;
+    if (NODE_ParserIsToken(p,T("![CDATA[")))
+    	return NODE_ParserReadUntil(p,Out,OutLen,']')>=0;
     return 1;
 }
 
-bool_t ParserIsAttrib(parser* p, tchar_t* Name, size_t NameLen)
+bool_t NODE_ParserIsAttrib(parser* p, tchar_t* Name, size_t NameLen)
 {
     if (!p->Element)
         return 0;
 
-    // skip spaces by ParserIsToken
-    p->ElementEof = (boolmem_t)ParserIsToken(p,T("/>"));
+    // skip spaces by NODE_ParserIsToken
+    p->ElementEof = (boolmem_t)NODE_ParserIsToken(p,T("/>"));
 	if (p->ElementEof || IsToken(p,T(">")) || IsToken(p,T("?>")))
         p->Element = 0;
 	else
-        p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'=')>0);
+        p->Element = (boolmem_t)(NODE_ParserReadUntil(p,Name,NameLen,'=')>0);
     return p->Element;
 }
 
-bool_t ParserAttribLangStr(parser* p, parsercontext* Context, fourcc_t Class, dataid Id)
+bool_t NODE_ParserAttribLangStr(parser* p, parsercontext* Context, fourcc_t Class, dataid Id)
 {
 	tchar_t Value[MAXDATA/sizeof(tchar_t)+64];
-	if (!ParserAttribString(p,Value,TSIZEOF(Value)))
+	if (!NODE_ParserAttribString(p,Value,TSIZEOF(Value)))
 		return 0;
 	StrTab_Add(&Context->StrTab,1,Class,(int32_t)Id,Value);
 	return 1;
 }
 
-bool_t ParserAttribString(parser* p, tchar_t* Out, size_t OutLen)
+bool_t NODE_ParserAttribString(parser* p, tchar_t* Out, size_t OutLen)
 {
 	int Delimiter;
 
-    // skip spaces by ParserIsToken
-	if (!ParserIsToken(p,T("=")))
+    // skip spaces by NODE_ParserIsToken
+	if (!NODE_ParserIsToken(p,T("=")))
 		return 0;
 
-    // skip spaces by ParserIsToken
-	if (ParserIsToken(p,T("\"")))
+    // skip spaces by NODE_ParserIsToken
+	if (NODE_ParserIsToken(p,T("\"")))
 		Delimiter = '\"';
 	else if (IsToken(p,T("'")))
 		Delimiter = '\'';
 	else
 		Delimiter = '>';
 
-	return ParserReadUntil(p,Out,OutLen,Delimiter)>=0;
+	return NODE_ParserReadUntil(p,Out,OutLen,Delimiter)>=0;
 }
 
-void ParserAttribSkip(parser* p)
+void NODE_ParserAttribSkip(parser* p)
 {
-	ParserAttribString(p,NULL,0);
+	NODE_ParserAttribString(p,NULL,0);
 }
 
-bool_t ParserIsRootElement(parser *p, tchar_t* Root, size_t RootLen)
+bool_t NODE_ParserIsRootElement(parser *p, tchar_t* Root, size_t RootLen)
 {
 	tchar_t Token[MAXTOKEN];
 
-	while (ParserIsElement(p,Token,TSIZEOF(Token)))
+	while (NODE_ParserIsElement(p,Token,TSIZEOF(Token)))
 	{
 		if (tcsisame_ascii(Token,T("?xml")))
 		{
-			while (ParserIsAttrib(p,Token,TSIZEOF(Token)))
+			while (NODE_ParserIsAttrib(p,Token,TSIZEOF(Token)))
 			{
 				if (tcsisame_ascii(Token,T("encoding")))
 				{
-					ParserAttribString(p,Token,TSIZEOF(Token));
-                    ParserCC(p,CharConvOpen(Token,NULL),1);
+					NODE_ParserAttribString(p,Token,TSIZEOF(Token));
+                    NODE_ParserCC(p,CharConvOpen(Token,NULL),1);
 				}
 				else
-					ParserAttribSkip(p);
+					NODE_ParserAttribSkip(p);
 			}
 		}
 		else
         if (tcsisame_ascii(Token,T("!DOCTYPE")) || Token[0]==T('?'))
         {
-            ParserElementSkip(p);
+            NODE_ParserElementSkip(p);
         }
 		else 
         {
@@ -909,26 +909,26 @@ bool_t ParserIsRootElement(parser *p, tchar_t* Root, size_t RootLen)
 	return 0;
 }
 
-err_t ParserStreamXML(parser* p, stream* s, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs)
+err_t NODE_ParserStreamXML(parser* p, stream* s, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs)
 {
     err_t Result=ERR_NONE;
     tchar_t FoundRoot[MAXPATH];
 
     if (!Root || !Root[0])
         return ERR_INVALID_PARAM;
-    Result = ParserStream(p,s,Context);
+    Result = NODE_ParserStream(p,s,Context);
     if (Result==ERR_NONE)
     {
         if (Context)
-            ParserCC(p,Context->FromUTF8, 0);
-        if (!ParserIsRootElement(p, FoundRoot, TSIZEOF(FoundRoot)))
+            NODE_ParserCC(p,Context->FromUTF8, 0);
+        if (!NODE_ParserIsRootElement(p, FoundRoot, TSIZEOF(FoundRoot)))
         {
             Result = ERR_INVALID_DATA;
         }
         else
         {
             if (tcsisame_ascii(FoundRoot,Root) && !NeedRootAttribs)
-                ParserElementSkip(p);
+                NODE_ParserElementSkip(p);
         }
     }
     return Result;
@@ -1017,7 +1017,7 @@ static NOINLINE bool_t FindParam(node* Base, findpin* Find, nodecontext* Context
     if (!Base)
     {
         // try singleton
-        Base = NodeSingleton(Context,StringToFourCC(Token,1));
+        Base = NodeSingleton(Context,STR_StringToFourCC(Token,1));
         if (Base && FindParam(Base,Find,Context))
             return 1;
     }
@@ -1058,7 +1058,7 @@ static NOINLINE bool_t FindPin(node* Base, findpin* Find, nodecontext* Context)
     return FindParam(NULL,Find,Context);
 }
 
-bool_t StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t** Expr)
+bool_t NODE_StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t** Expr)
 {
     findpin Find;
     Find.ClassId = 0;
@@ -1111,7 +1111,7 @@ bool_t StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t*
         {
             bool_t Result;
             NodeLookup_AddSingletons(&State->NodeLookup,State->Context);
-            Result = StringToPin(Data,DataDef,State,Expr);
+            Result = NODE_StringToPin(Data,DataDef,State,Expr);
             ArrayClear(&State->NodeLookup);
             return Result;
         }
@@ -1129,7 +1129,7 @@ bool_t StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t*
     return 1;
 }
 
-bool_t StringToNode(node** Data, exprstate* State, const tchar_t** Expr)
+bool_t NODE_StringToNode(node** Data, exprstate* State, const tchar_t** Expr)
 {
     findpin Find;
     Find.ClassId = State->ClassId?State->ClassId:NODE_CLASS;
@@ -1175,9 +1175,9 @@ bool_t StringToNode(node** Data, exprstate* State, const tchar_t** Expr)
     return 1;
 }
 
-bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base)
+bool_t NODE_PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base)
 {
-    if (NodeToString(Value,ValueLen,Data->Node,Base) && Data->Node)
+    if (NODE_NodeToString(Value,ValueLen,Data->Node,Base) && Data->Node)
     {
         size_t n;
         if (Value[0])
@@ -1189,14 +1189,14 @@ bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base)
     return 1;
 }
 
-bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* UNUSED_PARAM(Base))
+bool_t NODE_NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* UNUSED_PARAM(Base))
 {
     Value[0]=0;
 
     if (Node)
     {
         if (NodeClassFlags(Node) & CFLAG_SINGLETON)
-    		FourCCToString(Value,ValueLen,Node_ClassId(Node));
+    		STR_FourCCToString(Value,ValueLen,Node_ClassId(Node));
         else
         {
             //TODO: use Base... (maybe NULL)
@@ -1218,7 +1218,7 @@ static NOINLINE int StringToIntEx(const tchar_t* Value, dataflags Flags, exprsta
             return v;
     }
 
-    v = StringToInt(Value,-1);
+    v = STR_StringToInt(Value,-1);
 
     if (State)
     {
@@ -1246,14 +1246,14 @@ NOINLINE bool_t ExprToData(void* Data, size_t* Size, dataflags Flags, exprstate*
 	switch (Flags & TYPE_MASK)
 	{
     case TYPE_POINT:
-        if (State && ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point))
+        if (State && NODE_ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point))
         {
             *(cc_point*)Data = v;
             *Size = sizeof(cc_point);
             return 1;
         }
     case TYPE_POINT16:
-        if (State && ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point16))
+        if (State && NODE_ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point16))
         {
             if ((Flags & TUNIT_MASK)==TUNIT_COORD)
             {
@@ -1274,7 +1274,7 @@ NOINLINE bool_t ExprToData(void* Data, size_t* Size, dataflags Flags, exprstate*
     return 0;
 }
 
-NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate* State, const tchar_t* Value)
+NOINLINE bool_t NODE_StringToData(void* Data, size_t Size, dataflags Flags, exprstate* State, const tchar_t* Value)
 {
     datadef DataDef;
     cc_fraction f;
@@ -1293,11 +1293,11 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
         break;
 
     case TYPE_RGB:
-        *(rgbval_t*)Data = StringToRGB(Value);
+        *(rgbval_t*)Data = STR_StringToRGB(Value);
         break;
 
 	case TYPE_TICK:
-		*(tick_t*)Data = StringToTick(Value);
+		*(tick_t*)Data = STR_StringToTick(Value);
 		break;
 
 	case TYPE_SIZE:
@@ -1308,12 +1308,12 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
         if ((Flags & TUNIT_MASK)==TUNIT_PERCENT)
         {
             cc_fraction f;
-            StringToFraction(Value,&f,1);
+            STR_StringToFraction(Value,&f,1);
             *(int*)Data = ScaleRound(PERCENT_ONE,f.Num,f.Den);
         }
         else
         if ((Flags & TUNIT_MASK)==TUNIT_HOTKEY)
-            *(int*)Data = StringToHotKey(Value);
+            *(int*)Data = KEY_StringToHotKey(Value);
         else
     		*(int*)Data = StringToIntEx(Value,Flags,State);
 		break;
@@ -1327,7 +1327,7 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
 		break;
 
     case TYPE_GUID:
-        StringToGUID(Value,(cc_guid*)Data);
+        STR_StringToGUID(Value,(cc_guid*)Data);
         break;
 
 	case TYPE_DBNO: //TODO: support for 64 bits
@@ -1337,20 +1337,20 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
 		break;
 
 	case TYPE_INT64:
-		*(int64_t*)Data = StringToInt64(Value);
+		*(int64_t*)Data = STR_StringToInt64(Value);
 		break;
 
     case TYPE_BOOL_BIT:
 	case TYPE_BOOLEAN:
-		*(bool_t*)Data = StringToInt(Value,-1);
+		*(bool_t*)Data = STR_StringToInt(Value,-1);
 		break;
 		
 	case TYPE_FOURCC:
-		*(fourcc_t*)Data = StringToFourCC(Value,(Flags & TUNIT_MASK)==TUNIT_UPPER);
+		*(fourcc_t*)Data = STR_StringToFourCC(Value,(Flags & TUNIT_MASK)==TUNIT_UPPER);
 		break;
 
     case TYPE_FIX16:
-        StringToFraction(Value,&f,0);
+        STR_StringToFraction(Value,&f,0);
         *(int*)Data = Scale32(FIX16_UNIT,f.Num,f.Den);
         break;
 
@@ -1364,18 +1364,18 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
             ((cc_fraction*)Data)->Den = b;
         }
         else
-            StringToFraction(Value,(cc_fraction*)Data,(Flags & TUNIT_MASK)==TUNIT_PERCENT);
+            STR_StringToFraction(Value,(cc_fraction*)Data,(Flags & TUNIT_MASK)==TUNIT_PERCENT);
 		break;
 
     case TYPE_NODE:
         if (!State)
             return 0;
-        return StringToNode((node**)Data,State,&Value);
+        return NODE_StringToNode((node**)Data,State,&Value);
 
     case TYPE_PIN:
         if (!State)
             return 0;
-        return StringToPin((pin*)Data,&DataDef,State,&Value);
+        return NODE_StringToPin((pin*)Data,&DataDef,State,&Value);
 
     case TYPE_POINT:
     case TYPE_POINT16:
@@ -1387,16 +1387,16 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
 	return 1;
 }
 
-NOINLINE bool_t ParserAttrib(parser* p, void* Data, size_t Size, dataflags Flags, exprstate* State)
+NOINLINE bool_t NODE_ParserAttrib(parser* p, void* Data, size_t Size, dataflags Flags, exprstate* State)
 {
 	tchar_t Value[MAXDATA+64];
-	if (!ParserAttribString(p,Value,TSIZEOF(Value)))
+	if (!NODE_ParserAttribString(p,Value,TSIZEOF(Value)))
 		return 0;
 
-    return StringToData(Data,Size,Flags,State,Value);
+    return NODE_StringToData(Data,Size,Flags,State,Value);
 }
 
-void ExprState(exprstate* State, node* Node, dataid Id, dataflags Flags)
+void NODE_ExprState(exprstate* State, node* Node, dataid Id, dataflags Flags)
 {
     if (Flags & TFLAG_ENUM)
         State->EnumList = (const tchar_t*)Node_Meta(Node,Id,META_PARAM_ENUMNAME);
@@ -1407,14 +1407,14 @@ void ExprState(exprstate* State, node* Node, dataid Id, dataflags Flags)
         State->ClassId = (fourcc_t)Node_Meta(Node,Id,META_PARAM_CLASS);
 }
 
-bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
+bool_t NODE_ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
 {
     uint8_t Data[MAXDATA];
     size_t Size = Node_MaxDataSize(Node,DataDef->Id,DataDef->Flags,META_PARAM_SET);
     datatype Type = DataDef->Flags & TYPE_MASK;
 
     State->Context = Node_Context(Node);
-    ExprState(State,Node,DataDef->Id,DataDef->Flags);
+    NODE_ExprState(State,Node,DataDef->Id,DataDef->Flags);
 
     if (Type == TYPE_ARRAY)
     {
@@ -1435,7 +1435,7 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
             if (!ArrayAppend(&Array,Data,Size,0))
                 break;
 
-            ExprIsSymbol(&Expr,',');
+            NODE_ExprIsSymbol(&Expr,',');
         }
 
         Result = Node_SET(Node,DataDef->Id,&Array) == ERR_NONE;
@@ -1474,7 +1474,7 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
             return ExprAdd(Node,DataDef,State,Value,ExprSave) == ERR_NONE;
     }
 
-    if (!StringToData(Data,sizeof(Data),DataDef->Flags,State,Value))
+    if (!NODE_StringToData(Data,sizeof(Data),DataDef->Flags,State,Value))
     {
         // try reference resolving
         if (Type == TYPE_NODE && ExprAdd)
@@ -1487,27 +1487,27 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
     return Node_Set(Node,DataDef->Id,Data,Size) == ERR_NONE;
 }
 
-bool_t ParserAttribData(parser* p, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
+bool_t NODE_ParserAttribData(parser* p, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
 {
 	tchar_t Value[MAXDATA+64];
 
-    if (!ParserAttribString(p,Value,TSIZEOF(Value)))
+    if (!NODE_ParserAttribString(p,Value,TSIZEOF(Value)))
 		return 0;
 
-    return ParserValueData(Value,Node,DataDef,State,ExprAdd,ExprSave);
+    return NODE_ParserValueData(Value,Node,DataDef,State,ExprAdd,ExprSave);
 }
 
-err_t TextPrintf(textwriter* p, const tchar_t* Msg,...)
+err_t NODE_TextPrintf(textwriter* p, const tchar_t* Msg,...)
 {
 	tchar_t s[MAXLINE];
 	va_list Arg;
 	va_start(Arg,Msg);
 	vstprintf_s(s,TSIZEOF(s),Msg,Arg);
 	va_end(Arg);
-	return TextWrite(p,s);
+	return NODE_TextWrite(p,s);
 }
 
-err_t Stream_Printf(stream* Stream, const tchar_t* Msg,...)
+err_t NODE_Stream_Printf(stream* Stream, const tchar_t* Msg,...)
 {
     tchar_t s[MAXLINE];
 	va_list Arg;
@@ -1519,10 +1519,10 @@ err_t Stream_Printf(stream* Stream, const tchar_t* Msg,...)
 	va_start(Arg,Msg);
 	vstprintf_s(s,TSIZEOF(s),Msg,Arg);
 	va_end(Arg);
-    return TextWrite(&p,s);
+    return NODE_TextWrite(&p,s);
 }
 
-err_t TextWrite(textwriter* p, const tchar_t* Msg)
+err_t NODE_TextWrite(textwriter* p, const tchar_t* Msg)
 {
 	size_t i;
 	char s[MAXLINE];
@@ -1548,14 +1548,14 @@ err_t TextWrite(textwriter* p, const tchar_t* Msg)
 
 static NOINLINE void DumpPtr(textwriter* Text, const tchar_t* Name, node* Node, dataid Id, tchar_t* Value, size_t ValueLen)
 {
-    TextAttrib(Text,Name,&Node,TYPE_PTR);
+    NODE_TextAttrib(Text,Name,&Node,TYPE_PTR);
 
     if (Node)
     {
         fourcc_t ClassId = Node_ClassId(Node);
         tcscpy_s(Value,ValueLen,Name);
         tcscat_s(Value,ValueLen,T("_Class"));
-        TextAttrib(Text,Value,&ClassId,TYPE_FOURCC);
+        NODE_TextAttrib(Text,Value,&ClassId,TYPE_FOURCC);
     }
 
     if (Id)
@@ -1563,11 +1563,11 @@ static NOINLINE void DumpPtr(textwriter* Text, const tchar_t* Name, node* Node, 
         int i = (int)Id;
         tcscpy_s(Value,ValueLen,Name);
         tcscat_s(Value,ValueLen,T("_Id"));
-        TextAttrib(Text,Value,&i,TYPE_INT);
+        NODE_TextAttrib(Text,Value,&i,TYPE_INT);
     }
 }
 
-NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, size_t Size, dataflags Type)
+NOINLINE bool_t NODE_DataToString(tchar_t* Value, size_t ValueLen, const void* Data, size_t Size, dataflags Type)
 {
     cc_fraction f;
 	size_t i;
@@ -1603,18 +1603,18 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         break;
 
     case TYPE_RGB:
-        RGBToString(Value,ValueLen,*(rgbval_t*)Data);
+        STR_RGBToString(Value,ValueLen,*(rgbval_t*)Data);
         break;
 
 	case TYPE_TICK:
-		TickToString(Value,ValueLen,*(tick_t*)Data,0,1,Display);
+		STR_TickToString(Value,ValueLen,*(tick_t*)Data,0,1,Display);
 		break;
 
     case TYPE_SIZE:
 #if defined(SIZE_MAX) && SIZE_MAX > 0xFFFFFFFF
-        Int64ToString(Value,ValueLen,*(size_t*)Data,0);
+        STR_Int64ToString(Value,ValueLen,*(size_t*)Data,0);
 #else
-        IntToString(Value,ValueLen,*(size_t*)Data,0);
+        STR_IntToString(Value,ValueLen,*(size_t*)Data,0);
 #endif
         break;
 
@@ -1624,51 +1624,51 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
             cc_fraction f;
             f.Num = *(int*)Data;
             f.Den = PERCENT_ONE;
-            FractionToString(Value,ValueLen,&f,-1,1);
+            STR_FractionToString(Value,ValueLen,&f,-1,1);
         }
         else
         if ((Type & TUNIT_MASK)==TUNIT_HOTKEY)
-            HotKeyToString(Value,ValueLen,*(int*)Data,NULL,NULL);
+            KEY_HotKeyToString(Value,ValueLen,*(int*)Data,NULL,NULL);
         else
         if (Display && (Type & TUNIT_MASK)==TUNIT_BYTERATE)
-            ByteRateToString(Value,ValueLen,*(int*)Data);
+            STR_ByteRateToString(Value,ValueLen,*(int*)Data);
         else
         {
-		    IntToString(Value,ValueLen,*(int*)Data,0);
+		    STR_IntToString(Value,ValueLen,*(int*)Data,0);
             if (Display && (Type & TUNIT_MASK)==TUNIT_KBYTE)
 		        tcscat_s(Value,ValueLen,T(" KB"));
         }
 		break;
 
 	case TYPE_INT8:
-		IntToString(Value,ValueLen,*(uint8_t*)Data,0);
+		STR_IntToString(Value,ValueLen,*(uint8_t*)Data,0);
 		break;
 
 	case TYPE_INT16:
-		IntToString(Value,ValueLen,*(int16_t*)Data,0);
+		STR_IntToString(Value,ValueLen,*(int16_t*)Data,0);
 		break;
 
     case TYPE_GUID:
-        GUIDToString(Value,ValueLen,(const cc_guid*)Data);
+        STR_GUIDToString(Value,ValueLen,(const cc_guid*)Data);
         break;
 
 	case TYPE_DBNO: //TODO: support for 64 bits
 	case TYPE_DATETIME:
 	case TYPE_INT32:
-		IntToString(Value,ValueLen,*(int32_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
+		STR_IntToString(Value,ValueLen,*(int32_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
 		break;
 
 	case TYPE_INT64:
-		Int64ToString(Value,ValueLen,*(int64_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
+		STR_Int64ToString(Value,ValueLen,*(int64_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
 		break;
 
     case TYPE_BOOL_BIT:
 	case TYPE_BOOLEAN:
-		IntToString(Value,ValueLen,(int32_t)*(bool_t*)Data,0);
+		STR_IntToString(Value,ValueLen,(int32_t)*(bool_t*)Data,0);
 		break;
 		
 	case TYPE_FOURCC:
-		FourCCToString(Value,ValueLen,*(fourcc_t*)Data);
+		STR_FourCCToString(Value,ValueLen,*(fourcc_t*)Data);
 		break;
 
 	case TYPE_POINT:
@@ -1682,25 +1682,25 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
     case TYPE_FIX16:
         f.Num = *(int*)Data;
         f.Den = FIX16_UNIT;
-        FractionToString(Value,ValueLen,&f,0,3);
+        STR_FractionToString(Value,ValueLen,&f,0,3);
         break;
 
 	case TYPE_FRACTION:
         if ((Type & TUNIT_MASK)==TUNIT_PERCENT)
-            FractionToString(Value,ValueLen,(cc_fraction*)Data,Display?1:-1,2);
+            STR_FractionToString(Value,ValueLen,(cc_fraction*)Data,Display?1:-1,2);
         else
         if (Display)
-            FractionToString(Value,ValueLen,(cc_fraction*)Data,0,3); //fps needs 3 decimal
+            STR_FractionToString(Value,ValueLen,(cc_fraction*)Data,0,3); //fps needs 3 decimal
         else
 		    stprintf_s(Value,ValueLen,T("%d:%d"),((cc_fraction*)Data)->Num,((cc_fraction*)Data)->Den);
 		break;
 
     case TYPE_PIN:
-        PinToString(Value,ValueLen,(pin*)Data,NULL);
+        NODE_PinToString(Value,ValueLen,(pin*)Data,NULL);
         break;
 
     case TYPE_NODE:
-        NodeToString(Value,ValueLen,*(node**)Data,NULL);
+        NODE_NodeToString(Value,ValueLen,*(node**)Data,NULL);
         break;
 
     case TYPE_STRING:
@@ -1711,13 +1711,13 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
     return 1;
 }
 
-void TextAttribEx(textwriter* Text, const tchar_t* Name, const void* Data, size_t Size, dataflags Type)
+void NODE_TextAttribEx(textwriter* Text, const tchar_t* Name, const void* Data, size_t Size, dataflags Type)
 {
 	tchar_t Value[MAXDATA+64];
 	tchar_t *c;
 	size_t i;
 
-    if (DataToString(Value,TSIZEOF(Value),Data,Size,Type))
+    if (NODE_DataToString(Value,TSIZEOF(Value),Data,Size,Type))
     {
         switch (Type & TYPE_MASK)
         {
@@ -1762,24 +1762,24 @@ void TextAttribEx(textwriter* Text, const tchar_t* Name, const void* Data, size_
             break;
         }
 
-       	TextPrintf(Text,T(" %s=\"%s\""),Name,Value);
+       	NODE_TextPrintf(Text,T(" %s=\"%s\""),Name,Value);
     }
 }
 
-void TextAttrib(textwriter* Text, const tchar_t* Name, const void* Data, dataflags Type)
+void NODE_TextAttrib(textwriter* Text, const tchar_t* Name, const void* Data, dataflags Type)
 {
-    TextAttribEx(Text,Name,Data,0,Type);
+    NODE_TextAttribEx(Text,Name,Data,0,Type);
 }
 
-void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
+void NODE_TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
 {
 	if (!In->HasChild)
 	{
 		In->HasChild = 1;
         if (In->InsideContent)
-            TextWrite(In,T(">"));
+            NODE_TextWrite(In,T(">"));
         else
-		    TextWrite(In,T(">\n"));
+		    NODE_TextWrite(In,T(">\n"));
 	}
     Out->CC = In->CC;
 	Out->Stream = In->Stream;
@@ -1788,51 +1788,51 @@ void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
     Out->InsideContent = In->Deep==0;
     Out->Deep = In->InsideContent ? 0 : In->Deep+2;
 	Out->Element = Element;
-    TextPrintf(Out,T("%*c%s"),In->Deep?Out->Deep:0, '<',Element);
+    NODE_TextPrintf(Out,T("%*c%s"),In->Deep?Out->Deep:0, '<',Element);
 }
 
-void TextElementEnd(textwriter* Text)
+void NODE_TextElementEnd(textwriter* Text)
 {
     if (Text->HasChild)
 	{
         if (Text->InsideContent)
-            TextPrintf(Text,T("</%s> "),Text->Element);
+            NODE_TextPrintf(Text,T("</%s> "),Text->Element);
         else
-            TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
+            NODE_TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
     }
 	else
 	{
 		if (Text->SafeFormat)
-			TextPrintf(Text,T("></%s>"),Text->Element);
+			NODE_TextPrintf(Text,T("></%s>"),Text->Element);
 		else
-			TextWrite(Text,T("/>"));
+			NODE_TextWrite(Text,T("/>"));
 		if (!Text->InsideContent)
-			TextWrite(Text,T("\n"));
+			NODE_TextWrite(Text,T("\n"));
 	}
 }
 
-void TextElementEndData(textwriter* Text, const tchar_t *Value)
+void NODE_TextElementEndData(textwriter* Text, const tchar_t *Value)
 {
 	if (Text->HasChild)
-		TextPrintf(Text,T("%s%*c/%s>\n"),Value, Text->Deep,'<',Text->Element);
+		NODE_TextPrintf(Text,T("%s%*c/%s>\n"),Value, Text->Deep,'<',Text->Element);
 	else
-		TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
+		NODE_TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
 }
 
-void TextElementAppendData(textwriter* Text, const tchar_t *Value)
+void NODE_TextElementAppendData(textwriter* Text, const tchar_t *Value)
 {
     if (Text->Deep==1 && tcsisame_ascii(Value,T(" ")))
         return; // root element
     if (Text->HasChild) 
-		TextWrite(Text,Value);
+		NODE_TextWrite(Text,Value);
     else {
-		TextPrintf(Text,T(">%s"), Value);
+		NODE_TextPrintf(Text,T(">%s"), Value);
         Text->HasChild = 1;
         Text->Deep = 0;
     }
 }
 
-void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root)
+void NODE_TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root)
 {
 	assert(Text->Stream);
 	Text->CC = Context->ToUTF8;
@@ -1841,17 +1841,17 @@ void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Roo
 	Text->HasChild = 0;
     Text->InsideContent = 0;
 	Text->SafeFormat = 0;
-	TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);
+	NODE_TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);
 }
 
-NOINLINE bool_t ExprSkipAfter(const tchar_t** p,int ch)
+NOINLINE bool_t NODE_ExprSkipAfter(const tchar_t** p,int ch)
 {
     const tchar_t* s = *p;
     for (;*s;++s)
         if ((ch && *s == ch) || (!ch && IsSpace(*s)))
         {
             *p = s+1;
-            if (!ch) ExprSkipSpace(p); // skip other spaces too
+            if (!ch) NODE_ExprSkipSpace(p); // skip other spaces too
             return 1;
         }
 
@@ -1859,7 +1859,7 @@ NOINLINE bool_t ExprSkipAfter(const tchar_t** p,int ch)
     return 0;
 }
 
-NOINLINE void ExprSkipSpace(const tchar_t** p)
+NOINLINE void NODE_ExprSkipSpace(const tchar_t** p)
 {
     const tchar_t* s = *p;
     while (IsSpace(*s))
@@ -1867,7 +1867,7 @@ NOINLINE void ExprSkipSpace(const tchar_t** p)
     *p = s;
 }
 
-NOINLINE void ExprTrimSpace(tchar_t** p)
+NOINLINE void NODE_ExprTrimSpace(tchar_t** p)
 {
     if (*p[0])
     {
@@ -1880,12 +1880,12 @@ NOINLINE void ExprTrimSpace(tchar_t** p)
     }
 }
 
-NOINLINE bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen)
+NOINLINE bool_t NODE_ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen)
 {
     const tchar_t* s;
     bool_t Quote=0;
 
-    ExprSkipSpace(Expr);
+    NODE_ExprSkipSpace(Expr);
 
     s = *Expr;
     if (*s == '\0')
@@ -1918,7 +1918,7 @@ NOINLINE bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen)
 
 static NOINLINE bool_t ReadHex(const tchar_t** p,intptr_t* Out,bool_t RGB, bool_t Neg);
 
-NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
+NOINLINE bool_t NODE_ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
 {
     const tchar_t* s = *p;
     bool_t Long = 0;
@@ -1928,13 +1928,13 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
     if (!*Name)
         return 0;
 
-	ExprSkipSpace(&s);
+	NODE_ExprSkipSpace(&s);
 
     while (*Name && *s)
     {
         if (*Name == ' ')
         {
-            ExprSkipSpace(&s);
+            NODE_ExprSkipSpace(&s);
             ++Name;
         }
         else
@@ -1961,12 +1961,12 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
             {
                 if (Long)
                 {
-                    if ((!IntSize && !ExprIsInt64(&s,va_arg(Arg,int64_t*)))||(IntSize && !ExprIsInt64Ex(&s,IntSize,va_arg(Arg,int64_t*))))
+                    if ((!IntSize && !NODE_ExprIsInt64(&s,va_arg(Arg,int64_t*)))||(IntSize && !NODE_ExprIsInt64Ex(&s,IntSize,va_arg(Arg,int64_t*))))
                         break;
                 }
                 else
                 {
-                    if ((!IntSize && !ExprIsInt(&s,va_arg(Arg,intptr_t*)))||(IntSize && !ExprIsIntEx(&s,IntSize,va_arg(Arg,intptr_t*))))
+                    if ((!IntSize && !NODE_ExprIsInt(&s,va_arg(Arg,intptr_t*)))||(IntSize && !NODE_ExprIsIntEx(&s,IntSize,va_arg(Arg,intptr_t*))))
                         break;
                 }
                 ++Name;
@@ -2020,12 +2020,12 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
     return 0;
 }
 
-NOINLINE bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name)
+NOINLINE bool_t NODE_ExprIsToken(const tchar_t** p,const tchar_t* Name)
 {
-    return ExprIsTokenEx(p,Name);
+    return NODE_ExprIsTokenEx(p,Name);
 }
 
-uint32_t StringToIP(const tchar_t *Address)
+uint32_t NODE_StringToIP(const tchar_t *Address)
 {
     uint32_t Result = 0;
     tchar_t *s;
@@ -2033,11 +2033,11 @@ uint32_t StringToIP(const tchar_t *Address)
     {
         *s++ = 0;
         Result <<= 8;
-        Result |= StringToInt(Address,0);
+        Result |= STR_StringToInt(Address,0);
         Address = s;
     }
     Result <<= 8;
-    Result |= StringToInt(Address,0);
+    Result |= STR_StringToInt(Address,0);
     return Result;
 }
 
@@ -2064,7 +2064,7 @@ static tchar_t Base64Char(int Value)
     return '/';
 }
 
-bool_t BufferToBase64(tchar_t *Out, size_t OutLen, const uint8_t *Buffer, size_t BufferSize)
+bool_t NODE_BufferToBase64(tchar_t *Out, size_t OutLen, const uint8_t *Buffer, size_t BufferSize)
 {
     while (BufferSize >= 3 && OutLen > 4) // treat packets of 3 bytes at once
     {
@@ -2106,13 +2106,13 @@ bool_t BufferToBase64(tchar_t *Out, size_t OutLen, const uint8_t *Buffer, size_t
     return 1;
 }
 
-NOINLINE size_t ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize)
+NOINLINE size_t NODE_ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize)
 {
     size_t n;
     size_t v=0;
     uint8_t* Out0 = Out;
 
-	ExprSkipSpace(p);
+	NODE_ExprSkipSpace(p);
     for (n=0;**p;++n,++(*p))
     {
         if (**p == '=')
@@ -2136,11 +2136,11 @@ NOINLINE size_t ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize)
     return Out-Out0;
 }
 
-NOINLINE bool_t ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const tchar_t* Delimiter)
+NOINLINE bool_t NODE_ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const tchar_t* Delimiter)
 {
     bool_t Found = 0;
 
-	ExprSkipSpace(p);
+	NODE_ExprSkipSpace(p);
     for (;**p && !IsSpace(**p) && tcschr(Delimiter,**p)==NULL;++(*p))
         if (OutLen>1)
         {
@@ -2155,11 +2155,11 @@ NOINLINE bool_t ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const t
     return Found;
 }
 
-NOINLINE bool_t ExprIsSymbol(const tchar_t** p,int ch)
+NOINLINE bool_t NODE_ExprIsSymbol(const tchar_t** p,int ch)
 {
     if (**p)
     {
-	    ExprSkipSpace(p);
+	    NODE_ExprSkipSpace(p);
 	    if (**p == ch)
 	    {
 		    ++(*p);
@@ -2169,9 +2169,9 @@ NOINLINE bool_t ExprIsSymbol(const tchar_t** p,int ch)
 	return 0;
 }
 
-NOINLINE bool_t ExprIsSymbol2(const tchar_t** p,int ch, int ch2)
+NOINLINE bool_t NODE_ExprIsSymbol2(const tchar_t** p,int ch, int ch2)
 {
-	ExprSkipSpace(p);
+	NODE_ExprSkipSpace(p);
 	if ((*p)[0] == ch && (*p)[1]==ch2)
 	{
 		(*p)+=2;
@@ -2180,16 +2180,16 @@ NOINLINE bool_t ExprIsSymbol2(const tchar_t** p,int ch, int ch2)
 	return 0;
 }
 
-NOINLINE void ExprParamEnd(const tchar_t** p)
+NOINLINE void NODE_ExprParamEnd(const tchar_t** p)
 {
-	ExprIsSymbol(p,')');
+	NODE_ExprIsSymbol(p,')');
 }
 
-NOINLINE bool_t ExprParamNext(const tchar_t** p)
+NOINLINE bool_t NODE_ExprParamNext(const tchar_t** p)
 {
-	if (ExprIsSymbol(p,','))
+	if (NODE_ExprIsSymbol(p,','))
 		return 1;
-	ExprParamEnd(p);
+	NODE_ExprParamEnd(p);
 	return 0;
 }
 
@@ -2224,7 +2224,7 @@ static NOINLINE bool_t ReadHex(const tchar_t** p,intptr_t* Out,bool_t RGB, bool_
     return 1;
 }
 
-NOINLINE bool_t ExprIsHex(const tchar_t** p,intptr_t* Out)
+NOINLINE bool_t NODE_ExprIsHex(const tchar_t** p,intptr_t* Out)
 {
     const tchar_t* s = *p;
 
@@ -2244,7 +2244,7 @@ NOINLINE bool_t ExprIsHex(const tchar_t** p,intptr_t* Out)
     return 0;
 }
 
-NOINLINE bool_t ExprIsRGB(const tchar_t** p,intptr_t* Out)
+NOINLINE bool_t NODE_ExprIsRGB(const tchar_t** p,intptr_t* Out)
 {
     const tchar_t* s = *p;
     if (*(s++) == '#' && ReadHex(&s,Out,1,0))
@@ -2255,21 +2255,21 @@ NOINLINE bool_t ExprIsRGB(const tchar_t** p,intptr_t* Out)
     return 0;
 }
 
-NOINLINE bool_t ExprIsFourCC(const tchar_t** p,intptr_t* Out)
+NOINLINE bool_t NODE_ExprIsFourCC(const tchar_t** p,intptr_t* Out)
 {
     const tchar_t* s = *p;
-    if (*(s++) == '@' && *(s++) == '\'' && ExprSkipAfter(&s,'\'') && (s <= *p+7))
+    if (*(s++) == '@' && *(s++) == '\'' && NODE_ExprSkipAfter(&s,'\'') && (s <= *p+7))
     {
         tchar_t v[16];
         tcsncpy_s(v,TSIZEOF(v),*p+2,s-*p-3);
-        *Out = StringToFourCC(v,0);
+        *Out = STR_StringToFourCC(v,0);
         *p = s;
         return 1;
     }
     return 0;
 }
 
-NOINLINE bool_t ExprIsIntEx(const tchar_t** p,int Size,intptr_t* Out)
+NOINLINE bool_t NODE_ExprIsIntEx(const tchar_t** p,int Size,intptr_t* Out)
 {
     const tchar_t* s = *p;
     intptr_t v = 0;
@@ -2298,7 +2298,7 @@ NOINLINE bool_t ExprIsIntEx(const tchar_t** p,int Size,intptr_t* Out)
     return 1;
 }
 
-NOINLINE bool_t ExprIsInt64Ex(const tchar_t** p,int Size,int64_t* Out)
+NOINLINE bool_t NODE_ExprIsInt64Ex(const tchar_t** p,int Size,int64_t* Out)
 {
     const tchar_t* s = *p;
     int64_t v = 0;
@@ -2327,7 +2327,7 @@ NOINLINE bool_t ExprIsInt64Ex(const tchar_t** p,int Size,int64_t* Out)
     return 1;
 }
 
-NOINLINE bool_t ExprIsInt(const tchar_t** p,intptr_t* Out)
+NOINLINE bool_t NODE_ExprIsInt(const tchar_t** p,intptr_t* Out)
 {
     const tchar_t* s = *p;
     intptr_t v = 0;
@@ -2353,7 +2353,7 @@ NOINLINE bool_t ExprIsInt(const tchar_t** p,intptr_t* Out)
     return 1;
 }
 
-NOINLINE bool_t ExprIsInt64(const tchar_t** p,int64_t* Out)
+NOINLINE bool_t NODE_ExprIsInt64(const tchar_t** p,int64_t* Out)
 {
     const tchar_t* s = *p;
     int64_t v = 0;
@@ -2379,12 +2379,12 @@ NOINLINE bool_t ExprIsInt64(const tchar_t** p,int64_t* Out)
     return 1;
 }
 
-NOINLINE bool_t ExprIsFrac(const tchar_t** p,cc_fraction* Out)
+NOINLINE bool_t NODE_ExprIsFrac(const tchar_t** p,cc_fraction* Out)
 {
     int64_t Num,Den;
     intptr_t v;
 
-    if (!ExprIsInt(p,&v))
+    if (!NODE_ExprIsInt(p,&v))
         return 0;
 
     Num = v;
@@ -2400,14 +2400,14 @@ NOINLINE bool_t ExprIsFrac(const tchar_t** p,cc_fraction* Out)
         }
 	}
 
-    SimplifyFrac(Out,Num,Den);
+    NODE_SimplifyFrac(Out,Num,Den);
     return 1;
 }
 
-bool_t ExprIsPoint(const tchar_t** p, cc_point* Out)
+bool_t NODE_ExprIsPoint(const tchar_t** p, cc_point* Out)
 {
     intptr_t x,y;
-    if (ExprIsTokenEx(p,T("{ %d , %d }"),&x,&y))
+    if (NODE_ExprIsTokenEx(p,T("{ %d , %d }"),&x,&y))
     {
         Out->x = (int)x;
         Out->y = (int)y;
@@ -2418,7 +2418,7 @@ bool_t ExprIsPoint(const tchar_t** p, cc_point* Out)
 
 #define MAX_GCD_ITER 128
 
-void SimplifyFrac(cc_fraction* f, int64_t Num, int64_t Den)
+void NODE_SimplifyFrac(cc_fraction* f, int64_t Num, int64_t Den)
 {
     bool_t Sign = (Num<0) != (Den<0);
 
@@ -2455,7 +2455,7 @@ void SimplifyFrac(cc_fraction* f, int64_t Num, int64_t Den)
     f->Den = (int)Den;
 }
 
-void DoubleToFrac(cc_fraction* f,int64_t v)
+void NODE_DoubleToFrac(cc_fraction* f,int64_t v)
 {
     if (!v)
     {
@@ -2465,7 +2465,7 @@ void DoubleToFrac(cc_fraction* f,int64_t v)
     else
     {
         int e = (int)(((v >> 52) & 0xFFF) - 1023);
-        SimplifyFrac(f,(v & LL(0xFFFFFFFFFFFFF))|LL(0x10000000000000),LL(1)<<(52-e));
+        NODE_SimplifyFrac(f,(v & LL(0xFFFFFFFFFFFFF))|LL(0x10000000000000),LL(1)<<(52-e));
         if (v<0)
             f->Num = -f->Num;
     }
@@ -2478,7 +2478,7 @@ void NodeParamName(node* p, dataid Id, tchar_t* Name, size_t NameLen)
 		tcscpy_s(Name,NameLen,ShortName);
 	else
 	if (Id>(1<<24))
-		FourCCToString(Name,NameLen,(fourcc_t)Id);
+		STR_FourCCToString(Name,NameLen,(fourcc_t)Id);
 	else
     if (Node_Get(p,Id|DATA_DYNNAME,Name,NameLen*sizeof(tchar_t))!=ERR_NONE)
 		stprintf_s(Name,NameLen,T("_%04x"),Id);
@@ -2496,17 +2496,17 @@ bool_t NodeFindDef(node* p,const tchar_t* Token,datadef* DataDef)
 {
     dataid Id;
 	if (Token[0]=='_' && CheckHex(Token+1))
-        Id = StringToInt(Token+1,1);
+        Id = STR_StringToInt(Token+1,1);
     else
     {
         Id = Node_FindParam(p,Token);
         if (!Id)
-            Id = StringToFourCC(Token,0);
+            Id = STR_StringToFourCC(Token,0);
     }
     return NodeDataDef(p,Id,DataDef);
 }
 
-void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter)
+void NODE_TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter)
 {
     array List;
 	datadef* i;
@@ -2529,13 +2529,13 @@ void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast3
 		        {
                     NodeParamName(p,i->Id,Name,TSIZEOF(Name));
 
-			        TextAttribEx(Text,Name,Data,Size,i->Flags);
+			        NODE_TextAttribEx(Text,Name,Data,Size,i->Flags);
 
                     /* TODO: support dumping packetformat information (example for crash.txt)
                     if ((i->Flags & TYPE_MASK) == TYPE_PACKET && Node_Get(p,i->Id|PIN_FORMAT,Data,sizeof(packetformat)) == ERR_NONE)
                     {
                         tcscat_s(Name,TSIZEOF(Name),T("_Format"));
-				        TextAttrib(Text,Name,Data,TYPE_PACKETFORMAT);
+				        NODE_TextAttrib(Text,Name,Data,TYPE_PACKETFORMAT);
                     }
                     */
 		        }
@@ -2545,40 +2545,40 @@ void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast3
     ArrayClear(&List);
 }
 
-void ParserImport(parser* Parser,node* Node)
+void NODE_ParserImport(parser* Parser,node* Node)
 {
 	tchar_t Token[MAXTOKEN];
     exprstate State;
     memset(&State,0,sizeof(State));
 
-	while (ParserIsAttrib(Parser,Token,MAXTOKEN))
+	while (NODE_ParserIsAttrib(Parser,Token,MAXTOKEN))
 	{
         datadef DataDef;
         if (NodeFindDef(Node,Token,&DataDef))
-            ParserAttribData(Parser,Node,&DataDef,&State,NULL,0);
+            NODE_ParserAttribData(Parser,Node,&DataDef,&State,NULL,0);
         else
-            ParserAttribSkip(Parser);
+            NODE_ParserAttribSkip(Parser);
 	}
 }
 
-void ParserImportNested(parser* Parser,node* Node)
+void NODE_ParserImportNested(parser* Parser,node* Node)
 {
     if (Node)
-        ParserImport(Parser,Node);
+        NODE_ParserImport(Parser,Node);
 
     if (Node && Node_IsPartOf(Node,NODETREE_CLASS))
     {
 		tchar_t Token[MAXTOKEN];
-		while (ParserIsElementNested(Parser,Token,MAXTOKEN))
+		while (NODE_ParserIsElementNested(Parser,Token,MAXTOKEN))
         {
-            node* Child = NodeCreate(Node,StringToFourCC(Token,0));
-            ParserImportNested(Parser,Child);
+            node* Child = NodeCreate(Node,STR_StringToFourCC(Token,0));
+            NODE_ParserImportNested(Parser,Child);
             if (Child)
                 NodeTree_SetParent(Child,Node,NULL);
         }
     }
 	else
-        ParserElementSkipNested(Parser);
+        NODE_ParserElementSkipNested(Parser);
 }
 
 #define LANG_STRINGS_OFFSET  0x100
@@ -2610,8 +2610,8 @@ static dataid FindStrParam(node* p,const tchar_t* Token)
     int No;
     if (tcslen(Token)!=8)
         return 0;
-    ClassId = StringToFourCC(Token,0);
-    No = StringToInt(Token+4,1);
+    ClassId = STR_StringToFourCC(Token,0);
+    No = STR_StringToInt(Token+4,1);
     return (dataid)StrTab_Pos(&Parser_Context(p)->StrTab,ClassId,No) + LANG_STRINGS_OFFSET;
 }
 
@@ -2638,21 +2638,21 @@ static void NodeDumpObject(node* p,textwriter* Text)
 	TRY_BEGIN 
     if (!(NodeClassFlags(p) & CFLAG_LOCAL)) // example skin UI stuff
     {
-        FourCCToString(Element,TSIZEOF(Element),Node_ClassId(p));
-        TextElementBegin(&Level,Text,Element);
-        TextAttrib(&Level,T("Addr"),&p,TYPE_PTR);
-		TextSerializeNode(&Level,p,TFLAG_NODUMP,0);
+        STR_FourCCToString(Element,TSIZEOF(Element),Node_ClassId(p));
+        NODE_TextElementBegin(&Level,Text,Element);
+        NODE_TextAttrib(&Level,T("Addr"),&p,TYPE_PTR);
+		NODE_TextSerializeNode(&Level,p,TFLAG_NODUMP,0);
         ArrayInit(&Children);
         if (Node_GET(p,NODE_CHILDREN,&Children)==ERR_NONE)
             for (i=ARRAYBEGIN(Children,node*);i!=ARRAYEND(Children,node*);++i)
                 NodeDumpObject(*i,&Level);
         ArrayClear(&Children);
-        TextElementEnd(&Level);
+        NODE_TextElementEnd(&Level);
     }
     TRY_END
 }
 
-void NodeDump(nodecontext* p,textwriter* Text)
+void NODE_Dump(nodecontext* p,textwriter* Text)
 {
 	//no NodeLock, because may be stayed locked when dumping after crash 
 	node **i;

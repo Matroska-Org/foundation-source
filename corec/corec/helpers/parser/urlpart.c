@@ -48,7 +48,7 @@ typedef struct urlpart
 
 } urlpart;
 
-err_t CreateUrlPart(nodecontext *Context, tchar_t *Out, size_t OutLen, const tchar_t *URL, filepos_t Offset, size_t Length, const tchar_t *Mime)
+err_t NODE_CreateUrlPart(nodecontext *Context, tchar_t *Out, size_t OutLen, const tchar_t *URL, filepos_t Offset, size_t Length, const tchar_t *Mime)
 {
     datetime_t FileDate;
     if (!URL || !URL[0])
@@ -63,7 +63,7 @@ err_t CreateUrlPart(nodecontext *Context, tchar_t *Out, size_t OutLen, const tch
         stcatprintf_s(Out,OutLen,T("len=%d#"),(int)Length);
     if (Mime)
         stcatprintf_s(Out,OutLen,T("mime=%s#"),Mime);
-    FileDate = FileDateTime(Context,URL);
+    FileDate = NODE_FileDateTime(Context,URL);
     if (FileDate != INVALID_DATETIME_T)
         stcatprintf_s(Out,OutLen,T("date=%d#"),(int)FileDate);
     return ERR_NONE;
@@ -121,7 +121,7 @@ static err_t Open(urlpart* p, const tchar_t* URL, int Flags)
     Clear(p);
     Node_SetData((node*)p,STREAM_URL,TYPE_STRING,URL);
 
-    Equal = GetProtocol(URL,NULL,0,NULL);
+    Equal = NODE_GetProtocol(URL,NULL,0,NULL);
     tcsncpy_s(Value,TSIZEOF(Value),Equal,String-Equal);
     tcsreplace(Value,TSIZEOF(Value),URLPART_SEP_ESCAPE,URLPART_SEPARATOR);
     Node_SetData((node*)p,URLPART_URL,TYPE_STRING,Value);
@@ -137,21 +137,21 @@ static err_t Open(urlpart* p, const tchar_t* URL, int Flags)
                 tcscpy_s(Value,TSIZEOF(Value),Equal+1);
 
             if (tcsncmp(String,T("ofs"),Equal-String)==0)
-                p->Pos = StringToInt(Value,0);
+                p->Pos = STR_StringToInt(Value,0);
             else if (tcsncmp(String,T("len"),Equal-String)==0)
-                p->Length = StringToInt(Value,0);
+                p->Length = STR_StringToInt(Value,0);
             else if (tcsncmp(String,T("mime"),Equal-String)==0)
                 Node_SetData((node*)p,URLPART_MIME,TYPE_STRING,Value);
             else if (tcsncmp(String,T("date"),Equal-String)==0)
-                Date = StringToInt(Value,0);
+                Date = STR_StringToInt(Value,0);
         }
         String = tcschr(String,'#');
     }
 
-    if (Date!=INVALID_DATETIME_T && Date != FileDateTime(Node_Context(p),Node_GetDataStr((node*)p,URLPART_URL)))
+    if (Date!=INVALID_DATETIME_T && Date != NODE_FileDateTime(Node_Context(p),Node_GetDataStr((node*)p,URLPART_URL)))
         return ERR_INVALID_DATA;
 
-    p->Input = GetStream(p,Node_GetDataStr((node*)p,URLPART_URL),Flags);
+    p->Input = FIFO_GetStream(p,Node_GetDataStr((node*)p,URLPART_URL),Flags);
     if (!p->Input)
         return ERR_NOT_SUPPORTED;
     Stream_Blocking(p->Input,p->Blocking);

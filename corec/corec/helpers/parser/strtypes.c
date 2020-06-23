@@ -29,7 +29,7 @@
 
 #include "parser.h"
 
-fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper)
+fourcc_t STR_StringToFourCC(const tchar_t* In, bool_t Upper)
 {
 	tchar_t s[4+1];
 	size_t i;
@@ -50,7 +50,7 @@ fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper)
 	return FOURCC((uint8_t)s[0],(uint8_t)s[1],(uint8_t)s[2],(uint8_t)s[3]);
 }
 
-size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC)
+size_t STR_FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC)
 {
     size_t i=0;
     if (OutLen)
@@ -73,14 +73,14 @@ size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC)
     return i;
 }
 
-void GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid* p)
+void STR_GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid* p)
 {
 	stprintf_s(Out,OutLen,T("%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x"),
 		(int)p->v1,p->v2,p->v3,p->v4[0],p->v4[1],p->v4[2],p->v4[3],
 		p->v4[4],p->v4[5],p->v4[6],p->v4[7]);
 }
 
-bool_t StringToGUID(const tchar_t* In, cc_guid* p)
+bool_t STR_StringToGUID(const tchar_t* In, cc_guid* p)
 {
 	int i,v[10];
 	if (In[0]=='{') ++In;
@@ -106,7 +106,7 @@ static const tchar_t mask_0x08X[] = T("0x%08X");
 static const tchar_t mask_0x08Xx08X[] = T("0x%08X%08X");
 static const tchar_t mask_rgb[] = T("#%08X");
 
-void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* p, int Percent, int Decimal)
+void STR_FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* p, int Percent, int Decimal)
 {
 	int a,b,i;
 	int_fast32_t Num = p->Num;
@@ -155,10 +155,10 @@ void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* p, int Per
 		tcscat_s(Out,OutLen,T("%"));
 }
 
-void StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent)
+void STR_StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent)
 {
-    ExprSkipSpace(&In);
-    if (!ExprIsFrac(&In,Out))
+    NODE_ExprSkipSpace(&In);
+    if (!NODE_ExprIsFrac(&In,Out))
     {
         Out->Num=0;
         Out->Den=0;
@@ -167,12 +167,12 @@ void StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent)
         Out->Den *= 100;
 }
 
-int StringToInt(const tchar_t* In, int Hex)
+int STR_StringToInt(const tchar_t* In, int Hex)
 {
 	int v=0;
 	if (Hex<0)
 	{
-        ExprSkipSpace(&In);
+        NODE_ExprSkipSpace(&In);
 		Hex = In[0]=='0' && In[1]=='x';
 		if (Hex) In+=2;
 	}
@@ -180,14 +180,14 @@ int StringToInt(const tchar_t* In, int Hex)
 	return v;
 }
 
-int64_t StringToInt64(const tchar_t* In)
+int64_t STR_StringToInt64(const tchar_t* In)
 {
 	int hi=0,lo=0;
 	stscanf(In,T("0x%8x%8x"),&hi,&lo);
 	return (((uint64_t)hi)<<32)+lo;
 }
 
-void Int64ToString(tchar_t* Out, size_t OutLen, int64_t p, bool_t Hex)
+void STR_Int64ToString(tchar_t* Out, size_t OutLen, int64_t p, bool_t Hex)
 {
     if (!Hex && (p & 0xFFFFFFFF)==p)
         stprintf_s(Out,OutLen,mask_d,(int32_t)p);
@@ -195,29 +195,29 @@ void Int64ToString(tchar_t* Out, size_t OutLen, int64_t p, bool_t Hex)
 	    stprintf_s(Out,OutLen,Hex ? mask_0x08Xx08X:mask_dd,(uint32_t)(((uint64_t)p)>>32),(uint32_t)p);
 }
 
-void IntToString(tchar_t* Out, size_t OutLen, int32_t p, bool_t Hex)
+void STR_IntToString(tchar_t* Out, size_t OutLen, int32_t p, bool_t Hex)
 {
 	stprintf_s(Out,OutLen,Hex ? mask_0x08X:mask_d,p);
 }
 
-void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB)
+void STR_RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB)
 {
 	stprintf_s(Out,OutLen,mask_rgb,(int)INT32BE(RGB));
     if (tcslen(Out)>=1+8 && Out[7]=='0' && Out[8]=='0')
         Out[7] = 0;
 }
 
-rgbval_t StringToRGB(const tchar_t* In)
+rgbval_t STR_StringToRGB(const tchar_t* In)
 {
     int v;
     if (*In=='#') ++In;
-    v = StringToInt(In,1);
+    v = STR_StringToInt(In,1);
     if (tcslen(In)<=6)
         v <<= 8;
     return INT32BE(v);
 }
 
-tick_t StringToTick(const tchar_t* In)
+tick_t STR_StringToTick(const tchar_t* In)
 {
 	// hour:min:sec.msec
 
@@ -272,7 +272,7 @@ tick_t StringToTick(const tchar_t* In)
 	return Tick;
 }
 
-systick_t StringToSysTick(const tchar_t* In)
+systick_t STR_StringToSysTick(const tchar_t* In)
 {
 	// hour:min:sec.msec
 
@@ -327,7 +327,7 @@ systick_t StringToSysTick(const tchar_t* In)
 	return Tick;
 }
 
-void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix)
+void STR_TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix)
 {
 	tchar_t Sign[2] = {0};
 	if (Tick<0)
@@ -365,7 +365,7 @@ void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Ex
 	}
 }
 
-void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, bool_t Extended, bool_t Fix)
+void STR_SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, bool_t Extended, bool_t Fix)
 {
 	tchar_t Sign[2] = {0};
 	if (Tick<0)
@@ -403,7 +403,7 @@ void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, boo
 	}
 }
 
-void URLToString(tchar_t* Title, size_t TitleLen, const tchar_t* URL)
+void STR_URLToString(tchar_t* Title, size_t TitleLen, const tchar_t* URL)
 {
 	const tchar_t *i;
 	tchar_t *j;
@@ -430,7 +430,7 @@ static bool_t IsUrlSafe(tchar_t i)
     return (i == T('$') || i == T('-') || i == T('_') || i == T('.') || i == T('+'));
 }
 
-void StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *URL)
+void STR_StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *URL)
 {
     size_t Utf8Len = max(2*tcslen(URL),OutLen); // try to estimate
     char *Utf8 = malloc(Utf8Len);
@@ -438,7 +438,7 @@ void StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *U
     if (Utf8)
     {
 	    const char *i;
-	    Node_ToUTF8(AnyNode,Utf8,Utf8Len,URL);
+	    NODE_ToUTF8(AnyNode,Utf8,Utf8Len,URL);
 	    for (i=Utf8;*i && OutLen>1;++i)
 	    {
 		    if (IsDigit(*i) || IsAlpha(*i) || IsUrlSafe(*i))
@@ -461,13 +461,13 @@ void StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *U
 	*Out = 0;
 }
 
-void LangToIso639_1(tchar_t *Out, size_t OutLen, fourcc_t Lang)
+void STR_LangToIso639_1(tchar_t *Out, size_t OutLen, fourcc_t Lang)
 {
-	FourCCToString(Out,OutLen,Lang);
+	STR_FourCCToString(Out,OutLen,Lang);
     tcslwr(Out);
 }
 
-void ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate)
+void STR_ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate)
 {
     int KB = Scale32(ByteRate,8,1000);
 	if (KB>=1000)
@@ -475,17 +475,17 @@ void ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate)
         cc_fraction f;
         f.Num = KB;
         f.Den = 1000;
-		FractionToString(Out,OutLen,&f,0,2);
+		STR_FractionToString(Out,OutLen,&f,0,2);
 		tcscat_s(Out,OutLen,T(" Mbit/s"));
 	}
 	else
 	{
-		IntToString(Out,OutLen,KB,0);
+		STR_IntToString(Out,OutLen,KB,0);
 		tcscat_s(Out,OutLen,T(" kbit/s"));
 	}
 }
 
-datetime_t RFC822ToRel(const tchar_t *Date)
+datetime_t STR_RFC822ToRel(const tchar_t *Date)
 {
     datetime_t Result;
 	datepack_t ResultPacked = {0};
@@ -500,53 +500,53 @@ datetime_t RFC822ToRel(const tchar_t *Date)
         s++;
     else
         s = Date;
-    ExprSkipSpace(&s);
-    if (!ExprIsTokenEx(&s,T("%d "),&ResultPacked.Day))
+    NODE_ExprSkipSpace(&s);
+    if (!NODE_ExprIsTokenEx(&s,T("%d "),&ResultPacked.Day))
         return INVALID_DATETIME_T;
 
-    ExprSkipSpace(&s);
+    NODE_ExprSkipSpace(&s);
     for (ResultPacked.Month=0;ResultPacked.Month<12;++ResultPacked.Month)
-        if (ExprIsToken(&s,Token[ResultPacked.Month]))
+        if (NODE_ExprIsToken(&s,Token[ResultPacked.Month]))
             break;
     if (ResultPacked.Month==12)
 		for (ResultPacked.Month=0;ResultPacked.Month<12;++ResultPacked.Month)
-			if (ExprIsToken(&s,TokenLong[ResultPacked.Month]))
+			if (NODE_ExprIsToken(&s,TokenLong[ResultPacked.Month]))
 				break;
     if (ResultPacked.Month==12)
         return INVALID_DATETIME_T;
     ResultPacked.Month++;
 
-    ExprSkipSpace(&s);
-    if (!ExprIsTokenEx(&s,T("%d %d:%d:%d"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second)
-        && !ExprIsTokenEx(&s,T("%d %d:%d"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute))
+    NODE_ExprSkipSpace(&s);
+    if (!NODE_ExprIsTokenEx(&s,T("%d %d:%d:%d"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second)
+        && !NODE_ExprIsTokenEx(&s,T("%d %d:%d"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute))
         return INVALID_DATETIME_T;
     if (ResultPacked.Year < 100)
         ResultPacked.Year += 2000;
 
-    ExprSkipSpace(&s);
-    if (ExprIsTokenEx(&s,T("+%d"),&Offset))
+    NODE_ExprSkipSpace(&s);
+    if (NODE_ExprIsTokenEx(&s,T("+%d"),&Offset))
         Offset = -Offset;
-    else if (ExprIsTokenEx(&s,T("-%d"),&Offset))
+    else if (NODE_ExprIsTokenEx(&s,T("-%d"),&Offset))
     {}
-    else if (ExprIsToken(&s,T("EDT")))
+    else if (NODE_ExprIsToken(&s,T("EDT")))
         Offset = 400;
-    else if (ExprIsToken(&s,T("EST")))
+    else if (NODE_ExprIsToken(&s,T("EST")))
         Offset = 500;
-    else if (ExprIsToken(&s,T("CST")))
+    else if (NODE_ExprIsToken(&s,T("CST")))
         Offset = 600;
-    else if (ExprIsToken(&s,T("CDT")))
+    else if (NODE_ExprIsToken(&s,T("CDT")))
         Offset = 500;
-    else if (ExprIsToken(&s,T("MST")))
+    else if (NODE_ExprIsToken(&s,T("MST")))
         Offset = 600;
-    else if (ExprIsToken(&s,T("MDT")))
+    else if (NODE_ExprIsToken(&s,T("MDT")))
         Offset = 500;
-    else if (ExprIsToken(&s,T("PST")))
+    else if (NODE_ExprIsToken(&s,T("PST")))
         Offset = 600;
-    else if (ExprIsToken(&s,T("PDT")))
+    else if (NODE_ExprIsToken(&s,T("PDT")))
         Offset = 500;
 
 	
-	Result = TimePackToRel(&ResultPacked,0);
+	Result = DATE_TimePackToRel(&ResultPacked,0);
 
 	if (Result != INVALID_DATETIME_T)
 		Result += (datetime_t)(((Offset/100)*60)+(Offset%100))*60;
@@ -554,7 +554,7 @@ datetime_t RFC822ToRel(const tchar_t *Date)
     return Result;
 }
 
-datetime_t ISO8601ToRel(const tchar_t *InDate)
+datetime_t STR_ISO8601ToRel(const tchar_t *InDate)
 {
     tchar_t Time[32],Date[32];
     datetime_t Result;
@@ -564,7 +564,7 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
     tchar_t *t;
     
     s = InDate;
-    ExprSkipSpace(&s);
+    NODE_ExprSkipSpace(&s);
     tcscpy_s(Date,TSIZEOF(Date),s);
     s = Date;
 
@@ -594,10 +594,10 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
         }
     }
 
-    if (!ExprIsTokenEx(&s,T("%d-%d-%d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
-        !ExprIsTokenEx(&s,T("%d:%d:%d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) &&
-        !ExprIsTokenEx(&s,T("%4d%2d%2d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
-        !ExprIsTokenEx(&s,T("%2d%2d%2d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day))
+    if (!NODE_ExprIsTokenEx(&s,T("%d-%d-%d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
+        !NODE_ExprIsTokenEx(&s,T("%d:%d:%d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) &&
+        !NODE_ExprIsTokenEx(&s,T("%4d%2d%2d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
+        !NODE_ExprIsTokenEx(&s,T("%2d%2d%2d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day))
         return INVALID_DATETIME_T;
 
     if (ResultPacked.Year < 50)
@@ -608,18 +608,18 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
     if (*Time)
     {
         s = Time;
-        if (ExprIsTokenEx(&s,T("%d:%d:%d"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second) ||
-            ExprIsTokenEx(&s,T("%2d%2d%2d"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second))
+        if (NODE_ExprIsTokenEx(&s,T("%d:%d:%d"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second) ||
+            NODE_ExprIsTokenEx(&s,T("%2d%2d%2d"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second))
         {
             intptr_t MilliSeconds;
-            ExprIsTokenEx(&s,T(".%d"),&MilliSeconds);
+            NODE_ExprIsTokenEx(&s,T(".%d"),&MilliSeconds);
             if (s[0])
             {
                 const tchar_t *o=s + 1;
                 intptr_t OffsetH,OffsetM=0;
-                if (ExprIsTokenEx(&o,T("%d:%d"),&OffsetH,&OffsetM) ||
-                    ExprIsTokenEx(&o,T("%2d%2d"),&OffsetH,&OffsetM) || 
-                    ExprIsTokenEx(&o,T("%2d"),&OffsetH))
+                if (NODE_ExprIsTokenEx(&o,T("%d:%d"),&OffsetH,&OffsetM) ||
+                    NODE_ExprIsTokenEx(&o,T("%2d%2d"),&OffsetH,&OffsetM) || 
+                    NODE_ExprIsTokenEx(&o,T("%2d"),&OffsetH))
                 {
                     Offset = (OffsetH*60 + OffsetM)*60;
                 }
@@ -629,7 +629,7 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
         }
     }
 
-	Result = TimePackToRel(&ResultPacked,0);
+	Result = DATE_TimePackToRel(&ResultPacked,0);
 
 	if (Result != INVALID_DATETIME_T)
 		Result += (datetime_t)Offset;
@@ -648,7 +648,7 @@ static void ZPad(tchar_t* Out, size_t Len, intptr_t v)
     }
 }
 
-size_t StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *dp)
+size_t STR_StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *dp)
 {
     const tchar_t* const Month[12] = { T("Jan"), T("Feb"), T("Mar"), T("Apr"), T("May"), 
         T("Jun"), T("Jul"), T("Aug"), T("Sep"), T("Oct"), T("Nov"), T("Dec") };
@@ -690,7 +690,7 @@ size_t StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *
                     r = MonthLong[dp->Month-1];
                     break;
               case 'c' :
-                    StrFTime(buf, BUFLEN, DateTimeFormat[2], dp);
+                    STR_StrFTime(buf, BUFLEN, DateTimeFormat[2], dp);
                     break;
               case 'd' :
                     ZPad(buf, 2, dp->Day);
@@ -717,10 +717,10 @@ size_t StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *
                     ZPad(buf, 1, dp->WeekDay-1);
                     break;
               case 'x' :
-                    StrFTime(buf, BUFLEN, DateTimeFormat[0], dp);
+                    STR_StrFTime(buf, BUFLEN, DateTimeFormat[0], dp);
                     break;
               case 'X' :
-                    StrFTime(buf, BUFLEN, DateTimeFormat[1], dp);
+                    STR_StrFTime(buf, BUFLEN, DateTimeFormat[1], dp);
                     break;
               case 'y' :
                     ZPad(buf, 2, dp->Year % 100);

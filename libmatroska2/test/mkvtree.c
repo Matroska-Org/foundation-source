@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 
-#define CONFIG_EBML_UNICODE
 #include "matroska/matroska.h"
 #include "mkvtree_stdafx.h"
 
@@ -51,7 +50,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #ifdef LOGTIME
     {
         tchar_t timed[1024];
-        SysTickToString(timed,TSIZEOF(timed),GetTimeTick(),1,1,0);
+        STR_SysTickToString(timed,TSIZEOF(timed),DATE_GetTimeTick(),1,1,0);
         stcatprintf_s(timed,TSIZEOF(timed),T(" %s"),s);
         s = timed;
     }
@@ -157,7 +156,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             tchar_t String[MAXDATA];
             char cString[MAXDATA];
             EBML_StringGet((ebml_string*)Element, String, TSIZEOF(String));
-            Node_ToUTF8(Element, cString, sizeof(cString), String);
+            NODE_ToUTF8(Element, cString, sizeof(cString), String);
             fprintf(stdout,"'%s'",cString);
         } else
             fprintf(stdout,"<error reading>");
@@ -169,7 +168,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         {
             datepack_t Date;
             datetime_t DateTime = EBML_DateTime((ebml_date*)Element);
-            GetDatePacked(DateTime,&Date,1);
+            DATE_GetDatePacked(DateTime,&Date,1);
             fprintf(stdout,"%04d-%02d-%02d %02d:%02d:%02d UTC",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
         }
         else
@@ -297,7 +296,7 @@ int main(int argc, const char *argv[])
 
     // Core-C init phase
 #if defined(CONFIG_EBML_UNICODE)
-    ParserContext_Init(&p,NULL,NULL,NULL);
+    NODE_ParserContext_Init(&p,NULL,NULL,NULL);
 #else
     NodeContext_Init(&p,NULL,NULL,NULL);
 #endif
@@ -306,15 +305,15 @@ int main(int argc, const char *argv[])
     MATROSKA_Init((nodecontext*)&p);
 
     // open the file to parse
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
-    Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    NODE_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
+    Input = FIFO_StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (Input == NULL)
         fprintf(stderr, "error: mkvtree cannot open file \"%s\"\r\n",argv[1]);
     else
     {
         OutputTree(Input);
 
-        StreamClose(Input);
+        FIFO_StreamClose(Input);
     }
 
     // EBML & Matroska ending

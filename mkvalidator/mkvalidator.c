@@ -91,7 +91,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #ifdef LOGTIME
     {
         tchar_t timed[1024];
-        SysTickToString(timed,TSIZEOF(timed),GetTimeTick(),1,1,0);
+        STR_SysTickToString(timed,TSIZEOF(timed),DATE_GetTimeTick(),1,1,0);
         stcatprintf_s(timed,TSIZEOF(timed),T(" %s"),s);
         s = timed;
     }
@@ -159,7 +159,7 @@ static int OutputError(int ErrCode, const tchar_t *ErrString, ...)
 	va_start(Args,ErrString);
 	vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	va_end(Args);
-	TextPrintf(StdErr,T("\rERR%03X: %s\r\n"),ErrCode,Buffer);
+	NODE_TextPrintf(StdErr,T("\rERR%03X: %s\r\n"),ErrCode,Buffer);
     if (QuickExit)
         exit(-ErrCode);
 	return -ErrCode;
@@ -174,7 +174,7 @@ static void OutputWarning(int ErrCode, const tchar_t *ErrString, ...)
 	    va_start(Args,ErrString);
 	    vstprintf_s(Buffer,TSIZEOF(Buffer), ErrString, Args);
 	    va_end(Args);
-	    TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
+	    NODE_TextPrintf(StdErr,T("\rWRN%03X: %s\r\n"),ErrCode,Buffer);
         if (QuickExit)
             exit(-ErrCode);
     }
@@ -851,7 +851,7 @@ static int CheckCueEntries(ebml_master *Cues)
 		while (CuePoint)
 		{
             if (!Quiet && ClustNum++ % 24 == 0)
-                TextWrite(StdErr,T("."));
+                NODE_TextWrite(StdErr,T("."));
 			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
 			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
 			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
@@ -933,24 +933,24 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--quiet"))) Quiet = 1;
         else if (tcsisame_ascii(Path,T("--quick"))) QuickExit = 1;
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1;}
-		else if (i<argc-1) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
+		else if (i<argc-1) NODE_TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
 
     if (argc < 2 || ShowVersion)
     {
-        TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010-2015 Matroska Foundation\r\n"));
+        NODE_TextWrite(StdErr,T("mkvalidator v") PROJECT_VERSION T(", Copyright (c) 2010-2015 Matroska Foundation\r\n"));
         if (argc < 2 || ShowUsage)
         {
             Result = OutputError(1,T("Usage: mkvalidator [options] <matroska_src>"));
-		    TextWrite(StdErr,T("Options:\r\n"));
-		    TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
-            TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
-            TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
-            TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
-            TextWrite(StdErr,T("  --quick     exit after the first error or warning\r\n"));
-            TextWrite(StdErr,T("  --quiet     don't ouput progress and file info\r\n"));
-            TextWrite(StdErr,T("  --version   show the version of mkvalidator\r\n"));
-            TextWrite(StdErr,T("  --help      show this screen\r\n"));
+		    NODE_TextWrite(StdErr,T("Options:\r\n"));
+		    NODE_TextWrite(StdErr,T("  --no-warn   only output errors, no warnings\r\n"));
+            NODE_TextWrite(StdErr,T("  --live      only output errors/warnings relevant to live streams\r\n"));
+            NODE_TextWrite(StdErr,T("  --details   show details for valid files\r\n"));
+            NODE_TextWrite(StdErr,T("  --divx      assume the file is using DivX specific extensions\r\n"));
+            NODE_TextWrite(StdErr,T("  --quick     exit after the first error or warning\r\n"));
+            NODE_TextWrite(StdErr,T("  --quiet     don't ouput progress and file info\r\n"));
+            NODE_TextWrite(StdErr,T("  --version   show the version of mkvalidator\r\n"));
+            NODE_TextWrite(StdErr,T("  --help      show this screen\r\n"));
         }
         goto exit;
     }
@@ -960,10 +960,10 @@ int main(int argc, const char *argv[])
 #else
 	Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
 #endif
-    Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
+    Input = FIFO_StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
-        TextPrintf(StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
+        NODE_TextPrintf(StdErr,T("Could not open file \"%s\" for reading\r\n"),Path);
         Result = -2;
         goto exit;
     }
@@ -980,7 +980,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    if (!Quiet) TextWrite(StdErr,T("."));
+    if (!Quiet) NODE_TextWrite(StdErr,T("."));
 
 	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA, 1)!=ERR_NONE)
     {
@@ -1039,7 +1039,7 @@ int main(int argc, const char *argv[])
 	else if (tcscmp(String,T("webm"))==0)
 		MatroskaProfile = PROFILE_WEBM;
 
-    if (!Quiet) TextWrite(StdErr,T("."));
+    if (!Quiet) NODE_TextWrite(StdErr,T("."));
 
 	// find the segment
 	RSegment = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 1);
@@ -1316,9 +1316,9 @@ int main(int argc, const char *argv[])
             RLevel1 = NULL;
 		}
         if (!Quiet) {
-            TextWrite(StdErr,T(".")); ++DotCount;
+            NODE_TextWrite(StdErr,T(".")); ++DotCount;
 		    if (!(DotCount % 60))
-			    TextWrite(StdErr,T("\r                                                              \r"));
+			    NODE_TextWrite(StdErr,T("\r                                                              \r"));
         }
 
 		Prev = RLevel1;
@@ -1352,7 +1352,7 @@ int main(int argc, const char *argv[])
 
 	if (ARRAYCOUNT(RClusters,ebml_element*))
 	{
-        if (!Quiet) TextWrite(StdErr,T("."));
+        if (!Quiet) NODE_TextWrite(StdErr,T("."));
 		LinkClusterBlocks();
 
         if (HasVideo)
@@ -1373,7 +1373,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-    if (!Quiet) TextWrite(StdErr,T("."));
+    if (!Quiet) NODE_TextWrite(StdErr,T("."));
 	if (RTrackInfo)
 		CheckTracks(RTrackInfo, MatroskaProfile);
 
@@ -1388,14 +1388,14 @@ int main(int argc, const char *argv[])
 
 	if (!Quiet && Result==0)
     {
-        TextPrintf(StdErr,T("\r%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
+        NODE_TextPrintf(StdErr,T("\r%s %s: the file appears to be valid\r\n"),PROJECT_NAME,PROJECT_VERSION);
         if (Details)
         {
             track_info *TI;
             for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
             {
                 EBML_StringGet(TI->CodecID,String,TSIZEOF(String));
-                TextPrintf(StdErr,T("Track #%d %18s %") TPRId64 T(" bits/s\r\n"),TI->Num,String,Scale64(TI->DataLength,8000000, (MaxTime-MinTime)/1000));
+                NODE_TextPrintf(StdErr,T("Track #%d %18s %") TPRId64 T(" bits/s\r\n"),TI->Num,String,Scale64(TI->DataLength,8000000, (MaxTime-MinTime)/1000));
             }
         }
     }
@@ -1403,7 +1403,7 @@ int main(int argc, const char *argv[])
 exit:
 	if (!Quiet)
 	{
-        TextPrintf(StdErr, T("\r\tfile \"%s\"\r\n"), Path);
+        NODE_TextPrintf(StdErr, T("\r\tfile \"%s\"\r\n"), Path);
         if (RSegmentInfo)
         {
             tchar_t App[MAXPATH];
@@ -1424,7 +1424,7 @@ exit:
             }
             if (App[0] == 0)
                 tcscat_s(App, TSIZEOF(App), T("<unknown>"));
-            TextPrintf(StdErr, T("\r\tcreated with %s\r\n"), App);
+            NODE_TextPrintf(StdErr, T("\r\tcreated with %s\r\n"), App);
         }
 	}
 
@@ -1451,7 +1451,7 @@ exit:
         NodeDelete((node*)EbmlHead);
     ArrayClear(&Tracks);
     if (Input)
-        StreamClose(Input);
+        FIFO_StreamClose(Input);
 
     // EBML & Matroska ending
     MATROSKA_Done((nodecontext*)&p);

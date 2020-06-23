@@ -89,7 +89,7 @@ static const tchar_t* GetHotKeyName(const hotkeyname* i, hotkeygetname GetName, 
     return i->XML;
 }
 
-void HotKeyToString(tchar_t* Out, size_t OutLen, uint32_t HotKey, hotkeygetname GetName, void* GetNameParam)
+void KEY_HotKeyToString(tchar_t* Out, size_t OutLen, uint32_t HotKey, hotkeygetname GetName, void* GetNameParam)
 {
     const hotkeyname* i = HotKeyName;
     if (!GetName)
@@ -129,14 +129,14 @@ void HotKeyToString(tchar_t* Out, size_t OutLen, uint32_t HotKey, hotkeygetname 
 		stcatprintf_s(Out,OutLen,T("#%02X"),HotKey);
 }
 
-uint32_t StringToHotKey(const tchar_t* In)
+uint32_t KEY_StringToHotKey(const tchar_t* In)
 {
     const tchar_t* m;
     const hotkeyname* i;
     uint32_t HotKey = 0;
     size_t n;
 
-    ExprSkipSpace(&In);
+    NODE_ExprSkipSpace(&In);
 
     while ((m = tcschr(In,'+')) != NULL)
     {
@@ -162,17 +162,17 @@ uint32_t StringToHotKey(const tchar_t* In)
             return HotKey | i->Key;
 
     if ((In[0] == 'f' || In[0] == 'F') && IsDigit(In[1]))
-        return HotKey | (HOTKEY_FUNC_FIRST + StringToInt(In+1,0) - 1);
+        return HotKey | (HOTKEY_FUNC_FIRST + STR_StringToInt(In+1,0) - 1);
 
     if (In[0] == '#')
-        return HotKey | StringToInt(In+1,1);
+        return HotKey | STR_StringToInt(In+1,1);
 
     n = tcslen(In);
     if (n>1 && IsDigit(In[n-1]))
     {
         while (n>0 && IsDigit(In[n-1]))
             --n;
-        return HotKey | (HOTKEY_APP_FIRST + StringToInt(In+n,0) - 1);
+        return HotKey | (HOTKEY_APP_FIRST + STR_StringToInt(In+n,0) - 1);
     }
 
 	return HotKey | In[0];

@@ -29,12 +29,12 @@
 
 #include "file.h"
 
-bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
+bool_t NODE_SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 {
 	tchar_t *p,*q,*p2;
 	bool_t HasHost;
 
-	p = (tchar_t*) GetProtocol(URL,NULL,0,&HasHost);
+	p = (tchar_t*) NODE_GetProtocol(URL,NULL,0,&HasHost);
 	q = p;
 	
 	p = tcsrchr(q,'\\');
@@ -59,11 +59,11 @@ bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 	return 1;
 }
 
-void AddPathDelimiter(tchar_t* Path,size_t PathLen)
+void NODE_AddPathDelimiter(tchar_t* Path,size_t PathLen)
 {
     size_t n = tcslen(Path);
 #if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
-    bool_t HasProtocol = GetProtocol(Path,NULL,0,NULL)==Path;
+    bool_t HasProtocol = NODE_GetProtocol(Path,NULL,0,NULL)==Path;
 	if (!n || (n>0 && (HasProtocol || Path[n-1] != '/') && (!HasProtocol || Path[n-1] != '\\')))
 	{
         if (HasProtocol)
@@ -80,10 +80,10 @@ void AddPathDelimiter(tchar_t* Path,size_t PathLen)
 #endif
 }
 
-void RemovePathDelimiter(tchar_t* Path)
+void NODE_RemovePathDelimiter(tchar_t* Path)
 {
     size_t n = tcslen(Path);
-	const tchar_t* s = GetProtocol(Path,NULL,0,NULL);
+	const tchar_t* s = NODE_GetProtocol(Path,NULL,0,NULL);
 #if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
     bool_t HasProtocol = s==Path;
 	if (s[0] && n>0 && ((HasProtocol && Path[n-1] == '\\') || (!HasProtocol && Path[n-1] == '/')))
@@ -93,7 +93,7 @@ void RemovePathDelimiter(tchar_t* Path)
 		Path[n-1] = 0;
 }
 
-const tchar_t* GetProtocol(const tchar_t* URL, tchar_t* Proto, int ProtoLen, bool_t* HasHost)
+const tchar_t* NODE_GetProtocol(const tchar_t* URL, tchar_t* Proto, int ProtoLen, bool_t* HasHost)
 {
 	const tchar_t* s = tcschr(URL,':');
 	if (s && s[1] == '/' && s[2] == '/')
@@ -105,7 +105,7 @@ const tchar_t* GetProtocol(const tchar_t* URL, tchar_t* Proto, int ProtoLen, boo
         {
             if (tcsnicmp(URL,T("urlpart"),7)==0)
                 // skip this protocol for the Host checking
-                GetProtocol(URL+10,NULL,0,HasHost);
+                NODE_GetProtocol(URL+10,NULL,0,HasHost);
             else
 			*HasHost = tcsnicmp(URL,T("file"),4)!=0 &&
 			           tcsnicmp(URL,T("conf"),3)!=0 &&
@@ -132,7 +132,7 @@ const tchar_t* GetProtocol(const tchar_t* URL, tchar_t* Proto, int ProtoLen, boo
 	return s;
 }
 
-fourcc_t GetProtocolKind(anynode* AnyNode, tchar_t *Protocol)
+fourcc_t NODE_GetProtocolKind(anynode* AnyNode, tchar_t *Protocol)
 {
     fourcc_t Class = NodeEnumClassStr(AnyNode,NULL,STREAM_CLASS,NODE_PROTOCOL,Protocol);
     if (Class)
@@ -144,7 +144,7 @@ fourcc_t GetProtocolKind(anynode* AnyNode, tchar_t *Protocol)
     return 0;
 }
 
-bool_t SplitAddr(const tchar_t* URL, tchar_t* Peer, int PeerLen, tchar_t* Local, int LocalLen)
+bool_t NODE_SplitAddr(const tchar_t* URL, tchar_t* Peer, int PeerLen, tchar_t* Local, int LocalLen)
 {
 	const tchar_t* p = NULL;
 	const tchar_t* p2;
@@ -152,7 +152,7 @@ bool_t SplitAddr(const tchar_t* URL, tchar_t* Peer, int PeerLen, tchar_t* Local,
 	bool_t HasHost;
     bool_t Result = 0;
 
-	Addr = GetProtocol(URL,NULL,0,&HasHost);
+	Addr = NODE_GetProtocol(URL,NULL,0,&HasHost);
 
     if (HasHost)
     {
@@ -183,10 +183,10 @@ bool_t SplitAddr(const tchar_t* URL, tchar_t* Peer, int PeerLen, tchar_t* Local,
     return Result;
 }
 
-void SplitURL(const tchar_t* URL, tchar_t* Protocol, int ProtocolLen, tchar_t* Host, int HostLen, int* Port, tchar_t* Path, int PathLen)
+void NODE_SplitURL(const tchar_t* URL, tchar_t* Protocol, int ProtocolLen, tchar_t* Host, int HostLen, int* Port, tchar_t* Path, int PathLen)
 {
 	bool_t HasHost;
-	URL = GetProtocol(URL,Protocol,ProtocolLen,&HasHost);
+	URL = NODE_GetProtocol(URL,Protocol,ProtocolLen,&HasHost);
 
     if (HasHost)
     {
@@ -235,7 +235,7 @@ void SplitURL(const tchar_t* URL, tchar_t* Protocol, int ProtocolLen, tchar_t* H
     }
 }
 
-void SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int NameLen, tchar_t* Ext, int ExtLen)
+void NODE_SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int NameLen, tchar_t* Ext, int ExtLen)
 {
 	const tchar_t *p,*p2,*p3;
 	bool_t HasHost;
@@ -243,7 +243,7 @@ void SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int 
 	tchar_t Protocol[MAXPATH];
 
 	// mime 
-	p = GetProtocol(URL,Protocol,TSIZEOF(Protocol),&HasHost);
+	p = NODE_GetProtocol(URL,Protocol,TSIZEOF(Protocol),&HasHost);
 
 	// dir
 	p2 = tcsrchr(p,'\\');
@@ -317,11 +317,11 @@ void SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int 
 	}
 }
 
-void RelPath(tchar_t* Rel, int RelLen, const tchar_t* Path, const tchar_t* Base)
+void NODE_RelPath(tchar_t* Rel, int RelLen, const tchar_t* Path, const tchar_t* Base)
 {
 	size_t n;
 	bool_t HasHost;
-	const tchar_t* p = GetProtocol(Base,NULL,0,&HasHost);
+	const tchar_t* p = NODE_GetProtocol(Base,NULL,0,&HasHost);
 	if (p != Base)
 	{
 		if (HasHost)
@@ -354,7 +354,7 @@ void RelPath(tchar_t* Rel, int RelLen, const tchar_t* Path, const tchar_t* Base)
 	tcscpy_s(Rel,RelLen,Path);
 }
 
-bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
+bool_t NODE_UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
 {
 	tchar_t *a,*b,*c;
 	bool_t HasHost;
@@ -363,8 +363,8 @@ bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
 	if (!*Path)
 		return 0;
 
-	RemovePathDelimiter(Path);
-	c = (tchar_t*)GetProtocol(Path,Mime,TSIZEOF(Mime),&HasHost);
+	NODE_RemovePathDelimiter(Path);
+	c = (tchar_t*)NODE_GetProtocol(Path,Mime,TSIZEOF(Mime),&HasHost);
 	
 	a = tcsrchr(c,'\\');
 	b = tcsrchr(c,'/');
@@ -411,16 +411,16 @@ bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
 	return 1;
 }
 
-void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base)
+void NODE_AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base)
 {
-	if (Base && GetProtocol(Base,NULL,0,NULL)!=Base && (Path[0] == '/' || Path[0] == '\\') &&
+	if (Base && NODE_GetProtocol(Base,NULL,0,NULL)!=Base && (Path[0] == '/' || Path[0] == '\\') &&
         (Path[1] != '/' && Path[1] != '\\'))
 	{
 		tchar_t* s;
 		bool_t HasHost;
 
 		tcscpy_s(Abs,AbsLen,Base);
-		s = (tchar_t*)GetProtocol(Abs,NULL,0,&HasHost);
+		s = (tchar_t*)NODE_GetProtocol(Abs,NULL,0,&HasHost);
 		if (!HasHost)
 		{
 			// keep "mime://" from Base
@@ -440,31 +440,31 @@ void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base)
 		}
 	}
 	else
-	if (Base && GetProtocol(Path,NULL,0,NULL)==Path && Path[0] != '/' && Path[0] != '\\' &&
+	if (Base && NODE_GetProtocol(Path,NULL,0,NULL)==Path && Path[0] != '/' && Path[0] != '\\' &&
 		!(Path[0] && Path[1]==':' && (Path[2]=='\\' || Path[2]=='\0')))
 	{	
 		// doesn't have mime or drive letter or pathdelimiter at the start
-		const tchar_t* MimeEnd = GetProtocol(Base,NULL,0,NULL);
+		const tchar_t* MimeEnd = NODE_GetProtocol(Base,NULL,0,NULL);
 		tcscpy_s(Abs,AbsLen,Base);
 
 #if defined(TARGET_WIN) || defined(TARGET_SYMBIAN)
 		if (MimeEnd==Base)
-			AddPathDelimiter(Abs,AbsLen);
+			NODE_AddPathDelimiter(Abs,AbsLen);
 		else
 #endif
 		if (MimeEnd[0])
-			AddPathDelimiter(Abs,AbsLen);
+			NODE_AddPathDelimiter(Abs,AbsLen);
 	}
 	else
 		Abs[0] = 0;
 
 	tcscat_s(Abs,AbsLen,Path);
-    AbsPathNormalize(Abs,AbsLen);
+    NODE_AbsPathNormalize(Abs,AbsLen);
 }
 
-void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
+void NODE_AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
 {
-	if (GetProtocol(Abs,NULL,0,NULL)!=Abs)
+	if (NODE_GetProtocol(Abs,NULL,0,NULL)!=Abs)
     {
         tchar_t *i;
 		for (i=Abs;*i;++i)
@@ -496,7 +496,7 @@ void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
     }
 }
 
-void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
+void NODE_ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
 {
     tchar_t *Folder,*Back;
     Folder = tcsstr(Abs,T("://")); // skip the protocol
@@ -545,13 +545,13 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
     }
 }
 
-int CheckExts(const tchar_t* URL, const tchar_t* Exts)
+int NODE_CheckExts(const tchar_t* URL, const tchar_t* Exts)
 {
 	tchar_t Ext[MAXPATH];
 	tchar_t* Tail;
     intptr_t ExtLen;
 
-	SplitPath(URL,NULL,0,NULL,0,Ext,TSIZEOF(Ext));
+	NODE_SplitPath(URL,NULL,0,NULL,0,Ext,TSIZEOF(Ext));
 	Tail = tcschr(Ext,'?');
 	if (Tail) *Tail = 0;
     ExtLen = tcslen(Ext);
@@ -567,24 +567,10 @@ int CheckExts(const tchar_t* URL, const tchar_t* Exts)
 	return 0;
 }
 
-int ScaleRound(int_fast32_t v,int_fast32_t Num,int_fast32_t Den)
-{
-	int64_t i;
-	if (!Den) 
-		return 0;
-	i = (int64_t)v * Num;
-	if (i<0)
-		i-=Den/2;
-	else
-		i+=Den/2;
-	i/=Den;
-	return (int)i;
-}
-
-void StreamLoginInfo(node* p, tchar_t* URL, bool_t Proxy)
+void NODE_StreamLoginInfo(node* p, tchar_t* URL, bool_t Proxy)
 {
     tchar_t LoginPass[MAXPATH];
-    if (SplitAddr(URL,LoginPass,TSIZEOF(LoginPass),NULL,0))
+    if (NODE_SplitAddr(URL,LoginPass,TSIZEOF(LoginPass),NULL,0))
     {
         // extract the login:pass from the URL as there seems to be one
         tchar_t *s,*t;
@@ -592,14 +578,14 @@ void StreamLoginInfo(node* p, tchar_t* URL, bool_t Proxy)
         {
             Node_SetData(p,STREAM_FULL_URL,TYPE_STRING,URL);
 
-            t = (tchar_t*)GetProtocol(URL,NULL,0,NULL);
+            t = (tchar_t*)NODE_GetProtocol(URL,NULL,0,NULL);
             s = tcschr(t,T('@'));
             assert(s!=NULL);
             ++s;
             memmove(t, s, tcsbytes(s));
         }
 
-        t = (tchar_t*)GetProtocol(LoginPass,NULL,0,NULL);
+        t = (tchar_t*)NODE_GetProtocol(LoginPass,NULL,0,NULL);
         s=tcschr(t,T(':'));
         if (s)
             *s++ = 0;
@@ -619,7 +605,7 @@ void StreamLoginInfo(node* p, tchar_t* URL, bool_t Proxy)
         Node_RemoveData(p,STREAM_FULL_URL,TYPE_STRING);
 }
 
-tchar_t* FirstSepar(const tchar_t *Path)
+tchar_t* NODE_FirstSepar(const tchar_t *Path)
 {
     tchar_t *s1, *s2;
     s1 = tcschr(Path, '\\');
@@ -629,23 +615,23 @@ tchar_t* FirstSepar(const tchar_t *Path)
     return s1;
 }
 
-void SplitURLLogin(const tchar_t *URL, tchar_t *UserName, size_t UserNameLen, tchar_t *Password, size_t PasswordLen, tchar_t *URL2, size_t URL2Len)
+void NODE_SplitURLLogin(const tchar_t *URL, tchar_t *UserName, size_t UserNameLen, tchar_t *Password, size_t PasswordLen, tchar_t *URL2, size_t URL2Len)
 {
     tchar_t LoginPass[MAXPATH];
-    if (SplitAddr(URL, LoginPass, TSIZEOF(LoginPass), NULL, 0))
+    if (NODE_SplitAddr(URL, LoginPass, TSIZEOF(LoginPass), NULL, 0))
     {
         tchar_t *s,*t;
         if (URL2) 
         {
             tcscpy_s(URL2, URL2Len, URL);
-            t = (tchar_t*)GetProtocol(URL2,NULL,0,NULL);
+            t = (tchar_t*)NODE_GetProtocol(URL2,NULL,0,NULL);
             s = tcschr(t,T('@'));
             assert(s!=NULL);
             ++s;
             memmove(t, s, tcsbytes(s));
         }
 
-        t = (tchar_t*)GetProtocol(LoginPass,NULL,0,NULL);
+        t = (tchar_t*)NODE_GetProtocol(LoginPass,NULL,0,NULL);
         s=tcschr(t,T(':'));
         if (s)
         {
@@ -666,14 +652,14 @@ void SplitURLLogin(const tchar_t *URL, tchar_t *UserName, size_t UserNameLen, tc
     }
 }
 
-void SplitShare(const tchar_t *Path, tchar_t *Share, size_t ShareLen, tchar_t *Path2, size_t Path2Len)
+void NODE_SplitShare(const tchar_t *Path, tchar_t *Share, size_t ShareLen, tchar_t *Path2, size_t Path2Len)
 {
     tchar_t *s1;
-    s1 = FirstSepar(Path);
+    s1 = NODE_FirstSepar(Path);
     if (s1 == Path)
     {
         Path++;
-        s1 = FirstSepar(Path);
+        s1 = NODE_FirstSepar(Path);
     }
     if (s1) {
         if (Share)
@@ -688,7 +674,7 @@ void SplitShare(const tchar_t *Path, tchar_t *Share, size_t ShareLen, tchar_t *P
     }
 }
 
-tchar_t *MergeURL(tchar_t *URL, size_t URLLen, const tchar_t *Protocol, const tchar_t *Host, int Port, const tchar_t *Path)
+tchar_t *NODE_MergeURL(tchar_t *URL, size_t URLLen, const tchar_t *Protocol, const tchar_t *Host, int Port, const tchar_t *Path)
 {
     *URL = 0;
     if (Protocol && *Protocol)
@@ -701,7 +687,7 @@ tchar_t *MergeURL(tchar_t *URL, size_t URLLen, const tchar_t *Protocol, const tc
     }
     if (Path && *Path)
     {
-        if (FirstSepar(Path) == Path)
+        if (NODE_FirstSepar(Path) == Path)
             stcatprintf_s(URL, URLLen, T("%s"), Path);
         else
             stcatprintf_s(URL, URLLen, T("/%s"), Path);
@@ -709,13 +695,13 @@ tchar_t *MergeURL(tchar_t *URL, size_t URLLen, const tchar_t *Protocol, const tc
     return URL;
 }
 
-tchar_t *GetIP(tchar_t *sIP, size_t IPLen, long IP)
+tchar_t *NODE_GetIP(tchar_t *sIP, size_t IPLen, long IP)
 {
     stprintf_s(sIP, IPLen, T("%d.%d.%d.%d"), (IP >> 24) & 0xFF, (IP >> 16) & 0xFF, (IP >> 8) & 0xFF, IP & 0xFF);
     return sIP;
 }
 
-void SplitURLParams(const tchar_t* URL, tchar_t* URL2, int URL2Len, tchar_t* Params, int ParamsLen)
+void NODE_SplitURLParams(const tchar_t* URL, tchar_t* URL2, int URL2Len, tchar_t* Params, int ParamsLen)
 {
 	tchar_t* p;
     p = tcschr(URL, '?');
@@ -734,9 +720,9 @@ void SplitURLParams(const tchar_t* URL, tchar_t* URL2, int URL2Len, tchar_t* Par
     }
 }
 
-tchar_t *AddCacheURL(tchar_t* Out, size_t Len, const tchar_t *In)
+tchar_t *NODE_AddCacheURL(tchar_t* Out, size_t Len, const tchar_t *In)
 {
-    CheckRemoveCacheURL(&In);
+    NODE_CheckRemoveCacheURL(&In);
     if (!In || !*In) {
         if (Out && Len)
             *Out = 0;
@@ -746,7 +732,7 @@ tchar_t *AddCacheURL(tchar_t* Out, size_t Len, const tchar_t *In)
     return Out;
 }
 
-bool_t CheckRemoveCacheURL(const tchar_t** URL)
+bool_t NODE_CheckRemoveCacheURL(const tchar_t** URL)
 {
     if (*URL && !tcsncmp(*URL, T("cache://"), 8))
     {
@@ -756,7 +742,7 @@ bool_t CheckRemoveCacheURL(const tchar_t** URL)
     return 0;
 }
 
-bool_t RemoveURLParam(tchar_t* URL, const tchar_t* Param)
+bool_t NODE_RemoveURLParam(tchar_t* URL, const tchar_t* Param)
 {
     size_t l;
     tchar_t *s1, *s2;
@@ -784,7 +770,7 @@ bool_t RemoveURLParam(tchar_t* URL, const tchar_t* Param)
     return 0;
 }
 
-err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
+err_t NODE_FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
 {
     err_t Result;
     stream *s;
@@ -792,11 +778,11 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
     tchar_t NameExt[MAXPATH];
     tchar_t Ext[MAXPATH+2];
     size_t l;
-    SplitPath(Path, Dir, MAXPATH, NameExt, MAXPATH, Ext, MAXPATH);
+    NODE_SplitPath(Path, Dir, MAXPATH, NameExt, MAXPATH, Ext, MAXPATH);
 	if (*Ext)
     {
         if (!tcschr(NameExt,T('.')))
-    		SetFileExt(NameExt, MAXPATH, Ext);
+    		NODE_SetFileExt(NameExt, MAXPATH, Ext);
         else
         {
             tcscat_s(NameExt,TSIZEOF(NameExt),T("."));
@@ -807,7 +793,7 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
     Ext[l] = ':';
     Ext[l + 1] = '1';
     Ext[l + 2] = '\0';
-    s = GetStream(p, Dir, SFLAG_SILENT);
+    s = FIFO_GetStream(p, Dir, SFLAG_SILENT);
     if (!s)
         return ERR_FILE_NOT_FOUND;
     Result = Stream_OpenDir(s, Dir, SFLAG_SILENT);

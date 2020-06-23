@@ -142,6 +142,18 @@ static INLINE filepos_t ScalePos(int64_t v, int64_t Num, int64_t Den)
     return (filepos_t)Scale64(v,Num,Den);
 }
 
-NODE_DLL int ScaleRound(int_fast32_t v,int_fast32_t Num,int_fast32_t Den);
+static INLINE int ScaleRound(int_fast32_t v, int_fast32_t Num, int_fast32_t Den)
+{
+	int64_t i;
+	if (!Den)
+		return 0;
+	i = (int64_t)v * Num;
+	if (i < 0)
+		i -= Den / 2;
+	else
+		i += Den / 2;
+	i /= Den;
+	return (int)i;
+}
 
 #endif
