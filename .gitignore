@@ -8,6 +8,18 @@ GNUmakefile
 /release/
 /spectool/spec.xml
 *.exe
+*.o
+*.obj
+*.lib
+*.exp
+*.dll
+*.log
+*.tlog
+*.pdb
+*.idb
+*.ilk
+*.iobj
+*.ipdb
 
 *.config
 *.creator

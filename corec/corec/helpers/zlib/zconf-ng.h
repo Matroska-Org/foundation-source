@@ -7,14 +7,6 @@
 #define ZCONFNG_H
 /* #undef Z_HAVE_UNISTD_H */
 
-#ifdef ZLIB_DLL
-#define ZLIB_INTERNAL
-#endif
-
-#ifndef OF /* function prototypes */
-#  define OF(args)  args
-#endif
-
 #if !defined(_WIN32) && defined(__WIN32__)
 #  define _WIN32
 #endif
@@ -55,6 +47,7 @@
 */
 
 /* Type declarations */
+
 
 #if defined(_WIN32)
    /* If building or using zlib as a DLL, define ZLIB_DLL.
@@ -154,7 +147,6 @@ typedef PTRDIFF_TYPE ptrdiff_t;
 #  define SEEK_END        2       /* Set file pointer to EOF plus "offset" */
 #endif
 
-#define z_off_t __int64
 #ifndef z_off_t
 #  define z_off_t long
 #endif

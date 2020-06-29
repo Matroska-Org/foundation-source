@@ -1,6 +1,7 @@
 #pragma once
 
-#include "matroska/matroska.h"
+#include "matroska.h"
 
-EBML_DLL extern const nodemeta Matroska_Class[];
-
+MATROSKA_DLL extern const nodemeta Matroska_Class[];
+MATROSKA_DLL extern const nodemeta HaaliStream_Class[];
+MATROSKA_DLL extern const nodemeta WriteStream_Class[];

@@ -33,6 +33,70 @@
 #define NODE_MAGIC    0xF0DE0A6C
 #define DYNDATA_SHIFT 8
 
+#if defined(TARGET_WIN) && defined(CONFIG_DEBUGCHECKS)
+#include <windows.h>
+void DebugMessage(const tchar_t* Msg, ...)
+{
+    #if !defined(NDEBUG) || defined(LOGFILE) || defined(LOGTIME)
+    va_list Args;
+    tchar_t Buffer[1024], * s = Buffer;
+
+    va_start(Args, Msg);
+    vstprintf_s(Buffer, TSIZEOF(Buffer), Msg, Args);
+    va_end(Args);
+    tcscat_s(Buffer, TSIZEOF(Buffer), T("\r\n"));
+    #endif
+
+    #ifdef LOGTIME
+    {
+        tchar_t timed[1024];
+        STR_SysTickToString(timed, TSIZEOF(timed), DATE_GetTimeTick(), 1, 1, 0);
+        stcatprintf_s(timed, TSIZEOF(timed), T(" %s"), s);
+        s = timed;
+    }
+    #endif
+
+    #if !defined(NDEBUG)
+    OutputDebugString(s);
+    #endif
+
+    #if defined(LOGFILE)
+    {
+        static FILE* f = NULL;
+        static char s8[1024];
+        size_t i;
+        if (!f)
+            #if defined(TARGET_WINCE)
+        {
+            tchar_t DocPath[MAXPATH];
+            char LogPath[MAXPATH];
+            charconv* ToStr = CharConvOpen(NULL, CHARSET_DEFAULT);
+            GetDocumentPath(NULL, DocPath, TSIZEOF(DocPath), FTYPE_LOG); // more visible via ActiveSync
+            if (!DocPath[0])
+                tcscpy_s(DocPath, TSIZEOF(DocPath), T("\\My Documents"));
+            if (!PathIsFolder(NULL, DocPath))
+                FolderCreate(NULL, DocPath);
+            tcscat_s(DocPath, TSIZEOF(DocPath), T("\\corelog.txt"));
+            CharConvST(ToStr, LogPath, sizeof(LogPath), DocPath);
+            CharConvClose(ToStr);
+            f = fopen(LogPath, "a+b");
+            if (!f)
+                f = fopen("\\corelog.txt", "a+b");
+        }
+        #else
+            f = fopen("\\corelog.txt", "a+b");
+        #endif
+        for (i = 0; s[i]; ++i)
+            s8[i] = (char)s[i];
+        s8[i] = 0;
+        fputs(s8, f);
+        fflush(f);
+    }
+    #endif
+}
+#endif
+
+
 static const uint16_t ParamSize[MAX_PARAMTYPE] = 
 {
 	0,					//TYPE_NONE
@@ -422,6 +486,8 @@ static void UnRegisterModule(nodecontext* p, nodemodule* Module, bool_t Includin
 	        (*i)->Meta = NULL;
         }
 }
+
+#undef FreeModule
 
 NOINLINE bool_t NodeContext_Cleanup(nodecontext* p,bool_t Force)
 {

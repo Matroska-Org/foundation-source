@@ -30,8 +30,8 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
-#include "corec/helpers/file/file.h"
-#include "corec/helpers/charconvert/charconvert.h"
+#include "../file/file.h"
+#include "../charconvert/charconvert.h"
 
 #ifdef __cplusplus
 extern "C" {

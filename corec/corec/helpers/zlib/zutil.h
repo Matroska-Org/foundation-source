@@ -15,7 +15,7 @@
 #elif defined(HAVE_VISIBILITY_HIDDEN)
 #  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
 #else
-//#  define ZLIB_INTERNAL
+#  define ZLIB_INTERNAL
 #endif
 
 #include <stddef.h>

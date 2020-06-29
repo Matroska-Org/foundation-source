@@ -35,7 +35,7 @@
 #include "zlib.h"
 #endif
 #if defined(CONFIG_BZLIB)
-#include <bzlib.h>
+#include "bzip2/bzlib.h"
 #endif
 #if defined(CONFIG_LZO1X)
 #include "minilzo.h"

@@ -30,7 +30,7 @@
 #ifndef __CHARCONVERT_H
 #define __CHARCONVERT_H
 
-#include "corec/corec.h"
+#include "../../corec.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -37,7 +37,7 @@ err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
     char Data[2048];
     if (!Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
         return ERR_INVALID_DATA;
-    Node_ToUTF8(Element,Data,sizeof(Data)-1,Value);
+    NODE_ToUTF8(Element,Data,sizeof(Data)-1,Value);
     Data[sizeof(Data)-1] = 0;
     return EBML_StringSetValue(Element,Data);
 }
@@ -65,7 +65,7 @@ void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
 	{
 #if defined(CONFIG_EBML_UNICODE)
 		if (Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
-			Node_FromUTF8(Element,Out,OutLen,Element->Buffer);
+			NODE_FromUTF8(Element,Out,OutLen,Element->Buffer);
 		else
 #endif
             NODE_FromStr(Element,Out,OutLen,Element->Buffer);

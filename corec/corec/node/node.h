@@ -30,16 +30,16 @@
 #ifndef __NODE_H
 #define __NODE_H
 
-#include "corec/corec.h"
+#include "../corec.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "corec/array/array.h"
-#include "corec/multithread/multithread.h"
-#include "corec/str/str.h"
-#include "corec/memheap.h"
+#include "../array/array.h"
+#include "../multithread/multithread.h"
+#include "../str/str.h"
+#include "../memheap.h"
 
 #if defined(NODE_EXPORTS)
 #define NODE_DLL DLLEXPORT

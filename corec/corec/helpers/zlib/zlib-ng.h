@@ -30,7 +30,7 @@
 */
 
 #include <stdint.h>
-#include "corec/helpers/zlib/zconf-ng.h"
+#include "zconf-ng.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +43,6 @@ extern "C" {
 #define ZLIBNG_VER_REVISION 9
 #define ZLIBNG_VER_SUBREVISION 0
 
-#  define z_size_t size_t
 /*
     The 'zlib' compression library provides in-memory compression and
   decompression functions, including integrity checks of the uncompressed data.

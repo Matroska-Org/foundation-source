@@ -273,8 +273,10 @@
 #define alloca _alloca
 #endif
 
+#ifndef __cplusplus
 #ifndef inline
 #define inline __inline
+#endif
 #endif
 
 #ifndef _UINTPTR_T_DEFINED
@@ -436,6 +438,7 @@ typedef unsigned __int64 uint_fast64_t;
 #endif
 
 #ifdef _MSC_VER
+#ifndef _INTTYPES
 #define LL(x)   x##i64
 #define ULL(x)  x##ui64
 #define PRId64  "I64d"
@@ -444,6 +447,7 @@ typedef unsigned __int64 uint_fast64_t;
 #define TPRId64  L"I64d"
 #define TPRIu64  L"I64u"
 #define TPRIx64  L"I64x"
+#endif
 #else
 #define LL(x)   x##ll
 #define ULL(x)  x##ull
@@ -742,9 +746,9 @@ ASSERT_DLL void _Assert(const char* Exp, const char* File, int Line);
 #define UNUSED_PARAM(x) (x)
 #endif
 
-#include "config.h"
+#include "../../config.h"
 #if defined(COREMAKE_CONFIG_HELPER)
-#include "config_helper.h"
+#include "confhelper.h"
 #else /* COREMAKE_CONFIG_HELPER */
 #include "confhelper.h"
 #endif /* COREMAKE_CONFIG_HELPER */

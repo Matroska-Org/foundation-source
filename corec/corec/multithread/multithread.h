@@ -30,7 +30,7 @@
 #ifndef __MULTITHREAD_H
 #define __MULTITHREAD_H
 
-#include "corec/corec.h"
+#include "../corec.h"
 
 #ifdef __cplusplus
 extern "C" {

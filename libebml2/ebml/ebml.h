@@ -29,8 +29,8 @@
 #ifndef LIBEBML2_H
 #define LIBEBML2_H
 
-#include "corec/node/node.h"
-#include "corec/helpers/file/file.h"
+#include "../../corec/corec/node/node.h"
+#include "../../corec/corec/helpers/file/file.h"
 
 #if defined(CONFIG_EBML_UNICODE)
 #include "corec/helpers/parser/parser.h"
