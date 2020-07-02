@@ -27,8 +27,12 @@
  *
  ****************************************************************************/
 
-#include "file.h"
-#include "corec/corec_exports.h"
+#include <string.h>
+#include <ebml/corec/file.h>
+#include <ebml/corec/corec_exports.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 
 //TODO: include from somewhere else or not depend on them at all
 #ifdef CONFIG_BLOCK_RDONLY

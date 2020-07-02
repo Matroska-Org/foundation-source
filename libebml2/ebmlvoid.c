@@ -29,6 +29,16 @@
 #include "ebml/ebml_internal.h"
 
 #include "ebml/ebml2.h"
+#include <ebml/corec/err.h>
+#include <string.h>
+
+#if !defined(min)
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#if !defined(max)
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
 
 static bool_t IsDefaultValue(const ebml_element *Element)
 {

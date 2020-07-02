@@ -27,7 +27,9 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
+#include <ebml/corec/parser.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 
 fourcc_t STR_StringToFourCC(const tchar_t* In, bool_t Upper)
 {

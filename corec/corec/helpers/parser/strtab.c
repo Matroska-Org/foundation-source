@@ -27,8 +27,11 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
 
+#include <ebml/corec/parser.h>
+#include <ebml/corec/multithread.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 #define TABLEALIGN	1024
 
 typedef struct stringdef

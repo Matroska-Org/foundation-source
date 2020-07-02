@@ -43,7 +43,8 @@
 #if defined(MATROSKA_LIBRARY)
 #include "matroska2_project.h"
 #endif
-
+#include <ebml/corec/str.h>
+#include <ebml/corec/err.h>
 const ebml_semantic EBML_SemanticMatroska[] = {
     {1, 0, &EBML_ContextHead        ,0},
     {1, 0, &MATROSKA_ContextSegment ,0},

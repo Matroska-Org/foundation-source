@@ -29,6 +29,7 @@
 #include "ebml/ebml_internal.h"
 
 #include "ebml/ebml2.h"
+#include <ebml/corec/err.h>
 
 datetime_t EBML_DateTime(const ebml_date *Element)
 {

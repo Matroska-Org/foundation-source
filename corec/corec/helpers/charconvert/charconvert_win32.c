@@ -27,8 +27,8 @@
  *
  ****************************************************************************/
 
-#include "charconvert.h"
-#include "corec/str/str.h"
+#include <ebml/corec/charconvert.h>
+#include <ebml/corec/str.h>
 
 #if defined(TARGET_WIN)
 

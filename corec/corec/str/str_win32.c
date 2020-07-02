@@ -27,7 +27,7 @@
  *
  ****************************************************************************/
 
-#include "str.h"
+#include <ebml/corec/str.h>
 
 #if defined(TARGET_WIN)
 

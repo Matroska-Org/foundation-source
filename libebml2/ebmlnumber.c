@@ -29,6 +29,15 @@
 #include "ebml/ebml_internal.h"
 
 #include "ebml/ebml2.h"
+#include <ebml/corec/err.h>
+
+#if !defined(min)
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#if !defined(max)
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
 
 static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {

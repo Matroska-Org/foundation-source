@@ -27,11 +27,23 @@
  *
  ****************************************************************************/
 
-#include "node.h"
+#include <stdlib.h>
+#include <ebml/corec/node.h>
+#include <ebml/corec/nodetools.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/multithread.h>
 #include "node_internal.h"
-
+#include <assert.h>
 #define NODE_MAGIC    0xF0DE0A6C
 #define DYNDATA_SHIFT 8
+
+#if !defined(min)
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#if !defined(max)
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
 
 #if defined(TARGET_WIN) && defined(CONFIG_DEBUGCHECKS)
 #include <windows.h>

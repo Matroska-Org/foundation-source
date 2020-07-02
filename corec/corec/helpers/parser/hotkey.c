@@ -27,7 +27,8 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
+#include <ebml/corec/parser.h>
+#include <ebml/corec/str.h>
 
 typedef struct hotkeyname
 {

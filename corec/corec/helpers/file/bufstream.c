@@ -27,8 +27,12 @@
  *
  ****************************************************************************/
 
-#include "file.h"
-#include "corec/corec_exports.h"
+#include <ebml/corec/err.h>
+#include <ebml/corec/file.h>
+#include <ebml/corec/streams.h>
+#include <ebml/corec/corec_exports.h>
+#include <assert.h>
+#include <string.h>
 #define BUFSTREAM_SIZE      4096
 
 typedef struct bufstream

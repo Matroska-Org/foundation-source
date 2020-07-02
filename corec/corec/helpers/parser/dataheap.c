@@ -27,7 +27,17 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
+#include <ebml/corec/parser.h>
+#include <ebml/corec/multithread.h>
+#include <string.h>
+#include <assert.h>
+#if !defined(min)
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#if !defined(max)
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
 
 // Don't use dataheap in win32 debug mode. It's easier to track down memory corruptions.
 #if defined(NDEBUG) || !defined(TARGET_WIN32)

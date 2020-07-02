@@ -27,7 +27,8 @@
  *
  ****************************************************************************/
 
-#include "date.h"
+#include <ebml/corec/date.h>
+#include <ebml/corec/helper.h>
 
 #if defined(TARGET_WIN)
 

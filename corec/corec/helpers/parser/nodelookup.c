@@ -27,8 +27,9 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
-
+#include <ebml/corec/parser.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 typedef struct nodelookup
 {
     const tchar_t* Name;

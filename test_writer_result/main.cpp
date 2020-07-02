@@ -1,5 +1,5 @@
 extern "C" {
-	#include "../libmatroska2/MatroskaParser/MatroskaParser.h"
+	#include "../libmatroska2/matroska/MatroskaParser.h"
 	#include "../libebml2/ebml2_stdafx.h"
 	#include "../libmatroska2/matroska2_stdafx.h"
 	#include "../libmatroska2/matroska/matroska2.h"
@@ -134,8 +134,8 @@ MatroskaFile* InitReader(nodecontext& ctx, file_reading& reading, const char* fi
 	istream.releaseref = releaseref;
 	istream.scan = nullptr;
 	char err[2048]{};
-	EBML_StdAfx_Init((nodemodule*)&ctx);
-	MATROSKA_StdAfx_Init((nodemodule*)&ctx);
+	EBML_RegisterAll((nodemodule*)&ctx);
+	MATROSKA_RegisterAll((nodemodule*)&ctx);
 	MATROSKA_Init(&ctx);
 	NodeRegisterClassEx((nodemodule*)&ctx, HaaliStream_Class);
 	NodeRegisterClassEx((nodemodule*)&ctx, WriteStream_Class);
@@ -151,12 +151,12 @@ void DeinitReader(nodecontext& ctx, MatroskaFile* File)
 	fclose(reading->file);
 	mkv_CloseInput(File);
 	MATROSKA_Done(&ctx);
-	MATROSKA_StdAfx_Done((nodemodule*)&ctx);
-	EBML_StdAfx_Done((nodemodule*)&ctx);
+	MATROSKA_UnRegisterAll((nodemodule*)&ctx);
+	EBML_UnRegisterAll((nodemodule*)&ctx);
 	NodeContext_Done(&ctx);
 }
 
-int main()
+int _main()
 {
 	nodecontext ctx;
 	file_reading reading;
@@ -170,6 +170,7 @@ int main()
 			video_track=i;
 			cfg.w = info->AV.Video.PixelWidth;
 			cfg.h = info->AV.Video.PixelHeight;
+			cfg.threads = 8;
 		}
 	}
 	vpx_codec_iface_t* iface = vpx_codec_vp9_dx();
@@ -194,7 +195,21 @@ int main()
 		}
 		istream.releaseref(&istream, frame_ref);
 	}
-
-	
+	vpx_codec_iter_t iter = NULL;
+	vpx_image_t* img = NULL;
+	err = vpx_codec_decode(&codec_ctx, 0, 0, 0, 0);
+	if (err)
+		printf(vpx_codec_error(&codec_ctx));
+	while ((img = vpx_codec_get_frame(&codec_ctx, &iter)) != NULL) {
+		//render frame
+	}
+	vpx_codec_destroy(&codec_ctx);
 	DeinitReader(ctx,mkv_file);
+	return 0;
+}
+
+int main()
+{
+	while(true) _main();
+	return 0;
 }

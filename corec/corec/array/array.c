@@ -26,9 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
-
-#include "array.h"
-
+#include <stdlib.h>
+#include <ebml/corec/portab.h>
+#include <ebml/corec/helper.h>
+#include <ebml/corec/array.h>
+#include <assert.h>
+#include <string.h>
 typedef struct datahead
 {
     size_t Size;

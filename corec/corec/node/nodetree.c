@@ -27,8 +27,11 @@
  *
  ****************************************************************************/
 
-#include "node.h"
-
+#include <ebml/corec/node.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/multithread.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 static NOINLINE err_t SetParent(nodetree* p,nodetree* Parent,nodetree* Before)
 {
     err_t Result = ERR_NONE;

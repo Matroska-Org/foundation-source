@@ -27,8 +27,11 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
-
+#include <stdlib.h>
+#include <ebml/corec/portab.h>
+#include <ebml/corec/helper.h>
+#include <ebml/corec/parser.h>
+#include <string.h>
 static size_t SizeAlign(size_t Total, size_t Align)
 {
     if (!Align)

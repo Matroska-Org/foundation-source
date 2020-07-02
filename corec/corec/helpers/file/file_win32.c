@@ -27,8 +27,12 @@
  *
  ****************************************************************************/
 
-#include "file.h"
-#include "corec/corec_exports.h"
+#include <ebml/corec/file.h>
+#include <ebml/corec/corec_exports.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/str.h>
+
+#include <assert.h>
 
 #if defined(TARGET_WIN)
 

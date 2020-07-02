@@ -27,9 +27,21 @@
  *
  ****************************************************************************/
 
-#include "str.h"
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <ebml/corec/str.h>
 #if defined(COREC_PARSER)
-#include "corec/helpers/parser/parser.h"
+#include <ebml/corec/parser.h>
+#endif
+#include <assert.h>
+
+#if !defined(min)
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#if !defined(max)
+#  define max(x,y)  ((x)<(y)?(y):(x))
 #endif
 
 static INLINE int ascii_upper(int ch)

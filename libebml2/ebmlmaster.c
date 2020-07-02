@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "corec/helpers/parser/parser.h"
+#include <ebml/corec/parser.h>
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
-#include "ebmlcrc.h"
 
 #include "ebml/ebml2.h"
+#include <ebml/corec/err.h>
 
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)
 {

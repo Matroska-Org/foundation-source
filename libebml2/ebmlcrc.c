@@ -29,6 +29,8 @@
 #include "ebml/ebml_internal.h"
 
 #include "ebml/ebml2.h"
+#include <ebml/corec/err.h>
+#include <assert.h>
 
 struct ebml_crc
 {

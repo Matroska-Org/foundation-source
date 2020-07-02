@@ -32,7 +32,9 @@
 #  include "ebml2_legacy_project.h"
 # else
 #  include "ebml2_project.h"
-#  include "corec/corec_exports.h"
+#  include <ebml/corec/corec_exports.h>
+#  include <ebml/corec/str.h>
+#  include <ebml/corec/err.h>
 #  include "ebml/ebml2.h"
 # endif
 #endif

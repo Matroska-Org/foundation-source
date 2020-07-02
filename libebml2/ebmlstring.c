@@ -25,11 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "corec/helpers/parser/parser.h"
+
+#include <string.h>
+#include <stdlib.h>
+#include <ebml/corec/parser.h>
 #include "ebml/ebml.h"
 #include "ebml/ebml_internal.h"
 
 #include "ebml/ebml2.h"
+#include <ebml/corec/err.h>
 
 #if defined(CONFIG_EBML_UNICODE)
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)

@@ -27,8 +27,11 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
-#include "corec/corec_exports.h"
+#include <ebml/corec/parser.h>
+#include <ebml/corec/corec_exports.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 
 #define	URLPART_ID        FOURCC('U','P','A','T')
 #define URLPART_URL       0x100

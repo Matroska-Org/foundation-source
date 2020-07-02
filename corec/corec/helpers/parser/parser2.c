@@ -27,8 +27,22 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
-#include "corec/corec_exports.h"
+#include <stdlib.h>
+#include <string.h>
+#include <ebml/corec/parser.h>
+#include <ebml/corec/corec_exports.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/str.h>
+#include <ebml/corec/nodetools.h>
+#include <assert.h>
+
+#if !defined(min)
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#if !defined(max)
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
 
 static const tchar_t* ExternalStr(nodecontext* p,fourcc_t Class,int Id)
 {

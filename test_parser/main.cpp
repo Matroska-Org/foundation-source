@@ -6,13 +6,13 @@
 #include <string>
 typedef int_fast64_t filepos_t;
 extern "C" {
+	#define _USE_DLL
+	#define MATROSKA2_IMPORTS
 	#include "../libmatroska2/matroska/matroska2.h"
-	#include "../libmatroska2/MatroskaParser/MatroskaParser.h"
-	#include "../libmatroska2/MatroskaWriter/MatroskaWriter.h"
+	#include "../libmatroska2/matroska/MatroskaParser.h"
+	#include "../libmatroska2/matroska/MatroskaWriter.h"
 	#include "../corec/corec/helpers/parser/parser.h"
 	#include "../corec/corec/node/node.h"
-	#include "../libmatroska2/matroska2_stdafx.h"
-	#include "../libebml2/ebml2_stdafx.h"
 	#include "../corec/corec/helpers/file/streams.h"
 
 	#ifdef inline
@@ -235,8 +235,8 @@ int main()
 		ostream.write = write;
 		char err[2048]{};
 //		NodeContext_Init(&ctx, NULL, NULL, NULL);
-		EBML_StdAfx_Init((nodemodule*)&ctx);
-		MATROSKA_StdAfx_Init((nodemodule*)&ctx);
+		EBML_RegisterAll((nodemodule*)&ctx);
+		MATROSKA_RegisterAll((nodemodule*)&ctx);
 		MATROSKA_Init(&ctx);
 		NodeRegisterClassEx((nodemodule*)&ctx, HaaliStream_Class);
 		NodeRegisterClassEx((nodemodule*)&ctx, WriteStream_Class);
@@ -274,8 +274,8 @@ int main()
 		fflush(writefile);
 		fclose(writefile);
 		MATROSKA_Done(&ctx);
-		MATROSKA_StdAfx_Done((nodemodule*)&ctx);
-		EBML_StdAfx_Done((nodemodule*)&ctx);
+		MATROSKA_UnRegisterAll((nodemodule*)&ctx);
+		EBML_UnRegisterAll((nodemodule*)&ctx);
 		NodeContext_Done(&ctx);
 	}
 }

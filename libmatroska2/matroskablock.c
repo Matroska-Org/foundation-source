@@ -33,7 +33,8 @@
 #include "codec_internal.h"
 #include "misc.h"
 #endif
-
+#include <ebml/corec/err.h>
+#include <ebml/corec/str.h>
 static int A_MPEG_freq[4][4] =
 {
 // v2.5   *    v2    v1

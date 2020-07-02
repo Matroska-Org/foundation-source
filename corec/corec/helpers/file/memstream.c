@@ -27,8 +27,11 @@
  *
  ****************************************************************************/
 
-#include "file.h"
-#include "corec/corec_exports.h"
+#include <ebml/corec/file.h>
+#include <ebml/corec/corec_exports.h>
+#include <ebml/corec/err.h>
+#include <assert.h>
+#include <string.h>
 
 static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
 {

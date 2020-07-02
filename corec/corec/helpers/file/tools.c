@@ -27,7 +27,10 @@
  *
  ****************************************************************************/
 
-#include "file.h"
+#include <ebml/corec/file.h>
+#include <ebml/corec/err.h>
+#include <ebml/corec/str.h>
+#include <assert.h>
 
 bool_t NODE_SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 {
