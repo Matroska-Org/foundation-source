@@ -8,12 +8,12 @@ typedef int_fast64_t filepos_t;
 extern "C" {
 	#define _USE_DLL
 	#define MATROSKA2_IMPORTS
-	#include "../libmatroska2/matroska/matroska2.h"
-	#include "../libmatroska2/matroska/MatroskaParser.h"
-	#include "../libmatroska2/matroska/MatroskaWriter.h"
-	#include "../corec/corec/helpers/parser/parser.h"
-	#include "../corec/corec/node/node.h"
-	#include "../corec/corec/helpers/file/streams.h"
+	#include <matroska/matroska2.h>
+	#include <matroska/MatroskaParser.h>
+	#include <matroska/MatroskaWriter.h>
+	#include <ebml/corec/parser.h>
+	#include <ebml/corec/node.h>
+	#include <ebml/corec/streams.h>
 
 	#ifdef inline
 	#undef inline

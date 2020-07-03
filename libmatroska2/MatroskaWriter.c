@@ -247,13 +247,11 @@ int mkv_TempHeaders(MatroskaFile* File)
 			EBML_IntegerSetValue(PixelHeight, info->AV.Video.PixelHeight);
 		}
 		else if (info->Type == TRACK_TYPE_AUDIO) {
-			if (info->AV.Audio.SamplingFreq && info->AV.Audio.Channels) {
-				ebml_master* AudioContext = EBML_MasterAddElt(info->entry, &MATROSKA_ContextAudio, 0);
-				ebml_integer* SamplingFrequency = EBML_MasterAddElt(AudioContext, &MATROSKA_ContextSamplingFrequency, 0);
-				EBML_FloatSetValue(SamplingFrequency, info->AV.Audio.SamplingFreq);
-				ebml_integer* Channels = EBML_MasterAddElt(AudioContext, &MATROSKA_ContextChannels, 0);
-				EBML_IntegerSetValue(Channels, info->AV.Audio.Channels);
-			}
+			ebml_master* AudioContext = EBML_MasterAddElt(info->entry, &MATROSKA_ContextAudio, 0);
+			ebml_integer* SamplingFrequency = EBML_MasterAddElt(AudioContext, &MATROSKA_ContextSamplingFrequency, 0);
+			EBML_FloatSetValue(SamplingFrequency, info->AV.Audio.SamplingFreq);
+			ebml_integer* Channels = EBML_MasterAddElt(AudioContext, &MATROSKA_ContextChannels, 0);
+			EBML_IntegerSetValue(Channels, info->AV.Audio.Channels);
 		}
 	}
 	EBML_ElementRender(File->TrackList,File->IOStream,0,0,0,&length);
