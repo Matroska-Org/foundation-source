@@ -461,7 +461,7 @@ static void OutputCHeader(textwriter *CFile, bool_t WithInclude)
     TextWrite(CFile, T("**  DO NOT EDIT, GENERATED WITH DATA2LIB\n"));
     TextWrite(CFile, T("**  https://github.com/Matroska-Org/foundation-source/tree/master/spectool\n"));
     TextWrite(CFile, T("**\n"));
-    TextWrite(CFile, T("**  libmatroska : parse Matroska files, see http://www.matroska.org/\n"));
+    TextWrite(CFile, T("**  libmatroska : parse Matroska files, see https://www.matroska.org/\n"));
     TextWrite(CFile, T("**\n"));
     TextWrite(CFile, T("**  Copyright (c) 2002-2017, Matroska (non-profit organisation)\n"));
     TextWrite(CFile, T("**  All rights reserved.\n"));
