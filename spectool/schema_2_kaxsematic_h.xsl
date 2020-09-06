@@ -115,10 +115,10 @@ END_LIBMATROSKA_NAMESPACE
             <xsl:text>  KaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);&#10;</xsl:text>
             <xsl:text>#endif&#10;</xsl:text>
         </xsl:if>
-        <xsl:if test="(@maxver='0' and not(ebml:extension[@divx='1'])) or @length">
+        <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3' or @length">
             <xsl:text>public:&#10;</xsl:text>
         </xsl:if>
-        <xsl:if test="@maxver='0' and not(ebml:extension[@divx='1'])">
+        <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
             <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, bool bSaveDefault);&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@length">
