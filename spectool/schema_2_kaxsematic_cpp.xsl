@@ -413,7 +413,7 @@ END_LIBMATROSKA_NAMESPACE
   <xsl:template name="output-blocked-render">
     <xsl:param name="node"/>
 
-    <xsl:if test="$node/@maxver='0' and not(ebml:extension[@divx='1'])">
+    <xsl:if test="$node/@maxver='0' or $node/@maxver='1' or $node/@maxver='2' or $node/@maxver='3'">
         <xsl:text>&#10;filepos_t Kax</xsl:text>
         <xsl:choose>
             <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
