@@ -7,7 +7,7 @@
     xmlns:str="http://exslt.org/strings"
     exclude-result-prefixes="str xhtml ebml"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
-    xmlns="https://ietf.org/cellar/ebml" xmlns:ebml="https://ietf.org/cellar/ebml">
+    xmlns="urn:ietf:rfc:8794" xmlns:ebml="urn:ietf:rfc:8794">
   <xsl:output encoding="UTF-8" method="text" version="1.0" indent="yes" />
   <xsl:template match="ebml:EBMLSchema">/*
  * DO NOT EDIT, GENERATED WITH schema_2_matroska_sem_h.xsl
