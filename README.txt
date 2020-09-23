@@ -1,3 +1,5 @@
+libEBML2, libMatroska2, mkvalidator, mkclean and the specifications
+
 1/ To build these sources you first need to build coremake:
 
 * for UNIX + gcc:
