@@ -739,15 +739,15 @@ timecode_t MATROSKA_CueTimecode(const matroska_cuepoint *Cue)
 
 filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue)
 {
-    ebml_element *TimeCode;
+    ebml_element *ClusterPosition;
     assert(EBML_ElementIsType((ebml_element*)Cue, &MATROSKA_ContextCuePoint));
-    TimeCode = EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
-    if (!TimeCode)
-        return INVALID_TIMECODE_T;
-    TimeCode = EBML_MasterFindChild((ebml_master*)TimeCode,&MATROSKA_ContextCueClusterPosition);
-    if (!TimeCode)
-        return INVALID_TIMECODE_T;
-    return EBML_IntegerValue((ebml_integer*)TimeCode);
+    ClusterPosition = EBML_MasterFindChild((ebml_master*)Cue,&MATROSKA_ContextCueTrackPositions);
+    if (!ClusterPosition)
+        return INVALID_FILEPOS_T;
+    ClusterPosition = EBML_MasterFindChild((ebml_master*)ClusterPosition,&MATROSKA_ContextCueClusterPosition);
+    if (!ClusterPosition)
+        return INVALID_FILEPOS_T;
+    return EBML_IntegerValue((ebml_integer*)ClusterPosition);
 }
 
 err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
@@ -789,10 +789,10 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     return ERR_NONE;
 }
 
-matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track)
+ebml_element *MATROSKA_GetNextBlockForTimecode(matroska_cluster *Cluster, const ebml_element *Current, timecode_t Timecode, int16_t Track, int Outer)
 {
     ebml_element *Block, *GBlock;
-    for (Block = EBML_MasterChildren(Cluster);Block;Block=EBML_MasterNext(Block))
+    for (Block = Current ? EBML_MasterNext(Current) : EBML_MasterChildren(Cluster); Block; Block = EBML_MasterNext(Block))
     {
         if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
         {
@@ -803,7 +803,7 @@ matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode
                     if (MATROSKA_BlockTrackNum((matroska_block*)GBlock) == Track &&
                         MATROSKA_BlockTimecode((matroska_block*)GBlock) == Timecode)
                     {
-                        return (matroska_block*)GBlock;
+                        return Outer ? Block : GBlock;
                     }
                 }
             }
@@ -813,11 +813,16 @@ matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode
             if (MATROSKA_BlockTrackNum((matroska_block*)Block) == Track &&
                 MATROSKA_BlockTimecode((matroska_block*)Block) == Timecode)
             {
-                return (matroska_block*)Block;
+                return Block;
             }
         }
     }
     return NULL;
+}
+
+matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track)
+{
+    return (matroska_block*)MATROSKA_GetNextBlockForTimecode(Cluster, NULL, Timecode, Track, 0);
 }
 
 void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched)

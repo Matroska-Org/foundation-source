@@ -192,7 +192,7 @@ static filepos_t CheckUnknownElements(ebml_element *Elt)
 		}
 		else if (Node_IsPartOf(SubElt,EBML_VOID_CLASS))
 		{
-			VoidAmount = EBML_ElementFullSize(SubElt,0);
+			VoidAmount += EBML_ElementFullSize(SubElt,0);
 		}
 		else if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
 		{
@@ -216,7 +216,7 @@ static int64_t gcd(int64_t a, int64_t b)
 static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 {
 	int Result = 0;
-	ebml_element *Elt, *PixelW, *PixelH;
+	ebml_element *Elt;
 	ebml_integer *Unit;
 	ebml_master *Video;
 	Video = (ebml_master*)EBML_MasterFindChild(Track,&MATROSKA_ContextVideo);
@@ -225,91 +225,114 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 	// check the DisplayWidth and DisplayHeight are correct
 	else
 	{
-		int64_t DisplayW = 0,DisplayH = 0;
-		PixelW = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelWidth);
-		if (!PixelW)
+		int64_t DisplayW = 0, DisplayH = 0, PixelW = 0, PixelH = 0, OrPixelW, OrPixelH;
+		Elt = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelWidth);
+		if (!Elt)
 			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has no pixel width"),TrackNum,EL_Pos(Track));
-		PixelH = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelHeight);
-		if (!PixelH)
+        else
+        {
+            PixelW = OrPixelW = EL_Int(Elt);
+            if (PixelW == 0)
+                Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has pixel width 0"), TrackNum,EL_Pos(Track));
+            else
+            {
+                int64_t CropL, CropR;
+                Elt   = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropLeft);
+                CropL = EL_Int(Elt);
+                Elt   = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropRight);
+                CropR = EL_Int(Elt);
+
+                if (CropL + CropR >= PixelW)
+                    Result |= OutputError(0xE6,T("Video track #%d is cropping too many horizontal pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, PixelW, CropL, CropR);
+                else
+                    PixelW  -= CropL + CropR;
+            }
+        }
+
+        Elt = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelHeight);
+		if (!Elt)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has no pixel height"),TrackNum,EL_Pos(Track));
+        else
+        {
+            PixelH = OrPixelH = EL_Int(Elt);
+            if (PixelH == 0)
+                Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has pixel height 0"), TrackNum,EL_Pos(Track));
+            else
+            {
+                int64_t CropT, CropB;
+                Elt   = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropTop);
+                CropT = EL_Int(Elt);
+                Elt   = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropBottom);
+                CropB = EL_Int(Elt);
+
+                if (CropT + CropB >= PixelH)
+                    Result |= OutputError(0xE5,T("Video track #%d is cropping too many vertical pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, PixelH, CropT, CropB);
+                else
+                    PixelH  -= CropT + CropB;
+            }
+        }
 
         Unit = (ebml_integer*)EBML_MasterGetChild(Video,&MATROSKA_ContextDisplayUnit);
 		assert(Unit!=NULL);
 
 		Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextDisplayWidth);
 		if (Elt)
+        {
 			DisplayW = EL_Int(Elt);
+
+            if (DisplayW == 0)
+                Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,EL_Pos(Track));
+        }
 		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
-			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,EL_Pos(Track));
+			Result |= OutputError(0xE1,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,EL_Pos(Track));
         else if (PixelW)
-			DisplayW = EL_Int(PixelW);
+			DisplayW = PixelW;
 
 		Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextDisplayHeight);
 		if (Elt)
+        {
 			DisplayH = EL_Int(Elt);
+
+            if (DisplayH == 0)
+                Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display height"),TrackNum,EL_Pos(Track));
+        }
 		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel height"),TrackNum,EL_Pos(Track));
 		else if (PixelH)
-			DisplayH = EL_Int(PixelH);
+			DisplayH = PixelH;
 
-		if (DisplayH==0)
-			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display height"),TrackNum,EL_Pos(Track));
-		if (DisplayW==0)
-			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,EL_Pos(Track));
-
-		if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
+		if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH && DisplayH && DisplayW)
 		{
 			// check if the pixel sizes appear valid
-			if (DisplayW < EL_Int(PixelW) && DisplayH < EL_Int(PixelH))
+			if (DisplayW < PixelW && DisplayH < PixelH)
 			{
                 int Serious = gcd(DisplayW,DisplayH)==1; // the DAR values were reduced as much as possible
-                if (DisplayW*EL_Int(PixelH) == DisplayH*EL_Int(PixelW))
+                if (DisplayW * PixelH == DisplayH * PixelW)
                     Serious++; // same aspect ratio as the source
-                if (8*DisplayW <= EL_Int(PixelW) && 8*DisplayH <= EL_Int(PixelH))
+                if (8 * DisplayW <= PixelW && 8 * DisplayH <= PixelH)
                     Serious+=2; // too much shrinking compared to the original pixels
                 if (ProfileNum!=PROFILE_WEBM)
                     --Serious; // in Matroska it's tolerated as it's been operating like that for a while
 
 				if (Serious>2)
-					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EL_Int(PixelW),EL_Int(PixelH));
+					Result |= OutputError(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,PixelW,PixelH);
 				else if (Serious)
-					OutputWarning(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,EL_Int(PixelW),EL_Int(PixelH));
+					OutputWarning(0xE3,T("The output pixels for Video track #%d seem wrong %") TPRId64 T("x%") TPRId64 T("px from %") TPRId64 T("x%") TPRId64,TrackNum,DisplayW,DisplayH,PixelW,PixelH);
 			}
+            else if ((OrPixelH != PixelH || OrPixelW != PixelW) && PixelH && PixelW && (OrPixelH == DisplayH) && (OrPixelW == DisplayW))
+                // The DisplayW/H elements apply to the frames after cropping so that if one adds cropping values,
+                // one often has to adapt the display dimensions if one wants to keep the pixel aspect ratio.
+                // This check here tests whether this has been forgotten. The check only works for non-anamorphic content;
+                // there might be some false positives for anamorphic content.
+                OutputWarning(0xE4,T("It seems that the display dimensions of Video track #%d have not been adapted in light of the use of cropping: The display dimensions coincide with the pre-cropping pixel dimensions."), TrackNum);
 		}
 
         if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_DAR)
         {
-            // crop values should never exist
-            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropTop);
-            if (Elt)
-                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has top crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropBottom);
-            if (Elt)
-                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has bottom crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropLeft);
-            if (Elt)
-                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has left crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-            Elt = EBML_MasterFindChild(Video,&MATROSKA_ContextPixelCropRight);
-            if (Elt)
-                Result |= OutputError(0xE4,T("Video track #%d is using unconstrained aspect ratio and has right crop at %") TPRId64,TrackNum,EL_Pos(Elt));
-
-			if (PixelW && DisplayW == EL_Int(PixelW))
-				OutputWarning(0xE7,T("DisplayUnit seems to be pixels not aspect-ratio for Video track #%d %") TPRId64 T("px width from %") TPRId64,TrackNum,DisplayW,EL_Int(PixelW));
-			if (PixelH && DisplayH == EL_Int(PixelH))
-				OutputWarning(0xE7,T("DisplayUnit seems to be pixels not aspect-ratio for Video track #%d %") TPRId64 T("px height from %") TPRId64,TrackNum,DisplayH,EL_Int(PixelH));
-        }
-        else
-        {
-            // crop values should be less than the extended value
-            PixelW = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropTop);
-            PixelH = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropBottom);
-            if (EL_Int(PixelW) + EL_Int(PixelH) >= DisplayH)
-                Result |= OutputError(0xE5,T("Video track #%d is cropping too many vertical pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayH, EL_Int(PixelW), EL_Int(PixelH));
-
-            PixelW = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropLeft);
-            PixelH = EBML_MasterGetChild(Video,&MATROSKA_ContextPixelCropRight);
-            if (EL_Int(PixelW) + EL_Int(PixelH) >= DisplayW)
-                Result |= OutputError(0xE6,T("Video track #%d is cropping too many horizontal pixels %") TPRId64 T(" vs %") TPRId64 T(" + %") TPRId64,TrackNum, DisplayW, EL_Int(PixelW), EL_Int(PixelH));
+			if (PixelW && PixelW == DisplayW)
+				OutputWarning(0xE7,T("DisplayUnit seems to be pixels not aspect-ratio for Video track #%d %") TPRId64 T("px width from %") TPRId64,TrackNum,DisplayW,PixelW);
+			if (PixelH && PixelH == DisplayH)
+				OutputWarning(0xE7,T("DisplayUnit seems to be pixels not aspect-ratio for Video track #%d %") TPRId64 T("px height from %") TPRId64,TrackNum,DisplayH,PixelH);
         }
 	}
 	return Result;
@@ -831,42 +854,133 @@ static int CheckLacingKeyframe(void)
 	return Result;
 }
 
-static int CheckCueEntries(ebml_master *Cues)
+static int CheckCueEntries(ebml_master *Cues, filepos_t SegmentDataOffset)
 {
 	int Result = 0;
-	timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
-	int16_t TrackNumEntry;
-	matroska_cluster **Cluster;
-	matroska_block *Block;
-    int ClustNum = 0;
 
 	if (!RSegmentInfo)
 		Result |= OutputError(0x310,T("A Cues (index) is defined but no SegmentInfo was found"));
 	else if (ARRAYCOUNT(RClusters,matroska_cluster*))
 	{
-		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindChild(Cues, &MATROSKA_ContextCuePoint);
+        matroska_cluster **Cluster  = ARRAYBEGIN(RClusters,matroska_cluster*);
+        matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindChild(Cues, &MATROSKA_ContextCuePoint);
+        timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
+        int CueNum = 0;
+
 		while (CuePoint)
 		{
-            if (!Quiet && ClustNum++ % 24 == 0)
+            if (!Quiet && CueNum++ % 24 == 0)
                 TextWrite(StdErr,T("."));
 			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
 			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
-			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
+
+            if (TimecodeEntry == INVALID_TIMECODE_T)
+                goto NextCuePoint;
 
 			if (TimecodeEntry < PrevTimecode && PrevTimecode != INVALID_TIMECODE_T)
 				OutputWarning(0x311,T("The Cues entry for timecode %") TPRId64 T(" ms is listed after entry %") TPRId64 T(" ms"),Scale64(TimecodeEntry,1,1000000),Scale64(PrevTimecode,1,1000000));
 
-			// find a matching Block
-			for (Cluster = ARRAYBEGIN(RClusters,matroska_cluster*);Cluster != ARRAYEND(RClusters,matroska_cluster*); ++Cluster)
-			{
-				Block = MATROSKA_GetBlockForTimecode(*Cluster, TimecodeEntry, TrackNumEntry);
-				if (Block)
-					break;
-			}
-			if (Cluster == ARRAYEND(RClusters,matroska_cluster*))
-				Result |= OutputError(0x312,T("CueEntry Track #%d and timecode %") TPRId64 T(" ms not found"),(int)TrackNumEntry,Scale64(TimecodeEntry,1,1000000));
-			PrevTimecode = TimecodeEntry;
-			CuePoint = (matroska_cuepoint*)EBML_MasterFindNextElt(Cues, (ebml_element*)CuePoint, 0, 0);
+            for (ebml_element *CueTrackPositions = EBML_MasterFindChild(CuePoint, &MATROSKA_ContextCueTrackPositions);
+                 CueTrackPositions; CueTrackPositions = EBML_MasterNextChild(CuePoint, CueTrackPositions))
+            {
+                ebml_element *Block = NULL, *Element = EBML_MasterFindChild(CueTrackPositions,&MATROSKA_ContextCueTrack);
+                filepos_t ClusterOffset, CueRelativePosition;
+                int Direction;
+                int16_t TrackNumEntry;
+                tchar_t Error[384];
+
+                if (!Element)
+                    continue;
+
+                TrackNumEntry = EL_Int(Element);
+
+                Element = EBML_MasterFindChild(CueTrackPositions, &MATROSKA_ContextCueClusterPosition);
+                if (!Element)
+                    continue;
+
+                ClusterOffset = EL_Int(Element) + SegmentDataOffset;
+
+                Element = EBML_MasterFindChild(CueTrackPositions, &MATROSKA_ContextCueRelativePosition);
+                CueRelativePosition = Element ? EL_Int(Element) : INVALID_FILEPOS_T;
+
+                Direction = EL_Pos(*Cluster) <= ClusterOffset ? 1 : -1;
+
+                do
+                {
+                    if (EL_Pos(*Cluster) == ClusterOffset)
+                    {
+                        Block = MATROSKA_GetNextBlockForTimecode(*Cluster, NULL, TimecodeEntry, TrackNumEntry, 1);
+                        break;
+                    }
+
+                    if ((Direction == 1 && (EL_Pos(*Cluster) > ClusterOffset || Cluster == ARRAYEND(RClusters, matroska_cluster*) - 1)) ||
+                        (Direction ==-1 && (EL_Pos(*Cluster) < ClusterOffset || Cluster == ARRAYBEGIN(RClusters, matroska_cluster*))))
+                        break;
+
+                    Cluster += Direction;
+                }
+                while (1);
+
+                if (Block)
+                {
+                    ebml_element *PreviousBlock;
+
+                    if (CueRelativePosition == INVALID_FILEPOS_T || EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster) == CueRelativePosition)
+                        continue;
+
+                    while (Block && EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster) < CueRelativePosition)
+                    {
+                        PreviousBlock = Block;
+                        Block = MATROSKA_GetNextBlockForTimecode(*Cluster, PreviousBlock, TimecodeEntry, TrackNumEntry, 1);
+                    }
+
+                    Block = Block ? Block : PreviousBlock;
+
+                    if (EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster) == CueRelativePosition)
+                        continue;
+                }
+
+                stprintf_s(Error, TSIZEOF(Error), T("An invalid Cues entry points to a (Simple)Block in track #%d with timecode %")
+                           TPRId64 T(" ms supposedly in the cluster with offset %") TPRId64, TrackNumEntry, Scale64(TimecodeEntry,1,1000000), ClusterOffset);
+
+                if (CueRelativePosition != INVALID_FILEPOS_T)
+                    stcatprintf_s(Error, TSIZEOF(Error), T(" (relative offset %") TPRId64 T(")"), CueRelativePosition);
+
+                if (Block)
+                {
+                    stcatprintf_s(Error, TSIZEOF(Error), T(". The actual relative offset is %") TPRId64 T("."),
+                                                         EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster));
+                    Result |= OutputError(0x314, Error);
+                    continue;
+                }
+
+                if (EL_Pos(*Cluster) != ClusterOffset)
+                    tcscat_s(Error, TSIZEOF(Error), T(". No cluster with this offset exists"));
+
+                for (Cluster = ARRAYBEGIN(RClusters, matroska_cluster*); Cluster != ARRAYEND(RClusters, matroska_cluster*); ++Cluster)
+                {
+                    Block = MATROSKA_GetNextBlockForTimecode(*Cluster, NULL, TimecodeEntry, TrackNumEntry, 1);
+                    if (Block)
+                        break;
+                }
+
+                if (!Block)
+                {
+                    tcscat_s(Error, TSIZEOF(Error), T(". No (Simple)Block with this timecode exists in this track at all."));
+                    Result |= OutputError(0x312, Error);
+                }
+                else
+                {
+                    stcatprintf_s(Error, TSIZEOF(Error), T(". A (Simple)Block with this timecode is in the cluster with offset %") TPRId64
+                                  T(" (relative offset %") TPRId64 T(")."), EL_Pos(*Cluster), EL_Pos(Block) - EBML_ElementPositionData((ebml_element*)*Cluster));
+                    Result |= OutputError(0x313, Error);
+                }
+            }
+
+            PrevTimecode = TimecodeEntry;
+
+        NextCuePoint:
+            CuePoint = (matroska_cuepoint*)EBML_MasterFindNextElt(Cues, (ebml_element*)CuePoint, 0, 0);
 		}
 	}
 	return Result;
@@ -1361,7 +1475,7 @@ int main(int argc, const char *argv[])
 			    OutputWarning(0x800,T("The segment has Clusters but no Cues section (bad for seeking)"));
         }
 		else
-			Result |= CheckCueEntries(RCues);
+			Result |= CheckCueEntries(RCues, EBML_ElementPositionData((ebml_element*)RSegment));
 		if (!RTrackInfo)
 		{
 			Result = OutputError(0x41,T("The segment has Clusters but no TrackInfo section"));
@@ -1379,7 +1493,7 @@ int main(int argc, const char *argv[])
             OutputWarning(0xB8,T("Track #%d is defined but has no frame"),TI->Num);
     }
 
-	if (VoidAmount > 4*1024)
+	if (VoidAmount > 6*1024)
 		OutputWarning(0xD0,T("There are %") TPRId64 T(" bytes of void data\r\n"),VoidAmount);
 
 	if (!Quiet && Result==0)
