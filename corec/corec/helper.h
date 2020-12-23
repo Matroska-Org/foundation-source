@@ -30,12 +30,16 @@
 #ifndef __HELPER_H
 #define __HELPER_H
 
+#ifdef __cplusplus
+#define OFS(name,item) offsetof(name,item)
+#else // !__cplusplus
 #ifdef TARGET_LINUX
 #include <stddef.h>
 #define OFS(name,item) offsetof(name,item)
 #else
 #define OFS(name,item) ((uintptr_t)&(((name*)NULL)->item))
 #endif
+#endif // !__cplusplus
 
 #define ALIGN64(x) (((x) + 63) & ~63)
 #define ALIGN16(x) (((x) + 15) & ~15)
