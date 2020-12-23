@@ -33,5 +33,4 @@ WORKSPACE spectool
   USE tabler
   USE spec2data
   USE data2spec
-  USE data2lib
 }
