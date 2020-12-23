@@ -175,7 +175,7 @@ void MD5Final(md5_ctx* ctx, uint8_t digest[16])
     MD5Transform(ctx->buf, (uint32_t *) ctx->in);
     byteReverse(ctx->buf, 4);
     memcpy(digest, ctx->buf, 16);
-    memset(ctx, 0, sizeof(ctx));        /* In case it's sensitive */
+    memset(ctx, 0, sizeof(*ctx));        /* In case it's sensitive */
 }
 
 
