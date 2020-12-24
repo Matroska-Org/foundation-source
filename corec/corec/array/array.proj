@@ -1,6 +1,0 @@
-GROUP array
-{
-  USE corec
-  SOURCE array.c
-  HEADER array.h
-}

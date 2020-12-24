@@ -1,7 +1,0 @@
-GROUP date
-{
-  USE corec
-  HEADER date.h
-  SOURCE(TARGET_WIN) date_win32.c
-  SOURCE(TARGET_LINUX || TARGET_OSX || TARGET_ANDROID) date_libc.c
-}

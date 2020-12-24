@@ -1,6 +1,0 @@
-#define COREMAKE_STATIC
-//#define CONFIG_UNICODE
-
-//#define CONFIG_MULTITHREAD
-#define CONFIG_DEBUGCHECKS
-//#define CONFIG_SAFE_C

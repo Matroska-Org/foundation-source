@@ -1,9 +1,0 @@
-GROUP(CONFIG_MULTITHREAD) multithread
-{
-  USE corec
-  HEADER multithread.h
-  SOURCE(TARGET_WIN) multithread_win32.c
-  SOURCE(TARGET_LINUX || TARGET_OSX || TARGET_ANDROID) multithread_pthread.c
-  LIBS(TARGET_LINUX) pthread
-}
-
