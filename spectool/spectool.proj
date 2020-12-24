@@ -1,0 +1,37 @@
+CON tabler
+{
+  USE parser
+  SOURCE tabler.c
+}
+
+CON spec2data
+{
+  USE parser
+  SOURCE spec2data.c {class SpecElement_Class}
+  SOURCE spec_element.c
+  HEADER spec_element.h
+}
+
+CON data2spec
+{
+  USE parser
+  SOURCE data2spec.c {class SpecElement_Class}
+  SOURCE spec_element.c
+  HEADER spec_element.h
+}
+
+CON data2lib
+{
+  USE parser
+  SOURCE data2lib.c {class SpecElement_Class}
+  SOURCE spec_element.c
+  HEADER spec_element.h
+}
+
+WORKSPACE spectool
+{
+  USE tabler
+  USE spec2data
+  USE data2spec
+  USE data2lib
+}
