@@ -1,7 +1,0 @@
-//
-// Prefix header for all source files of the 'YasmPlugin' target in the 'YasmPlugin' project.
-//
-
-#ifdef __OBJC__
-    #import <Cocoa/Cocoa.h>
-#endif
