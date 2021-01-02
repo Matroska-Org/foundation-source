@@ -228,6 +228,12 @@ typedef signed int intptr_t;
 
 #include <inttypes.h>
 
+#ifndef PRIdPTR
+#error Not compiled with C99 compatibility!
+#endif // PRIdPTR
+
+
+
 #ifdef SPARC64
   typedef int64_t int_fast32_t;
   typedef uint64_t uint_fast32_t;
@@ -328,6 +334,15 @@ typedef unsigned __int64 uint_fast64_t;
 #define PRId64  "I64d"
 #define PRIu64  "I64u"
 #define PRIx64  "I64x"
+
+#ifndef PRIdPTR
+# ifdef _WIN64
+#define PRIdPTR  PRId64
+# else // !_WIN64
+#define PRIdPTR  PRId32
+# endif // !_WIN64
+#endif // PRIdPTR
+
 #define TPRId64  T("I64d")
 #define TPRIu64  T("I64u")
 #define TPRIx64  T("I64x")
