@@ -405,8 +405,9 @@ struct profile_check
     int ProfileMask;
 };
 
-static bool_t ProfileCallback(struct profile_check *check, int type, const tchar_t *ClassName, const ebml_element* Elt)
+static bool_t ProfileCallback(void *opaque, int type, const tchar_t *ClassName, const ebml_element* Elt)
 {
+	struct profile_check *check = opaque;
     if (type==MASTER_CHECK_PROFILE_INVALID)
 		*check->Result |= OutputError(0x201,T("Invalid '%s' for profile '%s' in %s at %") TPRId64,ClassName,GetProfileName(check->ProfileMask),check->EltName,EL_Pos(check->Parent));
     else if (type==MASTER_CHECK_MISSING_MANDATORY)
@@ -425,15 +426,16 @@ static int CheckProfileViolation(ebml_element *Elt, int ProfileMask)
 
 	if (Node_IsPartOf(Elt,EBML_MASTER_CLASS))
 	{
+		ebml_master *Master = (ebml_master*)Elt;
 	    EBML_ElementGetName(Elt,String,TSIZEOF(String));
-        if (!EBML_MasterIsChecksumValid((ebml_master*)Elt))
+        if (!EBML_MasterIsChecksumValid(Master))
             Result |= OutputError(0x203,T("Invalid checksum for element '%s' at %") TPRId64,String,EL_Pos(Elt));
 
         Checker.EltName = String;
         Checker.ProfileMask = ProfileMask;
         Checker.Parent = Elt;
         Checker.Result = &Result;
-        EBML_MasterCheckContext((ebml_master*)Elt, ProfileMask, ProfileCallback, &Checker);
+        EBML_MasterCheckContext(Master, ProfileMask, ProfileCallback, &Checker);
 
 		for (SubElt = EBML_MasterChildren(Elt); SubElt; SubElt = EBML_MasterNext(SubElt))
 			if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
