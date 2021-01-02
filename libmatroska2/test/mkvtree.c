@@ -149,7 +149,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             datepack_t Date;
             datetime_t DateTime = EBML_DateTime((ebml_date*)Element);
             GetDatePacked(DateTime,&Date,1);
-            fprintf(stdout,"%04d-%02d-%02d %02d:%02d:%02d UTC",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
+            fprintf(stdout,"%04"PRIdPTR"-%02"PRIdPTR"-%02"PRIdPTR" %02"PRIdPTR":%02"PRIdPTR":%02"PRIdPTR" UTC",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
         }
         else
             fprintf(stdout,"<error reading>");
