@@ -2411,7 +2411,7 @@ NOINLINE bool_t ExprIsFrac(const tchar_t** p,cc_fraction* Out)
 bool_t ExprIsPoint(const tchar_t** p, cc_point* Out)
 {
     intptr_t x,y;
-    if (ExprIsTokenEx(p,T("{ %d , %d }"),&x,&y))
+    if (ExprIsTokenEx(p,T("{ %ld , %ld }"),&x,&y))
     {
         Out->x = (int)x;
         Out->y = (int)y;

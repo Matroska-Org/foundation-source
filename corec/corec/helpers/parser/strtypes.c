@@ -478,7 +478,7 @@ datetime_t RFC822ToRel(const tchar_t *Date)
     else
         s = Date;
     ExprSkipSpace(&s);
-    if (!ExprIsTokenEx(&s,T("%d "),&ResultPacked.Day))
+    if (!ExprIsTokenEx(&s,T("%ld "),&ResultPacked.Day))
         return INVALID_DATETIME_T;
 
     ExprSkipSpace(&s);
@@ -494,8 +494,8 @@ datetime_t RFC822ToRel(const tchar_t *Date)
     ResultPacked.Month++;
 
     ExprSkipSpace(&s);
-    if (!ExprIsTokenEx(&s,T("%d %d:%d:%d"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second)
-        && !ExprIsTokenEx(&s,T("%d %d:%d"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute))
+    if (!ExprIsTokenEx(&s,T("%ld %ld:%ld:%ld"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second)
+        && !ExprIsTokenEx(&s,T("%ld %ld:%ld"),&ResultPacked.Year,&ResultPacked.Hour,&ResultPacked.Minute))
         return INVALID_DATETIME_T;
     if (ResultPacked.Year < 100)
         ResultPacked.Year += 2000;
@@ -571,10 +571,10 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
         }
     }
 
-    if (!ExprIsTokenEx(&s,T("%d-%d-%d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
-        !ExprIsTokenEx(&s,T("%d:%d:%d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) &&
-        !ExprIsTokenEx(&s,T("%4d%2d%2d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
-        !ExprIsTokenEx(&s,T("%2d%2d%2d"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day))
+    if (!ExprIsTokenEx(&s,T("%ld-%ld-%ld"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
+        !ExprIsTokenEx(&s,T("%ld:%ld:%ld"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) &&
+        !ExprIsTokenEx(&s,T("%4ld%2ld%2ld"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day) && 
+        !ExprIsTokenEx(&s,T("%2ld%2ld%2ld"),&ResultPacked.Year,&ResultPacked.Month,&ResultPacked.Day))
         return INVALID_DATETIME_T;
 
     if (ResultPacked.Year < 50)
@@ -585,8 +585,8 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
     if (*Time)
     {
         s = Time;
-        if (ExprIsTokenEx(&s,T("%d:%d:%d"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second) ||
-            ExprIsTokenEx(&s,T("%2d%2d%2d"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second))
+        if (ExprIsTokenEx(&s,T("%ld:%ld:%ld"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second) ||
+            ExprIsTokenEx(&s,T("%2ld%2ld%2ld"),&ResultPacked.Hour,&ResultPacked.Minute,&ResultPacked.Second))
         {
             intptr_t MilliSeconds;
             ExprIsTokenEx(&s,T(".%d"),&MilliSeconds);
@@ -594,9 +594,9 @@ datetime_t ISO8601ToRel(const tchar_t *InDate)
             {
                 const tchar_t *o=s + 1;
                 intptr_t OffsetH,OffsetM=0;
-                if (ExprIsTokenEx(&o,T("%d:%d"),&OffsetH,&OffsetM) ||
-                    ExprIsTokenEx(&o,T("%2d%2d"),&OffsetH,&OffsetM) || 
-                    ExprIsTokenEx(&o,T("%2d"),&OffsetH))
+                if (ExprIsTokenEx(&o,T("%ld:%ld"),&OffsetH,&OffsetM) ||
+                    ExprIsTokenEx(&o,T("%2ld%2ld"),&OffsetH,&OffsetM) || 
+                    ExprIsTokenEx(&o,T("%2ld"),&OffsetH))
                 {
                     Offset = (OffsetH*60 + OffsetM)*60;
                 }
