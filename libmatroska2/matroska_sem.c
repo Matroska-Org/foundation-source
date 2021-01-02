@@ -711,9 +711,9 @@ const ebml_context MATROSKA_ContextTags = {0x1254C367, EBML_MASTER_CLASS, 0, 0, 
 
 const ebml_semantic EBML_SemanticSegment[] = {
     {0, 0, &MATROSKA_ContextSeekHead, 0},
-    {1, 0, &MATROSKA_ContextInfo, 0},
+    {1, 1, &MATROSKA_ContextInfo, 0},
     {0, 0, &MATROSKA_ContextCluster, 0},
-    {0, 0, &MATROSKA_ContextTracks, 0},
+    {0, 1, &MATROSKA_ContextTracks, 0},
     {0, 1, &MATROSKA_ContextCues, 0},
     {0, 1, &MATROSKA_ContextAttachments, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapters, 0},
