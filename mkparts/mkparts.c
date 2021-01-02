@@ -255,23 +255,23 @@ int main(int argc, const char *argv[])
             currSegment.EbmlHeadPos = EbmlHead->Base.ElementPosition;
             currSegment.SegmentPos = Segment->Base.ElementPosition;
 
-            if (EBML_ElementIsFiniteSize(EbmlHead))
-                currSegment.EbmlSize = EBML_ElementFullSize(EbmlHead, 1);
+            if (EBML_ElementIsFiniteSize(&EbmlHead->Base))
+                currSegment.EbmlSize = EBML_ElementFullSize(&EbmlHead->Base, 1);
             else
                 currSegment.EbmlSize = Segment->Base.ElementPosition - EbmlHead->Base.ElementPosition; // TODO: we should write the proper size in the header if there is enough room
-            NodeDelete(EbmlHead);
+            NodeDelete(&EbmlHead->Base.Base.Base);
 
-            EbmlHead = EBML_ElementSkipData(Segment, Input, &RContext, NULL, 1);
+            EbmlHead = (ebml_master*)EBML_ElementSkipData(&Segment->Base, Input, &RContext, NULL, 1);
 
-            if (EBML_ElementIsFiniteSize(Segment))
-                currSegment.SegmentSize = EBML_ElementFullSize(Segment, 1);
+            if (EBML_ElementIsFiniteSize(&Segment->Base))
+                currSegment.SegmentSize = EBML_ElementFullSize(&Segment->Base, 1);
             else { // TODO: we should write the proper size in the segment if there is enough room
                 if (EbmlHead!=NULL)
                     currSegment.SegmentSize = EbmlHead->Base.ElementPosition - Segment->Base.ElementPosition;
                 else
                     currSegment.SegmentSize = Stream_Seek(Input,0,SEEK_CUR);
             }
-            NodeDelete(Segment);
+            NodeDelete(&Segment->Base.Base.Base);
 
             ArrayAppend(&SegmentStarts, &currSegment, sizeof(currSegment), 0);
         }
