@@ -181,12 +181,6 @@
 #define strnicmp(x,y,z)    _strnicmp(x,y,z)
 #endif
 
-#if _MSC_VER >= 1400
-#pragma comment(linker, "/nodefaultlib:libc.lib")
-#pragma comment(linker, "/nodefaultlib:libcd.lib")
-//#pragma comment(linker, "/nodefaultlib:oldnames.lib")
-#endif
-
 #ifndef alloca
 #define alloca _alloca
 #endif
