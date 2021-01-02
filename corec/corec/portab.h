@@ -224,7 +224,11 @@ typedef signed int intptr_t;
 
 #include <stdlib.h>
 
-#if !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__) && __STDC_VERSION__ < 199901L
+#if __STDC_VERSION__ >= 199901L
+
+#include <inttypes.h>
+
+#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__) && __STDC_VERSION__ < 199901L
 
 #include <inttypes.h>
 
@@ -233,20 +237,19 @@ typedef signed int intptr_t;
 #endif // PRIdPTR
 
 
-
 #ifdef SPARC64
   typedef int64_t int_fast32_t;
   typedef uint64_t uint_fast32_t;
   typedef int64_t int_fast16_t;
   typedef uint64_t uint_fast16_t;
-#else
+#else // !SPARC64
   typedef int32_t int_fast32_t;
   typedef uint32_t uint_fast32_t;
 # ifndef __APPLE__
   typedef int32_t int_fast16_t;
   typedef uint32_t uint_fast16_t;
-# endif
-#endif
+# endif // !__APPLE__
+#endif // !SPARC64
 
 typedef int8_t int_fast8_t;
 typedef uint8_t uint_fast8_t;
