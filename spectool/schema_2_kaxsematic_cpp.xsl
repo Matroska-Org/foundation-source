@@ -351,7 +351,7 @@ END_LIBMATROSKA_NAMESPACE
     </xsl:choose>
     <xsl:text>, </xsl:text>
     <xsl:choose>
-        <xsl:when test="$node/@maxOccurs='1'"><xsl:text>true</xsl:text></xsl:when>
+        <xsl:when test="$node/@maxOccurs='1' or $node/@recurring='1'"><xsl:text>true</xsl:text></xsl:when>
         <xsl:otherwise><xsl:text>false</xsl:text></xsl:otherwise>
     </xsl:choose>
     <xsl:text>, Kax</xsl:text>
