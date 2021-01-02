@@ -202,11 +202,7 @@ NODE_DLL void ExprTrimSpace(tchar_t** p);
 NODE_DLL bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen);
 NODE_DLL bool_t ExprSkipAfter(const tchar_t** p,int ch); //ch=0 for general space
 NODE_DLL bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name);
-NODE_DLL bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
-#if defined(__GNUC__) && !defined(_MSC_VER) && !defined(UNICODE)
-    __attribute__ ((format(printf, 2, 3)))
-#endif
-    ;
+NODE_DLL bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...);
 NODE_DLL bool_t ExprIsSymbol(const tchar_t** p,int ch);
 NODE_DLL bool_t ExprIsSymbol2(const tchar_t** p,int ch, int ch2);
 NODE_DLL void ExprParamEnd(const tchar_t** p);
