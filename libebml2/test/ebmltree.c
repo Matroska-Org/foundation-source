@@ -84,7 +84,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             datepack_t Date;
             datetime_t DateTime = EBML_DateTime((ebml_date*)Element);
             GetDatePacked(DateTime,&Date,0);
-            fprintf(stdout,"%04d-%02d-%02d %02d:%02d:%02d\r\n",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
+            fprintf(stdout,"%04"PRIdPTR"-%02"PRIdPTR"-%02"PRIdPTR" %02"PRIdPTR":%02"PRIdPTR":%02"PRIdPTR"\r\n",Date.Year,Date.Month,Date.Day,Date.Hour,Date.Minute,Date.Second);
         }
         else
             fprintf(stdout,"<error reading>\r\n");
@@ -94,9 +94,9 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
         {
             if (Node_IsPartOf(Element,EBML_SINTEGER_CLASS))
-                fprintf(stdout,"%ld\r\n",(int)((ebml_integer*)Element)->Value);
+                fprintf(stdout,"%"PRId64"\r\n",((ebml_integer*)Element)->Value);
             else
-                fprintf(stdout,"%lu\r\n",(int)((ebml_integer*)Element)->Value);
+                fprintf(stdout,"%"PRIu64"\r\n",(uint64_t)((ebml_integer*)Element)->Value);
         }
         else
             fprintf(stdout,"<error reading>\r\n");
@@ -128,7 +128,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
         {
             uint8_t *Data = ARRAYBEGIN(((ebml_binary*)Element)->Data,uint8_t);
-            fprintf(stdout,"%02X %02X %02X %02X.. (%d)\r\n",Data[0],Data[1],Data[2],Data[3],EBML_ElementDataSize(Element,1));
+            fprintf(stdout,"%02X %02X %02X %02X.. (%"PRId64")\r\n",Data[0],Data[1],Data[2],Data[3],EBML_ElementDataSize(Element,1));
         }
         else
             fprintf(stdout,"<error reading>\r\n");
@@ -146,7 +146,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
             fprintf(stdout,"[%x]",Id & 0xFF);
             Id >>= 8;
         }
-        fprintf(stdout,">\r\n",EBML_ElementClassID(Element));
+        fprintf(stdout,">\r\n");
 #endif
         EBML_ElementSkipData(Element, Input, Context, NULL, 0);
     }
@@ -181,7 +181,9 @@ int main(int argc, const char *argv[])
     EBML_Init(&p);
 
     // open the file to parse
-    Input = StreamOpen(&p,argv[1],SFLAG_RDONLY);
+    tchar_t fileName[MAXPATH];
+    Node_FromStr(&p, fileName, TSIZEOF(fileName), argv[1]);
+    Input = StreamOpen(&p,fileName,SFLAG_RDONLY);
     if (Input == NULL)
         fprintf(stderr, "error: ebmltree cannot open file \"%s\"\r\n",argv[1]);
     else
