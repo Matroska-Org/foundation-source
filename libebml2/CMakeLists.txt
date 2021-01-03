@@ -40,6 +40,10 @@ add_library("ebml2" STATIC)
 target_link_libraries("ebml2" PRIVATE "ebml2_group")
 target_link_libraries("ebml2" PUBLIC "corec")
 target_include_directories("ebml2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ".")
+# we can't export EBML as a DLL for now as it doesn't seem possible to use dllimport to initialize global (startup) variables
+# if (BUILD_SHARED_LIBS)
+#   target_compile_definitions("ebml2" PUBLIC ebml2_IMPORTS)
+# endif (BUILD_SHARED_LIBS)
 
 # TODO fix build
 add_executable("ebmltree" test/ebmltree.c)

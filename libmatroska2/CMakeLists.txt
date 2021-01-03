@@ -43,13 +43,13 @@ configure_file(matroska_config.h.in matroska/matroska_config.h)
 target_include_directories("matroska2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
 # the library needs to be static as it shares constants variables
-add_library("matroska2" STATIC)
+add_library("matroska2")
 target_link_libraries("matroska2" PRIVATE "matroska2_group")
 target_link_libraries("matroska2" PUBLIC "ebml2")
 target_include_directories("matroska2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ".")
-# if (BUILD_SHARED_LIBS)
-#   target_compile_definitions("matroska2" PUBLIC MATROSKA2_IMPORTS)
-# endif (BUILD_SHARED_LIBS)
+if (BUILD_SHARED_LIBS)
+  target_compile_definitions("matroska2" PUBLIC matroska2_IMPORTS)
+endif (BUILD_SHARED_LIBS)
 
 add_executable("mkvtree" test/mkvtree.c)
 target_link_libraries("mkvtree" PRIVATE "matroska2" "ebml2" "corec")
