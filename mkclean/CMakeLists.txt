@@ -14,8 +14,8 @@ configure_file(pkg.sh.in pkg.sh)
 configure_file(src.br.in src.br)
 configure_file(CMakeLists.txt.in CMakeLists.txt)
 
-target_link_libraries("mkclean" PRIVATE "matroska2" "corec_parser")
-target_link_libraries("mkWDclean" PRIVATE "matroska2" "corec_parser")
+target_link_libraries("mkclean" PUBLIC "matroska2" "ebml2" "corec")
+target_link_libraries("mkWDclean" PUBLIC "matroska2" "ebml2" "corec")
 
 add_subdirectory("tremor")
 

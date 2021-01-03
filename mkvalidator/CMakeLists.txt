@@ -4,7 +4,7 @@ add_executable("mkvalidator" mkvalidator.c)
 
 configure_file(mkvalidator_project.h.in mkvalidator_project.h)
 target_include_directories("mkvalidator" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries("mkvalidator" PRIVATE "matroska2" "corec_parser")
+target_link_libraries("mkvalidator" PUBLIC "matroska2" "ebml2" "corec")
 
 # Source packaging script
 configure_file(pkg.sh.in pkg.sh)
