@@ -70,7 +70,7 @@ extern "C" {
 
 #if defined(ebml2_EXPORTS)
 #define EBML_DLL DLLEXPORT
-#elif defined(EBML2_IMPORTS)
+#elif defined(ebml2_IMPORTS)
 #define EBML_DLL DLLIMPORT
 #else
 #define EBML_DLL extern
