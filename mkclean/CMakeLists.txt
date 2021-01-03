@@ -1,4 +1,4 @@
-option(CONFIG_CODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
+option(CONFIG_NOCODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ${BUILD_SHARED_LIBS})
 
 project("mkclean" VERSION 0.8.1)
 
