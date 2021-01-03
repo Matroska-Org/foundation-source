@@ -31,7 +31,7 @@
 #include "ebml/ebml.h"
 #include "matroska/matroska_config.h"
 
-#if defined(MATROSKA2_EXPORTS)
+#if defined(matroska2_EXPORTS)
 #define MATROSKA_DLL DLLEXPORT
 #elif defined(MATROSKA2_IMPORTS)
 #define MATROSKA_DLL DLLIMPORT
