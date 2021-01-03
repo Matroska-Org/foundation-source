@@ -20,8 +20,6 @@ set(matroska2_INTERNAL_HEADERS
 add_library("matroska2_group" INTERFACE)
 target_sources("matroska2_group" INTERFACE ${matroska2_SOURCES} ${matroska2_PUBLIC_HEADERS} ${matroska2_INTERNAL_HEADERS})
 target_include_directories("matroska2_group" INTERFACE ".")
-target_compile_definitions("matroska2_group" INTERFACE HAS_MATROSKA2)
-target_link_libraries("matroska2_group" INTERFACE "ebml2_group")
 target_include_directories("matroska2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
 if (CONFIG_ZLIB)
@@ -46,11 +44,15 @@ target_include_directories("matroska2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DI
 
 # the library needs to be static as it shares constants variables
 add_library("matroska2" STATIC)
-target_link_libraries("matroska2" PUBLIC "matroska2_group")
-target_include_directories("matroska2" PUBLIC ".")
+target_link_libraries("matroska2" PRIVATE "matroska2_group")
+target_link_libraries("matroska2" PUBLIC "ebml2")
+target_include_directories("matroska2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ".")
+# if (BUILD_SHARED_LIBS)
+#   target_compile_definitions("matroska2" PUBLIC MATROSKA2_IMPORTS)
+# endif (BUILD_SHARED_LIBS)
 
 add_executable("mkvtree" test/mkvtree.c)
-target_link_libraries("mkvtree" PRIVATE "matroska2_group" "corec_parser")
+target_link_libraries("mkvtree" PRIVATE "matroska2" "ebml2" "corec")
 
 if (0)
 add_library("matroska2_haali" MatroskaParser/MatroskaParser.c)
