@@ -35,9 +35,9 @@ if (CONFIG_BZLIB)
   add_subdirectory("bzip2")
   target_link_libraries("matroska2_group" INTERFACE "bzlib")
 endif(CONFIG_BZLIB)
-if (CONFIG_CODEC_HELPER)
+if (NOT CONFIG_NOCODEC_HELPER)
   target_link_libraries("matroska2_group" INTERFACE "tremor")
-endif(CONFIG_CODEC_HELPER)
+endif(NOT CONFIG_NOCODEC_HELPER)
 # set_target_properties("matroska2_group" PROPERTIES 
 #   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
 # )

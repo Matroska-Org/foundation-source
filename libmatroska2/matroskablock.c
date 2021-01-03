@@ -28,7 +28,7 @@
 #include "matroska/matroska.h"
 #include "matroska/matroska_sem.h"
 #include "matroska/matroska_internal.h"
-#if defined(CONFIG_CODEC_HELPER)
+#if !defined(CONFIG_NOCODEC_HELPER)
 #include "ivorbiscodec.h"
 #include "codec_internal.h"
 #include "misc.h"
@@ -216,7 +216,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                             }
                         }
                     }
-#if defined(CONFIG_CODEC_HELPER)
+#if !defined(CONFIG_NOCODEC_HELPER)
                     else if (tcsisame_ascii(CodecID,T("A_VORBIS")))
                     {
                         Block->IsKeyframe = 1; // safety
