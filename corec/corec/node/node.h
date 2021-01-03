@@ -41,7 +41,7 @@ extern "C" {
 #include "corec/str/str.h"
 #include "corec/memheap.h"
 
-#if defined(NODE_EXPORTS)
+#if defined(corec_EXPORTS)
 #define NODE_DLL DLLEXPORT
 #elif defined(NODE_IMPORTS)
 #define NODE_DLL DLLIMPORT

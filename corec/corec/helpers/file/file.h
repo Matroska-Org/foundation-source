@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-#if defined(FILE_EXPORTS)
+#if defined(corec_EXPORTS)
 #define FILE_DLL DLLEXPORT
 #elif defined(FILE_IMPORTS)
 #define FILE_DLL DLLIMPORT

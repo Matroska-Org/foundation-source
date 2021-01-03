@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if defined(MULTITHREAD_EXPORTS)
+#if defined(corec_EXPORTS)
 #define MULTITHREAD_DLL DLLEXPORT
 #elif defined(MULTITHREAD_IMPORTS)
 #define MULTITHREAD_DLL DLLIMPORT

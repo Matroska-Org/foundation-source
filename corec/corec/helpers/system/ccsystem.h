@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if defined(CCSYSTEM_EXPORTS)
+#if defined(corec_EXPORTS)
 #define CCSYSTEM_DLL DLLEXPORT
 #elif defined(CCSYSTEM_IMPORTS)
 #define CCSYSTEM_DLL DLLIMPORT

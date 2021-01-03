@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if defined(DATE_EXPORTS)
+#if defined(corec_EXPORTS)
 #define DATE_DLL DLLEXPORT
 #elif defined(DATE_IMPORTS)
 #define DATE_DLL DLLIMPORT
