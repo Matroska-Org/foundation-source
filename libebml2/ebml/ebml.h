@@ -68,7 +68,7 @@ extern "C" {
 #define EBML_ELEMENT_INFINITESIZE   0x100
 #define EBML_ELEMENT_OBJECT         0x101
 
-#if defined(EBML2_EXPORTS)
+#if defined(ebml2_EXPORTS)
 #define EBML_DLL DLLEXPORT
 #elif defined(EBML2_IMPORTS)
 #define EBML_DLL DLLIMPORT
