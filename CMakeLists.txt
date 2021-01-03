@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1.2)
 
 project("foundation sources")
 
-option(CONFIG_MATROSKA2 "Build libmatroska2" ON)
+option(CONFIG_MATROSKA2 "Build libmatroska2 and tools" ON)
 
 add_subdirectory("corec")
 add_subdirectory("libebml2")
