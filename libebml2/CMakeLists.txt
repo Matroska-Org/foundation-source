@@ -27,11 +27,8 @@ target_sources("ebml2_group" INTERFACE
   ${ebml2_group_PUBLIC_HEADERS} 
   ${ebml2_group_INTERNAL_HEADERS}
 )
-target_link_libraries("ebml2_group" INTERFACE "corec_node")
 target_compile_definitions("ebml2_group" INTERFACE HAS_EBML2)
-target_include_directories("ebml2_group" INTERFACE ".")
 configure_file(ebml_config.h.in ebml/ebml_config.h)
-target_include_directories("ebml2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
   set_target_properties("ebml2_group" PROPERTIES 
     PUBLIC_HEADER "${ebml2_group_PUBLIC_HEADERS}"
@@ -40,11 +37,13 @@ endif()
 
 # the library needs to be static as it shares constants variables
 add_library("ebml2" STATIC)
-target_link_libraries("ebml2" PUBLIC "ebml2_group")
+target_link_libraries("ebml2" PRIVATE "ebml2_group")
+target_link_libraries("ebml2" PUBLIC "corec")
+target_include_directories("ebml2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ".")
 
 # TODO fix build
 add_executable("ebmltree" test/ebmltree.c)
-target_link_libraries("ebmltree" PUBLIC "ebml2" "corec_parser")
+target_link_libraries("ebmltree" PUBLIC "ebml2")
 
 # TODO finish this
 # configure_file(legacy/ebml2_legacy_project.h.in legacy/ebml2_legacy_project.h)
