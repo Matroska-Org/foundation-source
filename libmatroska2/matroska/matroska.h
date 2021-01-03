@@ -33,7 +33,7 @@
 
 #if defined(matroska2_EXPORTS)
 #define MATROSKA_DLL DLLEXPORT
-#elif defined(MATROSKA2_IMPORTS)
+#elif defined(matroska2_IMPORTS)
 #define MATROSKA_DLL DLLIMPORT
 #else
 #define MATROSKA_DLL extern
