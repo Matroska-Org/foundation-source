@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if defined(STR_EXPORTS)
+#if defined(corec_EXPORTS)
 #define STR_DLL DLLEXPORT
 #elif defined(STR_IMPORTS)
 #define STR_DLL DLLIMPORT

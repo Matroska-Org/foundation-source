@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if defined(CHARCONVERT_EXPORTS)
+#if defined(corec_EXPORTS)
 #define CHARCONVERT_DLL DLLEXPORT
 #elif defined(CHARCONVERT_IMPORTS)
 #define CHARCONVERT_DLL DLLIMPORT

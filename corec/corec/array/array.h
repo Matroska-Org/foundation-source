@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-#if defined(ARRAY_EXPORTS)
+#if defined(corec_EXPORTS)
 #define ARRAY_DLL DLLEXPORT
 #elif defined(ARRAY_IMPORTS)
 #define ARRAY_DLL DLLIMPORT

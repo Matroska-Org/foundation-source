@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if defined(MD5_EXPORTS)
+#if defined(corec_EXPORTS)
 #define MD5_DLL DLLEXPORT
 #elif defined(MD5_IMPORTS)
 #define MD5_DLL DLLIMPORT
