@@ -203,6 +203,6 @@ MATROSKA_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matros
 MATROSKA_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
 MATROSKA_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched);
 
-extern const ebml_context MATROSKA_ContextStream;
+MATROSKA_DLL const ebml_context MATROSKA_ContextStream;
 
 #endif // MATROSKA_MATROSKA_H
