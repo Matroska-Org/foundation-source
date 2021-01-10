@@ -440,16 +440,16 @@ typedef uint16_t utf16_t;
 #define vstprintf !UNSAFE!
 
 #if defined(_WIN32)
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
+#define DLLEXPORT __declspec(dllexport) extern
+#define DLLIMPORT __declspec(dllimport) extern
 #define DLLHIDDEN
 #elif defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 340)
-#define DLLEXPORT __attribute__ ((visibility("default")))
-#define DLLIMPORT __attribute__ ((visibility("default")))
+#define DLLEXPORT __attribute__ ((visibility("default"))) extern
+#define DLLIMPORT __attribute__ ((visibility("default"))) extern
 #define DLLHIDDEN __attribute__ ((visibility("hidden")))
 #else
-#define DLLEXPORT
-#define DLLIMPORT
+#define DLLEXPORT extern
+#define DLLIMPORT extern
 #define DLLHIDDEN
 #endif
 
