@@ -72,7 +72,7 @@
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:text>extern const ebml_context MATROSKA_Context</xsl:text>
+        <xsl:text>MATROSKA_DLL const ebml_context MATROSKA_Context</xsl:text>
         <xsl:value-of select="$lib2Name" />
         <xsl:text>;&#10;</xsl:text>
         <xsl:if test="$node/@type='master'"><xsl:text>&#10;</xsl:text></xsl:if>
