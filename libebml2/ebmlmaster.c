@@ -330,7 +330,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
             {
                 if (EBML_ElementReadData(SubElement,ReadStream,&Context,AllowDummyElt, Scope, DepthCheckCRC?DepthCheckCRC-1:0)==ERR_NONE)
                 {
-                    if (bFirst && DepthCheckCRC && Scope!=SCOPE_NO_DATA && EBML_ElementIsType(SubElement, &EBML_ContextEbmlCrc32) && CRCElement==NULL)
+                    if (bFirst && DepthCheckCRC && Scope!=SCOPE_NO_DATA && EBML_ElementIsType(SubElement, EBML_getContextEbmlCrc32()) && CRCElement==NULL)
                     {
                         if (EBML_ElementIsFiniteSize((ebml_element*)Element))
                         {
@@ -495,7 +495,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
             Err = ERR_OUT_OF_MEMORY;
         else
         {
-            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, &EBML_ContextEbmlCrc32, 0, NULL);
+            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, EBML_getContextEbmlCrc32(), 0, NULL);
             if (!CrcElt)
                 Err = ERR_OUT_OF_MEMORY;
             else

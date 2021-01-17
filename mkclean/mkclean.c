@@ -210,7 +210,7 @@ static void ReduceSize(ebml_element *Element)
 				NodeDelete((node*)i);
 				continue;
 			}
-			else if (EBML_ElementIsType(i, &EBML_ContextEbmlCrc32))
+			else if (EBML_ElementIsType(i, EBML_getContextEbmlCrc32()))
 			{
 				NodeDelete((node*)i);
 				continue;
@@ -1616,7 +1616,7 @@ int main(int argc, const char *argv[])
     RContext.UpContext = NULL;
     RContext.Profile = 0;
     EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
-    if (!EbmlHead || !EBML_ElementIsType((ebml_element*)EbmlHead, &EBML_ContextHead))
+    if (!EbmlHead || !EBML_ElementIsType((ebml_element*)EbmlHead, EBML_getContextHead()))
     {
         TextWrite(StdErr,T("EBML head not found! Are you sure it's a matroska/webm file?\r\n"));
         Result = -4;
@@ -1830,7 +1830,7 @@ int main(int argc, const char *argv[])
 	}
 
     // Write the EBMLHead
-    EbmlHead = (ebml_master*)EBML_ElementCreate(&p,&EBML_ContextHead,0,NULL);
+    EbmlHead = (ebml_master*)EBML_ElementCreate(&p,EBML_getContextHead(),0,NULL);
     if (!EbmlHead)
         goto exit;
     EBML_MasterUseChecksum(EbmlHead,!Unsafe);

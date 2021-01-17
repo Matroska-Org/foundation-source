@@ -155,7 +155,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
 
 static void OutputTree(stream *Input)
 {
-    ebml_element *Element = EBML_ElementCreate(Input,&EBML_ContextHead,0,NULL);
+    ebml_element *Element = EBML_ElementCreate(Input,EBML_getContextHead(),0,NULL);
     if (Element)
     {
         int Level = -1;

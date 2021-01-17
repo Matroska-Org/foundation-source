@@ -48,17 +48,26 @@ void EBML_Done(parsercontext *p)
 {
 }
 
-CONTEXT_CONST ebml_context EBML_ContextDummy = {0xFF, EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
+static CONTEXT_CONST ebml_context EBML_ContextDummy = {0xFF, EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
 
-CONTEXT_CONST ebml_context EBML_ContextVersion            = {0x4286, EBML_INTEGER_CLASS, 1, EBML_MAX_VERSION, "EBMLVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {0x42F7, EBML_INTEGER_CLASS, 1, EBML_MAX_VERSION, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {0x42F2, EBML_INTEGER_CLASS, 1, EBML_MAX_ID, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {0x42F3, EBML_INTEGER_CLASS, 1, EBML_MAX_SIZE, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextDocType            = {0x4282, EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {0x4287, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
-CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {0x4285, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
+static CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_VOID_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
+static CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32  = {0xBF, EBML_CRC_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
 
-static const ebml_semantic EBML_SemanticHead[] = {
+static const ebml_semantic EBML_SemanticGlobals[] = {
+    {0, 0, &EBML_ContextEbmlVoid},
+    {0, 1, &EBML_ContextEbmlCrc32},
+    {0, 0, NULL} // end of the table
+};
+
+static CONTEXT_CONST ebml_context EBML_ContextVersion            = {0x4286, EBML_INTEGER_CLASS, 1, EBML_MAX_VERSION, "EBMLVersion", NULL, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextReadVersion        = {0x42F7, EBML_INTEGER_CLASS, 1, EBML_MAX_VERSION, "EBMLReadVersion", NULL, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {0x42F2, EBML_INTEGER_CLASS, 1, EBML_MAX_ID, "EBMLMaxIdLength", NULL, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {0x42F3, EBML_INTEGER_CLASS, 1, EBML_MAX_SIZE, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextDocType            = {0x4282, EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {0x4287, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {0x4285, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
+
+static CONTEXT_CONST ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextVersion},
     {1, 1, &EBML_ContextReadVersion},
     {1, 1, &EBML_ContextMaxIdLength},
@@ -68,19 +77,60 @@ static const ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextDocTypeReadVersion},
     {0, 0, NULL} // end of the table
 };
-CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
+static CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
 
 
-CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_VOID_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
-CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32  = {0xBF, EBML_CRC_CLASS, 0, 0, "EBMLCrc32", NULL, NULL};
+static CONTEXT_CONST ebml_context EBML_ContextGlobals = {0, 0, 0, 0, "GlobalContext", EBML_SemanticGlobals, EBML_SemanticGlobals};
 
-const ebml_semantic EBML_SemanticGlobals[] = {
-    {0, 0, &EBML_ContextEbmlVoid},
-    {0, 1, &EBML_ContextEbmlCrc32},
-    {0, 0, NULL} // end of the table
-};
+CONTEXT_CONST ebml_context *EBML_getContextHead()
+{
+	return &EBML_ContextHead;
+}
+CONTEXT_CONST ebml_context *EBML_getContextDummy()
+{
+	return &EBML_ContextDummy;
+}
+CONTEXT_CONST ebml_context *EBML_getContextVersion()
+{
+	return &EBML_ContextVersion;
+}
+CONTEXT_CONST ebml_context *EBML_getContextReadVersion()
+{
+	return &EBML_ContextReadVersion;
+}
+CONTEXT_CONST ebml_context *EBML_getContextMaxIdLength()
+{
+	return &EBML_ContextMaxIdLength;
+}
+CONTEXT_CONST ebml_context *EBML_getContextMaxSizeLength()
+{
+	return &EBML_ContextMaxSizeLength;
+}
+CONTEXT_CONST ebml_context *EBML_getContextDocType()
+{
+	return &EBML_ContextDocType;
+}
+CONTEXT_CONST ebml_context *EBML_getContextDocTypeVersion()
+{
+	return &EBML_ContextDocTypeVersion;
+}
+CONTEXT_CONST ebml_context *EBML_getContextDocTypeReadVersion()
+{
+	return &EBML_ContextDocTypeReadVersion;
+}
+CONTEXT_CONST ebml_context *EBML_getContextEbmlVoid()
+{
+	return &EBML_ContextEbmlVoid;
+}
+CONTEXT_CONST ebml_context *EBML_getContextEbmlCrc32()
+{
+	return &EBML_ContextEbmlCrc32;
+}
 
-static const ebml_context EBML_ContextGlobals = {0, 0, 0, 0, "GlobalContext", EBML_SemanticGlobals, EBML_SemanticGlobals};
+const ebml_semantic *EBML_getSemanticGlobals()
+{
+	return EBML_SemanticGlobals;
+}
 
 filepos_t EBML_ReadCodedSizeValue(const uint8_t *InBuffer, size_t *BufferSize, filepos_t *SizeUnknown)
 {
