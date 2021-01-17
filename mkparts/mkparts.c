@@ -214,7 +214,7 @@ int main(int argc, const char *argv[])
     }
 
     // parse the source file to determine if it's a Matroska file and determine the location of the key parts
-    RContext.Context = &MATROSKA_ContextStream;
+    RContext.Context = MATROSKA_getContextStream();
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
     RContext.Profile = 0;
@@ -225,7 +225,7 @@ int main(int argc, const char *argv[])
         // parse the list of EBML header+segment start points in memory
         ebml_master *Segment = NULL;
 
-        if (EL_Type(EbmlHead, &MATROSKA_ContextSegment))
+        if (EL_Type(EbmlHead, MATROSKA_getContextSegment()))
         {
             Result |= OutputWarning(3,T("Matroska Segment at %") TPRId64 T(" in %s without an EBML header"),EbmlHead->Base.ElementPosition, Path);
             // TODO: if there is an existing EBML head before in the file, use it
@@ -247,9 +247,9 @@ int main(int argc, const char *argv[])
                 Result |= OutputWarning(3,T("Found a new EBML header at %") TPRId64 T(" instead of a segment after EBML Header at %") TPRId64 T(" in %s"), Segment->Base.ElementPosition, EbmlHead->Base.ElementPosition, Path);
                 EbmlHead = Segment;
             }
-        } while (Segment!=NULL && !EL_Type(Segment, &MATROSKA_ContextSegment));
+        } while (Segment!=NULL && !EL_Type(Segment, MATROSKA_getContextSegment()));
 
-        if (Segment!=NULL && EL_Type(Segment, &MATROSKA_ContextSegment) && EbmlHead!=NULL && EL_Type(EbmlHead, EBML_getContextHead()))
+        if (Segment!=NULL && EL_Type(Segment, MATROSKA_getContextSegment()) && EbmlHead!=NULL && EL_Type(EbmlHead, EBML_getContextHead()))
         {
             SegmentStart currSegment;
             currSegment.EbmlHeadPos = EbmlHead->Base.ElementPosition;

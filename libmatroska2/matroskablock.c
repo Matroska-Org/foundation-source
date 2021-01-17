@@ -82,7 +82,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
     if (Err==ERR_NONE)
     {
         assert(Track!=NULL);
-        Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
+        Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
         if (!Elt || EBML_IntegerValue((ebml_integer*)Elt)!=TRACK_TYPE_AUDIO) // other track types not supported for now
             Err = ERR_INVALID_DATA;
         else
@@ -91,7 +91,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                 Err = ERR_READ;
             else
             {
-                Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextCodecID);
+                Elt = EBML_MasterFindChild(Track,MATROSKA_getContextCodecID());
                 if (!Elt) // missing codec ID
                     Err = ERR_INVALID_DATA;
                 else
@@ -202,10 +202,10 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                     else if (tcsisame_ascii(CodecID,T("A_AAC")) || tcsncmp(CodecID,T("A_AAC/"),6)==0)
                     {
                         Block->IsKeyframe = 1; // safety
-                        Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextAudio);
+                        Elt = EBML_MasterFindChild(Track,MATROSKA_getContextAudio());
                         if (Elt)
                         {
-                            Elt = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextSamplingFrequency);
+                            Elt = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextSamplingFrequency());
                             if (Elt)
                             {
                                 ArrayResize(&Block->Durations,sizeof(timecode_t)*ARRAYCOUNT(Block->SizeList,int32_t),0);
@@ -220,7 +220,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                     else if (tcsisame_ascii(CodecID,T("A_VORBIS")))
                     {
                         Block->IsKeyframe = 1; // safety
-                        Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextCodecPrivate);
+                        Elt = EBML_MasterFindChild(Track,MATROSKA_getContextCodecPrivate());
                         if (Elt)
                         {
                             vorbis_info vi;
