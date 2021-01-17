@@ -950,7 +950,7 @@ int main(int argc, const char *argv[])
     RContext.UpContext = NULL;
     RContext.Profile = 0;
     EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
-	if (!EbmlHead || !EL_Type(EbmlHead, &EBML_ContextHead))
+	if (!EbmlHead || !EL_Type(EbmlHead, EBML_getContextHead()))
     {
         Result = OutputError(3,T("EBML head not found! Are you sure it's a matroska/webm file?"));
         goto exit;

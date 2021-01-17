@@ -239,21 +239,20 @@ EBML_DLL void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, Con
 #endif
 
 // EBML contexts
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextHead;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextDummy;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextVersion;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextReadVersion;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextMaxIdLength;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextDocType;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion;
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextHead();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDummy();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextVersion();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextReadVersion();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextMaxIdLength();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextMaxSizeLength();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocType();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocTypeVersion();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocTypeReadVersion();
 
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextEbmlVoid;
-EBML_DLL CONTEXT_CONST ebml_context EBML_ContextEbmlCrc32;
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextEbmlVoid();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextEbmlCrc32();
 
-//extern const ebml_context EBML_ContextGlobals;
-EBML_DLL const ebml_semantic EBML_SemanticGlobals[];
+EBML_DLL const ebml_semantic * EBML_getSemanticGlobals();
 
 #ifdef __cplusplus
 }

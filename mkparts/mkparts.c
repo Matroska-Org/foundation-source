@@ -231,7 +231,7 @@ int main(int argc, const char *argv[])
             // TODO: if there is an existing EBML head before in the file, use it
             //       otherwise create an EBML head with best guess
         }
-        else if (!EL_Type(EbmlHead, &EBML_ContextHead))
+        else if (!EL_Type(EbmlHead, EBML_getContextHead()))
         {
             Result |= OutputWarning(3,T("Unknown element %x at %") TPRId64 T(" in %s"), EbmlHead->Base.Context->Id, EbmlHead->Base.ElementPosition, Path);
             // TODO: if there is an existing EBML head before in the file, use it
@@ -242,14 +242,14 @@ int main(int argc, const char *argv[])
 
         do {
             Segment = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
-            if (EL_Type(Segment, &EBML_ContextHead))
+            if (EL_Type(Segment, EBML_getContextHead()))
             {
                 Result |= OutputWarning(3,T("Found a new EBML header at %") TPRId64 T(" instead of a segment after EBML Header at %") TPRId64 T(" in %s"), Segment->Base.ElementPosition, EbmlHead->Base.ElementPosition, Path);
                 EbmlHead = Segment;
             }
         } while (Segment!=NULL && !EL_Type(Segment, &MATROSKA_ContextSegment));
 
-        if (Segment!=NULL && EL_Type(Segment, &MATROSKA_ContextSegment) && EbmlHead!=NULL && EL_Type(EbmlHead, &EBML_ContextHead))
+        if (Segment!=NULL && EL_Type(Segment, &MATROSKA_ContextSegment) && EbmlHead!=NULL && EL_Type(EbmlHead, EBML_getContextHead()))
         {
             SegmentStart currSegment;
             currSegment.EbmlHeadPos = EbmlHead->Base.ElementPosition;
