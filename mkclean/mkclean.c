@@ -191,7 +191,7 @@ static void ReduceSize(ebml_element *Element)
         if (Unsafe)
             EBML_MasterUseChecksum((ebml_master*)Element,0);
 
-        if (EBML_ElementIsType(Element, &MATROSKA_ContextBlockGroup) && !EBML_MasterCheckMandatory((ebml_master*)Element, 0))
+        if (EBML_ElementIsType(Element, MATROSKA_getContextBlockGroup()) && !EBML_MasterCheckMandatory((ebml_master*)Element, 0))
         {
             NodeDelete((node*)Element);
             return;
@@ -239,11 +239,11 @@ static bool_t ReadClusterData(ebml_master *Cluster, stream *Input)
     for (Block = EBML_MasterChildren(Cluster);Block;Block=NextBlock)
     {
         NextBlock = EBML_MasterNext(Block);
-        if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
+        if (EBML_ElementIsType(Block, MATROSKA_getContextBlockGroup()))
         {
             for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
             {
-                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextBlock))
+                if (EBML_ElementIsType(GBlock, MATROSKA_getContextBlock()))
                 {
                     if ((Result = MATROSKA_BlockReadData((matroska_block*)GBlock, Input))!=ERR_NONE)
                     {
@@ -254,7 +254,7 @@ static bool_t ReadClusterData(ebml_master *Cluster, stream *Input)
                 }
             }
         }
-        else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
+        else if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
         {
             if ((Result = MATROSKA_BlockReadData((matroska_block*)Block, Input))!=ERR_NONE)
             {
@@ -272,18 +272,18 @@ static err_t UnReadClusterData(ebml_master *Cluster, bool_t IncludingNotRead)
     ebml_element *Block, *GBlock;
     for (Block = EBML_MasterChildren(Cluster);Result==ERR_NONE && Block;Block=EBML_MasterNext(Block))
     {
-        if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
+        if (EBML_ElementIsType(Block, MATROSKA_getContextBlockGroup()))
         {
             for (GBlock = EBML_MasterChildren(Block);GBlock;GBlock=EBML_MasterNext(GBlock))
             {
-                if (EBML_ElementIsType(GBlock, &MATROSKA_ContextBlock))
+                if (EBML_ElementIsType(GBlock, MATROSKA_getContextBlock()))
                 {
                     Result = MATROSKA_BlockReleaseData((matroska_block*)GBlock,IncludingNotRead);
                     break;
                 }
             }
         }
-        else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
+        else if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
             Result = MATROSKA_BlockReleaseData((matroska_block*)Block,IncludingNotRead);
     }
     return Result;
@@ -303,11 +303,11 @@ static void SetClusterPrevSize(array *Clusters, stream *Input)
 
         if (ClusterSize != INVALID_FILEPOS_T)
         {
-            Elt = EBML_MasterGetChild(*Cluster, &MATROSKA_ContextPrevSize);
+            Elt = EBML_MasterGetChild(*Cluster, MATROSKA_getContextPrevSize());
             if (Elt)
             {
                 EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
-                Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimestamp);
+                Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp());
                 if (Elt2)
                     NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
                 ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
@@ -358,11 +358,11 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
             Elt = NULL;
             if (ClusterSize != INVALID_FILEPOS_T)
             {
-                Elt = EBML_MasterGetChild(*Cluster, &MATROSKA_ContextPrevSize);
+                Elt = EBML_MasterGetChild(*Cluster, MATROSKA_getContextPrevSize());
                 if (Elt)
                 {
                     EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
-                    Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimestamp);
+                    Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp());
                     if (Elt2)
                         NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
                     ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
@@ -373,10 +373,10 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
             if (Elt)
                 Elt2 = Elt; // make sure the Cluster Position is just after the PrevSize
             else
-                Elt2 = EBML_MasterFindChild(*Cluster, &MATROSKA_ContextTimestamp); // make sure the Cluster Position is just after the ClusterTimecode
+                Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp()); // make sure the Cluster Position is just after the ClusterTimecode
             if (Elt2 && DstProfile!=PROFILE_WEBM)
             {
-                Elt = EBML_MasterGetChild(*Cluster, &MATROSKA_ContextPosition);
+                Elt = EBML_MasterGetChild(*Cluster, MATROSKA_getContextPosition());
                 if (Elt)
                 {
                     EBML_IntegerSetValue((ebml_integer*)Elt, ClusterPos - EBML_ElementPositionData((ebml_element*)Segment));
@@ -467,7 +467,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 		{
 			for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
 			{
-				if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
+				if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
                 {
 					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' at %") TPRId64 T(" try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),EBML_ElementPosition(Block),GetProfileId(PROFILE_MATROSKA_V2));
 					return -32;
@@ -481,7 +481,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 	{
         if (Offset != INVALID_TIMECODE_T)
         {
-            Time = (ebml_integer*)EBML_MasterGetChild((ebml_master*)*Cluster, &MATROSKA_ContextTimestamp);
+            Time = (ebml_integer*)EBML_MasterGetChild((ebml_master*)*Cluster, MATROSKA_getContextTimestamp());
             if (Time)
                 EBML_IntegerSetValue(Time, Offset + EBML_IntegerValue(Time));
         }
@@ -494,14 +494,14 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 	{
 		for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
 		{
-			if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
+			if (EBML_ElementIsType(Block, MATROSKA_getContextBlockGroup()))
 			{
-				GBlock = EBML_MasterFindChild((ebml_master*)Block, &MATROSKA_ContextBlock);
+				GBlock = EBML_MasterFindChild((ebml_master*)Block, MATROSKA_getContextBlock());
 				if (GBlock)
 				{
 					BlockTrack = MATROSKA_BlockReadTrack((matroska_block*)GBlock);
                     if (!BlockTrack) continue;
-                    Type = EBML_MasterFindChild((ebml_master*)BlockTrack,&MATROSKA_ContextTrackType);
+                    Type = EBML_MasterFindChild((ebml_master*)BlockTrack,MATROSKA_getContextTrackType());
                     if (!Type) continue;
                     if (EBML_IntegerValue((ebml_integer*)Type)==TRACK_TYPE_AUDIO || EBML_IntegerValue((ebml_integer*)Type)==TRACK_TYPE_SUBTITLE)
                     {
@@ -513,11 +513,11 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
                         ARRAYBEGIN(*WTracks,track_info)[BlockNum].IsLaced = 1;
 				}
 			}
-			else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
+			else if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
 			{
 				BlockTrack = MATROSKA_BlockReadTrack((matroska_block *)Block);
                 if (!BlockTrack) continue;
-                Type = EBML_MasterFindChild((ebml_master*)BlockTrack,&MATROSKA_ContextTrackType);
+                Type = EBML_MasterFindChild((ebml_master*)BlockTrack,MATROSKA_getContextTrackType());
                 if (!Type) continue;
                 if (EBML_IntegerValue((ebml_integer*)Type)==TRACK_TYPE_AUDIO || EBML_IntegerValue((ebml_integer*)Type)==TRACK_TYPE_SUBTITLE)
                 {
@@ -573,7 +573,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
     while (SubElement)
     {
-        if (EBML_ElementIsType(SubElement, &EBML_ContextReadVersion))
+        if (EBML_ElementIsType(SubElement, EBML_getContextReadVersion()))
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
@@ -586,7 +586,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 break;
             }
         }
-        else if (EBML_ElementIsType(SubElement, &EBML_ContextMaxIdLength))
+        else if (EBML_ElementIsType(SubElement, EBML_getContextMaxIdLength()))
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
@@ -599,7 +599,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 break;
             }
         }
-        else if (EBML_ElementIsType(SubElement, &EBML_ContextMaxSizeLength))
+        else if (EBML_ElementIsType(SubElement, EBML_getContextMaxSizeLength()))
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
@@ -612,7 +612,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 break;
             }
         }
-        else if (EBML_ElementIsType(SubElement, &EBML_ContextDocType))
+        else if (EBML_ElementIsType(SubElement, EBML_getContextDocType()))
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
@@ -633,7 +633,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
                 }
             }
         }
-        else if (EBML_ElementIsType(SubElement, &EBML_ContextDocTypeReadVersion))
+        else if (EBML_ElementIsType(SubElement, EBML_getContextDocTypeReadVersion()))
         {
             if (EBML_ElementReadData(SubElement,Input,NULL,0,SCOPE_ALL_DATA,0)!=ERR_NONE)
             {
@@ -648,7 +648,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
             else
                 DocVersion = (int)EBML_IntegerValue((ebml_integer*)SubElement);
         }
-        else if (EBML_ElementIsType(SubElement, &MATROSKA_ContextSegment))
+        else if (EBML_ElementIsType(SubElement, MATROSKA_getContextSegment()))
             return SubElement;
         else
             EBML_ElementSkipData(SubElement,Input,NULL,NULL,0);
@@ -685,7 +685,7 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
         TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),IntendedPosition);
     if (!Live && PrevSize!=INVALID_FILEPOS_T)
     {
-        Elt = EBML_MasterGetChild(Cluster, &MATROSKA_ContextPrevSize);
+        Elt = EBML_MasterGetChild(Cluster, MATROSKA_getContextPrevSize());
         if (Elt && PrevSize!=EBML_IntegerValue((ebml_integer*)Elt))
             TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),EBML_IntegerValue((ebml_integer*)Elt),PrevSize);
     }
@@ -713,12 +713,12 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 		order = NULL;
 
 	// find the video (first) track
-	for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry); Track; Track=(ebml_master*)EBML_MasterNextChild(Tracks,Track))
+	for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track; Track=(ebml_master*)EBML_MasterNextChild(Tracks,Track))
 	{
-		Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
+		Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
 		if (EBML_IntegerValue((ebml_integer*)Elt) == TRACK_TYPE_VIDEO)
 		{
-			TrackNum = EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber));
+			TrackNum = EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber()));
 			break;
 		}
 	}
@@ -726,12 +726,12 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 	if (!Track)
 	{
 		// no video track found, look for an audio track
-		for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry); Track; Track=(ebml_master*)EBML_MasterNextChild(Tracks,Track))
+		for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track; Track=(ebml_master*)EBML_MasterNextChild(Tracks,Track))
 		{
-			Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
+			Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
 			if (EBML_IntegerValue((ebml_integer*)Elt) == TRACK_TYPE_AUDIO)
 			{
-				TrackNum = EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber));
+				TrackNum = EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber()));
 				break;
 			}
 		}
@@ -739,14 +739,14 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 
 	if (order)
 	{
-		for (Elt = EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry); Elt; Elt=EBML_MasterNextChild(Tracks,Elt))
+		for (Elt = EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Elt; Elt=EBML_MasterNextChild(Tracks,Elt))
 		{
 			if (Elt!=(ebml_element*)Track)
-				*order++ = (size_t)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackNumber));
+				*order++ = (size_t)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber()));
 		}
 
 		if (Track)
-			*order++ = (size_t)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber));
+			*order++ = (size_t)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber()));
 	}
 
 	if (!Track)
@@ -772,7 +772,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 		return 0;
 	}
 
-	Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
+	Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber());
 	assert(Elt!=NULL);
 	if (Elt)
 		TrackNum = EBML_IntegerValue((ebml_integer*)Elt);
@@ -786,19 +786,19 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 		for (Elt = EBML_MasterChildren(*Cluster); Elt; Elt = EBML_MasterNext(Elt))
 		{
 			Block = NULL;
-			if (EBML_ElementIsType(Elt, &MATROSKA_ContextSimpleBlock))
+			if (EBML_ElementIsType(Elt, MATROSKA_getContextSimpleBlock()))
 			{
 				if (MATROSKA_BlockKeyframe((matroska_block*)Elt))
 					Block = (matroska_block*)Elt;
 			}
-			else if (EBML_ElementIsType(Elt, &MATROSKA_ContextBlockGroup))
+			else if (EBML_ElementIsType(Elt, MATROSKA_getContextBlockGroup()))
 			{
 				ebml_element *EltB, *BlockRef = NULL;
 				for (EltB = EBML_MasterChildren(Elt); EltB; EltB = EBML_MasterNext(EltB))
 				{
-					if (EBML_ElementIsType(EltB, &MATROSKA_ContextBlock))
+					if (EBML_ElementIsType(EltB, MATROSKA_getContextBlock()))
 						Block = (matroska_block*)EltB;
-					else if (EBML_ElementIsType(EltB, &MATROSKA_ContextReferenceBlock))
+					else if (EBML_ElementIsType(EltB, MATROSKA_getContextReferenceBlock()))
 						BlockRef = EltB;
 				}
 				if (BlockRef && Block)
@@ -811,7 +811,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 				if ((BlockTimecode - PrevTimecode) < 800000000 && PrevTimecode != INVALID_TIMECODE_T)
 					break; // no more than 1 Cue per Cluster and per 800 ms
 
-				CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,&MATROSKA_ContextCuePoint,1);
+				CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,MATROSKA_getContextCuePoint(),1);
 				if (!CuePoint)
 				{
 					TextPrintf(StdErr,T("Failed to create a new CuePoint ! out of memory ?\r\n"));
@@ -862,10 +862,10 @@ static int64_t gcd(int64_t a, int64_t b)
 static void CleanCropValues(ebml_master *Track, int64_t Width, int64_t Height)
 {
     ebml_element *Left,*Right,*Top,*Bottom;
-    Left = EBML_MasterGetChild(Track,&MATROSKA_ContextPixelCropLeft);
-    Right = EBML_MasterGetChild(Track,&MATROSKA_ContextPixelCropRight);
-    Top = EBML_MasterGetChild(Track,&MATROSKA_ContextPixelCropTop);
-    Bottom = EBML_MasterGetChild(Track,&MATROSKA_ContextPixelCropBottom);
+    Left = EBML_MasterGetChild(Track,MATROSKA_getContextPixelCropLeft());
+    Right = EBML_MasterGetChild(Track,MATROSKA_getContextPixelCropRight());
+    Top = EBML_MasterGetChild(Track,MATROSKA_getContextPixelCropTop());
+    Bottom = EBML_MasterGetChild(Track,MATROSKA_getContextPixelCropBottom());
     if (EBML_IntegerValue((ebml_integer*)Top)+EBML_IntegerValue((ebml_integer*)Bottom) >= Height || EBML_IntegerValue((ebml_integer*)Left)+EBML_IntegerValue((ebml_integer*)Right) >= Width)
     {
         // invalid crop, remove the values
@@ -886,7 +886,7 @@ static void CleanCropValues(ebml_master *Track, int64_t Width, int64_t Height)
 static bool_t HasTrackUID(ebml_master *Tracks, int TrackUID, const ebml_context *UIDType)
 {
     ebml_master *Track;
-    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry);Track; Track = (ebml_master*)EBML_MasterNextChild(Tracks,Track))
+    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry());Track; Track = (ebml_master*)EBML_MasterNextChild(Tracks,Track))
     {
         ebml_element *Elt = EBML_MasterFindChild(Track,UIDType);
         if (Elt && EBML_IntegerValue((ebml_integer*)Elt)==TrackUID)
@@ -902,11 +902,11 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
     int TrackType, TrackNum, Width, Height;
     tchar_t CodecID[MAXPATH];
     
-    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry); Track;)
+    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track;)
     {
 		CurTrack = Track;
 		Track = (ebml_master*)EBML_MasterNextChild(Tracks,Track);
-		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackNumber);
+		Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextTrackNumber());
 		if (!Elt)
 		{
 			TextPrintf(StdErr,T("The track at %") TPRId64 T(" has no number set!\r\n"),EBML_ElementPosition((ebml_element*)CurTrack));
@@ -915,15 +915,15 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		}
 		TrackNum = (int)EBML_IntegerValue((ebml_integer*)Elt);
 
-		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
-		if (!Elt && !EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackOperation))
+		Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextCodecID());
+		if (!Elt && !EBML_MasterFindChild(CurTrack,MATROSKA_getContextTrackOperation()))
 		{
 			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no CodecID set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
 			NodeDelete((node*)CurTrack);
 			continue;
 		}
 
-		Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextTrackType);
+		Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextTrackType());
 		if (!Elt)
 		{
 			TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has no type set!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack));
@@ -936,11 +936,11 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackNum] = NULL;
 		
         // clean the aspect ratio
-        Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextVideo);
+        Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextVideo());
         if (Elt)
         {
-            Width = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelWidth));
-            Height = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextPixelHeight));
+            Width = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextPixelWidth()));
+            Height = (int)EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextPixelHeight()));
 	        if (Width==0 || Height==0)
 	        {
 		        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid pixel dimensions %dx%d!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),Width,Height);
@@ -948,11 +948,11 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 		        continue;
 	        }
 
-            DisplayW = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextDisplayWidth);
-            DisplayH = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextDisplayHeight);
+            DisplayW = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextDisplayWidth());
+            DisplayH = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextDisplayHeight());
             if (DisplayW || DisplayH)
             {
-                Elt2 = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextDisplayUnit);
+                Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextDisplayUnit());
                 if (Elt2 && EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_DAR)
                 {
                     // if the output size appears in pixel, fix it
@@ -973,7 +973,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                         }
                         else
                         {
-                            DisplayW = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextDisplayWidth,1,0);
+                            DisplayW = EBML_MasterFindFirstElt((ebml_master*)Elt,MATROSKA_getContextDisplayWidth(),1,0);
                             EBML_IntegerSetValue((ebml_integer*)DisplayW,Width);
                         }
                     }
@@ -992,7 +992,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                         }
                         else
                         {
-                            DisplayH = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextDisplayHeight,1,0);
+                            DisplayH = EBML_MasterFindFirstElt((ebml_master*)Elt,MATROSKA_getContextDisplayHeight(),1,0);
                             EBML_IntegerSetValue((ebml_integer*)DisplayH,Height);
                         }
                     }
@@ -1031,7 +1031,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 							    // check if the AR is respected otherwise force it into a DAR
 							    if (EBML_IntegerValue((ebml_integer*)DisplayW)*DH != EBML_IntegerValue((ebml_integer*)DisplayH)*DW)
 							    {
-								    Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,&MATROSKA_ContextDisplayUnit, 1, 0);
+								    Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,MATROSKA_getContextDisplayUnit(), 1, 0);
 								    if (Elt2)
 								    {
 									    EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_DISPLAY_UNIT_DAR);
@@ -1053,7 +1053,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                         }
                     }
                 }
-                Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextDisplayUnit);
+                Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextDisplayUnit());
                 if (EBML_IntegerValue((ebml_integer*)Elt2)!=MATROSKA_DISPLAY_UNIT_DAR)
                     CleanCropValues((ebml_master*)Elt, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
             }
@@ -1061,9 +1061,9 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             if (SrcProfile==PROFILE_MATROSKA_V1 || SrcProfile==PROFILE_MATROSKA_V2 || SrcProfile==PROFILE_DIVX)
             {
                 // clean the older StereoMode values
-                Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextStereoMode);
+                Elt2 = EBML_MasterFindChild(Elt,MATROSKA_getContextStereoMode());
                 if (!Elt2)
-                    Elt2 = EBML_MasterFindChild(Elt,&MATROSKA_ContextOldStereoMode);
+                    Elt2 = EBML_MasterFindChild(Elt,MATROSKA_getContextOldStereoMode());
                 if (Elt2)
                 {
                     Width = (int)EBML_IntegerValue((ebml_integer*)Elt2);
@@ -1071,9 +1071,9 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     {
                         *DstProfile = PROFILE_MATROSKA_V3;
                         TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
-                        if (EBML_ElementIsType(Elt2, &MATROSKA_ContextOldStereoMode))
+                        if (EBML_ElementIsType(Elt2, MATROSKA_getContextOldStereoMode()))
                             // replace the old by a new
-                            Elt2->Context = &MATROSKA_ContextStereoMode;
+                            Elt2->Context = MATROSKA_getContextStereoMode();
 
                         // replace the old values with the new ones
                         if (Width==TRACK_OLD_STEREOMODE_BOTH)
@@ -1088,13 +1088,13 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                             // look for the other track
                             for (OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,CurTrack);OtherTrack; OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,OtherTrack))
                             {
-                                ebml_element *VidElt = EBML_MasterFindChild(OtherTrack,&MATROSKA_ContextVideo);
+                                ebml_element *VidElt = EBML_MasterFindChild(OtherTrack,MATROSKA_getContextVideo());
                                 if (VidElt)
                                 {
                                     // TODO: only use a video track that has the same output pixels as the source
-                                    ebml_element *OtherStereo = EBML_MasterFindChild(VidElt,&MATROSKA_ContextStereoMode);
+                                    ebml_element *OtherStereo = EBML_MasterFindChild(VidElt,MATROSKA_getContextStereoMode());
                                     if (!OtherStereo)
-                                        OtherStereo = EBML_MasterFindChild(VidElt,&MATROSKA_ContextOldStereoMode);
+                                        OtherStereo = EBML_MasterFindChild(VidElt,MATROSKA_getContextOldStereoMode());
                                     if (OtherStereo && ((Width==TRACK_OLD_STEREOMODE_LEFT && EBML_IntegerValue((ebml_integer*)OtherStereo)==TRACK_OLD_STEREOMODE_RIGHT) ||
                                         (Width==TRACK_OLD_STEREOMODE_RIGHT && EBML_IntegerValue((ebml_integer*)OtherStereo)==TRACK_OLD_STEREOMODE_LEFT)))
                                     {
@@ -1110,78 +1110,78 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
 
                                         // set a new TrackNumber
                                         NewTrackUID = TrackNum+1;
-                                        while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackNumber))
+                                        while (HasTrackUID(Tracks, NewTrackUID, MATROSKA_getContextTrackNumber()))
                                             ++NewTrackUID;
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackNumber);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextTrackNumber());
                                         EBML_IntegerSetValue((ebml_integer*)Elt,NewTrackUID);
 
                                         // set a new TrackUID
                                         NewTrackUID = 1;
-                                        while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackUID))
+                                        while (HasTrackUID(Tracks, NewTrackUID, MATROSKA_getContextTrackUID()))
                                             ++NewTrackUID;
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackUID);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextTrackUID());
                                         EBML_IntegerSetValue((ebml_integer*)Elt,NewTrackUID);
 
                                         // cleaning
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextFlagEnabled);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextFlagEnabled());
                                         if (Elt)
                                             EBML_IntegerSetValue((ebml_integer*)Elt,1);
                                         
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextFlagLacing);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextFlagLacing());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMinCache);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextMinCache());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMaxCache);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextMaxCache());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextDefaultDuration);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextDefaultDuration());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackTimestampScale);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextTrackTimestampScale());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextMaxBlockAdditionID);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextMaxBlockAdditionID());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterGetChild(CombinedTrack,&MATROSKA_ContextCodecID);
+                                        Elt = EBML_MasterGetChild(CombinedTrack,MATROSKA_getContextCodecID());
                                         EBML_StringSetValue((ebml_string*)Elt,"V_COMBINED");
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextCodecPrivate);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextCodecPrivate());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextAttachmentLink);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextAttachmentLink());
                                         NodeDelete((node*)Elt);
-                                        Elt = EBML_MasterFindChild(CombinedTrack,&MATROSKA_ContextTrackTranslate);
+                                        Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextTrackTranslate());
                                         NodeDelete((node*)Elt);
 
                                         // add the TrackCombine info
-                                        Elt = EBML_MasterAddElt(CombinedTrack, &MATROSKA_ContextTrackOperation, 1);
+                                        Elt = EBML_MasterAddElt(CombinedTrack, MATROSKA_getContextTrackOperation(), 1);
                                         if (Elt)
-                                            Elt = EBML_MasterAddElt((ebml_master*)Elt, &MATROSKA_ContextTrackCombinePlanes, 1);
+                                            Elt = EBML_MasterAddElt((ebml_master*)Elt, MATROSKA_getContextTrackCombinePlanes(), 1);
                                         if (Elt)
                                         {
                                             // track 1
-                                            CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, &MATROSKA_ContextTrackPlane, 1);
-                                            OtherStereo = EBML_MasterFindChild(CurTrack, &MATROSKA_ContextTrackUID);
+                                            CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, MATROSKA_getContextTrackPlane(), 1);
+                                            OtherStereo = EBML_MasterFindChild(CurTrack, MATROSKA_getContextTrackUID());
                                             if (!OtherStereo)
                                             {
-                                                OtherStereo = EBML_MasterAddElt((ebml_master*)CurTrack, &MATROSKA_ContextTrackUID, 1);
-                                                while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackUID))
+                                                OtherStereo = EBML_MasterAddElt((ebml_master*)CurTrack, MATROSKA_getContextTrackUID(), 1);
+                                                while (HasTrackUID(Tracks, NewTrackUID, MATROSKA_getContextTrackUID()))
                                                     ++NewTrackUID;
                                                 EBML_IntegerSetValue((ebml_integer*)OtherStereo, NewTrackUID);
                                             }
-                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneUID);
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneUID());
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, EBML_IntegerValue((ebml_integer*)OtherStereo));
-                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneType);
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneType());
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, Width==TRACK_OLD_STEREOMODE_LEFT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
 
                                             // track 2
-                                            CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, &MATROSKA_ContextTrackPlane, 1);
-                                            OtherStereo = EBML_MasterFindChild(OtherTrack, &MATROSKA_ContextTrackUID);
+                                            CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, MATROSKA_getContextTrackPlane(), 1);
+                                            OtherStereo = EBML_MasterFindChild(OtherTrack, MATROSKA_getContextTrackUID());
                                             if (!OtherStereo)
                                             {
-                                                OtherStereo = EBML_MasterAddElt((ebml_master*)OtherTrack, &MATROSKA_ContextTrackUID, 1);
-                                                while (HasTrackUID(Tracks, NewTrackUID, &MATROSKA_ContextTrackUID))
+                                                OtherStereo = EBML_MasterAddElt((ebml_master*)OtherTrack, MATROSKA_getContextTrackUID(), 1);
+                                                while (HasTrackUID(Tracks, NewTrackUID, MATROSKA_getContextTrackUID()))
                                                     ++NewTrackUID;
                                                 EBML_IntegerSetValue((ebml_integer*)OtherStereo, NewTrackUID);
                                             }
-                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneUID);
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneUID());
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, EBML_IntegerValue((ebml_integer*)OtherStereo));
-                                            Elt2 = EBML_MasterGetChild(CombinedTrack, &MATROSKA_ContextTrackPlaneType);
+                                            Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneType());
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, Width==TRACK_OLD_STEREOMODE_RIGHT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
                                         }
 
@@ -1200,14 +1200,14 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
         if (ARRAYCOUNT(*Alternate3DTracks, block_info*) >= (size_t)TrackNum && ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackNum])
         {
             // force the proper StereoMode value
-            Elt2 = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextStereoMode);
+            Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextStereoMode());
             EBML_IntegerSetValue((ebml_integer*)Elt2, TRACK_STEREO_MODE_ALTERNATE_PACKED_L);
         }
 
         if (*DstProfile==PROFILE_WEBM)
         {
             // verify that we have only VP8, VP9, Opus and Vorbis tracks
-            Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextCodecID);
+            Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextCodecID());
             EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
             if (!((TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP8"))) ||
                   (TrackType==TRACK_TYPE_VIDEO && tcsisame_ascii(CodecID,T("V_VP9"))) ||
@@ -1222,13 +1222,13 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
         }
 
         // clean the output sampling freq
-        Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextAudio);
+        Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextAudio());
         if (Elt)
         {
-            Elt2 = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextOutputSamplingFrequency);
+            Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextOutputSamplingFrequency());
             if (Elt2)
             {
-                DisplayH = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextSamplingFrequency);
+                DisplayH = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextSamplingFrequency());
                 assert(DisplayH!=NULL);
                 if (EBML_FloatValue((ebml_float*)Elt2) == EBML_FloatValue((ebml_float*)DisplayH))
                     NodeDelete((node*)Elt2);
@@ -1236,7 +1236,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
         }
 
         // clean the attachment links
-        Elt = EBML_MasterFindChild(CurTrack,&MATROSKA_ContextAttachmentLink);
+        Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextAttachmentLink());
         while (Elt)
         {
             Elt2 = NULL;
@@ -1244,10 +1244,10 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                 Elt2 = Elt;
             else
             {
-                Elt2 = EBML_MasterFindChild(Attachments,&MATROSKA_ContextAttachedFile);
+                Elt2 = EBML_MasterFindChild(Attachments,MATROSKA_getContextAttachedFile());
                 while (Elt2)
                 {
-                    DisplayH = EBML_MasterFindChild((ebml_master*)Elt2,&MATROSKA_ContextFileUID);
+                    DisplayH = EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextFileUID());
                     if (DisplayH && EBML_IntegerValue((ebml_integer*)DisplayH)==EBML_IntegerValue((ebml_integer*)Elt))
                         break;
                     Elt2 = EBML_MasterNextChild(Attachments, Elt2);
@@ -1275,21 +1275,21 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
     if (TrackNum==-1)
         ArrayClear(Alternate3DTracks);
 
-    if (EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry)==NULL)
+    if (EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry())==NULL)
         return -19;
 
     // put the TrackNumber, TrackType and CodecId at the front of the Track elements
-    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,&MATROSKA_ContextTrackEntry); Track; Track = (ebml_master*)EBML_MasterNextChild(Tracks,Track))
+    for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track; Track = (ebml_master*)EBML_MasterNextChild(Tracks,Track))
     {
-        Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
+        Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber());
         if (Elt)
             NodeTree_SetParent(Elt,Track,EBML_MasterChildren(Track));
 
-        Elt2 = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
+        Elt2 = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
         assert(Elt2!=NULL);
         NodeTree_SetParent(Elt2,Track,EBML_MasterNext(Elt));
 
-        DisplayW = EBML_MasterFindChild(Track,&MATROSKA_ContextCodecID);
+        DisplayW = EBML_MasterFindChild(Track,MATROSKA_getContextCodecID());
         if (DisplayW)
             NodeTree_SetParent(DisplayW,Track,EBML_MasterNext(Elt2));
     }
@@ -1308,20 +1308,20 @@ static bool_t BlockIsCompressed(const matroska_block *Block)
     ebml_master *Track = (ebml_master*)MATROSKA_BlockReadTrack(Block);
     if (Track)
     {
-        ebml_master *Elt = (ebml_master*)EBML_MasterFindChild(Track, &MATROSKA_ContextContentEncodings);
+        ebml_master *Elt = (ebml_master*)EBML_MasterFindChild(Track, MATROSKA_getContextContentEncodings());
         if (Elt)
         {
-            Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextContentEncoding);
+            Elt = (ebml_master*)EBML_MasterFindChild(Elt, MATROSKA_getContextContentEncoding());
             if (EBML_MasterChildren(Elt))
             {
                 if (EBML_MasterNext(Elt))
                     return 1; // we don't support cascased encryption/compression
 
-                Elt = (ebml_master*)EBML_MasterFindChild(Elt, &MATROSKA_ContextContentCompression);
+                Elt = (ebml_master*)EBML_MasterFindChild(Elt, MATROSKA_getContextContentCompression());
                 if (!Elt)
                     return 1; // we don't support encryption
 
-                Elt = (ebml_master*)EBML_MasterGetChild(Elt, &MATROSKA_ContextContentCompAlgo);
+                Elt = (ebml_master*)EBML_MasterGetChild(Elt, MATROSKA_getContextContentCompAlgo());
                 if (EBML_IntegerValue((ebml_integer*)Elt)==MATROSKA_BLOCK_COMPR_ZLIB)
                     return 1;
             }
@@ -1611,7 +1611,7 @@ int main(int argc, const char *argv[])
     }
 
     // parse the source file to determine if it's a Matroska file and determine the location of the key parts
-    RContext.Context = &MATROSKA_ContextStream;
+    RContext.Context = MATROSKA_getContextStream();
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
     RContext.Profile = 0;
@@ -1659,7 +1659,7 @@ int main(int argc, const char *argv[])
     RContext.EndPosition = TotalSize; // avoid reading too far some dummy/void elements for this segment
 
     // locate the Segment Info, Track Info, Chapters, Tags, Attachments, Cues Clusters*
-    RSegmentContext.Context = &MATROSKA_ContextSegment;
+    RSegmentContext.Context = MATROSKA_getContextSegment();
     RSegmentContext.EndPosition = EBML_ElementPositionEnd((ebml_element*)RSegment);
     RSegmentContext.UpContext = &RContext;
     RSegmentContext.Profile = SrcProfile;
@@ -1669,47 +1669,47 @@ int main(int argc, const char *argv[])
     while (RLevel1)
     {
         ShowProgress((ebml_element*)RLevel1, TotalSize);
-        if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextInfo))
+        if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextInfo()))
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RSegmentInfo = RLevel1;
         }
-        else if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextTracks))
+        else if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextTracks()))
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RTrackInfo = RLevel1;
         }
-        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextChapters))
+        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextChapters()))
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RChapters = RLevel1;
         }
-        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextTags))
+        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextTags()))
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RTags = RLevel1;
         }
-        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextCues) && KeepCues)
+        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextCues()) && KeepCues)
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RCues = RLevel1;
         }
-        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextAttachments))
+        else if (!Live && EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextAttachments()))
         {
             if (EBML_ElementReadData(RLevel1,Input,&RSegmentContext,1,SCOPE_ALL_DATA,0)==ERR_NONE)
                 RAttachments = RLevel1;
         }
-        else if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextCluster))
+        else if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextCluster()))
         {
 			// only partially read the Cluster data (not the data inside the blocks)
             if (EBML_ElementReadData((ebml_element*)RLevel1,Input,&RSegmentContext,!Remux,SCOPE_PARTIAL_DATA,0)==ERR_NONE)
 			{
                 ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
 				// remove MATROSKA_ContextPosition and MATROSKA_ContextPrevSize until supported
-				EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1, &MATROSKA_ContextPosition);
+				EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1, MATROSKA_getContextPosition());
 				if (EbmlHead)
 					NodeDelete((node*)EbmlHead);
-				EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1, &MATROSKA_ContextPrevSize);
+				EbmlHead = (ebml_master*)EBML_MasterFindChild(RLevel1, MATROSKA_getContextPrevSize());
 				if (EbmlHead)
 					NodeDelete((node*)EbmlHead);
 				EbmlHead = NULL;
@@ -1737,7 +1737,7 @@ int main(int argc, const char *argv[])
     WSegmentInfo = (ebml_master*)EBML_ElementCopy(RSegmentInfo, NULL);
     EBML_MasterUseChecksum(WSegmentInfo,!Unsafe);
 
-	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,&MATROSKA_ContextTimestampScale);
+	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,MATROSKA_getContextTimestampScale());
 	if (!RLevel1)
 	{
 		TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
@@ -1758,13 +1758,13 @@ int main(int argc, const char *argv[])
     if (Live)
     {
 	    // remove MATROSKA_ContextDuration from Live streams
-	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, MATROSKA_getContextDuration());
 	    if (Duration)
 		    NodeDelete((node*)Duration);
     }
     else if (TimeCodeScale && TimeCodeScale != OldTimeCodeScale)
     {
-	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, MATROSKA_getContextDuration());
         if (Duration)
         {
             double duration = EBML_FloatValue(Duration);
@@ -1773,12 +1773,12 @@ int main(int argc, const char *argv[])
     }
 
     // reorder elements in WSegmentInfo
-    Elt2 = EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextTimestampScale);
+    Elt2 = EBML_MasterFindChild(WSegmentInfo, MATROSKA_getContextTimestampScale());
     if (Elt2)
         NodeTree_SetParent(Elt2,WSegmentInfo,EBML_MasterChildren(WSegmentInfo));
     if (!Elt2)
         Elt2 = EBML_MasterChildren(WSegmentInfo);
-    Elt = EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDuration);
+    Elt = EBML_MasterFindChild(WSegmentInfo, MATROSKA_getContextDuration());
     if (Elt)
         NodeTree_SetParent(Elt,WSegmentInfo,Elt2);
 
@@ -1808,10 +1808,10 @@ int main(int argc, const char *argv[])
 		// count the max track number
 		for (Elt=EBML_MasterChildren(WTrackInfo); Elt; Elt=EBML_MasterNext(Elt))
 		{
-			if (EBML_ElementIsType(Elt, &MATROSKA_ContextTrackEntry))
+			if (EBML_ElementIsType(Elt, MATROSKA_getContextTrackEntry()))
 			{
                 EBML_MasterUseChecksum((ebml_master*)Elt,!Unsafe);
-				Elt2 = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackNumber);
+				Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber());
 				if (Elt2 && (size_t)EBML_IntegerValue((ebml_integer*)Elt2) > MaxTrackNum)
 					MaxTrackNum = (size_t)EBML_IntegerValue((ebml_integer*)Elt2);
 			}
@@ -1821,7 +1821,7 @@ int main(int argc, const char *argv[])
 		i = -1;
 		for (Elt = EBML_MasterChildren(WTrackInfo);Elt;Elt=EBML_MasterNext(Elt))
 		{
-			Elt2 = EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackNumber);
+			Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber());
             if (Elt2)
 			    i = max(i,(int)EBML_IntegerValue((ebml_integer*)Elt2));
 		}
@@ -1836,7 +1836,7 @@ int main(int argc, const char *argv[])
     EBML_MasterUseChecksum(EbmlHead,!Unsafe);
     NodeTree_Clear((nodetree*)EbmlHead); // remove the default values
     // DocType
-    RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocType);
+    RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,EBML_getContextDocType());
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
@@ -1865,14 +1865,14 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-    RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeVersion);
+    RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,EBML_getContextDocTypeVersion());
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     EBML_IntegerSetValue((ebml_integer*)RLevel1, DocVersion);
 
     // Doctype readable version
-    RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,&EBML_ContextDocTypeReadVersion);
+    RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,EBML_getContextDocTypeReadVersion());
     if (!RLevel1)
         goto exit;
     assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
@@ -1885,7 +1885,7 @@ int main(int argc, const char *argv[])
     RLevel1 = NULL;
 
     // Write the Matroska Segment Head
-    WSegment = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextSegment,0,NULL);
+    WSegment = (ebml_master*)EBML_ElementCreate(&p,MATROSKA_getContextSegment(),0,NULL);
 	if (Live)
 		EBML_ElementSetInfiniteSize((ebml_element*)WSegment,1);
 	else
@@ -1907,14 +1907,14 @@ int main(int argc, const char *argv[])
     ReduceSize((ebml_element*)WSegmentInfo);
     // change the library names & app name
     stprintf_s(String,TSIZEOF(String),T("%s + %s"),Node_GetDataStr((node*)&p,CONTEXT_LIBEBML_VERSION),Node_GetDataStr((node*)&p,CONTEXT_LIBMATROSKA_VERSION));
-    LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextMuxingApp, 1, 0);
+    LibName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, MATROSKA_getContextMuxingApp(), 1, 0);
     EBML_StringGet(LibName,Original,TSIZEOF(Original));
     if (Regression)
         EBML_UniStringSetValue(LibName,T("libebml2 + libmatroska2"));
     else
         EBML_UniStringSetValue(LibName,String);
 
-    AppName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, &MATROSKA_ContextWritingApp, 1, 0);
+    AppName = (ebml_string*)EBML_MasterFindFirstElt(WSegmentInfo, MATROSKA_getContextWritingApp(), 1, 0);
     EBML_StringGet(AppName,String,TSIZEOF(String));
 	ExtraSizeDiff = tcslen(String);
     if (!tcsisame_ascii(String,Original)) // libavformat writes the same twice, we only need one
@@ -1957,9 +1957,9 @@ int main(int argc, const char *argv[])
     EBML_UniStringSetValue(AppName,String);
 	ExtraSizeDiff = tcslen(String) - ExtraSizeDiff + 2;
 
-	if (Regression || Remux || !EBML_MasterFindChild(WSegmentInfo, &MATROSKA_ContextDateUTC))
+	if (Regression || Remux || !EBML_MasterFindChild(WSegmentInfo, MATROSKA_getContextDateUTC()))
 	{
-		RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo, &MATROSKA_ContextDateUTC);
+		RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo, MATROSKA_getContextDateUTC());
         if (Regression)
             EBML_DateSetDateTime((ebml_date*)RLevel1, 1);
         else
@@ -1970,7 +1970,7 @@ int main(int argc, const char *argv[])
 	if (!Live)
 	{
 		//  Prepare the Meta Seek with average values
-		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,&MATROSKA_ContextSeekHead,0);
+		WMetaSeek = (ebml_master*)EBML_MasterAddElt(WSegment,MATROSKA_getContextSeekHead(),0);
         EBML_MasterUseChecksum(WMetaSeek,!Unsafe);
 		EBML_ElementForcePosition((ebml_element*)WMetaSeek, Stream_Seek(Output,0,SEEK_CUR)); // keep the position for when we need to write it
         NextPos = 38 + 4* (Unsafe ? 17 : 23); // raw estimation of the SeekHead size
@@ -1980,7 +1980,7 @@ int main(int argc, const char *argv[])
             NextPos += Unsafe ? 17 : 23;
 
 		// segment info
-		WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+		WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
         EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 		EBML_ElementForcePosition((ebml_element*)WSegmentInfo, NextPos);
 		NextPos += EBML_ElementFullSize((ebml_element*)WSegmentInfo,0) + 60; // 60 for the extra string we add
@@ -1989,7 +1989,7 @@ int main(int argc, const char *argv[])
 		// track info
 		if (WTrackInfo)
 		{
-			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
             EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 			EBML_ElementForcePosition((ebml_element*)WTrackInfo, NextPos);
             EBML_ElementUpdateSize(WTrackInfo, 0, 0);
@@ -2015,7 +2015,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
                 EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 				EBML_ElementForcePosition((ebml_element*)RChapters, NextPos);
 				NextPos += EBML_ElementFullSize((ebml_element*)RChapters,0);
@@ -2038,7 +2038,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
                 EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 				EBML_ElementForcePosition((ebml_element*)RAttachments, NextPos);
 				NextPos += EBML_ElementFullSize((ebml_element*)RAttachments,0);
@@ -2060,7 +2060,7 @@ int main(int argc, const char *argv[])
 			}
 			else
 			{
-				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+				WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
                 EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 				EBML_ElementForcePosition((ebml_element*)RTags, NextPos);
 				NextPos += EBML_ElementFullSize((ebml_element*)RTags,0);
@@ -2085,11 +2085,11 @@ int main(int argc, const char *argv[])
         for (Elt = EBML_MasterChildren(*Cluster);Elt;Elt=(ebml_element*)RLevel1)
         {
             RLevel1 = (ebml_master*)EBML_MasterNext((ebml_master*)Elt);
-            if (EBML_ElementIsType(Elt, &MATROSKA_ContextBlockGroup))
+            if (EBML_ElementIsType(Elt, MATROSKA_getContextBlockGroup()))
             {
                 for (Elt2 = EBML_MasterChildren((ebml_master*)Elt);Elt2;Elt2=EBML_MasterNext((ebml_master*)Elt2))
                 {
-                    if (EBML_ElementIsType(Elt2, &MATROSKA_ContextBlock))
+                    if (EBML_ElementIsType(Elt2, MATROSKA_getContextBlock()))
                     {
                         if (MATROSKA_LinkBlockWithWriteTracks((matroska_block*)Elt2,WTrackInfo)!=ERR_NONE)
                             NodeDelete((node*)Elt);
@@ -2099,7 +2099,7 @@ int main(int argc, const char *argv[])
                     }
                 }
             }
-            else if (EBML_ElementIsType(Elt, &MATROSKA_ContextSimpleBlock))
+            else if (EBML_ElementIsType(Elt, MATROSKA_getContextSimpleBlock()))
             {
                 if (MATROSKA_LinkBlockWithWriteTracks((matroska_block*)Elt,WTrackInfo)!=ERR_NONE)
                     NodeDelete((node*)Elt);
@@ -2125,15 +2125,15 @@ int main(int argc, const char *argv[])
             if (!OptimizeVideo)
             {
                 ebml_master *Track;
-	            for (Track = (ebml_master*)EBML_MasterFindChild(WTrackInfo,&MATROSKA_ContextTrackEntry); Track; Track=(ebml_master*)EBML_MasterNextChild(WTrackInfo,Track))
+	            for (Track = (ebml_master*)EBML_MasterFindChild(WTrackInfo,MATROSKA_getContextTrackEntry()); Track; Track=(ebml_master*)EBML_MasterNextChild(WTrackInfo,Track))
 	            {
-		            Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
+		            Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber());
 		            if (EBML_IntegerValue((ebml_integer*)Elt) != i)
                         continue;
-		            Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackType);
+		            Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
 		            if (EBML_IntegerValue((ebml_integer*)Elt) == TRACK_TYPE_VIDEO)
                     {
-                        Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextContentEncodings);
+                        Elt = EBML_MasterFindChild(Track,MATROSKA_getContextContentEncodings());
                         NodeDelete((node*)Elt);
 			            OptimizeTrack = 0;
                     }
@@ -2148,16 +2148,16 @@ int main(int argc, const char *argv[])
 	    {
 		    for (Block = EBML_MasterChildren(*ClusterR);Block;Block=EBML_MasterNext(Block))
 		    {
-			    if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
+			    if (EBML_ElementIsType(Block, MATROSKA_getContextBlockGroup()))
 			    {
-				    GBlock = EBML_MasterFindChild((ebml_master*)Block, &MATROSKA_ContextBlock);
+				    GBlock = EBML_MasterFindChild((ebml_master*)Block, MATROSKA_getContextBlock());
 				    if (GBlock)
 				    {
 					    BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
                         ShrinkCommonHeader(ARRAYBEGIN(TrackMaxHeader,array)+BlockTrack, (matroska_block*)GBlock, Input);
 				    }
 			    }
-			    else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
+			    else if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
 			    {
 				    BlockTrack = MATROSKA_BlockTrackNum((matroska_block *)Block);
                     ShrinkCommonHeader(ARRAYBEGIN(TrackMaxHeader,array)+BlockTrack, (matroska_block*)Block, Input);
@@ -2191,7 +2191,7 @@ int main(int argc, const char *argv[])
 		Frame = 0;
 		for (Track=(ebml_master*)EBML_MasterChildren(WTrackInfo); Track; Track=(ebml_master*)EBML_MasterNext(Track))
 		{
-			if (EBML_ElementIsType((ebml_element*)Track, &MATROSKA_ContextTrackEntry))
+			if (EBML_ElementIsType((ebml_element*)Track, MATROSKA_getContextTrackEntry()))
 				++Frame;
 		}
 
@@ -2213,9 +2213,9 @@ int main(int argc, const char *argv[])
 		{
 			for (Block = EBML_MasterChildren(*ClusterR);Block;Block=EBML_MasterNext(Block))
 			{
-				if (EBML_ElementIsType(Block, &MATROSKA_ContextBlockGroup))
+				if (EBML_ElementIsType(Block, MATROSKA_getContextBlockGroup()))
 				{
-					GBlock = EBML_MasterFindChild((ebml_master*)Block, &MATROSKA_ContextBlock);
+					GBlock = EBML_MasterFindChild((ebml_master*)Block, MATROSKA_getContextBlock());
 					if (GBlock)
 					{
 						BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
@@ -2223,7 +2223,7 @@ int main(int argc, const char *argv[])
 						ArrayAppend(ARRAYBEGIN(TrackBlocks,array)+BlockTrack,&BlockInfo,sizeof(BlockInfo),1024);
 					}
 				}
-				else if (EBML_ElementIsType(Block, &MATROSKA_ContextSimpleBlock))
+				else if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
 				{
 					BlockTrack = MATROSKA_BlockTrackNum((matroska_block *)Block);
 					BlockInfo.Block = (matroska_block*)Block;
@@ -2244,7 +2244,7 @@ int main(int argc, const char *argv[])
 				TextWrite(StdErr,T("Impossible to remux without a proper track to use\r\n"));
 				goto exit;
 			}
-			Elt = EBML_MasterFindChild(Track,&MATROSKA_ContextTrackNumber);
+			Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber());
 			assert(Elt!=NULL);
 			MainTrack = (int16_t)EBML_IntegerValue((ebml_integer*)Elt);
 
@@ -2253,9 +2253,9 @@ int main(int argc, const char *argv[])
 				if (!ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
 				{
 					if (!Quiet) TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
-					for (Elt = EBML_MasterFindChild(WTrackInfo,&MATROSKA_ContextTrackEntry); Elt; Elt=EBML_MasterNextChild(WTrackInfo,Elt))
+					for (Elt = EBML_MasterFindChild(WTrackInfo,MATROSKA_getContextTrackEntry()); Elt; Elt=EBML_MasterNextChild(WTrackInfo,Elt))
 					{
-						if (EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,&MATROSKA_ContextTrackNumber))==*pTrackOrder)
+						if (EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber()))==*pTrackOrder)
 						{
 							NodeDelete((node*)Elt);
 							--Frame;
@@ -2335,7 +2335,7 @@ int main(int argc, const char *argv[])
 		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
 		{
 			bool_t ReachedClusterEnd = 0;
-			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, &MATROSKA_ContextCluster, 0, NULL);
+			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, MATROSKA_getContextCluster(), 0, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterReadSegmentInfo(ClusterW, RSegmentInfo, 1);
 			MATROSKA_LinkClusterWriteSegmentInfo(ClusterW, WSegmentInfo);
@@ -2386,7 +2386,7 @@ int main(int argc, const char *argv[])
 						if (pBlockInfo->FrameStartIndex!=0)
 						{
                             // use the frames left from the previous block
-							if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+							if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
 							{
                                 Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
@@ -2412,10 +2412,10 @@ int main(int argc, const char *argv[])
 									continue;
 								}
 							}
-							else if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextBlock))
+							else if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextBlock()))
 							{
                                 Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
-								Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextBlock);
+								Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextBlock());
 								MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
 								for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
@@ -2449,7 +2449,7 @@ int main(int argc, const char *argv[])
                             {
 						        bool_t HasDuration = MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input)==ERR_NONE;
 							    Result = ERR_NONE;
-							    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+							    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
 							    {
 								    // This block needs to be split
                                     Block1 = (matroska_block*)EBML_ElementCopy(pBlockInfo->Block, NULL);
@@ -2479,10 +2479,10 @@ int main(int argc, const char *argv[])
 							    }
 							    else
 							    {
-								    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextBlock));
+								    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextBlock()));
 								    // This block needs to be split
                                     Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
-								    Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextBlock);
+								    Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextBlock());
 							        MATROSKA_LinkBlockWriteSegmentInfo(Block1,WSegmentInfo);
 
 							        for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
@@ -2549,14 +2549,14 @@ int main(int argc, const char *argv[])
                                 if (Result==ERR_NONE)
                                 {
                                     Result = MATROSKA_BlockReadData(pBlockInfo->Block,Input);
-                                    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+                                    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
                                     {
                                         Block1 = (matroska_block*)pBlockInfo->Block;
                                     }
                                     else
                                     {
                                         Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
-								        Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, &MATROSKA_ContextBlock);
+								        Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextBlock());
                                     }
                                     assert(!Block1->IsKeyframe);
 						            MATROSKA_BlockGetFrame(Block1, pBlockInfo->FrameStartIndex, &FrameData, 1);
@@ -2567,7 +2567,7 @@ int main(int argc, const char *argv[])
                             }
                             else
                             {
-							    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextSimpleBlock))
+							    if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
                                 {
 						            Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
                                     if (Result == ERR_NONE)
@@ -2575,7 +2575,7 @@ int main(int argc, const char *argv[])
                                 }
 							    else
 							    {
-                                    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, &MATROSKA_ContextBlock));
+                                    assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextBlock()));
                                     Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
                                     if (Result == ERR_NONE)
                                         Result = EBML_MasterAppend((ebml_master*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
@@ -2623,39 +2623,39 @@ int main(int argc, const char *argv[])
         size_t TrackNum;
         tchar_t CodecID[MAXDATA];
 		// fix/clean the Lacing flag for each track
-		//assert(MATROSKA_ContextFlagLacing.DefaultValue==1);
+		//assert(MATROSKA_getContextFlagLacing()->DefaultValue==1);
 		for (RLevel1 = (ebml_master*)EBML_MasterChildren(WTrackInfo); RLevel1; RLevel1=(ebml_master*)EBML_MasterNext(RLevel1))
 		{
-            if (EBML_ElementIsType((ebml_element*)RLevel1, &MATROSKA_ContextTrackEntry))
+            if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextTrackEntry()))
             {
                 int encoding = MATROSKA_BLOCK_COMPR_NONE;
                 int zlib_scope = MATROSKA_COMPR_SCOPE_BLOCK;
 
-                Elt2 = EBML_MasterFindChild(RLevel1,&MATROSKA_ContextTrackNumber);
+                Elt2 = EBML_MasterFindChild(RLevel1,MATROSKA_getContextTrackNumber());
 			    if (!Elt2) continue;
                 TrackNum = (size_t)EBML_IntegerValue((ebml_integer*)Elt2);
 			    if (ARRAYBEGIN(WTracks,track_info)[TrackNum].IsLaced)
 			    {
 				    // has lacing
-				    Elt2 = EBML_MasterFindChild(RLevel1,&MATROSKA_ContextFlagLacing);
+				    Elt2 = EBML_MasterFindChild(RLevel1,MATROSKA_getContextFlagLacing());
 				    if (Elt2)
 					    NodeDelete((node*)Elt2);
 			    }
 			    else
 			    {
 				    // doesn't have lacing
-				    Elt2 = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextFlagLacing,1,0);
+				    Elt2 = EBML_MasterFindFirstElt(RLevel1,MATROSKA_getContextFlagLacing(),1,0);
 				    EBML_IntegerSetValue((ebml_integer*)Elt2,0);
 			    }
                 
-                CodecPrivate = (ebml_binary*) EBML_MasterFindChild(RLevel1,&MATROSKA_ContextCodecPrivate);
+                CodecPrivate = (ebml_binary*) EBML_MasterFindChild(RLevel1,MATROSKA_getContextCodecPrivate());
                 if (CodecPrivate && CodecPrivate->Base.DataSize==0)
                 {
                     NodeDelete((node*)CodecPrivate);
                     CodecPrivate = NULL;
                 }
 
-                Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextContentEncodings);
+                Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,MATROSKA_getContextContentEncodings());
                 if (UnOptimize)
                     // remove the previous track compression
                     encoding = MATROSKA_BLOCK_COMPR_NONE;
@@ -2664,7 +2664,7 @@ int main(int argc, const char *argv[])
                     encoding = MATROSKA_TrackGetBlockCompression((matroska_trackentry*)RLevel1);
                 else
                 {
-                    Elt = EBML_MasterFindFirstElt(RLevel1,&MATROSKA_ContextCodecID,1,0);
+                    Elt = EBML_MasterFindFirstElt(RLevel1,MATROSKA_getContextCodecID(),1,0);
                     EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
                     if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN"))
                         || tcsisame_ascii(CodecID,T("V_UNCOMPRESSED"))|| tcsstr(CodecID,T("A_PCM"))==CodecID)
@@ -2687,10 +2687,10 @@ int main(int argc, const char *argv[])
                 {
                     if (Encodings)
                     {
-                        Elt = EBML_MasterFindChild((ebml_master*)Encodings,&MATROSKA_ContextContentEncoding);
+                        Elt = EBML_MasterFindChild((ebml_master*)Encodings,MATROSKA_getContextContentEncoding());
                         if (Elt)
                         {
-                            Elt2 =  EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentEncodingScope);
+                            Elt2 =  EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentEncodingScope());
                             if (Elt2)
                                 zlib_scope = EBML_IntegerValue((ebml_integer*)Elt2);
                         }
@@ -2733,16 +2733,16 @@ int main(int argc, const char *argv[])
                     break;
                 }
 
-                Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,&MATROSKA_ContextContentEncodings);
+                Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,MATROSKA_getContextContentEncodings());
                 if (Encodings)
                 {
-                    if ((Elt2 = EBML_MasterFindChild(Encodings,&MATROSKA_ContextContentEncoding)) != NULL)
+                    if ((Elt2 = EBML_MasterFindChild(Encodings,MATROSKA_getContextContentEncoding())) != NULL)
                     {
-                        Elt =  EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentEncodingScope);
+                        Elt =  EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope());
                         if (EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_COMPR_SCOPE_BLOCK)
                         {
-                            Elt = EBML_MasterGetChild((ebml_master*)Elt2,&MATROSKA_ContextContentCompression);
-                            Elt = EBML_MasterGetChild((ebml_master*)Elt,&MATROSKA_ContextContentCompAlgo);
+                            Elt = EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression());
+                            Elt = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo());
                             if (EBML_IntegerValue((ebml_integer*)Elt)!=MATROSKA_BLOCK_COMPR_HEADER)
                                 ClustersNeedRead = 1;
                         }
@@ -2776,7 +2776,7 @@ int main(int argc, const char *argv[])
 		if (!RCues && WTrackInfo && ARRAYCOUNT(*Clusters,ebml_element*) > 1)
 		{
 			// generate the cues
-			RCues = (ebml_master*)EBML_ElementCreate(&p,&MATROSKA_ContextCues,0,NULL);
+			RCues = (ebml_master*)EBML_ElementCreate(&p,MATROSKA_getContextCues(),0,NULL);
             EBML_MasterUseChecksum(RCues,!Unsafe);
 			if (!Quiet) TextWrite(StdErr,T("Generating Cues from scratch\r\n"));
 			CuesCreated = GenerateCueEntries(RCues,Clusters,WTrackInfo,WSegmentInfo,(ebml_element*)RSegment, TotalSize);
@@ -2789,7 +2789,7 @@ int main(int argc, const char *argv[])
 
 		if (RCues)
 		{
-			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+			WSeekPoint = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
             EBML_MasterUseChecksum((ebml_master*)WSeekPoint,!Unsafe);
 			EBML_ElementForcePosition((ebml_element*)RCues, NextPos);
 			NextPos += EBML_ElementFullSize((ebml_element*)RCues,0);
@@ -2809,7 +2809,7 @@ int main(int argc, const char *argv[])
         // first cluster
         if (ARRAYCOUNT(RClusters,matroska_cluster*))
         {
-			W1stClusterSeek = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,&MATROSKA_ContextSeek,0);
+			W1stClusterSeek = (matroska_seekpoint*)EBML_MasterAddElt(WMetaSeek,MATROSKA_getContextSeek(),0);
             EBML_MasterUseChecksum((ebml_master*)W1stClusterSeek,!Unsafe);
 			EBML_ElementForcePosition(ARRAYBEGIN(*Clusters,ebml_element*)[0], NextPos + ExtraVoidSize);
 			NextPos += EBML_ElementFullSize(ARRAYBEGIN(*Clusters,ebml_element*)[0],0);
@@ -2894,7 +2894,7 @@ int main(int argc, const char *argv[])
 		SegmentSize += MetaSeekBefore;
 
         // create a fake placeholder elements to have its position prepared in the SeekHead
-        Void = EBML_ElementCreate(WMetaSeek,&EBML_ContextEbmlVoid,1,NULL);
+        Void = EBML_ElementCreate(WMetaSeek,EBML_getContextEbmlVoid(),1,NULL);
         EBML_VoidSetFullSize(Void, ExtraVoidSize);
 		if (EBML_ElementRender((ebml_element*)Void,Output,0,0,1,&ClusterSize)!=ERR_NONE)
 		{
@@ -3002,7 +3002,7 @@ int main(int argc, const char *argv[])
         if (CuesSize >= ClusterSize+2)
         {
             // the cues were shrinked, write a void element
-            ebml_element *Void = EBML_ElementCreate(RCues,&EBML_ContextEbmlVoid,1,NULL);
+            ebml_element *Void = EBML_ElementCreate(RCues,EBML_getContextEbmlVoid(),1,NULL);
             EBML_VoidSetFullSize(Void, CuesSize - ClusterSize);
             EBML_ElementRender(Void,Output,0,0,1,NULL);
         }
