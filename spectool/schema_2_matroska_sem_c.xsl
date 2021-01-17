@@ -43,11 +43,21 @@
 #include "matroska/matroska_sem.h"
 #include "matroska/matroska_internal.h"
 
+<xsl:call-template name="output-element-declaration">
+    <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
+</xsl:call-template>
+<xsl:call-template name="output-element-semantic">
+    <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
+</xsl:call-template>
+<xsl:text>&#10;void MATROSKA_InitSemantic()&#10;</xsl:text>
+<xsl:text>{&#10;</xsl:text>
 <xsl:call-template name="output-element-definition">
     <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
 </xsl:call-template>
+<xsl:text>}&#10;</xsl:text>
 </xsl:template>
-  <xsl:template name="output-element-definition">
+
+  <xsl:template name="output-element-declaration">
     <xsl:param name="node"/>
 
     <xsl:variable name="plainPath">
@@ -56,7 +66,40 @@
 
     <xsl:if test="$node/@type='master'">
         <xsl:for-each select="/ebml:EBMLSchema/ebml:element[translate(@path, '\+', '\') = concat(concat($plainPath, '\'), @name)]">
-            <xsl:call-template name="output-element-definition">
+            <xsl:call-template name="output-element-declaration">
+                <xsl:with-param name="node" select="."/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:if>
+
+<!-- <xsl:text>plainPath = </xsl:text><xsl:value-of select="$plainPath" /><xsl:text>&#10;</xsl:text> -->
+    <xsl:variable name="lib2Name">
+        <xsl:choose>
+            <xsl:when test="$node/@name='ChapterTrackUID'"><xsl:text>ChapterTrackNumber</xsl:text></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$node/@name"/></xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+
+    <xsl:text>ebml_context MATROSKA_Context</xsl:text>
+    <xsl:value-of select="$lib2Name" />
+    <xsl:text>;&#10;</xsl:text>
+    <xsl:text>const ebml_context *MATROSKA_getContext</xsl:text>
+    <xsl:value-of select="$lib2Name" />
+    <xsl:text>() { return &amp;MATROSKA_Context</xsl:text>
+    <xsl:value-of select="$lib2Name" />
+    <xsl:text>; }&#10;</xsl:text>
+  </xsl:template>
+
+  <xsl:template name="output-element-semantic">
+    <xsl:param name="node"/>
+
+    <xsl:variable name="plainPath">
+        <xsl:value-of select="translate($node/@path, '\+', '\')" />
+    </xsl:variable>
+
+    <xsl:if test="$node/@type='master'">
+        <xsl:for-each select="/ebml:EBMLSchema/ebml:element[translate(@path, '\+', '\') = concat(concat($plainPath, '\'), @name)]">
+            <xsl:call-template name="output-element-semantic">
                 <xsl:with-param name="node" select="."/>
             </xsl:call-template>
         </xsl:for-each>
@@ -89,9 +132,38 @@
             <xsl:text>    {0, 0, NULL ,0} // end of the table&#10;</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+        </xsl:when>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="output-element-definition">
+    <xsl:param name="node"/>
+
+    <xsl:variable name="plainPath">
+        <xsl:value-of select="translate($node/@path, '\+', '\')" />
+    </xsl:variable>
+
+    <xsl:if test="$node/@type='master'">
+        <xsl:for-each select="/ebml:EBMLSchema/ebml:element[translate(@path, '\+', '\') = concat(concat($plainPath, '\'), @name)]">
+            <xsl:call-template name="output-element-definition">
+                <xsl:with-param name="node" select="."/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:if>
+
+<!-- <xsl:text>plainPath = </xsl:text><xsl:value-of select="$plainPath" /><xsl:text>&#10;</xsl:text> -->
+    <xsl:variable name="lib2Name">
+        <xsl:choose>
+            <xsl:when test="$node/@name='ChapterTrackUID'"><xsl:text>ChapterTrackNumber</xsl:text></xsl:when>
+            <xsl:otherwise><xsl:value-of select="$node/@name"/></xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+
+    <xsl:choose>
+        <xsl:when test="$node/@type='master'">
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$node/@name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:choose>
                 <xsl:when test="$node/@name='AttachedFile'"><xsl:text>MATROSKA_ATTACHMENT</xsl:text></xsl:when>
@@ -109,16 +181,16 @@
             <xsl:text>EBML_Semantic</xsl:text>
             <xsl:value-of select="$node/@name" />
             <xsl:text>, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
             
         </xsl:when>
         <xsl:when test="$node/@type='binary'">
             
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:choose>
                 <xsl:when test="$node/@name='FileData'"><xsl:text>MATROSKA_BIGBINARY</xsl:text></xsl:when>
@@ -131,15 +203,15 @@
             <xsl:text>0, </xsl:text>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
         </xsl:when>
         <xsl:when test="$node/@type='uinteger'">
             
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:choose>
                 <xsl:when test="$node/@range='0-1'"><xsl:text>EBML_BOOLEAN_CLASS, </xsl:text></xsl:when>
@@ -151,16 +223,16 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
             
         </xsl:when>
         <xsl:when test="$node/@type='integer'">
             
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:text>EBML_SINTEGER_CLASS, </xsl:text>
             <xsl:choose>
@@ -169,16 +241,16 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
             
         </xsl:when>
         <xsl:when test="$node/@type='utf-8'">
             
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:text>EBML_UNISTRING_CLASS, </xsl:text>
             <xsl:choose>
@@ -187,16 +259,16 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
             
         </xsl:when>
         <xsl:when test="$node/@type='string'">
             
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:text>EBML_STRING_CLASS, </xsl:text>
             <xsl:choose>
@@ -205,16 +277,16 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
             
         </xsl:when>
         <xsl:when test="$node/@type='float'">
             
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:text>EBML_FLOAT_CLASS, </xsl:text>
             <xsl:choose>
@@ -231,27 +303,28 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
             
         </xsl:when>
         <xsl:when test="$node/@type='date'">
-            <xsl:text>const ebml_context MATROSKA_Context</xsl:text>
+            <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
-            <xsl:text> = {</xsl:text>
+            <xsl:text> = (ebml_context) {</xsl:text>
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:text>EBML_DATE_CLASS, </xsl:text>
             <xsl:text>0, </xsl:text>
             <xsl:text>0, </xsl:text>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_SemanticGlobals, </xsl:text>
+            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
         </xsl:when>
     </xsl:choose>
   </xsl:template>
+
   <xsl:template match="documentation">
     <documentation>
         <xsl:attribute name="lang"><xsl:value-of select="@lang" /></xsl:attribute>
