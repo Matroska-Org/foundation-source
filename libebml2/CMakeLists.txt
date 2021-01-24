@@ -2,7 +2,7 @@ project("ebml2" VERSION 0.21.3)
 
 option(CONFIG_EBML_WRITING "Build libebml2 with write support" ON)
 
-set(ebml2_group_SOURCES
+set(ebml2_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlmain.c
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlbinary.c
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlcrc.c
@@ -13,32 +13,30 @@ set(ebml2_group_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlstring.c
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlvoid.c
 )
-set(ebml2_group_PUBLIC_HEADERS
+set(ebml2_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ebml2/ebml.h
   ${CMAKE_CURRENT_BINARY_DIR}/ebml2/ebml_config.h
 )
-set(ebml2_group_INTERNAL_HEADERS
+set(ebml2_INTERNAL_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ebml2/ebml_internal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlcrc.h
 )
-add_library("ebml2_group" INTERFACE)
-target_sources("ebml2_group" INTERFACE 
-  ${ebml2_group_SOURCES} 
-  ${ebml2_group_PUBLIC_HEADERS} 
-  ${ebml2_group_INTERNAL_HEADERS}
+add_library("ebml2")
+target_sources("ebml2" PRIVATE 
+  ${ebml2_SOURCES} 
+  ${ebml2_PUBLIC_HEADERS} 
+  ${ebml2_INTERNAL_HEADERS}
 )
 target_compile_definitions("ebml2" PRIVATE EBML2_UGLY_HACKS_API)
-target_compile_definitions("ebml2_group" INTERFACE HAS_EBML2)
+target_compile_definitions("ebml2" PUBLIC HAS_EBML2)
 configure_file(ebml_config.h.in ebml2/ebml_config.h)
 if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
-  set_target_properties("ebml2_group" PROPERTIES 
-    PUBLIC_HEADER "${ebml2_group_PUBLIC_HEADERS}"
+  set_target_properties("ebml2" PROPERTIES 
+    PUBLIC_HEADER "${ebml2_PUBLIC_HEADERS}"
   )
 endif()
 
 # the library needs to be static as it shares constants variables
-add_library("ebml2")
-target_link_libraries("ebml2" PRIVATE "ebml2_group")
 target_link_libraries("ebml2" PUBLIC "corec")
 target_include_directories("ebml2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ".")
 # we can't export EBML as a DLL for now as it doesn't seem possible to use dllimport to initialize global (startup) variables
@@ -78,7 +76,7 @@ target_link_libraries("ebmltree" PUBLIC "ebml2")
 # )
 #add_library("ebml2_legacy" 
 #  legacy/legacy.cpp
-#  ${ebml2_group_SOURCES}
+#  ${ebml2_SOURCES}
 #  ${LEGACY_LIBEBML_PUBLIC_HEADERS}
 #)
 # target_compile_definitions("ebml2_legacy" PUBLIC EBML_STRICT_API)
