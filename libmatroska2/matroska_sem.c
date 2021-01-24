@@ -30,7 +30,7 @@
  */
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
-#include "matroska2/matroska_internal.h"
+#include "matroska2/matroska_classes.h"
 
 ebml_context MATROSKA_ContextSeekID;
 const ebml_context *MATROSKA_getContextSeekID() { return &MATROSKA_ContextSeekID; }

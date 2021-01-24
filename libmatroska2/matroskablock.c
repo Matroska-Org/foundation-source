@@ -27,7 +27,7 @@
  */
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
-#include "matroska2/matroska_internal.h"
+#include "matroska2/matroska_classes.h"
 #if !defined(CONFIG_NOCODEC_HELPER)
 #include "ivorbiscodec.h"
 #include "codec_internal.h"
