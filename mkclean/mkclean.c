@@ -30,7 +30,7 @@
 #include "mkclean_project.h"
 
 #ifndef CONFIG_EBML_WRITING
-#error libebml2 wasn't built with writing support!
+#error libebml2 was not built with writing support!
 #endif
 
 /*!
