@@ -206,4 +206,14 @@ MATROSKA_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_mas
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextStream();
 
+#define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
+#define MATROSKA_BLOCKGROUP_CLASS FOURCC('M','K','B','G')
+#define MATROSKA_CUEPOINT_CLASS   FOURCC('M','K','C','P')
+#define MATROSKA_CLUSTER_CLASS    FOURCC('M','K','C','U')
+#define MATROSKA_SEEKPOINT_CLASS  FOURCC('M','K','S','K')
+#define MATROSKA_SEGMENTUID_CLASS FOURCC('M','K','I','D')
+#define MATROSKA_BIGBINARY_CLASS  FOURCC('M','K','B','B')
+#define MATROSKA_ATTACHMENT_CLASS FOURCC('M','K','A','T')
+#define MATROSKA_TRACKENTRY_CLASS FOURCC('M','K','T','E')
+
 #endif // MATROSKA_MATROSKA_H
