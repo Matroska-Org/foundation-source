@@ -46,7 +46,7 @@
 #include "ebml2_legacy_project.h"
 #include "ebml/EbmlVersion.h"
 
-#include "ebml/ebml.h"
+#include "ebml2/ebml.h"
 
 #define IOCALLBACK_STREAM_CLASS  FOURCC('I','O','C','B')
 

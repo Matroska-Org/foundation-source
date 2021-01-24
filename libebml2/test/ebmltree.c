@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-#include "ebml/ebml.h"
+#include "ebml2/ebml.h"
 
 static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, stream *Input, int *Level)
 {

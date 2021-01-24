@@ -25,8 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "ebml/ebml.h"
-#include "ebml/ebml_internal.h"
+#include "ebml2/ebml.h"
+#include "ebml2/ebml_internal.h"
 
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
 {
