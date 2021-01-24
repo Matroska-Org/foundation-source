@@ -134,9 +134,21 @@ set_target_properties("corec_multithread" PROPERTIES
 add_subdirectory("helpers")
 
 add_library("corec")
+target_include_directories("corec"
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/helpers>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+# keep until the sources are split
+target_include_directories("corec" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
 if (BUILD_SHARED_LIBS)
   target_link_libraries("corec" PRIVATE "corec_node" "corec_parser" "corec_system" "corec_md5")
-  target_include_directories("corec" PUBLIC "helpers" "." ".." ${CMAKE_CURRENT_BINARY_DIR})
+
   target_compile_definitions("corec" PUBLIC NODE_IMPORTS ARRAY_IMPORTS CHARCONVERT_IMPORTS DATE_IMPORTS FILE_IMPORTS MD5_IMPORTS CCSYSYEM_IMPORTS MULTITHREAD_IMPORTS STR_IMPORTS)
 else(BUILD_SHARED_LIBS)
   target_link_libraries("corec" PUBLIC "corec_node" "corec_parser" "corec_system" "corec_md5")

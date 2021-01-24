@@ -19,6 +19,7 @@ set(corec_file_UNIX_SOURCES
 set(corec_file_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/file/file.h
   ${CMAKE_CURRENT_SOURCE_DIR}/file/streams.h
+  PARENT_SCOPE
 )
 add_library("corec_file" INTERFACE)
 target_sources("corec_file" INTERFACE ${corec_file_BASE_SOURCES} ${corec_file_PUBLIC_HEADERS})
