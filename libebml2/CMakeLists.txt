@@ -53,6 +53,17 @@ if (BUILD_SHARED_LIBS)
   target_compile_definitions("ebml2" PUBLIC ebml2_IMPORTS)
 endif (BUILD_SHARED_LIBS)
 
+include(GNUInstallDirs)
+
+install(TARGETS "ebml2" 
+  EXPORT Ebml2
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ebml2
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# CMake file to import libebml2
+install(EXPORT Ebml2 DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ebml2)
+
+
 # TODO fix build
 add_executable("ebmltree" test/ebmltree.c)
 target_link_libraries("ebmltree" PUBLIC "ebml2")
