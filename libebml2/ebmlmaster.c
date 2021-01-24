@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml2/ebml.h"
-#include "ebml2/ebml_internal.h"
+#include "internal.h"
 #include "ebmlcrc.h"
 
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)

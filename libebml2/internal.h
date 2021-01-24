@@ -1,6 +1,6 @@
 /*
  * $Id$
- * Copyright (c) 2010-2011, Matroska (non-profit organisation)
+ * Copyright (c) 2010, Matroska (non-profit organisation)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,44 +26,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIBMATROSKA2_INTERNAL_H
-#define LIBMATROSKA2_INTERNAL_H
-
-/*
- * ONLY INCLUDE THIS FILE IF YOU PLAN TO CREATE YOUR OWN MATROSKA-BASED CLASS
- */
+#ifndef LIBEBML2_INTERNAL_H
+#define LIBEBML2_INTERNAL_H
 
 #include "ebml2/ebml_classes.h"
 
-#define MATROSKA_BLOCK_READ_TRACK        0x180
-#define MATROSKA_BLOCK_READ_SEGMENTINFO  0x181
-#if defined(CONFIG_EBML_WRITING)
-#define MATROSKA_BLOCK_WRITE_TRACK       0x182
-#define MATROSKA_BLOCK_WRITE_SEGMENTINFO 0x183
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-struct matroska_block
-{
-    ebml_binary Base;
-	timecode_t GlobalTimecode;
-    filepos_t FirstFrameLocation;
-    array SizeList; // int32_t
-    array SizeListIn; // int32_t
-    array Data; // uint8_t
-    array Durations; // timecode_t
-    ebml_master *ReadTrack;
-    ebml_master *ReadSegInfo;
-#if defined(CONFIG_EBML_WRITING)
-    ebml_master *WriteTrack;
-    ebml_master *WriteSegInfo;
-#endif
-    bool_t IsKeyframe;
-    bool_t IsDiscardable;
-    bool_t Invisible;
-    bool_t LocalTimecodeUsed;
-    int16_t LocalTimecode;
-    uint16_t TrackNumber;
-    char Lacing;
-};
+INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 
-#endif /* LIBMATROSKA2_INTERNAL_H */
+extern const nodemeta EBMLElement_Class[];
+extern const nodemeta EBMLMaster_Class[];
+extern const nodemeta EBMLBinary_Class[];
+extern const nodemeta EBMLString_Class[];
+extern const nodemeta EBMLInteger_Class[];
+extern const nodemeta EBMLCRC_Class[];
+extern const nodemeta EBMLDate_Class[];
+extern const nodemeta EBMLVoid_Class[];
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIBEBML2_INTERNAL_H */

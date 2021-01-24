@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml2/ebml.h"
-#include "ebml2/ebml_internal.h"
+#include "internal.h"
 
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
 {

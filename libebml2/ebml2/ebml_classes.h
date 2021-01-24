@@ -26,8 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIBEBML2_INTERNAL_H
-#define LIBEBML2_INTERNAL_H
+#ifndef LIBEBML2_CLASSES_H
+#define LIBEBML2_CLASSES_H
 
 /*
  * ONLY INCLUDE THIS FILE IF YOU PLAN TO CREATE YOUR OWN EBML-BASED CLASS
@@ -38,8 +38,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-INTERNAL_C_API size_t GetIdLength(fourcc_t Id);
 
 struct ebml_context
 {
@@ -110,17 +108,8 @@ struct ebml_dummy
 
 };
 
-extern const nodemeta EBMLElement_Class[];
-extern const nodemeta EBMLMaster_Class[];
-extern const nodemeta EBMLBinary_Class[];
-extern const nodemeta EBMLString_Class[];
-extern const nodemeta EBMLInteger_Class[];
-extern const nodemeta EBMLCRC_Class[];
-extern const nodemeta EBMLDate_Class[];
-extern const nodemeta EBMLVoid_Class[];
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LIBEBML2_INTERNAL_H */
+#endif /* LIBEBML2_CLASSES_H */
