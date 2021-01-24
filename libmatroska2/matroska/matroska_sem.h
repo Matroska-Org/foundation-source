@@ -33,6 +33,8 @@
 #ifndef MATROSKA_SEMANTIC_H
 #define MATROSKA_SEMANTIC_H
 
+void MATROSKA_InitSemantic();
+
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekPosition();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSeek();
