@@ -34,9 +34,6 @@ set(corec_base_PUBLIC_HEADERS
 )
 target_sources("corec_bare" INTERFACE ${corec_base_PUBLIC_HEADERS})
 target_include_directories("corec_bare" INTERFACE "..")
-set_target_properties("corec_bare" PROPERTIES 
-  PUBLIC_HEADER "${corec_base_PUBLIC_HEADERS}"
-)
 configure_file(corec_config.h.in corec_config.h)
 target_include_directories("corec_bare" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -55,11 +52,6 @@ set(corec_node_PUBLIC_HEADERS
 )
 add_library("corec_node" INTERFACE)
 target_sources("corec_node" INTERFACE ${corec_node_SOURCES} ${corec_node_PUBLIC_HEADERS})
-if (0)
-  set_target_properties("corec_node" PROPERTIES 
-    PUBLIC_HEADER "${corec_node_PUBLIC_HEADERS}"
-  )
-endif()
 target_include_directories("corec_node" INTERFACE ".")
 target_link_libraries("corec_node" INTERFACE "corec_array" "corec_str" "corec_file")
 if(CONFIG_MULTITHREAD)
@@ -75,11 +67,6 @@ set(corec_array_PUBLIC_HEADERS
 )
 add_library("corec_array" INTERFACE)
 target_sources("corec_array" INTERFACE ${corec_array_SOURCES} ${corec_array_PUBLIC_HEADERS})
-if (0)
-set_target_properties("corec_array" PROPERTIES 
-  PUBLIC_HEADER "${corec_array_PUBLIC_HEADERS}"
-)
-endif()
 target_link_libraries("corec_array" INTERFACE "corec_bare")
 
 # String API
@@ -107,9 +94,6 @@ elseif(APPLE)
 elseif(UNIX)
     target_sources("corec_str" INTERFACE ${corec_str_LINUX_SOURCES})
 endif(WIN32)
-set_target_properties("corec_str" PROPERTIES 
-  PUBLIC_HEADER "${corec_str_PUBLIC_HEADERS}"
-)
 
 set(corec_multithread_WIN32_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/multithread/multithread_win32.c
@@ -127,9 +111,6 @@ elseif(UNIX)
   target_sources("corec_multithread" INTERFACE ${corec_multithread_UNIX_SOURCES})
   target_link_libraries("corec_multithread" INTERFACE pthread)
 endif(WIN32)
-set_target_properties("corec_multithread" PROPERTIES
-  PUBLIC_HEADER "${corec_multithread_PUBLIC_HEADERS}"
-)
 
 add_subdirectory("helpers")
 
@@ -153,3 +134,11 @@ if (BUILD_SHARED_LIBS)
 else(BUILD_SHARED_LIBS)
   target_link_libraries("corec" PUBLIC "corec_node" "corec_parser" "corec_system" "corec_md5")
 endif(BUILD_SHARED_LIBS)
+
+set(corec_PUBLIC_HEADERS
+  ${corec_node_PUBLIC_HEADERS} ${corec_parser_PUBLIC_HEADERS} ${corec_system_PUBLIC_HEADERS} ${core_md5_PUBLIC_HEADERS}
+)
+
+set_target_properties("corec" PROPERTIES
+  PUBLIC_HEADER "${corec_PUBLIC_HEADERS}"
+)
