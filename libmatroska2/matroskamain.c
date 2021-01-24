@@ -40,6 +40,8 @@
 #include "minilzo.h"
 #endif
 
+extern const nodemeta Matroska_Class[];
+
 ebml_context MATROSKA_ContextStream;
 ebml_semantic EBML_SemanticMatroska[3];
 static int MATROSKA_init_once = 0;
