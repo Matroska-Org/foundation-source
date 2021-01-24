@@ -112,7 +112,7 @@ static err_t ReadData(ebml_element *Element, stream_io *Input, const ebml_parser
         assert(0);
     }
     DataSize = Result->ReadData(*Input->cpp,Scope);
-    if (DataSize==Element->DataSize)
+    if (DataSize==EBML_ElementDataSize(Element, 1))
         return ERR_NONE;
     return ERR_INVALID_DATA;
 }
@@ -388,7 +388,7 @@ EbmlElement::~EbmlElement()
 EbmlElement * EbmlElement::SkipData(EbmlStream & DataStream, const EbmlSemanticContext & Context, EbmlElement * TestReadElt, bool AllowDummyElt)
 {
     ebml_parser_context pContext;
-    pContext.Context = Node->Context;
+    pContext.Context = *EBML_ElementContext(Node);
     ebml_element *i = EBML_ElementSkipData(Node,DataStream.I_O().GetStream(),&pContext,TestReadElt?TestReadElt->Node:NULL,AllowDummyElt);
     if (i)
     {
@@ -420,7 +420,7 @@ assert(0);
 
 filepos_t EbmlElement::GetSize() const
 {
-    return Node->DataSize;
+    return EBML_ElementDataSize(Node, 1);
 }
 
 bool EbmlElement::ValueIsSet() const
@@ -463,7 +463,7 @@ size_t EbmlElement::HeadSize() const
 {
     filepos_t Result = EBML_ElementFullSize(Node,1);
     if (Result != INVALID_FILEPOS_T)
-        Result -= Node->DataSize; 
+        Result -= EBML_ElementDataSize(Node, 1); 
     return Result;
 }
 
@@ -474,7 +474,7 @@ filepos_t EbmlElement::ElementSize(bool bWithDefault) const
 
 filepos_t EbmlElement::GetElementPosition() const
 {
-    return Node->ElementPosition;
+    return EBML_ElementPosition(Node);
 }
 
 filepos_t EbmlElement::Render(IOCallback & output, bool bWithDefault, bool bKeepPosition, bool bForceRender)
@@ -487,7 +487,7 @@ filepos_t EbmlElement::Render(IOCallback & output, bool bWithDefault, bool bKeep
 
 filepos_t EbmlElement::OverwriteHead(IOCallback & output, bool bKeepPosition)
 {
-    if (Node->ElementPosition == INVALID_FILEPOS_T)
+    if (EBML_ElementPosition(Node) == INVALID_FILEPOS_T)
 		return INVALID_FILEPOS_T; // the element has not been written
 
 	filepos_t CurrentPosition = (filepos_t)output.getFilePointer();
@@ -499,7 +499,7 @@ filepos_t EbmlElement::OverwriteHead(IOCallback & output, bool bKeepPosition)
 	    output.setFilePointer(CurrentPosition);
 	    return CurrentPosition;
     }
-    return Node->ElementPosition;
+    return EBML_ElementPosition(Node);
 }
 
 void EbmlElement::Read(EbmlStream & inDataStream, const ebml_parser_context & Context, int & UpperEltFound, EbmlElement * & FoundElt, bool AllowDummyElt, ScopeMode ReadFully)
@@ -511,7 +511,7 @@ void EbmlElement::Read(EbmlStream & inDataStream, const EbmlSemanticContext & Co
 {
     ebml_parser_context ParserContext;
     ParserContext.Context = Context.GetContext();
-    ParserContext.EndPosition = Node->ElementPosition + Node->DataSize;
+    ParserContext.EndPosition = EBML_ElementPositionEnd(Node);
     ParserContext.UpContext = NULL;
 
     err_t Res = EBML_ElementReadData(Node,inDataStream.I_O().GetStream(),&ParserContext,AllowDummyElt,ReadFully);
