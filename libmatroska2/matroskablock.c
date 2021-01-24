@@ -236,7 +236,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                             memset(&OggPacket,0,sizeof(ogg_packet));
 
 		                    OggBuffer.data = (uint8_t*)EBML_BinaryGetData((ebml_binary*)Elt);
-		                    OggBuffer.size = (long)Elt->DataSize;
+		                    OggBuffer.size = (long)EBML_ElementDataSize(Elt, 1);
 		                    OggBuffer.refcount = 1;
 
                             memset(&OggRef,0,sizeof(OggRef));
