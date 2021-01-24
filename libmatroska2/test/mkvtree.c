@@ -224,7 +224,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     else
     {
 #ifdef IS_BIG_ENDIAN
-        fprintf(stdout,"<unsupported element %x>\r\n",Element->Context->Id);
+        fprintf(stdout,"<unsupported element %x>\r\n",EBML_ElementClassID(Element));
 #else
         fourcc_t Id = EBML_ElementClassID(Element);
         fprintf(stdout,"<unsupported element ");

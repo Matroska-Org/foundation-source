@@ -403,11 +403,11 @@ err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
         return ERR_INVALID_DATA;
 
     WSeekID = EBML_MasterFindFirstElt((ebml_master*)MetaSeek,MATROSKA_getContextSeekID(),1,0);
-    IdSize = EBML_FillBufferID(IdBuffer,sizeof(IdBuffer),Link->Context->Id);
+    IdSize = EBML_FillBufferID(IdBuffer,sizeof(IdBuffer),EBML_ElementClassID(Link));
     EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
 
     WSeekPosSegmentInfo = EBML_MasterFindFirstElt((ebml_master*)MetaSeek,MATROSKA_getContextSeekPosition(),1,0);
-    EBML_IntegerSetValue((ebml_integer*)WSeekPosSegmentInfo, Link->ElementPosition - EBML_ElementPositionData(RSegment));
+    EBML_IntegerSetValue((ebml_integer*)WSeekPosSegmentInfo, EBML_ElementPosition(Link) - EBML_ElementPositionData(RSegment));
 
     return Err;
 }
@@ -790,9 +790,9 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment)
     if (!Elt)
         return ERR_INVALID_DATA;
 
-    assert(Elt->ElementPosition != INVALID_FILEPOS_T);
+    assert(EBML_ElementPosition(Elt) != INVALID_FILEPOS_T);
     
-    EBML_IntegerSetValue((ebml_integer*)PosInCluster, Elt->ElementPosition - EBML_ElementPositionData(Segment));
+    EBML_IntegerSetValue((ebml_integer*)PosInCluster, EBML_ElementPosition(Elt) - EBML_ElementPositionData(Segment));
 
     return ERR_NONE;
 }
@@ -1117,13 +1117,13 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                 InBuf = ARRAYBEGIN(Element->Data,uint8_t);
                 if (Header)
                 {
-                    memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
-                    InBuf += (size_t)Header->DataSize;
+                    memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)EBML_ElementDataSize(Header, 1));
+                    InBuf += (size_t)EBML_ElementDataSize(Header, 1);
                 }
-                Err = Stream_Read(Input,InBuf,(size_t)(ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?Header->DataSize:0)),&Read);
+                Err = Stream_Read(Input,InBuf,(size_t)(ARRAYBEGIN(Element->SizeList,int32_t)[0] - (Header?EBML_ElementDataSize(Header, 1):0)),&Read);
                 if (Err != ERR_NONE)
                     goto failed;
-                if (Read + (Header?Header->DataSize:0) != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
+                if (Read + (Header?EBML_ElementDataSize(Header, 1):0) != (size_t)ARRAYBEGIN(Element->SizeList,int32_t)[0])
                 {
                     Err = ERR_READ;
                     goto failed;
@@ -1283,9 +1283,9 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input)
                     InBuf = ARRAYBEGIN(Element->Data,uint8_t);
                     for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                     {
-                        memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize);
-                        InBuf += (size_t)Header->DataSize;
-                        Read = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] - (int32_t)Header->DataSize;
+                        memcpy(InBuf,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)EBML_ElementDataSize(Header, 1));
+                        InBuf += (size_t)EBML_ElementDataSize(Header, 1);
+                        Read = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] - (int32_t)EBML_ElementDataSize(Header, 1);
                         BufSize = Read;
                         assert(InBuf + Read <= ARRAYEND(Element->Data,uint8_t));
                         Err = Stream_Read(Input,InBuf,BufSize,&Read);
@@ -1668,7 +1668,7 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
             return *Size; // we can't tell the final size without decoding the data
         return OutSize;
     }
-    return ARRAYBEGIN(Element->SizeList,int32_t)[Frame] - Header->DataSize; // header stripping
+    return ARRAYBEGIN(Element->SizeList,int32_t)[Frame] - EBML_ElementDataSize(Header, 1); // header stripping
 }
 
 #if defined(CONFIG_EBML_WRITING)
@@ -1934,14 +1934,14 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
             // header compression
             for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
             {
-                assert(memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize)==0);
-                if (memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)Header->DataSize)!=0)
+                assert(memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)EBML_ElementDataSize(Header, 1))==0);
+                if (memcmp(Cursor,ARRAYBEGIN(((ebml_binary*)Header)->Data,uint8_t),(size_t)EBML_ElementDataSize(Header, 1))!=0)
                 {
                     Err = ERR_INVALID_DATA;
                     goto failed;
                 }
-                Cursor += Header->DataSize;
-                ToWrite = *i - (size_t)Header->DataSize;
+                Cursor += EBML_ElementDataSize(Header, 1);
+                ToWrite = *i - (size_t)EBML_ElementDataSize(Header, 1);
                 Err = Stream_Write(Output,Cursor,ToWrite,&Written);
                 if (Rendered)
                     *Rendered += Written;
