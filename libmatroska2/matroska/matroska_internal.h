@@ -35,8 +35,6 @@
 
 #include "ebml/ebml_internal.h"
 
-void MATROSKA_InitSemantic();
-
 #define MATROSKA_BLOCK_READ_TRACK        0x180
 #define MATROSKA_BLOCK_READ_SEGMENTINFO  0x181
 #if defined(CONFIG_EBML_WRITING)

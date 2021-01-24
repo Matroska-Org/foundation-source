@@ -44,6 +44,8 @@
 #ifndef MATROSKA_SEMANTIC_H
 #define MATROSKA_SEMANTIC_H
 
+void MATROSKA_InitSemantic();
+
 <xsl:call-template name="output-element-definition">
     <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
 </xsl:call-template>#endif // MATROSKA_SEMANTIC_H
