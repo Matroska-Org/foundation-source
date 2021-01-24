@@ -29,7 +29,7 @@
 #ifndef MATROSKA_PARSER_H
 #define MATROSKA_PARSER_H
 
-#include "matroska/matroska.h"
+#include "matroska2/matroska.h"
 
 typedef int64_t longlong;
 typedef uint64_t ulonglong;

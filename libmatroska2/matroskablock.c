@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "matroska/matroska.h"
-#include "matroska/matroska_sem.h"
-#include "matroska/matroska_internal.h"
+#include "matroska2/matroska.h"
+#include "matroska2/matroska_sem.h"
+#include "matroska2/matroska_internal.h"
 #if !defined(CONFIG_NOCODEC_HELPER)
 #include "ivorbiscodec.h"
 #include "codec_internal.h"

@@ -26,8 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #define EBML2_UGLY_HACKS_API // we force some values in the elements we read
-#include "matroska/matroska.h"
-#include "matroska/matroska_sem.h"
+#include "matroska2/matroska.h"
+#include "matroska2/matroska_sem.h"
 #include "mkclean_project.h"
 
 #ifndef CONFIG_EBML_WRITING
