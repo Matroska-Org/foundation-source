@@ -34,11 +34,6 @@ if (WIN32)
 elseif(UNIX)
   target_sources("corec_file" INTERFACE ${corec_file_UNIX_SOURCES})
 endif(WIN32)
-if (0)
-set_target_properties("corec_file" PROPERTIES 
-  PUBLIC_HEADER "${corec_file_PUBLIC_HEADERS}"
-)
-endif()
 target_link_libraries("corec_file" INTERFACE "corec_node" "corec_date")
 
 # Parser API
@@ -61,16 +56,12 @@ set(corec_parser_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtab.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtypes.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/urlpart.h
+  PARENT_SCOPE
 )
 add_library("corec_parser" INTERFACE)
 target_sources("corec_parser" INTERFACE ${corec_parser_SOURCES} ${corec_parser_PUBLIC_HEADERS})
 target_link_libraries("corec_parser" INTERFACE "corec_str" "corec_charconvert" "corec_file")
 target_include_directories("corec_parser" INTERFACE ".")
-if (0)
-set_target_properties("corec_parser" PROPERTIES
-  PUBLIC_HEADER "${corec_parser_PUBLIC_HEADERS}"
-)
-endif(0)
 
 # System call API
 add_library("corec_system" INTERFACE)
@@ -82,6 +73,7 @@ set(corec_system_UNIX_SOURCES
 )
 set(corec_system_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/system/ccsystem.h
+  PARENT_SCOPE
 )
 if (WIN32)
   target_sources("corec_system" INTERFACE ${corec_system_WIN32_SOURCES})
@@ -89,11 +81,6 @@ elseif(UNIX)
   target_sources("corec_system" INTERFACE ${corec_system_UNIX_SOURCES})
 endif(WIN32)
 target_sources("corec_system" INTERFACE ${corec_system_PUBLIC_HEADERS})
-if (0)
-set_target_properties("corec_system" PROPERTIES
-  PUBLIC_HEADER "${corec_system_PUBLIC_HEADERS}"
-)
-endif()
 target_link_libraries("corec_system" INTERFACE "corec_bare" "corec_node")
 
 # MD5 API
@@ -105,11 +92,6 @@ set(corec_md5_PUBLIC_HEADERS
 )
 add_library("corec_md5" INTERFACE)
 target_sources("corec_md5" INTERFACE ${corec_md5_SOURCES} ${corec_md5_PUBLIC_HEADERS})
-if (0)
-set_target_properties("corec_md5" PROPERTIES
-  PUBLIC_HEADER "${corec_md5_PUBLIC_HEADERS}"
-)
-endif()
 target_link_libraries("corec_md5" INTERFACE "corec_bare")
 
 # Date API
@@ -122,6 +104,7 @@ set(corec_system_UNIX_SOURCES
 )
 set(corec_system_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/date/date.h
+  PARENT_SCOPE
 )
 if (WIN32)
   target_sources("corec_date" INTERFACE ${corec_system_WIN32_SOURCES})
@@ -129,11 +112,6 @@ elseif(UNIX)
     target_sources("corec_date" INTERFACE ${corec_system_UNIX_SOURCES})
 endif(WIN32)
 target_sources("corec_date" INTERFACE ${corec_system_PUBLIC_HEADERS})
-if (0)
-set_target_properties("corec_date" PROPERTIES 
-  PUBLIC_HEADER "${corec_system_PUBLIC_HEADERS}"
-)
-endif()
 target_link_libraries("corec_date" INTERFACE "corec_bare")
 
 # Character Conversion API
@@ -151,6 +129,7 @@ set(corec_charconvert_OTHER_SOURCES
 )
 set(corec_charconvert_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/charconvert/charconvert.h
+  PARENT_SCOPE
 )
 add_library("corec_charconvert" INTERFACE)
 if (WIN32)
@@ -163,9 +142,4 @@ elseif(UNIX)
 else(UNIX)
   target_sources("corec_charconvert" INTERFACE ${corec_charconvert_OTHER_SOURCES})
 endif(WIN32)
-if (0)
-set_target_properties("corec_charconvert" PROPERTIES 
-  PUBLIC_HEADER "${corec_charconvert_PUBLIC_HEADERS}"
-)
-endif()
 target_link_libraries("corec_charconvert" INTERFACE "corec_bare")
