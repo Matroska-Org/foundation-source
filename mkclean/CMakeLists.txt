@@ -1,5 +1,3 @@
-option(CONFIG_NOCODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ${BUILD_SHARED_LIBS})
-
 project("mkclean" VERSION 0.8.1)
 
 add_executable("mkclean" mkclean.c)
@@ -16,7 +14,5 @@ configure_file(CMakeLists.txt.in CMakeLists.txt)
 
 target_link_libraries("mkclean" PUBLIC "matroska2" "ebml2" "corec")
 target_link_libraries("mkWDclean" PUBLIC "matroska2" "ebml2" "corec")
-
-add_subdirectory("tremor")
 
 add_subdirectory("regression")

@@ -2,6 +2,7 @@ project("matroska2" VERSION 0.22.3)
 
 option(CONFIG_BZLIB "Enable bzlib (de)compression in libmatroska2" ON)
 option(CONFIG_LZO1X "Enable lzo (de)compression in libmatroska2" ON)
+option(CONFIG_NOCODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
 
 set(matroska2_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/matroskamain.c
@@ -42,8 +43,10 @@ if (CONFIG_BZLIB)
   target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:bzlib>)
 endif(CONFIG_BZLIB)
 if (NOT CONFIG_NOCODEC_HELPER)
+  add_subdirectory("tremor")
   target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:tremor>)
 endif(NOT CONFIG_NOCODEC_HELPER)
+
 set_target_properties("matroska2" PROPERTIES 
   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
 )
