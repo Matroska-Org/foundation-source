@@ -30,11 +30,9 @@ target_sources("ebml2" PRIVATE
 target_compile_definitions("ebml2" PRIVATE EBML2_UGLY_HACKS_API)
 target_compile_definitions("ebml2" PUBLIC HAS_EBML2)
 configure_file(ebml_config.h.in ebml2/ebml_config.h)
-if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
-  set_target_properties("ebml2" PROPERTIES 
-    PUBLIC_HEADER "${ebml2_PUBLIC_HEADERS}"
-  )
-endif()
+set_target_properties("ebml2" PROPERTIES 
+  PUBLIC_HEADER "${ebml2_PUBLIC_HEADERS}"
+)
 
 # the library needs to be static as it shares constants variables
 target_link_libraries("ebml2" PUBLIC "corec")
@@ -83,7 +81,4 @@ target_link_libraries("ebmltree" PUBLIC "ebml2")
 # target_compile_definitions("ebml2_legacy" PRIVATE EBML_LEGACY_API)
 # target_link_libraries("ebml2_legacy" PUBLIC "ebml2")
 # target_include_directories("ebml2_legacy" PUBLIC "legacy")
-# set_target_properties("corec_node" PROPERTIES PUBLIC_HEADER 
-#  "${LEGACY_LIBEBML_PUBLIC_HEADERS}"
-#)
 
