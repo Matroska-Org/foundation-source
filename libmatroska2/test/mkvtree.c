@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-#include "matroska/matroska.h"
+#include "matroska2/matroska.h"
 
 static int ShowPos = 0;
 

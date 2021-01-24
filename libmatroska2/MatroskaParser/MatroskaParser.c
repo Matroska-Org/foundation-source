@@ -27,7 +27,7 @@
  */
 
 #include "MatroskaParser.h"
-#include "matroska/matroska_sem.h"
+#include "matroska2/matroska_sem.h"
 
 #define MAX_TRACKS 32 // safety
 

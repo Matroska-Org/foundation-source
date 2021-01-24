@@ -9,12 +9,12 @@ set(matroska2_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/matroska_sem.c
 )
 set(matroska2_PUBLIC_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/matroska/matroska.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/matroska/matroska_sem.h
-  ${CMAKE_CURRENT_BINARY_DIR}/matroska/matroska_config.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska_sem.h
+  ${CMAKE_CURRENT_BINARY_DIR}/matroska2/matroska_config.h
 )
 set(matroska2_INTERNAL_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/matroska/matroska_internal.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska_internal.h
 )
 
 add_library("matroska2_group" INTERFACE)
@@ -39,7 +39,7 @@ endif(NOT CONFIG_NOCODEC_HELPER)
 # set_target_properties("matroska2_group" PROPERTIES 
 #   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
 # )
-configure_file(matroska_config.h.in matroska/matroska_config.h)
+configure_file(matroska_config.h.in matroska2/matroska_config.h)
 target_include_directories("matroska2_group" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
 # the library needs to be static as it shares constants variables
