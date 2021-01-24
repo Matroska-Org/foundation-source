@@ -58,6 +58,16 @@ if (BUILD_SHARED_LIBS)
   target_compile_definitions("matroska2" PUBLIC matroska2_IMPORTS)
 endif (BUILD_SHARED_LIBS)
 
+include(GNUInstallDirs)
+
+install(TARGETS "matroska2" 
+  EXPORT Matroska2
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/matroska2
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# CMake file to import libmatroska2
+install(EXPORT Matroska2 DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/matroska2)
+
 add_executable("mkvtree" test/mkvtree.c)
 target_link_libraries("mkvtree" PRIVATE "matroska2" "ebml2" "corec")
 
