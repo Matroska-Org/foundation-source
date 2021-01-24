@@ -36,7 +36,18 @@ set_target_properties("ebml2" PROPERTIES
 
 # the library needs to be static as it shares constants variables
 target_link_libraries("ebml2" PUBLIC "corec")
-target_include_directories("ebml2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ".")
+
+target_include_directories("ebml2"
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+# keep until the sources are split
+target_include_directories("ebml2" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
+
 # we can't export EBML as a DLL for now as it doesn't seem possible to use dllimport to initialize global (startup) variables
 if (BUILD_SHARED_LIBS)
   target_compile_definitions("ebml2" PUBLIC ebml2_IMPORTS)

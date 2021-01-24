@@ -19,7 +19,16 @@ set(matroska2_INTERNAL_HEADERS
 
 add_library("matroska2")
 target_sources("matroska2" PRIVATE ${matroska2_SOURCES} ${matroska2_PUBLIC_HEADERS} ${matroska2_INTERNAL_HEADERS})
-target_include_directories("matroska2" PUBLIC ".")
+
+target_include_directories("matroska2"
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+# keep until the sources are split
+target_include_directories("matroska2" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if (CONFIG_ZLIB)
   target_link_libraries("matroska2" PRIVATE "zlib")
@@ -39,7 +48,6 @@ set_target_properties("matroska2" PROPERTIES
   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
 )
 configure_file(matroska_config.h.in matroska2/matroska_config.h)
-target_include_directories("matroska2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 # the library needs to be static as it shares constants variables
 target_link_libraries("matroska2" PUBLIC "ebml2")
