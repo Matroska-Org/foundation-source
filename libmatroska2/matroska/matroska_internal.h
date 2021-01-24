@@ -68,6 +68,4 @@ struct matroska_block
     char Lacing;
 };
 
-extern const nodemeta Matroska_Class[];
-
 #endif /* LIBMATROSKA2_INTERNAL_H */
