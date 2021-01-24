@@ -35,9 +35,9 @@ endif(CONFIG_BZLIB)
 if (NOT CONFIG_NOCODEC_HELPER)
   target_link_libraries("matroska2" PRIVATE "tremor")
 endif(NOT CONFIG_NOCODEC_HELPER)
-# set_target_properties("matroska2" PROPERTIES 
-#   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
-# )
+set_target_properties("matroska2" PROPERTIES 
+  PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
+)
 configure_file(matroska_config.h.in matroska2/matroska_config.h)
 target_include_directories("matroska2" PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 

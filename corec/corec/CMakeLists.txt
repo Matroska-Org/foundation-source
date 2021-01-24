@@ -34,11 +34,9 @@ set(corec_base_PUBLIC_HEADERS
 )
 target_sources("corec_bare" INTERFACE ${corec_base_PUBLIC_HEADERS})
 target_include_directories("corec_bare" INTERFACE "..")
-if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
-  set_target_properties("corec_bare" PROPERTIES 
-    PUBLIC_HEADER "${corec_base_PUBLIC_HEADERS}"
-  )
-endif()
+set_target_properties("corec_bare" PROPERTIES 
+  PUBLIC_HEADER "${corec_base_PUBLIC_HEADERS}"
+)
 configure_file(corec_config.h.in corec_config.h)
 target_include_directories("corec_bare" INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -109,11 +107,9 @@ elseif(APPLE)
 elseif(UNIX)
     target_sources("corec_str" INTERFACE ${corec_str_LINUX_SOURCES})
 endif(WIN32)
-if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
-  set_target_properties("corec_str" PROPERTIES 
-    PUBLIC_HEADER "${corec_str_PUBLIC_HEADERS}"
-  )
-endif()
+set_target_properties("corec_str" PROPERTIES 
+  PUBLIC_HEADER "${corec_str_PUBLIC_HEADERS}"
+)
 
 set(corec_multithread_WIN32_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/multithread/multithread_win32.c
@@ -131,11 +127,9 @@ elseif(UNIX)
   target_sources("corec_multithread" INTERFACE ${corec_multithread_UNIX_SOURCES})
   target_link_libraries("corec_multithread" INTERFACE pthread)
 endif(WIN32)
-if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")
-  set_target_properties("corec_multithread" PROPERTIES
-    PUBLIC_HEADER "${corec_multithread_PUBLIC_HEADERS}"
-  )
-endif()
+set_target_properties("corec_multithread" PROPERTIES
+  PUBLIC_HEADER "${corec_multithread_PUBLIC_HEADERS}"
+)
 
 add_subdirectory("helpers")
 
