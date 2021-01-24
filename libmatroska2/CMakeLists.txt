@@ -11,15 +11,13 @@ set(matroska2_SOURCES
 )
 set(matroska2_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska_classes.h
   ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska_sem.h
   ${CMAKE_CURRENT_BINARY_DIR}/matroska2/matroska_config.h
 )
-set(matroska2_INTERNAL_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/matroska2/matroska_internal.h
-)
 
 add_library("matroska2")
-target_sources("matroska2" PRIVATE ${matroska2_SOURCES} ${matroska2_PUBLIC_HEADERS} ${matroska2_INTERNAL_HEADERS})
+target_sources("matroska2" PRIVATE ${matroska2_SOURCES} ${matroska2_PUBLIC_HEADERS})
 
 target_include_directories("matroska2"
   PRIVATE

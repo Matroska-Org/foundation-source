@@ -41,7 +41,7 @@
  */
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
-#include "matroska2/matroska_internal.h"
+#include "matroska2/matroska_classes.h"
 
 <xsl:call-template name="output-element-declaration">
     <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
