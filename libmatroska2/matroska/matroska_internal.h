@@ -33,7 +33,7 @@
  * ONLY INCLUDE THIS FILE IF YOU PLAN TO CREATE YOUR OWN MATROSKA-BASED CLASS
  */
 
-#include "ebml/ebml_internal.h"
+#include "ebml2/ebml_internal.h"
 
 #define MATROSKA_BLOCK_READ_TRACK        0x180
 #define MATROSKA_BLOCK_READ_SEGMENTINFO  0x181

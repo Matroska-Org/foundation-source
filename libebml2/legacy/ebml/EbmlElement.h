@@ -32,7 +32,7 @@
 #include "ebml/EbmlConfig.h"
 #include "ebml/EbmlId.h"
 #include "ebml/IOCallback.h"
-#include "ebml/ebml.h"
+#include "ebml2/ebml.h"
 
 #define EBML_BINARY_LEGACY_CLASS    FOURCC('E','B','B','C')
 #define EBML_DATE_LEGACY_CLASS      FOURCC('E','B','B','D')
