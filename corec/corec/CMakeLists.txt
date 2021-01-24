@@ -127,12 +127,18 @@ target_include_directories("corec"
 # keep until the sources are split
 target_include_directories("corec" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
-if (BUILD_SHARED_LIBS)
-  target_link_libraries("corec" PRIVATE "corec_node" "corec_parser" "corec_system" "corec_md5")
+set(corec_INTERNAL_LIBS
+  $<BUILD_INTERFACE:corec_node> 
+  $<BUILD_INTERFACE:corec_parser>
+  $<BUILD_INTERFACE:corec_system>
+  $<BUILD_INTERFACE:corec_md5>
+)
 
+if (BUILD_SHARED_LIBS)
+  target_link_libraries("corec" PRIVATE ${corec_INTERNAL_LIBS})
   target_compile_definitions("corec" PUBLIC NODE_IMPORTS ARRAY_IMPORTS CHARCONVERT_IMPORTS DATE_IMPORTS FILE_IMPORTS MD5_IMPORTS CCSYSYEM_IMPORTS MULTITHREAD_IMPORTS STR_IMPORTS)
 else(BUILD_SHARED_LIBS)
-  target_link_libraries("corec" PUBLIC "corec_node" "corec_parser" "corec_system" "corec_md5")
+  target_link_libraries("corec" PUBLIC ${corec_INTERNAL_LIBS})
 endif(BUILD_SHARED_LIBS)
 
 set(corec_PUBLIC_HEADERS
