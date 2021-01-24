@@ -29,7 +29,6 @@
 #include <stdio.h>
 
 #include "ebml/ebml.h"
-#include "ebml/ebml_internal.h"
 
 static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, stream *Input, int *Level)
 {
@@ -47,7 +46,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         SubContext.UpContext = Context;
         SubContext.Context = EBML_ElementContext(Element);
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
-        while (SubElement != NULL && UpperElement<=0 && (SubElement->ElementPosition < (EBML_ElementDataSize(Element,1) + Element->SizePosition + Element->SizeLength) || *Level==-1))
+        while (SubElement != NULL && UpperElement<=0 && (EBML_ElementPosition(SubElement) < (EBML_ElementDataSize(Element,1) + EBML_ElementPositionData(Element)) || *Level==-1))
         {
             // a sub element == not higher level and contained inside the current element
             (*Level)++;
@@ -73,7 +72,13 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         //tchar_t UnicodeString[MAXDATA];
         //EBML_StringRead((ebml_string*)Element,Input,UnicodeString,TSIZEOF(UnicodeString));
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
-            fprintf(stdout,"%s\r\n",((ebml_string*)Element)->Buffer);
+        {
+            tchar_t String[MAXDATA];
+            char cString[MAXDATA];
+            EBML_StringGet((ebml_string*)Element, String, TSIZEOF(String));
+            Node_ToUTF8(Element, cString, sizeof(cString), String);
+            fprintf(stdout,"%s\r\n",cString);
+        }
         else
             fprintf(stdout,"<error reading>\r\n");
     }
@@ -94,9 +99,9 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
         {
             if (Node_IsPartOf(Element,EBML_SINTEGER_CLASS))
-                fprintf(stdout,"%"PRId64"\r\n",((ebml_integer*)Element)->Value);
+                fprintf(stdout,"%"PRId64"\r\n",EBML_IntegerValue((ebml_integer*)Element));
             else
-                fprintf(stdout,"%"PRIu64"\r\n",(uint64_t)((ebml_integer*)Element)->Value);
+                fprintf(stdout,"%"PRIu64"\r\n",(uint64_t)EBML_IntegerValue((ebml_integer*)Element));
         }
         else
             fprintf(stdout,"<error reading>\r\n");
@@ -104,7 +109,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     else if (Node_IsPartOf(Element,EBML_FLOAT_CLASS))
     {
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
-            fprintf(stdout,"%f\r\n",((ebml_float*)Element)->Value);
+            fprintf(stdout,"%f\r\n", EBML_FloatValue((ebml_float*)Element));
         else
             fprintf(stdout,"<error reading>\r\n");
     }
@@ -127,7 +132,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     {
         if (EBML_ElementReadData(Element,Input,NULL,0,SCOPE_ALL_DATA,0)==ERR_NONE)
         {
-            uint8_t *Data = ARRAYBEGIN(((ebml_binary*)Element)->Data,uint8_t);
+            const uint8_t *Data = EBML_BinaryGetData((ebml_binary*)Element);
             fprintf(stdout,"%02X %02X %02X %02X.. (%"PRId64")\r\n",Data[0],Data[1],Data[2],Data[3],EBML_ElementDataSize(Element,1));
         }
         else
