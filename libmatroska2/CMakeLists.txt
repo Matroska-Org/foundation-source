@@ -31,18 +31,18 @@ target_include_directories("matroska2"
 target_include_directories("matroska2" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if (CONFIG_ZLIB)
-  target_link_libraries("matroska2" PRIVATE "zlib")
+  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:zlib>)
 endif(CONFIG_ZLIB)
 if (CONFIG_LZO1X)
   add_subdirectory("minilzo")
-  target_link_libraries("matroska2" PRIVATE "minilzo")
+  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:minilzo>)
 endif(CONFIG_LZO1X)
 if (CONFIG_BZLIB)
   add_subdirectory("bzip2")
-  target_link_libraries("matroska2" PRIVATE "bzlib")
+  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:bzlib>)
 endif(CONFIG_BZLIB)
 if (NOT CONFIG_NOCODEC_HELPER)
-  target_link_libraries("matroska2" PRIVATE "tremor")
+  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:tremor>)
 endif(NOT CONFIG_NOCODEC_HELPER)
 set_target_properties("matroska2" PROPERTIES 
   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
