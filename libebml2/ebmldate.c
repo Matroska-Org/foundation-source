@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "ebml2/ebml.h"
-#include "ebml2/ebml_internal.h"
+#include "internal.h"
 
 datetime_t EBML_DateTime(const ebml_date *Element)
 {

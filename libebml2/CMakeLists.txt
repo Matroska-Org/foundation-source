@@ -15,10 +15,11 @@ set(ebml2_SOURCES
 )
 set(ebml2_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/ebml2/ebml.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/ebml2/ebml_classes.h
   ${CMAKE_CURRENT_BINARY_DIR}/ebml2/ebml_config.h
 )
 set(ebml2_INTERNAL_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/ebml2/ebml_internal.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/internal.h
   ${CMAKE_CURRENT_SOURCE_DIR}/ebmlcrc.h
 )
 add_library("ebml2")
