@@ -1510,6 +1510,11 @@ failed:
     return Result;
 }
 
+bool_t MATROSKA_BlockIsKeyframe(const matroska_block *Block)
+{
+    return Block->IsKeyframe;
+}
+
 err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame, bool_t WithData)
 {
     size_t i;
