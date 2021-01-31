@@ -2558,7 +2558,7 @@ int main(int argc, const char *argv[])
                                         Elt = EBML_ElementCopy(NodeTree_Parent(pBlockInfo->Block), NULL);
 								        Block1 = (matroska_block*)EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextBlock());
                                     }
-                                    assert(!Block1->IsKeyframe);
+                                    assert(!MATROSKA_BlockIsKeyframe(Block1));
 						            MATROSKA_BlockGetFrame(Block1, pBlockInfo->FrameStartIndex, &FrameData, 1);
                                     MATROSKA_BlockAppendFrame(prevBlock->Block, &FrameData, *Tst);
                                     MATROSKA_BlockReleaseData(pBlockInfo->Block,0);
