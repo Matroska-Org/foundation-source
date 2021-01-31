@@ -153,6 +153,7 @@ EBML_DLL void EBML_ElementGetName(const ebml_element *Element, tchar_t *Out, siz
 EBML_DLL const char *EBML_ElementGetClassName(const ebml_element *Element);
 
 EBML_DLL const ebml_context *EBML_ElementContext(const ebml_element *Element);
+EBML_DLL void EBML_ElementForceContext(ebml_element *Element, const ebml_context *ForcedContext);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
 EBML_DLL bool_t EBML_ElementIsFiniteSize(const ebml_element *Element);
