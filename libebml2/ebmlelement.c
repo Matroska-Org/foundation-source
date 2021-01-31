@@ -132,6 +132,11 @@ const ebml_context *EBML_ElementContext(const ebml_element *Element)
     return Element->Context;
 }
 
+void EBML_ElementForceContext(ebml_element *Element, const ebml_context *ForcedContext)
+{
+    Element->Context = ForcedContext;
+}
+
 filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
 {
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
