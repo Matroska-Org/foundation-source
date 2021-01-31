@@ -27,6 +27,7 @@ target_sources("ebml2_group" INTERFACE
   ${ebml2_group_PUBLIC_HEADERS} 
   ${ebml2_group_INTERNAL_HEADERS}
 )
+target_compile_definitions("ebml2" PRIVATE EBML2_UGLY_HACKS_API)
 target_compile_definitions("ebml2_group" INTERFACE HAS_EBML2)
 configure_file(ebml_config.h.in ebml/ebml_config.h)
 if(${CMAKE_VERSION}` VERSION_GREATER_EQUAL "3.15.0")

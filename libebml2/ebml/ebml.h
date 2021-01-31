@@ -153,23 +153,19 @@ EBML_DLL void EBML_ElementGetName(const ebml_element *Element, tchar_t *Out, siz
 EBML_DLL const char *EBML_ElementGetClassName(const ebml_element *Element);
 
 EBML_DLL const ebml_context *EBML_ElementContext(const ebml_element *Element);
-EBML_DLL void EBML_ElementForceContext(ebml_element *Element, const ebml_context *ForcedContext);
 
 EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
 EBML_DLL bool_t EBML_ElementIsFiniteSize(const ebml_element *Element);
 EBML_DLL void EBML_ElementSetInfiniteSize(const ebml_element *Element, bool_t Set);
-EBML_DLL bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize);
 EBML_DLL bool_t EBML_ElementIsDummy(const ebml_element *Element);
 
 EBML_DLL fourcc_t EBML_ElementClassID(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPosition(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionData(const ebml_element *Element);
 EBML_DLL filepos_t EBML_ElementPositionEnd(const ebml_element *Element);
-EBML_DLL void EBML_ElementForcePosition(ebml_element *Element, filepos_t Pos);
 
 EBML_DLL filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault);
 EBML_DLL filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault);
-EBML_DLL void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size);
 EBML_DLL uint8_t EBML_ElementSizeLength(const ebml_element *Element);
 EBML_DLL void EBML_ElementSetSizeLength(ebml_element *Element, uint8_t SizeLength); /// 0 (for auto) to EBML_MAX_SIZE
 
@@ -180,6 +176,13 @@ EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_conte
 EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, filepos_t *Rendered);
 EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
+
+#if defined(EBML2_UGLY_HACKS_API)
+EBML_DLL void EBML_ElementForceContext(ebml_element *Element, const ebml_context *ForcedContext);
+EBML_DLL bool_t EBML_ElementInfiniteForceSize(ebml_element *Element, filepos_t NewSize);
+EBML_DLL void EBML_ElementForcePosition(ebml_element *Element, filepos_t Pos);
+EBML_DLL void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size);
+#endif // !EBML2_UGLY_HACKS_API
 
 // type specific routines
 EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault);
