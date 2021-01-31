@@ -2649,7 +2649,7 @@ int main(int argc, const char *argv[])
 			    }
                 
                 CodecPrivate = (ebml_binary*) EBML_MasterFindChild(RLevel1,MATROSKA_getContextCodecPrivate());
-                if (CodecPrivate && CodecPrivate->Base.DataSize==0)
+                if (CodecPrivate && EBML_ElementDataSize((ebml_element*)CodecPrivate, 1)==0)
                 {
                     NodeDelete((node*)CodecPrivate);
                     CodecPrivate = NULL;
@@ -2703,10 +2703,11 @@ int main(int argc, const char *argv[])
                     if (CodecPrivate!=NULL)
                     {
                         size_t ExtraCompHeaderBytes = (encoding == MATROSKA_BLOCK_COMPR_NONE) ? 13 : 3; // extra bytes needed to add the comp header to the track
-                        size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
+                        size_t CompressedSize = (size_t)EBML_ElementDataSize((ebml_element*)CodecPrivate, 1);
+                        size_t origCompressedSize = CompressedSize;
                         uint8_t *Compressed = malloc(CompressedSize);
-                        if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE
-                            && (CompressedSize + ExtraCompHeaderBytes) < CodecPrivate->Base.DataSize)
+                        if (CompressFrameZLib(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &Compressed, &CompressedSize)==ERR_NONE
+                            && (CompressedSize + ExtraCompHeaderBytes) < origCompressedSize)
                         {
                             encoding = MATROSKA_BLOCK_COMPR_ZLIB;
                             zlib_scope |= MATROSKA_COMPR_SCOPE_PRIVATE;
