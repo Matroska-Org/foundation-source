@@ -29,7 +29,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "matroska/matroska.h"
-#include "matroska/matroska_internal.h"
 
 #ifndef MATROSKA_SEMANTIC_H
 #define MATROSKA_SEMANTIC_H
