@@ -150,6 +150,16 @@ ebml_context MATROSKA_ContextFlagDefault;
 const ebml_context *MATROSKA_getContextFlagDefault() { return &MATROSKA_ContextFlagDefault; }
 ebml_context MATROSKA_ContextFlagForced;
 const ebml_context *MATROSKA_getContextFlagForced() { return &MATROSKA_ContextFlagForced; }
+ebml_context MATROSKA_ContextFlagHearingImpaired;
+const ebml_context *MATROSKA_getContextFlagHearingImpaired() { return &MATROSKA_ContextFlagHearingImpaired; }
+ebml_context MATROSKA_ContextFlagVisualImpaired;
+const ebml_context *MATROSKA_getContextFlagVisualImpaired() { return &MATROSKA_ContextFlagVisualImpaired; }
+ebml_context MATROSKA_ContextFlagTextDescriptions;
+const ebml_context *MATROSKA_getContextFlagTextDescriptions() { return &MATROSKA_ContextFlagTextDescriptions; }
+ebml_context MATROSKA_ContextFlagOriginal;
+const ebml_context *MATROSKA_getContextFlagOriginal() { return &MATROSKA_ContextFlagOriginal; }
+ebml_context MATROSKA_ContextFlagCommentary;
+const ebml_context *MATROSKA_getContextFlagCommentary() { return &MATROSKA_ContextFlagCommentary; }
 ebml_context MATROSKA_ContextFlagLacing;
 const ebml_context *MATROSKA_getContextFlagLacing() { return &MATROSKA_ContextFlagLacing; }
 ebml_context MATROSKA_ContextMinCache;
@@ -781,6 +791,11 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {1, 1, &MATROSKA_ContextFlagEnabled, PROFILE_MATROSKA_V1|PROFILE_DIVX},
     {1, 1, &MATROSKA_ContextFlagDefault, 0},
     {1, 1, &MATROSKA_ContextFlagForced, 0},
+    {0, 1, &MATROSKA_ContextFlagHearingImpaired, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextFlagVisualImpaired, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextFlagTextDescriptions, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextFlagOriginal, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextFlagCommentary, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextFlagLacing, 0},
     {1, 1, &MATROSKA_ContextMinCache, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextMaxCache, PROFILE_WEBM},
@@ -1031,6 +1046,11 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextFlagEnabled = (ebml_context) {0xB9, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "FlagEnabled", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagDefault = (ebml_context) {0x88, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "FlagDefault", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagForced = (ebml_context) {0x55AA, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagForced", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagHearingImpaired = (ebml_context) {0x55AB, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagHearingImpaired", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagVisualImpaired = (ebml_context) {0x55AC, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagVisualImpaired", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagTextDescriptions = (ebml_context) {0x55AD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagTextDescriptions", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagOriginal = (ebml_context) {0x55AE, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagOriginal", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagCommentary = (ebml_context) {0x55AF, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagCommentary", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagLacing = (ebml_context) {0x9C, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "FlagLacing", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextMinCache = (ebml_context) {0x6DE7, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MinCache", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextMaxCache = (ebml_context) {0x6DF8, EBML_INTEGER_CLASS, 0, 0, "MaxCache", NULL, EBML_getSemanticGlobals(), NULL};
