@@ -129,10 +129,10 @@ size_t EBML_MasterCount(const ebml_master *Element)
     return Result;
 }
 
-static int EbmlCmp(const ebml_element* Element, const ebml_element* a,const ebml_element* b)
+static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebml_element** b)
 {
-    if (a->Context->Id == b->Context->Id)
-        return EBML_ElementCmp(a,b);
+    if ((*a)->Context->Id == (*b)->Context->Id)
+        return EBML_ElementCmp(*a,*b);
     return 0;
 }
 
