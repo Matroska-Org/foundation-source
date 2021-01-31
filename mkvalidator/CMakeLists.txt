@@ -1,4 +1,4 @@
-project("mkvalidator" VERSION 0.5.2)
+project("mkvalidator" VERSION 0.6.0)
 
 add_executable("mkvalidator" mkvalidator.c)
 
