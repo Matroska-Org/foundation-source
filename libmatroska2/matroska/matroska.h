@@ -198,6 +198,7 @@ MATROSKA_DLL size_t MATROSKA_BlockGetLength(const matroska_block *Block, size_t 
 
 MATROSKA_DLL err_t MATROSKA_BlockGetFrame(const matroska_block *Block, size_t FrameNum, matroska_frame *Frame, bool_t WithData);
 MATROSKA_DLL err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Frame, timecode_t ClusterTimecode);
+MATROSKA_DLL bool_t MATROSKA_BlockIsKeyframe(const matroska_block *Block);
 
 
 MATROSKA_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
