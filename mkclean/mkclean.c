@@ -453,15 +453,15 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     return NULL;
 }
 
-static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master *Tracks, int DstProfile, array *WTracks, timecode_t Offset)
+static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master *Tracks, int dstProfile, array *WTracks, timecode_t Offset)
 {
     matroska_cluster **Cluster;
 	ebml_element *Block, *GBlock, *BlockTrack, *Type;
     ebml_integer *Time;
     int BlockNum;
 
-	// find out if the Clusters use forbidden features for that DstProfile
-	if (DstProfile == PROFILE_MATROSKA_V1 || DstProfile == PROFILE_DIVX)
+	// find out if the Clusters use forbidden features for that dstProfile
+	if (dstProfile == PROFILE_MATROSKA_V1 || dstProfile == PROFILE_DIVX)
 	{
 		for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 		{
@@ -469,7 +469,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 			{
 				if (EBML_ElementIsType(Block, MATROSKA_getContextSimpleBlock()))
                 {
-					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' at %") TPRId64 T(" try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),EBML_ElementPosition(Block),GetProfileId(PROFILE_MATROSKA_V2));
+					TextPrintf(StdErr,T("Using SimpleBlock in profile '%s' at %") TPRId64 T(" try \"--doctype %d\"\r\n"),GetProfileName(dstProfile),EBML_ElementPosition(Block),GetProfileId(PROFILE_MATROSKA_V2));
 					return -32;
 				}
 			}
@@ -895,7 +895,7 @@ static bool_t HasTrackUID(ebml_master *Tracks, int TrackUID, const ebml_context 
     return 0;
 }
 
-static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebml_master *Attachments, array *Alternate3DTracks)
+static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebml_master *Attachments, array *Alternate3DTracks)
 {
     ebml_master *Track, *CurTrack, *OtherTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -1058,7 +1058,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     CleanCropValues((ebml_master*)Elt, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
             }
 
-            if (SrcProfile==PROFILE_MATROSKA_V1 || SrcProfile==PROFILE_MATROSKA_V2 || SrcProfile==PROFILE_DIVX)
+            if (srcProfile==PROFILE_MATROSKA_V1 || srcProfile==PROFILE_MATROSKA_V2 || srcProfile==PROFILE_DIVX)
             {
                 // clean the older StereoMode values
                 Elt2 = EBML_MasterFindChild(Elt,MATROSKA_getContextStereoMode());
@@ -1069,8 +1069,8 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                     Width = (int)EBML_IntegerValue((ebml_integer*)Elt2);
                     if (Width!=TRACK_OLD_STEREOMODE_MONO && Width <= 3) // upper values are probably the new ones
                     {
-                        *DstProfile = PROFILE_MATROSKA_V3;
-                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                        *dstProfile = PROFILE_MATROSKA_V3;
+                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
                         if (EBML_ElementIsType(Elt2, MATROSKA_getContextOldStereoMode()))
                             // replace the old by a new
                             Elt2->Context = MATROSKA_getContextStereoMode();
@@ -1078,7 +1078,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                         // replace the old values with the new ones
                         if (Width==TRACK_OLD_STEREOMODE_BOTH)
                         {
-                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*DstProfile));
+                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
                             EBML_IntegerSetValue((ebml_integer*)Elt2,TRACK_STEREO_MODE_SIDEBYSIDE_L);
                         }
                         else
@@ -1185,7 +1185,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, Width==TRACK_OLD_STEREOMODE_RIGHT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
                                         }
 
-                                        return CleanTracks(Tracks, SrcProfile, DstProfile, Attachments, Alternate3DTracks);
+                                        return CleanTracks(Tracks, srcProfile, dstProfile, Attachments, Alternate3DTracks);
                                     }
                                 }
                             }
@@ -1204,7 +1204,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
             EBML_IntegerSetValue((ebml_integer*)Elt2, TRACK_STEREO_MODE_ALTERNATE_PACKED_L);
         }
 
-        if (*DstProfile==PROFILE_WEBM)
+        if (*dstProfile==PROFILE_WEBM)
         {
             // verify that we have only VP8, VP9, Opus and Vorbis tracks
             Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextCodecID());
@@ -1215,7 +1215,7 @@ static int CleanTracks(ebml_master *Tracks, int SrcProfile, int *DstProfile, ebm
                   (TrackType==TRACK_TYPE_AUDIO && tcsisame_ascii(CodecID,T("A_OPUS")))
                 ))
             {
-                TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*DstProfile),TrackNum);
+                TextPrintf(StdErr,T("Wrong codec '%s' for profile '%s' removing track %d\r\n"),CodecID,GetProfileName(*dstProfile),TrackNum);
                 NodeDelete((node*)CurTrack);
                 continue;
             }
