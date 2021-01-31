@@ -151,7 +151,7 @@ int main(int argc, const char *argv[])
     textwriter _StdErr;
     stream *Input = NULL, *Output = NULL;
     tchar_t Path[MAXPATHFULL];
-    ebml_master *EbmlHead = NULL;
+    ebml_element *EbmlHead = NULL;
     ebml_parser_context RContext;
     int i,UpperElement;
     array SegmentStarts;
@@ -219,21 +219,21 @@ int main(int argc, const char *argv[])
     RContext.UpContext = NULL;
     RContext.Profile = 0;
 
-    EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
+    EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
     while (EbmlHead!=NULL)
     {
         // parse the list of EBML header+segment start points in memory
-        ebml_master *Segment = NULL;
+        ebml_element *Segment = NULL;
 
         if (EL_Type(EbmlHead, MATROSKA_getContextSegment()))
         {
-            Result |= OutputWarning(3,T("Matroska Segment at %") TPRId64 T(" in %s without an EBML header"),EbmlHead->Base.ElementPosition, Path);
+            Result |= OutputWarning(3,T("Matroska Segment at %") TPRId64 T(" in %s without an EBML header"),EBML_ElementPosition(EbmlHead), Path);
             // TODO: if there is an existing EBML head before in the file, use it
             //       otherwise create an EBML head with best guess
         }
         else if (!EL_Type(EbmlHead, EBML_getContextHead()))
         {
-            Result |= OutputWarning(3,T("Unknown element %x at %") TPRId64 T(" in %s"), EbmlHead->Base.Context->Id, EbmlHead->Base.ElementPosition, Path);
+            Result |= OutputWarning(3,T("Unknown element %x at %") TPRId64 T(" in %s"), EBML_ElementClassID(EbmlHead), EBML_ElementPosition(EbmlHead), Path);
             // TODO: if there is an existing EBML head before in the file, use it
             //       otherwise create an EBML head with best guess
         }
@@ -241,10 +241,10 @@ int main(int argc, const char *argv[])
         if (!Quiet) TextWrite(StdErr,T("."));
 
         do {
-            Segment = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
+            Segment = EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
             if (EL_Type(Segment, EBML_getContextHead()))
             {
-                Result |= OutputWarning(3,T("Found a new EBML header at %") TPRId64 T(" instead of a segment after EBML Header at %") TPRId64 T(" in %s"), Segment->Base.ElementPosition, EbmlHead->Base.ElementPosition, Path);
+                Result |= OutputWarning(3,T("Found a new EBML header at %") TPRId64 T(" instead of a segment after EBML Header at %") TPRId64 T(" in %s"), EBML_ElementPosition(Segment), EBML_ElementPosition(EbmlHead), Path);
                 EbmlHead = Segment;
             }
         } while (Segment!=NULL && !EL_Type(Segment, MATROSKA_getContextSegment()));
@@ -252,32 +252,32 @@ int main(int argc, const char *argv[])
         if (Segment!=NULL && EL_Type(Segment, MATROSKA_getContextSegment()) && EbmlHead!=NULL && EL_Type(EbmlHead, EBML_getContextHead()))
         {
             SegmentStart currSegment;
-            currSegment.EbmlHeadPos = EbmlHead->Base.ElementPosition;
-            currSegment.SegmentPos = Segment->Base.ElementPosition;
+            currSegment.EbmlHeadPos = EBML_ElementPosition(EbmlHead);
+            currSegment.SegmentPos = EBML_ElementPosition(Segment);
 
-            if (EBML_ElementIsFiniteSize(&EbmlHead->Base))
-                currSegment.EbmlSize = EBML_ElementFullSize(&EbmlHead->Base, 1);
+            if (EBML_ElementIsFiniteSize(EbmlHead))
+                currSegment.EbmlSize = EBML_ElementFullSize(EbmlHead, 1);
             else
-                currSegment.EbmlSize = Segment->Base.ElementPosition - EbmlHead->Base.ElementPosition; // TODO: we should write the proper size in the header if there is enough room
-            NodeDelete(&EbmlHead->Base.Base.Base);
+                currSegment.EbmlSize = EBML_ElementPosition(Segment) - EBML_ElementPosition(EbmlHead); // TODO: we should write the proper size in the header if there is enough room
+            NodeDelete((node*)EbmlHead);
 
-            EbmlHead = (ebml_master*)EBML_ElementSkipData(&Segment->Base, Input, &RContext, NULL, 1);
+            EbmlHead = EBML_ElementSkipData(Segment, Input, &RContext, NULL, 1);
 
-            if (EBML_ElementIsFiniteSize(&Segment->Base))
-                currSegment.SegmentSize = EBML_ElementFullSize(&Segment->Base, 1);
+            if (EBML_ElementIsFiniteSize(Segment))
+                currSegment.SegmentSize = EBML_ElementFullSize(Segment, 1);
             else { // TODO: we should write the proper size in the segment if there is enough room
                 if (EbmlHead!=NULL)
-                    currSegment.SegmentSize = EbmlHead->Base.ElementPosition - Segment->Base.ElementPosition;
+                    currSegment.SegmentSize = EBML_ElementPosition(EbmlHead) - EBML_ElementPosition(Segment);
                 else
                     currSegment.SegmentSize = Stream_Seek(Input,0,SEEK_CUR);
             }
-            NodeDelete(&Segment->Base.Base.Base);
+            NodeDelete((node*)Segment);
 
             ArrayAppend(&SegmentStarts, &currSegment, sizeof(currSegment), 0);
         }
 
         if (EbmlHead==NULL)
-            EbmlHead = (ebml_master*)EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
+            EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
     }
 
     if (!Quiet) TextWrite(StdErr,T("\r\n"));
