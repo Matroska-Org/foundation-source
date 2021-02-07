@@ -61,6 +61,10 @@ set(corec_parser_PUBLIC_HEADERS
 add_library("corec_parser" INTERFACE)
 target_sources("corec_parser" INTERFACE ${corec_parser_SOURCES} ${corec_parser_PUBLIC_HEADERS})
 target_link_libraries("corec_parser" INTERFACE "corec_str" "corec_charconvert" "corec_file")
+if (CYGWIN)
+# if CMake wasn't this piece of shit this would simply work
+  target_link_libraries("corec_parser" INTERFACE iconv)
+endif (CYGWIN)
 target_include_directories("corec_parser" INTERFACE ".")
 
 # System call API
@@ -141,5 +145,8 @@ elseif(UNIX)
   target_sources("corec_charconvert" INTERFACE ${corec_charconvert_LINUX_SOURCES})
 else(UNIX)
   target_sources("corec_charconvert" INTERFACE ${corec_charconvert_OTHER_SOURCES})
+  if (CYGWIN)
+    target_link_libraries("corec_charconvert" INTERFACE iconv)
+  endif (CYGWIN)
 endif(WIN32)
 target_link_libraries("corec_charconvert" INTERFACE "corec_bare")
