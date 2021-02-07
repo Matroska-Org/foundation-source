@@ -38,7 +38,7 @@
 #include <errno.h>
 
 #ifndef ICONV_CONST
-#if defined(__GLIBC__)
+#if defined(__GLIBC__) || defined(__CYGWIN__)
 #define ICONV_CONST
 #else
 #define ICONV_CONST const
