@@ -180,6 +180,7 @@
 #ifndef strnicmp
 #define strnicmp(x,y,z)    _strnicmp(x,y,z)
 #endif
+#define strdup(x)          _strdup(x)
 
 #ifndef alloca
 #define alloca _alloca
