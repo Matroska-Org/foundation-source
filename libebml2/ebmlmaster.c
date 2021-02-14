@@ -348,7 +348,8 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                             {
                                 // read the rest of the element in memory to avoid reading it a second time later
                                 ArrayInit(&CrcBuffer);
-                                if (ArrayResize(&CrcBuffer, (size_t)(EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement)), 0))
+                                filepos_t element_size = EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement);
+                                if (element_size < SIZE_MAX && ArrayResize(&CrcBuffer, (size_t)element_size, 0))
                                 {
                                     CRCData = ARRAYBEGIN(CrcBuffer,uint8_t);
                                     CRCDataSize = ARRAYCOUNT(CrcBuffer,uint8_t);
