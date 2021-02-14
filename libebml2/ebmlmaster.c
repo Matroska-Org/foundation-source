@@ -489,10 +489,11 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
 	else
     {
         // render to memory, compute the CRC, write the CRC and then the virtual data
+#define CRC_EBML_SIZE  6
         array TmpBuf;
         bool_t IsMemory = Node_IsPartOf(Output,MEMSTREAM_CLASS);
         ArrayInit(&TmpBuf);
-        if (!IsMemory && !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - 6, 0))
+        if (!IsMemory && ((Element->Base.DataSize - CRC_EBML_SIZE) > SIZE_MAX || !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - CRC_EBML_SIZE, 0)))
             Err = ERR_OUT_OF_MEMORY;
         else
         {
@@ -508,7 +509,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                         Err = ERR_OUT_OF_MEMORY;
                     else
                     {
-                        filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR) + 6;
+                        filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR) + CRC_EBML_SIZE;
                         Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
                         Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
                         Err = InternalRender(Element, VOutput, bForceWithoutMandatory, bWithDefault, Rendered);
@@ -532,7 +533,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                 }
                 else
                 {
-                    filepos_t VirtualPos = Stream_Seek(Output,6,SEEK_CUR); // pass the CRC for now
+                    filepos_t VirtualPos = Stream_Seek(Output,CRC_EBML_SIZE,SEEK_CUR); // pass the CRC for now
                     Err = InternalRender(Element, Output, bForceWithoutMandatory, bWithDefault, Rendered);
                     if (Err==ERR_NONE)
                     {
@@ -540,7 +541,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                         uint8_t *Data;
                         Node_GET(Output,MEMSTREAM_OFFSET,&CrcSize);
                         Node_GET(Output,MEMSTREAM_PTR,&Data);
-                        EBML_CRCAddBuffer(CrcElt, Data + (VirtualPos - CrcSize), (size_t)Element->Base.DataSize-6);
+                        EBML_CRCAddBuffer(CrcElt, Data + (VirtualPos - CrcSize), (size_t)Element->Base.DataSize-CRC_EBML_SIZE);
                         EBML_CRCFinalize(CrcElt);
                         Stream_Seek(Output,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET);
                         Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceWithoutMandatory, &CrcSize);
