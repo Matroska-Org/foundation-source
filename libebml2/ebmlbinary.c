@@ -43,7 +43,7 @@ static err_t ReadData(ebml_binary *Element, stream *Input, const ebml_parser_con
         goto failed;
     }
 
-    if (!ArrayResize(&Element->Data,(size_t)Element->Base.DataSize,0))
+    if (Element->Base.DataSize > SIZE_MAX || !ArrayResize(&Element->Data,(size_t)Element->Base.DataSize,0))
     {
         Result = ERR_OUT_OF_MEMORY;
         goto failed;

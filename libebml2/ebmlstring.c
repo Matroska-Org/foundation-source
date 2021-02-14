@@ -80,6 +80,11 @@ static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_con
         Result = ERR_READ;
         goto failed;
     }
+    if (Element->Base.DataSize > SIZE_MAX - 1)
+    {
+        Result = ERR_OUT_OF_MEMORY;
+        goto failed;
+    }
 
     Buffer = malloc((size_t)Element->Base.DataSize+1);
     if (!Buffer)

@@ -46,6 +46,11 @@ static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser
         Result = ERR_READ;
         goto failed;
     }
+    if (Element->Base.DataSize > 8)
+    {
+        Result = ERR_INVALID_DATA;
+        goto failed;
+    }
 
     Result = Stream_Read(Input,Buffer,(size_t)Element->Base.DataSize,NULL);
     if (Result != ERR_NONE)
@@ -78,6 +83,11 @@ static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_
     if (Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET)==INVALID_FILEPOS_T)
     {
         Result = ERR_READ;
+        goto failed;
+    }
+    if (Element->Base.DataSize > 8)
+    {
+        Result = ERR_INVALID_DATA;
         goto failed;
     }
 
@@ -229,6 +239,11 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
     if (Stream_Seek(Input,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET)==INVALID_FILEPOS_T)
     {
         Result = ERR_READ;
+        goto failed;
+    }
+    if (Element->Base.DataSize != 8 && Element->Base.DataSize != 4)
+    {
+        Result = ERR_INVALID_DATA;
         goto failed;
     }
 
