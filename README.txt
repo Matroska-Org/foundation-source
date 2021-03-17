@@ -1,42 +1,16 @@
 libEBML2, libMatroska2, mkvalidator, mkclean and the specifications
 
-1/ To build these sources you first need to build coremake:
+1/ Generate the makefiles with cmake
 
-* for UNIX + gcc:
-gcc corec/tools/coremake/coremake.c -o coremake
+> cmake .
 
-* for Windows in a Visual Studio shell:
-cl corec/tools/coremake/coremake.c -o coremake.exe
+Where `.` is the path to the root of the sources.
 
 
-2/ Generate the makefiles
+2/ build mkvalidator/mcklean and everything else
 
-* for gcc on Linux
-./coremake gcc_linux
-or
-./coremake gcc_linux_x64
+> make
 
-* for gcc on Mingw64
-./coremake gcc_win64
-
-* for Visual Studio on Windows
-./coremake vs9_x64
-
-
-3a/ build mkvalidator
-
-make -C mkvalidator
-
-the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
-coremake target you used on step 2.
-
-
-3b/ build mkclean
-
-make -C mkclean
-
-the result executables will be in <root>/release/<gcc_win64> with <gcc_win64> being the name of the
-coremake target you used on step 2.
 
 ## Code of conduct
 
