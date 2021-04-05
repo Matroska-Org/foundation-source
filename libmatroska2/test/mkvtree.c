@@ -106,6 +106,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
         SubContext.UpContext = Context;
         SubContext.Context = EBML_ElementContext(Element);
         SubContext.EndPosition = EBML_ElementPositionEnd(Element);
+        SubContext.Profile = Context->Profile;
         SubElement = EBML_FindNextElement(Input, &SubContext, &UpperElement, 1);
 		while (SubElement != NULL && UpperElement<=0 && (!EBML_ElementIsFiniteSize(Element) || EBML_ElementPosition(SubElement) <= EBML_ElementPositionEnd(Element)))
         {
@@ -243,7 +244,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
 
 static void OutputTree(stream *Input)
 {
-    ebml_element *Element = EBML_ElementCreate(Input,MATROSKA_getContextStream(),0,NULL);
+    ebml_element *Element = EBML_ElementCreate(Input,MATROSKA_getContextStream(),0,PROFILE_MATROSKA_ANY,NULL);
     if (Element)
     {
 		int Level = -1;

@@ -29,7 +29,7 @@
 #include "internal.h"
 #include "ebmlcrc.h"
 
-ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault)
+ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault, int ForProfile)
 {
     ebml_element *i;
 #if !defined(NDEBUG)
@@ -59,7 +59,7 @@ ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Contex
     if (!IsLegal)
         return NULL;
 #endif
-    i = EBML_ElementCreate(Element,Context,SetDefault,NULL);
+    i = EBML_ElementCreate(Element,Context,SetDefault, ForProfile,NULL);
     if (i && EBML_MasterAppend(Element,i)!=ERR_NONE)
     {
         NodeDelete((node*)i);
@@ -68,8 +68,9 @@ ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Contex
     return i;
 }
 
-ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault)
+ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault, int ForProfile)
 {
+    assert(!SetDefault || ForProfile!=0);
     ebml_element *i;
     for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
     {
@@ -78,12 +79,12 @@ ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *
     }
 
     if (!i && bCreateIfNull)
-        i = EBML_MasterAddElt(Element,Context,SetDefault);
+        i = EBML_MasterAddElt(Element,Context,SetDefault, ForProfile);
 
     return i;
 }
 
-ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault)
+ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault, int ForProfile)
 {
     ebml_element *i;
     if (!Current)
@@ -96,7 +97,7 @@ ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *C
     }
 
     if (!i && bCreateIfNull)
-        i = EBML_MasterAddElt(Element,Current->Context,SetDefault);
+        i = EBML_MasterAddElt(Element,Current->Context,SetDefault, ForProfile);
 
     return i;
 }
@@ -192,26 +193,28 @@ static bool_t IsDefaultValue(const ebml_element *Element)
 #endif
 }
 
-static bool_t CheckMandatory(const ebml_master *Element, bool_t bWithDefault)
+static bool_t CheckMandatory(const ebml_master *Element, bool_t bWithDefault, int ForProfile)
 {
     const ebml_semantic *i;
     for (i=Element->Base.Context->Semantic;i->eClass;++i)
     {
-        if (i->Mandatory && !EBML_MasterFindChild(Element,i->eClass) && (bWithDefault || !i->eClass->HasDefault))
+        if (i->Mandatory && (i->DisabledProfile & ForProfile) == 0 &&
+            (bWithDefault || !i->eClass->HasDefault) &&
+            !EBML_MasterFindChild(Element,i->eClass))
             return 0;
     }
     return 1;
 }
 
-bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault)
+bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault, int ForProfile)
 {
 	ebml_element *Child;
-	if (!CheckMandatory(Element, bWithDefault))
+	if (!CheckMandatory(Element, bWithDefault, ForProfile))
 		return 0;
 
 	for (Child = EBML_MasterChildren(Element); Child; Child = EBML_MasterNext(Child))
 	{
-		if (Node_IsPartOf(Child,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory((ebml_master*)Child, bWithDefault))
+		if (Node_IsPartOf(Child,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory((ebml_master*)Child, bWithDefault, ForProfile))
 			return 0;
 	}
     return 1;
@@ -231,7 +234,7 @@ static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
     return 0;
 }
 
-static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
+static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
@@ -241,7 +244,7 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
 	    //	return INVALID_FILEPOS_T;
 
 	    if (!bForceWithoutMandatory) {
-		    assert(CheckMandatory((ebml_master*)Element, bWithDefault));
+		    assert(CheckMandatory((ebml_master*)Element, bWithDefault, ForProfile));
         }
 
         if (Element->CheckSumStatus)
@@ -253,7 +256,7 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
         {
             if (!bWithDefault && EBML_ElementIsDefaultValue(i))
                 continue;
-            EBML_ElementUpdateSize(i,bWithDefault,bForceWithoutMandatory);
+            EBML_ElementUpdateSize(i,bWithDefault,bForceWithoutMandatory, ForProfile);
             assert(!EBML_ElementNeedsDataSizeUpdate(i, bWithDefault));
             if (i->DataSize == INVALID_FILEPOS_T)
                 return INVALID_FILEPOS_T;
@@ -266,25 +269,26 @@ static filepos_t UpdateDataSize(ebml_master *Element, bool_t bWithDefault, bool_
 #endif
     }
 
-    return INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
+    return INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
-void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault)
+void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault, int ForProfile)
 {
     const ebml_semantic *i;
     for (i=Element->Base.Context->Semantic;i->eClass;++i)
     {
-        if (i->Mandatory && i->Unique)
-            EBML_MasterFindFirstElt(Element,i->eClass,1,SetDefault);
+        if (i->Mandatory && i->Unique && (i->DisabledProfile & ForProfile) == 0)
+            EBML_MasterFindFirstElt(Element,i->eClass,1,SetDefault, ForProfile);
     }
 }
 
-static void PostCreate(ebml_master *Element, bool_t SetDefault)
+static void PostCreate(ebml_master *Element, bool_t SetDefault, int ForProfile)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element, SetDefault);
+    assert(ForProfile != 0);
+    INHERITED(Element,ebml_element_vmt,EBML_MASTER_CLASS)->PostCreate(Element, SetDefault, ForProfile);
     if (SetDefault)
     {
-	    EBML_MasterAddMandatory(Element, SetDefault);
+	    EBML_MasterAddMandatory(Element, SetDefault, ForProfile);
         Element->Base.bValueIsSet = 1;
     }
 }
@@ -454,7 +458,7 @@ bool_t EBML_MasterIsChecksumValid(const ebml_master *Element)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
+static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     ebml_element *i;
     filepos_t ItemRendered;
@@ -463,7 +467,7 @@ static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceW
     {
 		if (!bWithDefault && EBML_ElementIsDefaultValue(i))
 			continue;
-		Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceWithoutMandatory, &ItemRendered);
+		Err = EBML_ElementRender(i,Output, bWithDefault, 0, bForceWithoutMandatory, ForProfile, &ItemRendered);
         if (Err!=ERR_NONE)
             return Err;
         *Rendered += ItemRendered;
@@ -471,7 +475,7 @@ static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceW
     return Err;
 }
 
-static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     filepos_t _Rendered;
     err_t Err = ERR_NONE;
@@ -481,11 +485,11 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
     *Rendered = 0;
 
 	if (!bForceWithoutMandatory) {
-		assert(CheckMandatory((ebml_master*)Element, bWithDefault));
+		assert(CheckMandatory((ebml_master*)Element, bWithDefault, ForProfile));
 	}
 
 	if (!Element->CheckSumStatus)
-        Err = InternalRender(Element, Output, bForceWithoutMandatory, bWithDefault, Rendered);
+        Err = InternalRender(Element, Output, bForceWithoutMandatory, bWithDefault, ForProfile, Rendered);
 	else
     {
         // render to memory, compute the CRC, write the CRC and then the virtual data
@@ -497,7 +501,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
             Err = ERR_OUT_OF_MEMORY;
         else
         {
-            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, EBML_getContextEbmlCrc32(), 0, NULL);
+            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, EBML_getContextEbmlCrc32(), 0, ForProfile, NULL);
             if (!CrcElt)
                 Err = ERR_OUT_OF_MEMORY;
             else
@@ -512,14 +516,14 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                         filepos_t Offset = Stream_Seek(Output,0,SEEK_CUR) + CRC_EBML_SIZE;
                         Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
                         Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
-                        Err = InternalRender(Element, VOutput, bForceWithoutMandatory, bWithDefault, Rendered);
+                        Err = InternalRender(Element, VOutput, bForceWithoutMandatory, bWithDefault, ForProfile, Rendered);
                         assert(Err!=ERR_NONE || *Rendered == ARRAYCOUNT(TmpBuf,uint8_t));
                         if (Err==ERR_NONE)
                         {
                             filepos_t CrcSize;
                             EBML_CRCAddBuffer(CrcElt, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
                             EBML_CRCFinalize(CrcElt);
-                            Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceWithoutMandatory, &CrcSize);
+                            Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceWithoutMandatory, ForProfile, &CrcSize);
                             if (Err==ERR_NONE)
                             {
                                 size_t Written;
@@ -534,7 +538,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                 else
                 {
                     filepos_t VirtualPos = Stream_Seek(Output,CRC_EBML_SIZE,SEEK_CUR); // pass the CRC for now
-                    Err = InternalRender(Element, Output, bForceWithoutMandatory, bWithDefault, Rendered);
+                    Err = InternalRender(Element, Output, bForceWithoutMandatory, bWithDefault, ForProfile, Rendered);
                     if (Err==ERR_NONE)
                     {
                         filepos_t CrcSize;
@@ -544,7 +548,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                         EBML_CRCAddBuffer(CrcElt, Data + (VirtualPos - CrcSize), (size_t)Element->Base.DataSize-CRC_EBML_SIZE);
                         EBML_CRCFinalize(CrcElt);
                         Stream_Seek(Output,EBML_ElementPositionData((ebml_element*)Element),SEEK_SET);
-                        Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceWithoutMandatory, &CrcSize);
+                        Err = EBML_ElementRender((ebml_element*)CrcElt, Output, bWithDefault, 0, bForceWithoutMandatory, ForProfile, &CrcSize);
                         *Rendered = *Rendered + CrcSize;
                         Stream_Seek(Output,EBML_ElementPositionEnd((ebml_element*)Element),SEEK_SET);
                     }
@@ -562,7 +566,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
 static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
 {
     ebml_element *i, *Elt;
-    ebml_master *Result = (ebml_master*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    ebml_master *Result = (ebml_master*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
     if (Result)
     {
         EBML_MasterErase(Result); // delete the children elements created by default

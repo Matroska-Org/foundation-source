@@ -48,6 +48,8 @@
 #define PROFILE_MATROSKA_V4          32
 #define PROFILE_WEBM                 8
 #define PROFILE_DIVX                16
+#define PROFILE_MATROSKA_ALL        (PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4) 
+#define PROFILE_MATROSKA_ANY        (PROFILE_MATROSKA_ALL|PROFILE_WEBM|PROFILE_DIVX) 
 
 #define MATROSKA_VERSION  2
 
@@ -124,19 +126,19 @@ typedef struct matroska_frame
 MATROSKA_DLL err_t MATROSKA_LinkMetaSeekElement(matroska_seekpoint *MetaSeek, ebml_element *Link);
 MATROSKA_DLL err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek);
 MATROSKA_DLL err_t MATROSKA_LinkClusterReadSegmentInfo(matroska_cluster *Cluster, ebml_master *SegmentInfo, bool_t UseForWriteToo);
-MATROSKA_DLL err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_master *Tracks, bool_t UseForWriteToo);
-MATROSKA_DLL err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_master *Track, bool_t UseForWriteToo);
+MATROSKA_DLL err_t MATROSKA_LinkBlockWithReadTracks(matroska_block *Block, ebml_master *Tracks, bool_t UseForWriteToo, int ForProfile);
+MATROSKA_DLL err_t MATROSKA_LinkBlockReadTrack(matroska_block *Block, ebml_master *Track, bool_t UseForWriteToo, int ForProfile);
 MATROSKA_DLL err_t MATROSKA_LinkBlockReadSegmentInfo(matroska_block *Block, ebml_master *SegmentInfo, bool_t UseForWriteToo);
 #if defined(CONFIG_EBML_WRITING)
 MATROSKA_DLL err_t MATROSKA_LinkClusterWriteSegmentInfo(matroska_cluster *Cluster, ebml_master *SegmentInfo);
-MATROSKA_DLL err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_master *Tracks);
-MATROSKA_DLL err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_master *Track);
+MATROSKA_DLL err_t MATROSKA_LinkBlockWithWriteTracks(matroska_block *Block, ebml_master *Tracks, int ForProfile);
+MATROSKA_DLL err_t MATROSKA_LinkBlockWriteTrack(matroska_block *Block, ebml_master *Track, int ForProfile);
 MATROSKA_DLL err_t MATROSKA_LinkBlockWriteSegmentInfo(matroska_block *Block, ebml_master *SegmentInfo);
 #endif
 //MATROSKA_DLL err_t MATROSKA_LinkCueTrack(const ebml_element *Cue, ebml_element *Tracks);
 MATROSKA_DLL err_t MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_master *SegmentInfo);
 MATROSKA_DLL err_t MATROSKA_LinkCuePointBlock(matroska_cuepoint *Cue, matroska_block *Block);
-MATROSKA_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment);
+MATROSKA_DLL err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment, int ForProfile);
 MATROSKA_DLL double MATROSKA_TrackTimecodeScale(const ebml_master *Track);
 MATROSKA_DLL timecode_t MATROSKA_SegmentInfoTimecodeScale(const ebml_master *SegmentInfo);
 MATROSKA_DLL void MATROSKA_ClusterSetTimecode(matroska_cluster *Cluster, timecode_t Timecode);
@@ -150,7 +152,7 @@ MATROSKA_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockDiscardable(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockLaced(const matroska_block *Block);
-MATROSKA_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input);
+MATROSKA_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input, int ForProfile);
 MATROSKA_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block, bool_t IncludingNotRead);
 MATROSKA_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
 MATROSKA_DLL void MATROSKA_CuesSort(ebml_master *Cues);
@@ -163,9 +165,9 @@ MATROSKA_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *Me
 MATROSKA_DLL matroska_cuepoint *MATROSKA_CuesGetTimecodeStart(const ebml_element *Cues, timecode_t Timecode);
 
 #if defined(CONFIG_EBML_WRITING)
-MATROSKA_DLL int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry);
-MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope);
-MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize);
+MATROSKA_DLL int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile);
+MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope, int ForProfile);
+MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry);
 #if defined(CONFIG_ZLIB)
 MATROSKA_DLL err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
@@ -189,7 +191,7 @@ MATROSKA_DLL ebml_element *MATROSKA_BlockWriteSegmentInfo(const matroska_block *
 MATROSKA_DLL err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum);
 MATROSKA_DLL void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set);
 MATROSKA_DLL void MATROSKA_BlockSetDiscardable(matroska_block *Block, bool_t Set);
-MATROSKA_DLL err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input);
+MATROSKA_DLL err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input, int ForProfile);
 MATROSKA_DLL size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block);
 MATROSKA_DLL timecode_t MATROSKA_BlockGetFrameDuration(const matroska_block *Block, size_t FrameNum);
 MATROSKA_DLL timecode_t MATROSKA_BlockGetFrameStart(const matroska_block *Block, size_t FrameNum);
@@ -202,7 +204,7 @@ MATROSKA_DLL bool_t MATROSKA_BlockIsKeyframe(const matroska_block *Block);
 
 
 MATROSKA_DLL matroska_block *MATROSKA_GetBlockForTimecode(matroska_cluster *Cluster, timecode_t Timecode, int16_t Track);
-MATROSKA_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched);
+MATROSKA_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched, int ForProfile);
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextStream();
 

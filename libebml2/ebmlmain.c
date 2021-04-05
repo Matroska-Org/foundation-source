@@ -215,7 +215,7 @@ static bool_t EBML_IdMatch(const uint8_t *PossibleId, int8_t IdLength, fourcc_t 
     return ContextId == EBML_IdFromBuffer(PossibleId,IdLength);
 }
 
-ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, const void *Cookie)
+ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile, const void *Cookie)
 {
     ebml_element *Result;
     Result = (ebml_element*)NodeCreate(Any,Context->Class);
@@ -227,22 +227,22 @@ ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool
 #endif
         if (Context->PostCreate)
             Context->PostCreate(Result,Cookie);
-        VMT_FUNC(Result,ebml_element_vmt)->PostCreate(Result, SetDefault);
+        VMT_FUNC(Result,ebml_element_vmt)->PostCreate(Result, SetDefault, ForProfile);
     }
     return Result;
 }
 
-static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8_t IdLength, const ebml_context *Context, ebml_master *Parent)
+static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8_t IdLength, const ebml_context *Context, ebml_master *Parent, int ForProfile)
 {
     ebml_element *Result;
     assert(Context!=NULL);
     if (EBML_IdMatch(PossibleId, IdLength, Context->Id))
     {
-        Result = EBML_ElementCreate(Any,Context,0,NULL);
+        Result = EBML_ElementCreate(Any,Context,0, ForProfile,NULL);
     }
     else
     {
-        Result = EBML_ElementCreate(Any,&EBML_ContextDummy,0,NULL);
+        Result = EBML_ElementCreate(Any,&EBML_ContextDummy,0, ForProfile,NULL);
         if (Result!=NULL)
         {
             // Fill a temp context
@@ -276,7 +276,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
     {
         if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id)) // && (bAllowDummy || bAllowOutOfProfile || !(Context->Profile & Semantic->DisabledProfile)))
         {
-            Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0,NULL);
+            Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0, Context->Profile, NULL);
 			return Result;
 		}
 	}
@@ -325,7 +325,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
     // dummy fallback
 	if (!IsGlobalContext && bAllowDummy && IdLength!=0) {
 		(*LowLevel) = 0;
-        Result = CreateElement(AnyNode,PossibleId,IdLength,Context->Context,NULL);
+        Result = CreateElement(AnyNode,PossibleId,IdLength,Context->Context,NULL, Context->Profile);
 	}
 
 	return Result;
@@ -383,7 +383,7 @@ ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t
     }
 
     // look for the ID in the provided context
-    Result = CreateElement(Input, PossibleId, PossibleID_Length, Context,NULL);
+    Result = CreateElement(Input, PossibleId, PossibleID_Length, Context,NULL, EBML_ANY_PROFILE);
     assert(Result != NULL);
 #if 0
 if (PossibleID_Length==4)
@@ -630,7 +630,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 					{
 						// the element has a good ID but wrong size, so replace with a dummy
 						NodeDelete((node*)Result);
-						Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL);
+						Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL, EBML_ANY_PROFILE);
 						Result->SizeLength = (int8_t)_SizeLength;
 						Result->DataSize = SizeFound;
                         Result->EndPosition = (SizeFound == SizeUnknown) ? Context->EndPosition : CurrentPos - SizeIdx + PossibleID_Length + _SizeLength + SizeFound;
@@ -668,7 +668,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
             {
                 /* add a dummy placeholder for the remaining of the parent */
                 int LevelChange = 0;
-                ebml_element *Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL);
+                ebml_element *Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL, EBML_ANY_PROFILE);
 			    if (Result != NULL)
                 {
                     if (LevelChange > 0)

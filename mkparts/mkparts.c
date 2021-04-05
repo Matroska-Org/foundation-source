@@ -217,7 +217,7 @@ int main(int argc, const char *argv[])
     RContext.Context = MATROSKA_getContextStream();
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
-    RContext.Profile = 0;
+    RContext.Profile = EBML_ANY_PROFILE;
 
     EbmlHead = EBML_FindNextElement(Input, &RContext, &UpperElement, 0);
     while (EbmlHead!=NULL)

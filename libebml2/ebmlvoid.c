@@ -40,7 +40,7 @@ static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_co
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     size_t Written, Left = (size_t)Element->DataSize;
     err_t Err = ERR_NONE;
@@ -60,7 +60,7 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceWith
 
 static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
 {
-    ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,Cookie);
+    ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,EBML_ANY_PROFILE,Cookie);
     if (Result)
     {
         Result->bValueIsSet = Element->bValueIsSet;
@@ -98,7 +98,7 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
     filepos_t CurrentPosition;
     assert(Node_IsPartOf(Void,EBML_VOID_CLASS));
 
-	EBML_ElementUpdateSize(ReplacedWith,bWithDefault,0);
+	EBML_ElementUpdateSize(ReplacedWith,bWithDefault,0, EBML_ANY_PROFILE);
 	if (EBML_ElementFullSize(Void,1) < EBML_ElementFullSize(ReplacedWith,1))
 		// the element can't be written here !
 		return INVALID_FILEPOS_T;
@@ -109,12 +109,12 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
 	CurrentPosition = Stream_Seek(Output,0,SEEK_CUR);
 
     Stream_Seek(Output,Void->ElementPosition,SEEK_SET);
-    EBML_ElementRender(ReplacedWith,Output,bWithDefault,0,1,NULL);
+    EBML_ElementRender(ReplacedWith,Output,bWithDefault,0,1,EBML_ANY_PROFILE,NULL);
 
     if (EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1) > 1)
     {
         // fill the rest with another void element
-        ebml_element *aTmp = EBML_ElementCreate(Void,Void->Context,0,NULL);
+        ebml_element *aTmp = EBML_ElementCreate(Void,Void->Context,0,EBML_ANY_PROFILE,NULL);
         if (aTmp)
         {
             filepos_t HeadBefore,HeadAfter;
