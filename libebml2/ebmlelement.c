@@ -33,7 +33,7 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p); /* not allowed outside of master elements */
 }
 
-static void PostCreate(ebml_element *Element, bool_t SetDefault)
+static void PostCreate(ebml_element *Element, bool_t SetDefault, int ForProfile)
 {
     Element->DefaultSize = -1;
     Element->ElementPosition = INVALID_FILEPOS_T;
@@ -50,7 +50,7 @@ static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
     return 1;
 }
 
-static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
+static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
 	if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
 		return 0;
@@ -275,7 +275,7 @@ fourcc_t EBML_BufferToID(const uint8_t *Buffer)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, filepos_t *Rendered)
+err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, int ForProfile, filepos_t *Rendered)
 {
     err_t Result;
     filepos_t _Rendered,WrittenSize;
@@ -298,19 +298,19 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
 
 #if !defined(NDEBUG)
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
-	    SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceWithoutMandatory);
+	    SupposedSize = EBML_ElementUpdateSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
     else
         SupposedSize = Element->DataSize;
 #else
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
-	    EBML_ElementUpdateSize(Element, bWithDefault, bForceWithoutMandatory);
+	    EBML_ElementUpdateSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 #endif
 	Result = EBML_ElementRenderHead(Element, Output, bKeepPosition, &WrittenSize);
     *Rendered += WrittenSize;
     if (Result != ERR_NONE)
         return Result;
 
-    Result = EBML_ElementRenderData(Element, Output, bForceWithoutMandatory, bWithDefault, &WrittenSize);
+    Result = EBML_ElementRenderData(Element, Output, bForceWithoutMandatory, bWithDefault, ForProfile, &WrittenSize);
 #if !defined(NDEBUG)
     if (SupposedSize != INVALID_FILEPOS_T) assert(WrittenSize == SupposedSize);
 #endif

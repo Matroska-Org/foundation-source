@@ -47,6 +47,8 @@ extern "C" {
 #define SCOPE_ALL_DATA      1
 #define SCOPE_NO_DATA       2
 
+#define EBML_ANY_PROFILE    0xFFFFFFFF
+
 // base classes
 #define EBML_ELEMENT_CLASS   FOURCC('E','B','E','L')
 #define EBML_BINARY_CLASS    FOURCC('E','B','I','N')
@@ -112,25 +114,25 @@ typedef struct ebml_element_vmt
     bool_t (*ValidateSize)(const void*);
     err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
 #if defined(CONFIG_EBML_WRITING)
-    err_t (*RenderData)(void*, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered);
+    err_t (*RenderData)(void*, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered);
 #endif
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);
-    filepos_t (*UpdateDataSize)(void*, bool_t bWithDefault, bool_t bForceWithoutMandatory);
+    filepos_t (*UpdateDataSize)(void*, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile);
     bool_t (*NeedsDataSizeUpdate)(const void*, bool_t bWithDefault);
     int (*Cmp)(const void*, const void*);
     ebml_element *(*Copy)(const void*, const void *Cookie);
     
     // internal call only
-    void (*PostCreate)(void*, bool_t SetDefault);
+    void (*PostCreate)(void*, bool_t SetDefault, int ForProfile);
 
 } ebml_element_vmt;
 
 #define EBML_ElementValidateSize(p)          VMT_FUNC(p,ebml_element_vmt)->ValidateSize(p)
 #define EBML_ElementReadData(p,i,c,d,s,r)    VMT_FUNC(p,ebml_element_vmt)->ReadData(p,i,c,d,s,r)
-#define EBML_ElementRenderData(p,s,f,k,r)    VMT_FUNC(p,ebml_element_vmt)->RenderData(p,s,f,k,r)
+#define EBML_ElementRenderData(p,s,f,k,i,r)  VMT_FUNC(p,ebml_element_vmt)->RenderData(p,s,f,k,i,r)
 #define EBML_ElementIsDefaultValue(p)        VMT_FUNC(p,ebml_element_vmt)->IsDefaultValue(p)
-#define EBML_ElementUpdateSize(p,k,f)        VMT_FUNC(p,ebml_element_vmt)->UpdateDataSize(p,k,f)
+#define EBML_ElementUpdateSize(p,k,f,i)      VMT_FUNC(p,ebml_element_vmt)->UpdateDataSize(p,k,f,i)
 #define EBML_ElementNeedsDataSizeUpdate(p,d) VMT_FUNC(p,ebml_element_vmt)->NeedsDataSizeUpdate(p,d)
 #define EBML_ElementCmp(p,e)                 VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
 #define EBML_ElementCopy(p,c)                VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
@@ -138,7 +140,7 @@ typedef struct ebml_element_vmt
 EBML_DLL err_t EBML_Init(parsercontext *p);
 EBML_DLL void EBML_Done(parsercontext *p);
 
-EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, const void *Cookie);
+EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile, const void *Cookie);
 
 EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize);
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
@@ -173,7 +175,7 @@ EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_conte
 
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags ?
-EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, int ForProfile, filepos_t *Rendered);
 EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 
@@ -185,22 +187,22 @@ EBML_DLL void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size);
 #endif // !EBML2_UGLY_HACKS_API
 
 // type specific routines
-EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault);
+EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault, int ForProfile);
 EBML_DLL err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append);
 EBML_DLL err_t EBML_MasterRemove(ebml_master *Element, ebml_element *Remove);
-EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault);
-EBML_DLL ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault);
+EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault, int ForProfile);
+EBML_DLL ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault, int ForProfile);
 EBML_DLL size_t EBML_MasterCount(const ebml_master *Element);
 EBML_DLL void EBML_MasterClear(ebml_master *Element); // clear the list (the children and not freed)
 EBML_DLL void EBML_MasterErase(ebml_master *Element);
-EBML_DLL void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault); // add the mandatory elements
-EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault);
+EBML_DLL void EBML_MasterAddMandatory(ebml_master *Element, bool_t SetDefault, int ForProfile); // add the mandatory elements
+EBML_DLL bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault, int ForProfile);
 EBML_DLL void EBML_MasterSort(ebml_master *Element, arraycmp Cmp, const void* CmpParam);
 EBML_DLL bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use);
 EBML_DLL bool_t EBML_MasterIsChecksumValid(const ebml_master *Element);
-#define EBML_MasterGetChild(e,c)   EBML_MasterFindFirstElt(e,c,1,1)
-#define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_master*)e,c,0,0)
-#define EBML_MasterNextChild(e,c)  EBML_MasterFindNextElt((ebml_master*)e,(ebml_element*)c,0,0)
+#define EBML_MasterGetChild(e,c,p) EBML_MasterFindFirstElt(e,c,1,1,p)
+#define EBML_MasterFindChild(e,c)  EBML_MasterFindFirstElt((ebml_master*)e,c,0,0,0)
+#define EBML_MasterNextChild(e,c)  EBML_MasterFindNextElt((ebml_master*)e,(ebml_element*)c,0,0,0)
 #define EBML_MasterChildren(p)     ((ebml_element*)NodeTree_Children(p))
 #define EBML_MasterNext(p)         ((ebml_element*)NodeTree_Next(p))
 #define EBML_ElementParent(p)      ((ebml_element*)NodeTree_Parent(p))

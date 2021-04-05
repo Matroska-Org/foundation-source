@@ -67,7 +67,7 @@ static const int A_DTS_freq[16] = {
 };
 
 
-err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
+err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input, int ForProfile)
 {
     ebml_master *Track=NULL;
     ebml_element *Elt;
@@ -100,7 +100,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input)
                     ReadData = 0;
                     if (!ArraySize(&Block->Data))
                     {
-                        Err = MATROSKA_BlockReadData(Block,Input);
+                        Err = MATROSKA_BlockReadData(Block,Input,ForProfile);
                         if (Err!=ERR_NONE)
                             goto exit;
                         ReadData = 1;

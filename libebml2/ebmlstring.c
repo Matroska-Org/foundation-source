@@ -106,7 +106,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, filepos_t *Rendered)
+static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     size_t Written;
     err_t Err = Stream_Write(Output,Element->Buffer,(size_t)Element->Base.DataSize,&Written);
@@ -163,20 +163,20 @@ static void Delete(ebml_string *p)
         free((char*)p->Buffer);
 }
 
-static filepos_t UpdateDataSize(ebml_string *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
+static filepos_t UpdateDataSize(ebml_string *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
         Element->Base.DataSize = strlen(Element->Buffer);
 
-	return INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
+	return INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
-static filepos_t UpdateDataSizeUni(ebml_string *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory)
+static filepos_t UpdateDataSizeUni(ebml_string *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
         Element->Base.DataSize = strlen(Element->Buffer);
 
-	return INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory);
+	return INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
 static bool_t IsDefaultValue(const ebml_string *Element)
@@ -184,23 +184,23 @@ static bool_t IsDefaultValue(const ebml_string *Element)
     return Element->Base.Context->HasDefault && (!Element->Base.bValueIsSet || strcmp(Element->Buffer,(const char*)Element->Base.Context->DefaultValue)==0);
 }
 
-static void PostCreateString(ebml_element *Element, bool_t SetDefault)
+static void PostCreateString(ebml_element *Element, bool_t SetDefault, int ForProfile)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->PostCreate(Element, SetDefault);
+    INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->PostCreate(Element, SetDefault, ForProfile);
     if (SetDefault && Element->Context->HasDefault)
         EBML_StringSetValue((ebml_string*)Element, (const char *)Element->Context->DefaultValue);
 }
 
-static void PostCreateUniString(ebml_element *Element, bool_t SetDefault)
+static void PostCreateUniString(ebml_element *Element, bool_t SetDefault, int ForProfile)
 {
-    INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->PostCreate(Element, SetDefault);
+    INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->PostCreate(Element, SetDefault, ForProfile);
     if (SetDefault && Element->Context->HasDefault)
         EBML_StringSetValue((ebml_string*)Element, (const char *)Element->Context->DefaultValue);
 }
 
 static ebml_string *Copy(const ebml_string *Element, const void *Cookie)
 {
-    ebml_string *Result = (ebml_string*)EBML_ElementCreate(Element,Element->Base.Context,0,Cookie);
+    ebml_string *Result = (ebml_string*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
     if (Result)
     {
         Result->Buffer = strdup(Element->Buffer);
