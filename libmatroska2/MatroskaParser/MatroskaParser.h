@@ -63,7 +63,7 @@ typedef struct TrackInfo
 
 	uint8_t *CodecPrivate;
 	size_t CodecPrivateSize;
-	timecode_t DefaultDuration;
+	mkv_timestamp_t DefaultDuration;
 	char *CodecID;
 	char *Name;
 	char Language[4];
@@ -72,7 +72,7 @@ typedef struct TrackInfo
 	bool_t Default;
 	bool_t Lacing;
 	bool_t DecodeAll;
-	float TimecodeScale;
+	float TimestampScale;
 
 	int TrackOverlay;
 	uint8_t MinCache;
@@ -131,8 +131,8 @@ typedef struct Chapter
 	size_t nDisplay;
 	struct ChapterDisplay *Display;
 
-	timecode_t Start;
-	timecode_t End;
+	mkv_timestamp_t Start;
+	mkv_timestamp_t End;
 	uint64_t UID;
 
 	bool_t Enabled;
@@ -190,8 +190,8 @@ typedef struct SegmentInfo
 	char *MuxingApp;
 	char *WritingApp;
 
-	timecode_t TimecodeScale;
-	timecode_t Duration;
+	mkv_timestamp_t TimestampScale;
+	mkv_timestamp_t Duration;
 
 	datetime_t DateUTC;
 
@@ -218,7 +218,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 
 #define MKVF_SEEK_TO_PREV_KEYFRAME  1
 
-void mkv_Seek(MatroskaFile *File, timecode_t timecode, int flags);
+void mkv_Seek(MatroskaFile *File, mkv_timestamp_t timestamp, int flags);
 
 void mkv_GetTags(MatroskaFile *File, Tag **, unsigned *Count);
 void mkv_GetAttachments(MatroskaFile *File, Attachment **, unsigned *Count);

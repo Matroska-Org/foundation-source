@@ -257,16 +257,16 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 	}
 	File->pSegmentInfo = EBML_ElementPosition(SegmentInfo);
 	File->SegmentInfo = SegmentInfo;
-	File->Seg.TimecodeScale = MATROSKA_getContextTimestampScale()->DefaultValue;
+	File->Seg.TimestampScale = MATROSKA_getContextTimestampScale()->DefaultValue;
 
 	for (Elt = EBML_MasterChildren(SegmentInfo);Elt;Elt = EBML_MasterNext(Elt))
 	{
 		if (EBML_ElementClassID(Elt) == MATROSKA_getContextTimestampScale()->Id)
 		{
-			File->Seg.TimecodeScale = EBML_IntegerValue(Elt);
-			if (File->Seg.TimecodeScale==0)
+			File->Seg.TimestampScale = EBML_IntegerValue(Elt);
+			if (File->Seg.TimestampScale==0)
 			{
-				strncpy(err_msg,"Segment timecode scale is zero",err_msgSize);
+				strncpy(err_msg,"Segment timestamp scale is zero",err_msgSize);
 				return 0;
 			}
 		}
@@ -337,7 +337,7 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 		}
 	}
 	if (duration > 0.0)
-		File->Seg.Duration = (timecode_t)(duration * File->Seg.TimecodeScale);
+		File->Seg.Duration = (mkv_timestamp_t)(duration * File->Seg.TimestampScale);
 
 	return 1;
 }
@@ -357,12 +357,12 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 		return 0;
 
 	memset(&track,0,sizeof(track));
-	track.DefaultDuration = INVALID_TIMECODE_T;
+	track.DefaultDuration = INVALID_TIMESTAMP_T;
 	track.Enabled = MATROSKA_getContextTrackEnabled()->DefaultValue;
 	track.Default = MATROSKA_getContextTrackDefault()->DefaultValue;
 	track.Lacing = MATROSKA_getContextTrackLacing()->DefaultValue;
 	track.DecodeAll = MATROSKA_getContextTrackCodecDecodeAll()->DefaultValue;
-	track.TimecodeScale = (float)MATROSKA_getContextTrackTimestampScale()->DefaultValue;
+	track.TimestampScale = (float)MATROSKA_getContextTrackTimestampScale()->DefaultValue;
 	memcpy(track.Language, "eng", 4);
 
 	for (Elt = EBML_MasterChildren(Track);Elt;Elt = EBML_MasterNext(Elt))
@@ -409,7 +409,7 @@ static bool_t parseTrackEntry(ebml_element *Track, MatroskaFile *File, char *err
 		else if (EBML_ElementClassID(Elt) == MATROSKA_getContextTrackDefaultDuration()->Id)
 			track.DefaultDuration = EBML_IntegerValue(Elt);
 		else if (EBML_ElementClassID(Elt) == MATROSKA_getContextTrackTimestampScale()->Id)
-			track.TimecodeScale = (float)((ebml_float*)Elt)->Value;
+			track.TimestampScale = (float)((ebml_float*)Elt)->Value;
 		else if (EBML_ElementClassID(Elt) == MATROSKA_getContextTrackMaxBlockAdditionID()->Id)
 			track.MaxBlockAdditionID = (size_t)EBML_IntegerValue(Elt);
 		else if (EBML_ElementClassID(Elt) == MATROSKA_getContextTrackLanguage()->Id)
@@ -797,7 +797,7 @@ static bool_t parseChapter(ebml_element *Chapter, MatroskaFile *File, char *err_
 				return 0;
 			pChapter = ARRAYEND(Parent->aChildren,struct Chapter)-1;
 			memset(pChapter,0,sizeof(*pChapter));
-			pChapter->Start = INVALID_TIMECODE_T;
+			pChapter->Start = INVALID_TIMESTAMP_T;
 			if (!parseChapter(Elt,File,err_msg,err_msgSize,pChapter,NULL))
 				ArrayRemove(&Parent->aChildren,struct Chapter,pChapter,NULL,NULL);
 		}
@@ -855,7 +855,7 @@ static bool_t parseChapters(ebml_element *Chapters, MatroskaFile *File, char *er
 
 	pChapter = &Chap;
 	memset(pChapter,0,sizeof(*pChapter));
-	Chap.Start = INVALID_TIMECODE_T;
+	Chap.Start = INVALID_TIMESTAMP_T;
 	Chap.Ordered = MATROSKA_getContextEditionOrdered()->DefaultValue;
 	Chap.Hidden = MATROSKA_getContextEditionHidden()->DefaultValue;
 	Chap.Default = MATROSKA_getContextEditionDefault()->DefaultValue;
@@ -1334,11 +1334,11 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			}
 
 			Skip = 0;
-			if (EBML_ElementClassID(Elt) == MATROSKA_getContextClusterTimecode()->Id)
+			if (EBML_ElementClassID(Elt) == MATROSKA_getContextClusterTimestamp()->Id)
 			{
 				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
-				Elt2 = EBML_MasterFindFirstElt(File->CurrentCluster,MATROSKA_getContextClusterTimecode(),1,1);
+				Elt2 = EBML_MasterFindFirstElt(File->CurrentCluster,MATROSKA_getContextClusterTimestamp(),1,1);
 				if (!Elt2)
 					return EOF; // TODO: memory leak
 				EBML_IntegerSetValue((ebml_integer*)Elt2,EBML_IntegerValue(Elt));
@@ -1415,21 +1415,21 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 				break;
 	}
 
-	if (Frame.Timecode!=INVALID_TIMECODE_T)
+	if (Frame.Timestamp!=INVALID_TIMESTAMP_T)
 	{
 		if (StartTime)
-			*StartTime = Frame.Timecode;
-		if (EndTime && Frame.Duration != INVALID_TIMECODE_T)
-			*EndTime = Frame.Timecode + Frame.Duration;
+			*StartTime = Frame.Timestamp;
+		if (EndTime && Frame.Duration != INVALID_TIMESTAMP_T)
+			*EndTime = Frame.Timestamp + Frame.Duration;
 	}
 
 	if (FilePos)
 		*FilePos = EBML_ElementPosition((ebml_element*)File->CurrentBlock);
 	if (FrameFlags)
 	{
-		if (Frame.Timecode == INVALID_TIMECODE_T)
+		if (Frame.Timestamp == INVALID_TIMESTAMP_T)
 			*FrameFlags |= FRAME_UNKNOWN_START;
-		if (Frame.Duration == INVALID_TIMECODE_T)
+		if (Frame.Duration == INVALID_TIMESTAMP_T)
 			*FrameFlags |= FRAME_UNKNOWN_END;
 		if (MATROSKA_BlockKeyframe(File->CurrentBlock))
 			*FrameFlags |= FRAME_KF;
@@ -1462,15 +1462,15 @@ static void SeekToPos(MatroskaFile *File, filepos_t SeekPos)
 	File->Input->io->ioseek(File->Input->io,SeekPos,SEEK_SET);
 }
 
-void mkv_Seek(MatroskaFile *File, timecode_t timecode, int flags)
+void mkv_Seek(MatroskaFile *File, mkv_timestamp_t timestamp, int flags)
 {
 	matroska_cuepoint *CuePoint;
 	filepos_t SeekPos;
 
-	if (File->flags & MKVF_AVOID_SEEKS || File->pFirstCluster==INVALID_FILEPOS_T || timecode==INVALID_TIMECODE_T)
+	if (File->flags & MKVF_AVOID_SEEKS || File->pFirstCluster==INVALID_FILEPOS_T || timestamp==INVALID_TIMESTAMP_T)
 		return;
 
-	if (timecode==0)
+	if (timestamp==0)
 	{
 		SeekToPos(File, File->pFirstCluster);
 		return;
@@ -1478,7 +1478,7 @@ void mkv_Seek(MatroskaFile *File, timecode_t timecode, int flags)
 	if (!File->CueList)
 		return;
 
-	CuePoint = MATROSKA_CuesGetTimecodeStart(File->CueList,timecode);
+	CuePoint = MATROSKA_CuesGetTimestampStart(File->CueList,timestamp);
 	if (CuePoint==NULL)
 		return;
 

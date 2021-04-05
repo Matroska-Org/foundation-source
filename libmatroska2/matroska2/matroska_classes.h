@@ -45,12 +45,12 @@
 struct matroska_block
 {
     ebml_binary Base;
-	timecode_t GlobalTimecode;
+    mkv_timestamp_t GlobalTimestamp;
     filepos_t FirstFrameLocation;
     array SizeList; // int32_t
     array SizeListIn; // int32_t
     array Data; // uint8_t
-    array Durations; // timecode_t
+    array Durations; // mkv_timestamp_t
     ebml_master *ReadTrack;
     ebml_master *ReadSegInfo;
 #if defined(CONFIG_EBML_WRITING)
@@ -60,8 +60,8 @@ struct matroska_block
     bool_t IsKeyframe;
     bool_t IsDiscardable;
     bool_t Invisible;
-    bool_t LocalTimecodeUsed;
-    int16_t LocalTimecode;
+    bool_t LocalTimestampUsed;
+    int16_t LocalTimestamp;
     uint16_t TrackNumber;
     char Lacing;
 };
