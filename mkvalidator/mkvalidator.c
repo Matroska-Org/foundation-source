@@ -389,10 +389,10 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
                     Result |= OutputError(0x306,T("Track at %") TPRId64 T(" attachment link UID 0x%") TPRIx64 T(" not found in attachments"),EL_Pos(Track),EL_Int(TrackType));
             }
 
-            TrackType = EBML_MasterFindNextElt(Track, TrackType, 0, 0);
+            TrackType = EBML_MasterNextChild(Track, TrackType);
         }
 
-		Track = (ebml_master*)EBML_MasterFindNextElt(Tracks, (ebml_element*)Track, 0, 0);
+		Track = (ebml_master*)EBML_MasterNextChild(Tracks, Track);
 	}
 	return Result;
 }
@@ -535,7 +535,7 @@ static int CheckSeekHead(ebml_master *SeekHead)
 		}
 		else
 			OutputWarning(0x860,T("The SeekPoint at %") TPRId64 T(" references an element that is not a known level 1 ID %s at %") TPRId64 T(")"),EL_Pos(RLevel1),IdString,Pos);
-		RLevel1 = (matroska_seekpoint*)EBML_MasterFindNextElt(SeekHead, (ebml_element*)RLevel1, 0, 0);
+		RLevel1 = (matroska_seekpoint*)EBML_MasterNextChild(SeekHead, RLevel1);
 	}
     if (SeekHead == RSeekHead)
     {
@@ -576,7 +576,7 @@ static bool_t TrackIsLaced(int16_t TrackNum)
             TrackData = EBML_MasterGetChild(Track, MATROSKA_getContextFlagLacing());
             return EL_Int(TrackData) != 0;
         }
-        Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
+        Track = (ebml_master*)EBML_MasterNextChild(RTrackInfo, Track);
     }
     return 1;
 }
@@ -594,7 +594,7 @@ static bool_t TrackIsVideo(int16_t TrackNum)
             return EL_Int(TrackData) == TRACK_TYPE_VIDEO;
         }
         // look for TrackNum in the next Track
-        Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
+        Track = (ebml_master*)EBML_MasterNextChild(RTrackInfo, Track);
     }
     return 0;
 }
@@ -624,7 +624,7 @@ static bool_t TrackNeedsKeyframe(int16_t TrackNum)
             }
         }
         // look for TrackNum in the next Track
-        Track = (ebml_master*)EBML_MasterFindNextElt(RTrackInfo, (ebml_element*)Track, 0, 0);
+        Track = (ebml_master*)EBML_MasterNextChild(RTrackInfo, Track);
     }
     return 0;
 }
@@ -845,7 +845,7 @@ static int CheckCueEntries(ebml_master *Cues)
 			if (Cluster == ARRAYEND(RClusters,matroska_cluster*))
 				Result |= OutputError(0x312,T("CueEntry Track #%d and timecode %") TPRId64 T(" ms not found"),(int)TrackNumEntry,Scale64(TimecodeEntry,1,1000000));
 			PrevTimecode = TimecodeEntry;
-			CuePoint = (matroska_cuepoint*)EBML_MasterFindNextElt(Cues, (ebml_element*)CuePoint, 0, 0);
+			CuePoint = (matroska_cuepoint*)EBML_MasterNextChild(Cues, CuePoint);
 		}
 	}
 	return Result;
