@@ -292,14 +292,14 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 	return Result;
 }
 
-static int CheckTracks(ebml_master *Tracks, int ProfileNum)
+static int CheckTracks(ebml_master *TrackEntries, int ProfileNum)
 {
 	ebml_master *Track;
 	ebml_element *TrackType, *TrackNum, *Elt, *Elt2;
 	ebml_string *CodecID;
 	tchar_t CodecName[MAXPATH],String[MAXPATH];
 	int Result = 0;
-	Track = (ebml_master*)EBML_MasterFindChild(Tracks, MATROSKA_getContextTrackEntry());
+	Track = (ebml_master*)EBML_MasterFindChild(TrackEntries, MATROSKA_getContextTrackEntry());
 	while (Track)
 	{
         // check if the codec is valid for the profile
@@ -392,7 +392,7 @@ static int CheckTracks(ebml_master *Tracks, int ProfileNum)
             TrackType = EBML_MasterNextChild(Track, TrackType);
         }
 
-		Track = (ebml_master*)EBML_MasterNextChild(Tracks, Track);
+		Track = (ebml_master*)EBML_MasterNextChild(TrackEntries, Track);
 	}
 	return Result;
 }
@@ -1367,7 +1367,6 @@ int main(int argc, const char *argv[])
         TextWrite(StdErr,T("\r") PROJECT_NAME T(" ") PROJECT_VERSION T(": the file appears to be valid\r\n"));
         if (Details)
         {
-            track_info *TI;
             for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
             {
                 EBML_StringGet(TI->CodecID,String,TSIZEOF(String));
