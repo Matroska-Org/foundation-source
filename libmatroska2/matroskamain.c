@@ -1762,7 +1762,6 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     uint8_t BlockHead[5], *Cursor;
     size_t ToWrite, Written, BlockHeadSize = 4;
     ebml_element *Elt, *Elt2, *Header = NULL;
-    int32_t *i;
     int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
     assert(Element->Lacing != LACING_AUTO);
 
@@ -1903,6 +1902,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     Cursor = ARRAYBEGIN(Element->Data,uint8_t);
     if (Header && (CompressionScope & MATROSKA_COMPR_SCOPE_BLOCK))
     {
+        int32_t* i;
         if (Header && Header->Context==MATROSKA_getContextContentCompAlgo())
         {
 #if defined(CONFIG_ZLIB)
@@ -2285,8 +2285,8 @@ static err_t ReadTrackEntry(matroska_trackentry *Element, stream *Input, const e
                 ebml_element *Elt =  EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression());
                 if (Elt)
                 {
-                    ebml_integer *Scope =  (ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope());
-                    Element->CodecPrivateCompressed = Scope && (EBML_IntegerValue(Scope) & MATROSKA_COMPR_SCOPE_PRIVATE)!=0;
+                    ebml_integer *EncScope =  (ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope());
+                    Element->CodecPrivateCompressed = EncScope && (EBML_IntegerValue(EncScope) & MATROSKA_COMPR_SCOPE_PRIVATE)!=0;
                 }
             }
         }
