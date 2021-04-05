@@ -334,14 +334,14 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
 ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize)
 {
     filepos_t aElementPosition, aSizePosition;
-    filepos_t SizeFound=0, SizeUnknown;
+    filepos_t SizeFound=0, SizeUnknown=8;
     int ReadSize;
     uint8_t BitMask;
     uint8_t PossibleId[4];
     uint8_t PossibleSize[8]; // we don't support size stored in more than 64 bits
     bool_t bElementFound = 0;
     int8_t PossibleID_Length = 0;
-    size_t _SizeLength;
+    size_t _SizeLength=0;
     uint8_t PossibleSizeLength = 0;
     ebml_element *Result = NULL;
 
