@@ -108,7 +108,7 @@ void DebugMessage(const tchar_t* Msg,...)
 typedef struct block_info
 {
 	matroska_block *Block;
-	timecode_t DecodeTime;
+	mkv_timestamp_t DecodeTime;
 	size_t FrameStartIndex;
 
 } block_info;
@@ -365,7 +365,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                     EBML_IntegerSetValue((ebml_integer*)Elt, ClusterSize);
                     Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp());
                     if (Elt2)
-                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimecode
+                        NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2)); // make sure the PrevSize is just after the ClusterTimestamp
                     ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
                 }
             }
@@ -374,7 +374,7 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
             if (Elt)
                 Elt2 = Elt; // make sure the Cluster Position is just after the PrevSize
             else
-                Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp()); // make sure the Cluster Position is just after the ClusterTimecode
+                Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp()); // make sure the Cluster Position is just after the ClusterTimestamp
             if (Elt2 && DstProfile!=PROFILE_WEBM)
             {
                 Elt = EBML_MasterGetChild(*Cluster, MATROSKA_getContextPosition(), DstProfile);
@@ -419,17 +419,17 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     matroska_cluster **Cluster;
     matroska_block *Block;
     int16_t CueTrack;
-    timecode_t CueTimecode;
+    mkv_timestamp_t CueTimestamp;
     size_t StartBoost = 7;
 
     CueTrack = MATROSKA_CueTrackNum(Cue);
-    CueTimecode = MATROSKA_CueTimecode(Cue);
+    CueTimestamp = MATROSKA_CueTimestamp(Cue);
     ++CurrentPhase;
     if (StartCluster)
     {
         for (Cluster=StartCluster;StartBoost && Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster,--StartBoost)
         {
-            Block = MATROSKA_GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
+            Block = MATROSKA_GetBlockForTimestamp(*Cluster, CueTimestamp, CueTrack);
             if (Block)
             {
                 MATROSKA_LinkCuePointBlock(Cue,Block);
@@ -441,7 +441,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
 
     for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
     {
-        Block = MATROSKA_GetBlockForTimecode(*Cluster, CueTimecode, CueTrack);
+        Block = MATROSKA_GetBlockForTimestamp(*Cluster, CueTimestamp, CueTrack);
         if (Block)
         {
             MATROSKA_LinkCuePointBlock(Cue,Block);
@@ -450,11 +450,11 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
         }
     }
 
-    TextPrintf(StdErr,T("Could not find the matching block for timecode %0.3f s\r\n"),CueTimecode/1000000000.0);
+    TextPrintf(StdErr,T("Could not find the matching block for timestamp %0.3f s\r\n"),CueTimestamp/1000000000.0);
     return NULL;
 }
 
-static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master *Tracks, int dstProfile, array *WTracks, timecode_t Offset)
+static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master *Tracks, int dstProfile, array *WTracks, mkv_timestamp_t Offset)
 {
     matroska_cluster **Cluster;
 	ebml_element *Block, *GBlock, *BlockTrack, *Type;
@@ -480,7 +480,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
 	// link each Block/SimpleBlock with its Track and SegmentInfo
 	for (Cluster=ARRAYBEGIN(*Clusters,matroska_cluster*);Cluster!=ARRAYEND(*Clusters,matroska_cluster*);++Cluster)
 	{
-        if (Offset != INVALID_TIMECODE_T)
+        if (Offset != INVALID_TIMESTAMP_T)
         {
             Time = (ebml_integer*)EBML_MasterGetChild((ebml_master*)*Cluster, MATROSKA_getContextTimestamp(), DstProfile);
             if (Time)
@@ -660,23 +660,23 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     return NULL;
 }
 
-static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, filepos_t PrevSize, timecode_t *PrevTimecode)
+static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, filepos_t PrevSize, mkv_timestamp_t *PrevTimestamp)
 {
     filepos_t IntendedPosition = EBML_ElementPosition((ebml_element*)Cluster);
     ebml_element *Elt;
     bool_t CuesChanged = ReadClusterData(Cluster, Input);
 
-    if (*PrevTimecode != INVALID_TIMECODE_T)
+    if (*PrevTimestamp != INVALID_TIMESTAMP_T)
     {
-        timecode_t OrigTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster);
-        if (*PrevTimecode >= OrigTimecode)
+        mkv_timestamp_t OrigTimestamp = MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster);
+        if (*PrevTimestamp >= OrigTimestamp)
         {
-            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timecode %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition((ebml_element*)Cluster),*PrevTimecode,OrigTimecode);
-            MATROSKA_ClusterSetTimecode((matroska_cluster*)Cluster, *PrevTimecode + MATROSKA_ClusterTimecodeScale((matroska_cluster*)Cluster, 0));
+            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timestamp %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition((ebml_element*)Cluster),*PrevTimestamp,OrigTimestamp);
+            MATROSKA_ClusterSetTimestamp((matroska_cluster*)Cluster, *PrevTimestamp + MATROSKA_ClusterTimestampScale((matroska_cluster*)Cluster, 0));
             CuesChanged = 1;
         }
     }
-    *PrevTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)Cluster);
+    *PrevTimestamp = MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster);
 
     EBML_ElementRender((ebml_element*)Cluster,Output,0,0,1,DstProfile,NULL);
 
@@ -764,7 +764,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 	ebml_element **Cluster;
 	matroska_cuepoint *CuePoint;
 	int64_t TrackNum;
-	timecode_t PrevTimecode = INVALID_TIMECODE_T, BlockTimecode;
+	mkv_timestamp_t PrevTimestamp = INVALID_TIMESTAMP_T, BlockTimestamp;
 
 	Track = GetMainTrack(Tracks, NULL);
 	if (!Track)
@@ -808,8 +808,8 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 
 			if (Block && MATROSKA_BlockTrackNum(Block) == TrackNum)
 			{
-				BlockTimecode = MATROSKA_BlockTimecode(Block);
-				if ((BlockTimecode - PrevTimecode) < 800000000 && PrevTimecode != INVALID_TIMECODE_T)
+				BlockTimestamp = MATROSKA_BlockTimestamp(Block);
+				if ((BlockTimestamp - PrevTimestamp) < 800000000 && PrevTimestamp != INVALID_TIMESTAMP_T)
 					break; // no more than 1 Cue per Cluster and per 800 ms
 
 				CuePoint = (matroska_cuepoint*)EBML_MasterAddElt(Cues,MATROSKA_getContextCuePoint(),1,DstProfile);
@@ -822,7 +822,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 				MATROSKA_LinkCuePointBlock(CuePoint,Block);
 				MATROSKA_CuePointUpdate(CuePoint,RSegment, DstProfile);
 
-				PrevTimecode = BlockTimecode;
+				PrevTimestamp = BlockTimestamp;
 
 				break; // one Cues per Cluster is enough
 			}
@@ -840,7 +840,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
 	return 1;
 }
 
-static int TimcodeCmp(const void* Param, const timecode_t *a, const timecode_t *b)
+static int TimcodeCmp(const void* Param, const mkv_timestamp_t *a, const mkv_timestamp_t *b)
 {
 	if (*a == *b)
 		return 0;
@@ -1417,11 +1417,11 @@ int main(int argc, const char *argv[])
     filepos_t MetaSeekBefore, MetaSeekAfter;
     filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize;
     size_t ExtraVoidSize = 0;
-    timecode_t PrevTimecode;
+    mkv_timestamp_t PrevTimestamp;
     bool_t CuesChanged;
 	bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Optimize = 0, OptimizeVideo = 1, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
     int InputPathIndex = 1;
-	int64_t TimeCodeScale = 0, OldTimeCodeScale;
+	int64_t TimestampScale = 0, OldTimestampScale;
     size_t MaxTrackNum = 0;
     array TrackMaxHeader; // array of uint8_t (max common header)
     filepos_t TotalSize;
@@ -1503,7 +1503,7 @@ int main(int argc, const char *argv[])
 #else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 #endif
-			TimeCodeScale = StringToInt(Path,0);
+			TimestampScale = StringToInt(Path,0);
 			InputPathIndex = i+1;
 		}
 		else if (tcsisame_ascii(Path,T("--alt-3d")) && i+1<argc-1)
@@ -1552,7 +1552,7 @@ int main(int argc, const char *argv[])
 		    TextWrite(StdErr,T("    5: 'matroska' v1 with DivX extensions\r\n"));
 		    TextWrite(StdErr,T("    6: 'matroska' v4\r\n"));
 		    TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
-		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimecodeScale to <v> (1000000 is a good value)\r\n"));
+		    TextWrite(StdErr,T("  --timecodescale <v> force the global TimestampScale to <v> (1000000 is a good value)\r\n"));
 		    TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
 		    TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
 		    TextWrite(StdErr,T("  --optimize_nv use all possible optimization for the output file, except video tracks\r\n"));
@@ -1745,19 +1745,19 @@ int main(int argc, const char *argv[])
 	RLevel1 = (ebml_master*)EBML_MasterGetChild(WSegmentInfo,MATROSKA_getContextTimestampScale(), SrcProfile);
 	if (!RLevel1)
 	{
-		TextWrite(StdErr,T("Failed to get the TimeCodeScale handle\r\n"));
+		TextWrite(StdErr,T("Failed to get the TimestampScale handle\r\n"));
 		Result = -10;
 		goto exit;
 	}
-    OldTimeCodeScale = EBML_IntegerValue((ebml_integer*)RLevel1);
-    if (TimeCodeScale==0)
+    OldTimestampScale = EBML_IntegerValue((ebml_integer*)RLevel1);
+    if (TimestampScale==0)
     {
-        // avoid using a TimeCodeScale too small
-        TimeCodeScale = OldTimeCodeScale;
-        while (TimeCodeScale < 100000)
-            TimeCodeScale <<= 1;
+        // avoid using a TimestampScale too small
+        TimestampScale = OldTimestampScale;
+        while (TimestampScale < 100000)
+            TimestampScale <<= 1;
     }
-    EBML_IntegerSetValue((ebml_integer*)RLevel1,TimeCodeScale);
+    EBML_IntegerSetValue((ebml_integer*)RLevel1,TimestampScale);
 	RLevel1 = NULL;
 
     if (Live)
@@ -1767,13 +1767,13 @@ int main(int argc, const char *argv[])
 	    if (Duration)
 		    NodeDelete((node*)Duration);
     }
-    else if (TimeCodeScale && TimeCodeScale != OldTimeCodeScale)
+    else if (TimestampScale && TimestampScale != OldTimestampScale)
     {
 	    ebml_float *Duration = (ebml_float*)EBML_MasterFindChild(WSegmentInfo, MATROSKA_getContextDuration());
         if (Duration)
         {
             double duration = EBML_FloatValue(Duration);
-            EBML_FloatSetValue(Duration, (duration * OldTimeCodeScale) / TimeCodeScale);
+            EBML_FloatSetValue(Duration, (duration * OldTimestampScale) / TimestampScale);
         }
     }
 
@@ -2079,7 +2079,7 @@ int main(int argc, const char *argv[])
 		NextPos += 134;
 	}
 
-    Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile, &WTracks, Live?12345:INVALID_TIMECODE_T);
+    Result = LinkClusters(&RClusters,RSegmentInfo,RTrackInfo,DstProfile, &WTracks, Live?12345:INVALID_TIMESTAMP_T);
 	if (Result!=0)
 		goto exit;
 
@@ -2181,11 +2181,11 @@ int main(int argc, const char *argv[])
 	    ebml_element *Block, *GBlock;
 		ebml_master *Track;
         matroska_block *Block1;
-		timecode_t Prev = INVALID_TIMECODE_T, *Tst, BlockTime, BlockDuration, MasterEndTimecode, BlockEnd, MainBlockEnd;
+		mkv_timestamp_t Prev = INVALID_TIMESTAMP_T, *Tst, BlockTime, BlockDuration, MasterEndTimestamp, BlockEnd, MainBlockEnd;
 		size_t MainTrack, BlockTrack;
         size_t Frame, *pTrackOrder;
 		bool_t Deleted;
-		array KeyFrameTimecodes, TrackBlockCurrIdx, TrackOrder, *pTrackBlock;
+		array KeyFrameTimestamps, TrackBlockCurrIdx, TrackOrder, *pTrackBlock;
         array TrackBlocks; // array of block_info
         matroska_frame FrameData;
 		block_info BlockInfo,*pBlockInfo;
@@ -2211,7 +2211,7 @@ int main(int argc, const char *argv[])
 		ArrayInit(&TrackOrder);
 
 		// fill TrackBlocks with all the Blocks per track
-		BlockInfo.DecodeTime = INVALID_TIMECODE_T;
+		BlockInfo.DecodeTime = INVALID_TIMESTAMP_T;
 		BlockInfo.FrameStartIndex = 0;
 
 		for (ClusterR=ARRAYBEGIN(RClusters,matroska_cluster*);ClusterR!=ARRAYEND(RClusters,matroska_cluster*);++ClusterR)
@@ -2277,14 +2277,14 @@ int main(int argc, const char *argv[])
 		// process the decoding time for all blocks
 		for (pTrackBlock=ARRAYBEGIN(TrackBlocks,array);pTrackBlock!=ARRAYEND(TrackBlocks,array);++pTrackBlock)
 		{
-			BlockEnd = INVALID_TIMECODE_T;
+			BlockEnd = INVALID_TIMESTAMP_T;
 			for (pBlockInfo=ARRAYBEGIN(*pTrackBlock,block_info);pBlockInfo!=ARRAYEND(*pTrackBlock,block_info);++pBlockInfo)
 			{
-				BlockTime = MATROSKA_BlockTimecode(pBlockInfo->Block);
+				BlockTime = MATROSKA_BlockTimestamp(pBlockInfo->Block);
 				pBlockInfo->DecodeTime = BlockTime;
-				if ((pBlockInfo+1)!=ARRAYEND(*pTrackBlock,block_info) && BlockEnd!=INVALID_TIMECODE_T)
+				if ((pBlockInfo+1)!=ARRAYEND(*pTrackBlock,block_info) && BlockEnd!=INVALID_TIMESTAMP_T)
 				{
-					BlockDuration = MATROSKA_BlockTimecode((pBlockInfo+1)->Block);
+					BlockDuration = MATROSKA_BlockTimestamp((pBlockInfo+1)->Block);
 					if (BlockTime > BlockDuration)
 					{
 						//assert(BlockDuration > BlockEnd);
@@ -2295,39 +2295,39 @@ int main(int argc, const char *argv[])
 			}
 		}
 
-		// get all the keyframe timecodes for our main track
-		ArrayInit(&KeyFrameTimecodes);
+		// get all the keyframe timestamps for our main track
+		ArrayInit(&KeyFrameTimestamps);
 		pTrackBlock=ARRAYBEGIN(TrackBlocks,array) + MainTrack;
 		for (pBlockInfo=ARRAYBEGIN(*pTrackBlock,block_info);pBlockInfo!=ARRAYEND(*pTrackBlock,block_info);++pBlockInfo)
 		{
 			if (MATROSKA_BlockKeyframe(pBlockInfo->Block))
 			{
-				assert(pBlockInfo->DecodeTime == MATROSKA_BlockTimecode(pBlockInfo->Block));
-				ArrayAppend(&KeyFrameTimecodes,&pBlockInfo->DecodeTime,sizeof(pBlockInfo->DecodeTime),256);
+				assert(pBlockInfo->DecodeTime == MATROSKA_BlockTimestamp(pBlockInfo->Block));
+				ArrayAppend(&KeyFrameTimestamps,&pBlockInfo->DecodeTime,sizeof(pBlockInfo->DecodeTime),256);
 			}
 		}
-		if (!ARRAYCOUNT(KeyFrameTimecodes,timecode_t))
+		if (!ARRAYCOUNT(KeyFrameTimestamps,mkv_timestamp_t))
 		{
 			TextPrintf(StdErr,T("Impossible to remux, no keyframe found for track %d\r\n"),(int)MainTrack);
 			goto exit;
 		}
 
 		// \todo sort Blocks of all tracks (according to the ref frame when available)
-		// sort the timecodes, just in case the file wasn't properly muxed
-		//ArraySort(&KeyFrameTimecodes, timecode_t, (arraycmp)TimcodeCmp, NULL, 1);
+		// sort the timestamps, just in case the file wasn't properly muxed
+		//ArraySort(&KeyFrameTimestamps, mkv_timestamp_t, (arraycmp)TimcodeCmp, NULL, 1);
 
-		// discrimate the timecodes we want to use as cluster boundaries
+		// discrimate the timestamps we want to use as cluster boundaries
 		//   create a new Cluster no shorter than 1s (unless the next one is too distant like 2s)
-		Prev = INVALID_TIMECODE_T;
-		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t);)
+		Prev = INVALID_TIMESTAMP_T;
+		for (Tst = ARRAYBEGIN(KeyFrameTimestamps, mkv_timestamp_t); Tst!=ARRAYEND(KeyFrameTimestamps, mkv_timestamp_t);)
 		{
 			Deleted = 0;
-			if (Prev!=INVALID_TIMECODE_T && *Tst < Prev + 1000000000)
+			if (Prev!=INVALID_TIMESTAMP_T && *Tst < Prev + 1000000000)
 			{
 				// too close
-				if (Tst+1 != ARRAYEND(KeyFrameTimecodes, timecode_t) && *(Tst+1) < Prev + 2000000000)
+				if (Tst+1 != ARRAYEND(KeyFrameTimestamps, mkv_timestamp_t) && *(Tst+1) < Prev + 2000000000)
 				{
-					ArrayRemove(&KeyFrameTimecodes, timecode_t, Tst, (arraycmp)TimcodeCmp, NULL);
+					ArrayRemove(&KeyFrameTimestamps, mkv_timestamp_t, Tst, (arraycmp)TimcodeCmp, NULL);
 					Deleted = 1;
 				}
 			}
@@ -2337,25 +2337,25 @@ int main(int argc, const char *argv[])
 
 		// create each Cluster
 		if (!Quiet) TextWrite(StdErr,T("Reclustering...\r\n"));
-		for (Tst = ARRAYBEGIN(KeyFrameTimecodes, timecode_t); Tst!=ARRAYEND(KeyFrameTimecodes, timecode_t); ++Tst)
+		for (Tst = ARRAYBEGIN(KeyFrameTimestamps, mkv_timestamp_t); Tst!=ARRAYEND(KeyFrameTimestamps, mkv_timestamp_t); ++Tst)
 		{
 			bool_t ReachedClusterEnd = 0;
 			ClusterW = (matroska_cluster*)EBML_ElementCreate(Track, MATROSKA_getContextCluster(), 0, DstProfile, NULL);
 			ArrayAppend(&WClusters,&ClusterW,sizeof(ClusterW),256);
 			MATROSKA_LinkClusterReadSegmentInfo(ClusterW, RSegmentInfo, 1);
 			MATROSKA_LinkClusterWriteSegmentInfo(ClusterW, WSegmentInfo);
-			MATROSKA_ClusterSetTimecode(ClusterW,*Tst); // \todo avoid having negative timecodes in the Cluster ?
+			MATROSKA_ClusterSetTimestamp(ClusterW,*Tst); // \todo avoid having negative timestamps in the Cluster ?
 
-			if ((Tst+1)==ARRAYEND(KeyFrameTimecodes, timecode_t))
-				MasterEndTimecode = INVALID_TIMECODE_T;
+			if ((Tst+1)==ARRAYEND(KeyFrameTimestamps, mkv_timestamp_t))
+				MasterEndTimestamp = INVALID_TIMESTAMP_T;
 			else
-				MasterEndTimecode = *(Tst+1);
+				MasterEndTimestamp = *(Tst+1);
 
 			while (!ReachedClusterEnd && ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] != ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
 			{
 				// next Block end in the master track
 				if (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack]+1 == ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info))
-					MainBlockEnd = INVALID_TIMECODE_T;
+					MainBlockEnd = INVALID_TIMESTAMP_T;
 				else
 				{
 					pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[MainTrack],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[MainTrack] + 1;
@@ -2373,7 +2373,7 @@ int main(int argc, const char *argv[])
 					{
 						// End of the current Block
 						if (ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder]+1 == ARRAYCOUNT(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info))
-							BlockEnd = INVALID_TIMECODE_T;
+							BlockEnd = INVALID_TIMESTAMP_T;
 						else
 						{
 							pBlockInfo = ARRAYBEGIN(ARRAYBEGIN(TrackBlocks,array)[*pTrackOrder],block_info) + ARRAYBEGIN(TrackBlockCurrIdx,size_t)[*pTrackOrder] + 1;
@@ -2385,7 +2385,7 @@ int main(int argc, const char *argv[])
                         {
                             if (ARRAYCOUNT(Alternate3DTracks, block_info*) && ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder])
                                 ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder] = NULL;
-							break; // next track around this timecode
+							break; // next track around this timestamp
                         }
 
 						if (pBlockInfo->FrameStartIndex!=0)
@@ -2398,7 +2398,7 @@ int main(int argc, const char *argv[])
 
 								for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 								{
-									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimestamp)
 										break;
 									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2425,7 +2425,7 @@ int main(int argc, const char *argv[])
 
 								for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 								{
-									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
+									if (MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimestamp)
 										break;
 									MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 									MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2446,10 +2446,10 @@ int main(int argc, const char *argv[])
 							}
 						}
 
-						if (MainBlockEnd!=INVALID_TIMECODE_T && BlockEnd>MasterEndTimecode && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
+						if (MainBlockEnd!=INVALID_TIMESTAMP_T && BlockEnd>MasterEndTimestamp && *pTrackOrder!=MainTrack && MATROSKA_BlockLaced(pBlockInfo->Block))
 						{
 							// relacing
-                            //TextPrintf(StdErr,T("\rRelacing block track %d at %") TPRId64 T(" ends %") TPRId64 T(" next cluster at %") TPRId64 T("\r\n"),*pTrackOrder,pBlockInfo->DecodeTime,BlockEnd,MasterEndTimecode);
+                            //TextPrintf(StdErr,T("\rRelacing block track %d at %") TPRId64 T(" ends %") TPRId64 T(" next cluster at %") TPRId64 T("\r\n"),*pTrackOrder,pBlockInfo->DecodeTime,BlockEnd,MasterEndTimestamp);
                             if (MATROSKA_BlockReadData(pBlockInfo->Block,Input,SrcProfile)==ERR_NONE)
                             {
 						        bool_t HasDuration = MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input,SrcProfile)==ERR_NONE;
@@ -2462,7 +2462,7 @@ int main(int argc, const char *argv[])
 
 							        for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 							        {
-								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
+								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimestamp)
 									        break;
 								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 								        MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2492,7 +2492,7 @@ int main(int argc, const char *argv[])
 
 							        for (; pBlockInfo->FrameStartIndex < MATROSKA_BlockGetFrameCount(pBlockInfo->Block); ++pBlockInfo->FrameStartIndex)
 							        {
-								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimecode)
+								        if (HasDuration && MATROSKA_BlockGetFrameEnd(pBlockInfo->Block,pBlockInfo->FrameStartIndex) >= MasterEndTimestamp)
 									        break;
 								        MATROSKA_BlockGetFrame(pBlockInfo->Block, pBlockInfo->FrameStartIndex, &FrameData, 1);
 								        MATROSKA_BlockAppendFrame(Block1, &FrameData, *Tst);
@@ -2516,7 +2516,7 @@ int main(int argc, const char *argv[])
 							    if (Result != ERR_NONE)
 							    {
 								    if (Result==ERR_INVALID_DATA)
-									    TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
+									    TextPrintf(StdErr,T("Impossible to remux, the TimestampScale may be too low, try --timecodescale 1000000\r\n"));
 								    else
 									    TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
 								    Result = -46;
@@ -2590,7 +2590,7 @@ int main(int argc, const char *argv[])
 							if (Result != ERR_NONE)
 							{
 								if (Result==ERR_INVALID_DATA)
-									TextPrintf(StdErr,T("Impossible to remux, the TimecodeScale may be too low, try --timecodescale 1000000\r\n"));
+									TextPrintf(StdErr,T("Impossible to remux, the TimestampScale may be too low, try --timecodescale 1000000\r\n"));
 								else
 									TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
 								Result = -46;
@@ -2601,7 +2601,7 @@ int main(int argc, const char *argv[])
 
 						if (*pTrackOrder==MainTrack)
 						{
-							if (MainBlockEnd == INVALID_TIMECODE_T || BlockEnd == MasterEndTimecode)
+							if (MainBlockEnd == INVALID_TIMESTAMP_T || BlockEnd == MasterEndTimestamp)
 								ReachedClusterEnd = 1;
 							break;
 						}
@@ -2610,7 +2610,7 @@ int main(int argc, const char *argv[])
 			}
 		}
 
-		ArrayClear(&KeyFrameTimecodes);
+		ArrayClear(&KeyFrameTimestamps);
 		ArrayClear(&TrackBlocks);
 		ArrayClear(&TrackBlockCurrIdx);
 		ArrayClear(&TrackOrder);
@@ -2979,13 +2979,13 @@ int main(int argc, const char *argv[])
 
     //  Write the Clusters
     ClusterSize = INVALID_FILEPOS_T;
-    PrevTimecode = INVALID_TIMECODE_T;
+    PrevTimestamp = INVALID_TIMESTAMP_T;
     CuesChanged = 0;
     CurrentPhase = TotalPhases;
     for (Cluster = ARRAYBEGIN(*Clusters,ebml_master*);Cluster != ARRAYEND(*Clusters,ebml_master*); ++Cluster)
     {
         ShowProgress((ebml_element*)*Cluster, TotalSize);
-        CuesChanged = WriteCluster(*Cluster,Output,Input, ClusterSize, &PrevTimecode) || CuesChanged;
+        CuesChanged = WriteCluster(*Cluster,Output,Input, ClusterSize, &PrevTimestamp) || CuesChanged;
         if (!Unsafe)
             ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
         SegmentSize += EBML_ElementFullSize((ebml_element*)*Cluster,0);
@@ -3017,7 +3017,7 @@ int main(int argc, const char *argv[])
             assert(ClusterSize == CuesSize);
             if (ClusterSize != CuesSize)
             {
-                TextWrite(StdErr,T("The Cues size changed after a Cluster timecode was altered!\r\n"));
+                TextWrite(StdErr,T("The Cues size changed after a Cluster timestamp was altered!\r\n"));
                 Result = -18;
                 goto exit;
             }

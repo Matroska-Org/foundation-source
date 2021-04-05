@@ -30,10 +30,10 @@
 #include "mkvalidator_project.h"
 
 /*!
- * \todo verify the track timecode scale is not null
+ * \todo verify the track timestamp scale is not null
  * \todo verify that the size of frames inside a lace is legit (ie the remaining size for the last must be > 0)
  * \todo verify that items with a limited set of values don't use other values
- * \todo verify that timecodes for each track are increasing (for keyframes and p frames)
+ * \todo verify that timestamps for each track are increasing (for keyframes and p frames)
  * \todo optionally show the use of deprecated elements
  * \todo support concatenated segments
  */
@@ -49,8 +49,8 @@ static bool_t Details = 0;
 static bool_t DivX = 0;
 static bool_t Quiet = 0;
 static bool_t QuickExit = 0;
-static timecode_t MinTime = INVALID_TIMECODE_T, MaxTime = INVALID_TIMECODE_T;
-static timecode_t ClusterTime = INVALID_TIMECODE_T;
+static mkv_timestamp_t MinTime = INVALID_TIMESTAMP_T, MaxTime = INVALID_TIMESTAMP_T;
+static mkv_timestamp_t ClusterTime = INVALID_TIMESTAMP_T;
 
 // some macros for code readability
 #define EL_Pos(elt)         EBML_ElementPosition((const ebml_element*)elt)
@@ -635,7 +635,7 @@ static int CheckVideoStart(int ProfileNum)
 	ebml_master **Cluster;
     ebml_element *Block, *GBlock;
     int16_t BlockNum;
-    timecode_t ClusterTimecode;
+    mkv_timestamp_t ClusterTimestamp;
     array TrackKeyframe;
 	array TrackFirstKeyframePos;
 
@@ -648,12 +648,12 @@ static int CheckVideoStart(int ProfileNum)
         ArrayResize(&TrackFirstKeyframePos,sizeof(filepos_t)*(TrackMax+1),256);
 		ArrayZero(&TrackFirstKeyframePos);
 
-        ClusterTimecode = MATROSKA_ClusterTimecode((matroska_cluster*)*Cluster);
-        if (ClusterTimecode==INVALID_TIMECODE_T)
-            Result |= OutputError(0xC1,T("The Cluster at %") TPRId64 T(" has no timecode"),EL_Pos(*Cluster));
-        else if (ClusterTime!=INVALID_TIMECODE_T && ClusterTime >= ClusterTimecode)
-			OutputWarning(0xC2,T("The timecode of the Cluster at %") TPRId64 T(" is not incrementing (may be intentional)"),EL_Pos(*Cluster));
-        ClusterTime = ClusterTimecode;
+        ClusterTimestamp = MATROSKA_ClusterTimestamp((matroska_cluster*)*Cluster);
+        if (ClusterTimestamp==INVALID_TIMESTAMP_T)
+            Result |= OutputError(0xC1,T("The Cluster at %") TPRId64 T(" has no timestamp"),EL_Pos(*Cluster));
+        else if (ClusterTime!=INVALID_TIMESTAMP_T && ClusterTime >= ClusterTimestamp)
+			OutputWarning(0xC2,T("The timestamp of the Cluster at %") TPRId64 T(" is not incrementing (may be intentional)"),EL_Pos(*Cluster));
+        ClusterTime = ClusterTimestamp;
 
 	    for (Block = EBML_MasterChildren(*Cluster);Block;Block=EBML_MasterNext(Block))
 	    {
@@ -735,7 +735,7 @@ static int CheckLacingKeyframe(int ProfileNum)
 	matroska_cluster **Cluster;
     ebml_element *Block, *GBlock;
     int16_t BlockNum;
-    timecode_t BlockTime;
+    mkv_timestamp_t BlockTime;
     size_t Frame,TrackIdx;
 
 	for (Cluster=ARRAYBEGIN(RClusters,matroska_cluster*);Cluster!=ARRAYEND(RClusters,matroska_cluster*);++Cluster)
@@ -767,10 +767,10 @@ static int CheckLacingKeyframe(int ProfileNum)
                                 ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((matroska_block*)GBlock,Frame);
                             if (Details)
                             {
-                                BlockTime = MATROSKA_BlockTimecode((matroska_block*)GBlock);
-                                if (MinTime==INVALID_TIMECODE_T || MinTime>BlockTime)
+                                BlockTime = MATROSKA_BlockTimestamp((matroska_block*)GBlock);
+                                if (MinTime==INVALID_TIMESTAMP_T || MinTime>BlockTime)
                                     MinTime = BlockTime;
-                                if (MaxTime==INVALID_TIMECODE_T || MaxTime<BlockTime)
+                                if (MaxTime==INVALID_TIMESTAMP_T || MaxTime<BlockTime)
                                     MaxTime = BlockTime;
                             }
                         }
@@ -797,10 +797,10 @@ static int CheckLacingKeyframe(int ProfileNum)
                         ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((matroska_block*)Block,Frame);
                     if (Details)
                     {
-                        BlockTime = MATROSKA_BlockTimecode((matroska_block*)Block);
-                        if (MinTime==INVALID_TIMECODE_T || MinTime>BlockTime)
+                        BlockTime = MATROSKA_BlockTimestamp((matroska_block*)Block);
+                        if (MinTime==INVALID_TIMESTAMP_T || MinTime>BlockTime)
                             MinTime = BlockTime;
-                        if (MaxTime==INVALID_TIMECODE_T || MaxTime<BlockTime)
+                        if (MaxTime==INVALID_TIMESTAMP_T || MaxTime<BlockTime)
                             MaxTime = BlockTime;
                     }
                 }
@@ -813,7 +813,7 @@ static int CheckLacingKeyframe(int ProfileNum)
 static int CheckCueEntries(ebml_master *Cues)
 {
 	int Result = 0;
-	timecode_t TimecodeEntry, PrevTimecode = INVALID_TIMECODE_T;
+	mkv_timestamp_t TimestampEntry, PrevTimestamp = INVALID_TIMESTAMP_T;
 	int16_t TrackNumEntry;
 	matroska_cluster **Cluster;
 	matroska_block *Block;
@@ -829,22 +829,22 @@ static int CheckCueEntries(ebml_master *Cues)
             if (!Quiet && ClustNum++ % 24 == 0)
                 TextWrite(StdErr,T("."));
 			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
-			TimecodeEntry = MATROSKA_CueTimecode(CuePoint);
+			TimestampEntry = MATROSKA_CueTimestamp(CuePoint);
 			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
 
-			if (TimecodeEntry < PrevTimecode && PrevTimecode != INVALID_TIMECODE_T)
-				OutputWarning(0x311,T("The Cues entry for timecode %") TPRId64 T(" ms is listed after entry %") TPRId64 T(" ms"),Scale64(TimecodeEntry,1,1000000),Scale64(PrevTimecode,1,1000000));
+			if (TimestampEntry < PrevTimestamp && PrevTimestamp != INVALID_TIMESTAMP_T)
+				OutputWarning(0x311,T("The Cues entry for timestamp %") TPRId64 T(" ms is listed after entry %") TPRId64 T(" ms"),Scale64(TimestampEntry,1,1000000),Scale64(PrevTimestamp,1,1000000));
 
 			// find a matching Block
 			for (Cluster = ARRAYBEGIN(RClusters,matroska_cluster*);Cluster != ARRAYEND(RClusters,matroska_cluster*); ++Cluster)
 			{
-				Block = MATROSKA_GetBlockForTimecode(*Cluster, TimecodeEntry, TrackNumEntry);
+				Block = MATROSKA_GetBlockForTimestamp(*Cluster, TimestampEntry, TrackNumEntry);
 				if (Block)
 					break;
 			}
 			if (Cluster == ARRAYEND(RClusters,matroska_cluster*))
-				Result |= OutputError(0x312,T("CueEntry Track #%d and timecode %") TPRId64 T(" ms not found"),(int)TrackNumEntry,Scale64(TimecodeEntry,1,1000000));
-			PrevTimecode = TimecodeEntry;
+				Result |= OutputError(0x312,T("CueEntry Track #%d and timestamp %") TPRId64 T(" ms not found"),(int)TrackNumEntry,Scale64(TimestampEntry,1,1000000));
+			PrevTimestamp = TimestampEntry;
 			CuePoint = (matroska_cuepoint*)EBML_MasterNextChild(Cues, CuePoint);
 		}
 	}
