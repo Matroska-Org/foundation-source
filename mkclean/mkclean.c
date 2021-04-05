@@ -1287,12 +1287,16 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
             NodeTree_SetParent(Elt,Track,EBML_MasterChildren(Track));
 
         Elt2 = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
-        assert(Elt2!=NULL);
-        NodeTree_SetParent(Elt2,Track,EBML_MasterNext(Elt));
+        assert(Elt2 != NULL);
+        if (Elt2)
+        {
+            if (Elt)
+                NodeTree_SetParent(Elt2, Track, EBML_MasterNext(Elt));
 
-        DisplayW = EBML_MasterFindChild(Track,MATROSKA_getContextCodecID());
-        if (DisplayW)
-            NodeTree_SetParent(DisplayW,Track,EBML_MasterNext(Elt2));
+            DisplayW = EBML_MasterFindChild(Track, MATROSKA_getContextCodecID());
+            if (DisplayW)
+                NodeTree_SetParent(DisplayW, Track, EBML_MasterNext(Elt2));
+        }
     }
 
     return 0;
