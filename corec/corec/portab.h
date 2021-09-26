@@ -231,7 +231,7 @@ typedef signed int intptr_t;
 
 #include <inttypes.h>
 
-#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__) && __STDC_VERSION__ < 199901L
+#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
 
 #include <inttypes.h>
 
