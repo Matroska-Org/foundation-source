@@ -159,7 +159,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayWidth();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayHeight();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayUnit();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextAspectRatioType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextColourSpace();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextUncompressedFourCC();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextGammaValue();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFrameRate();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextMatrixCoefficients();

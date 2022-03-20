@@ -252,8 +252,8 @@ ebml_context MATROSKA_ContextDisplayUnit;
 const ebml_context *MATROSKA_getContextDisplayUnit() { return &MATROSKA_ContextDisplayUnit; }
 ebml_context MATROSKA_ContextAspectRatioType;
 const ebml_context *MATROSKA_getContextAspectRatioType() { return &MATROSKA_ContextAspectRatioType; }
-ebml_context MATROSKA_ContextColourSpace;
-const ebml_context *MATROSKA_getContextColourSpace() { return &MATROSKA_ContextColourSpace; }
+ebml_context MATROSKA_ContextUncompressedFourCC;
+const ebml_context *MATROSKA_getContextUncompressedFourCC() { return &MATROSKA_ContextUncompressedFourCC; }
 ebml_context MATROSKA_ContextGammaValue;
 const ebml_context *MATROSKA_getContextGammaValue() { return &MATROSKA_ContextGammaValue; }
 ebml_context MATROSKA_ContextFrameRate;
@@ -709,7 +709,7 @@ const ebml_semantic EBML_SemanticVideo[] = {
     {0, 1, &MATROSKA_ContextDisplayHeight, 0},
     {0, 1, &MATROSKA_ContextDisplayUnit, 0},
     {0, 1, &MATROSKA_ContextAspectRatioType, 0},
-    {0, 1, &MATROSKA_ContextColourSpace, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextUncompressedFourCC, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextGammaValue, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextFrameRate, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextColour, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
@@ -1097,7 +1097,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextDisplayHeight = (ebml_context) {0x54BA, EBML_INTEGER_CLASS, 0, 0, "DisplayHeight", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextDisplayUnit = (ebml_context) {0x54B2, EBML_INTEGER_CLASS, 1, (intptr_t)0, "DisplayUnit", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextAspectRatioType = (ebml_context) {0x54B3, EBML_INTEGER_CLASS, 1, (intptr_t)0, "AspectRatioType", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextColourSpace = (ebml_context) {0x2EB524, EBML_BINARY_CLASS, 0, 0, "ColourSpace", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextUncompressedFourCC = (ebml_context) {0x2EB524, EBML_BINARY_CLASS, 0, 0, "UncompressedFourCC", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextGammaValue = (ebml_context) {0x2FB523, EBML_FLOAT_CLASS, 0, 0, "GammaValue", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFrameRate = (ebml_context) {0x2383E3, EBML_FLOAT_CLASS, 0, 0, "FrameRate", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextMatrixCoefficients = (ebml_context) {0x55B1, EBML_INTEGER_CLASS, 1, (intptr_t)2, "MatrixCoefficients", NULL, EBML_getSemanticGlobals(), NULL};
