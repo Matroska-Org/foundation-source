@@ -54,12 +54,12 @@ ebml_context MATROSKA_ContextNextFilename;
 const ebml_context *MATROSKA_getContextNextFilename() { return &MATROSKA_ContextNextFilename; }
 ebml_context MATROSKA_ContextSegmentFamily;
 const ebml_context *MATROSKA_getContextSegmentFamily() { return &MATROSKA_ContextSegmentFamily; }
-ebml_context MATROSKA_ContextChapterTranslateEditionUID;
-const ebml_context *MATROSKA_getContextChapterTranslateEditionUID() { return &MATROSKA_ContextChapterTranslateEditionUID; }
-ebml_context MATROSKA_ContextChapterTranslateCodec;
-const ebml_context *MATROSKA_getContextChapterTranslateCodec() { return &MATROSKA_ContextChapterTranslateCodec; }
 ebml_context MATROSKA_ContextChapterTranslateID;
 const ebml_context *MATROSKA_getContextChapterTranslateID() { return &MATROSKA_ContextChapterTranslateID; }
+ebml_context MATROSKA_ContextChapterTranslateCodec;
+const ebml_context *MATROSKA_getContextChapterTranslateCodec() { return &MATROSKA_ContextChapterTranslateCodec; }
+ebml_context MATROSKA_ContextChapterTranslateEditionUID;
+const ebml_context *MATROSKA_getContextChapterTranslateEditionUID() { return &MATROSKA_ContextChapterTranslateEditionUID; }
 ebml_context MATROSKA_ContextChapterTranslate;
 const ebml_context *MATROSKA_getContextChapterTranslate() { return &MATROSKA_ContextChapterTranslate; }
 ebml_context MATROSKA_ContextTimestampScale;
@@ -214,12 +214,12 @@ ebml_context MATROSKA_ContextCodecDelay;
 const ebml_context *MATROSKA_getContextCodecDelay() { return &MATROSKA_ContextCodecDelay; }
 ebml_context MATROSKA_ContextSeekPreRoll;
 const ebml_context *MATROSKA_getContextSeekPreRoll() { return &MATROSKA_ContextSeekPreRoll; }
-ebml_context MATROSKA_ContextTrackTranslateEditionUID;
-const ebml_context *MATROSKA_getContextTrackTranslateEditionUID() { return &MATROSKA_ContextTrackTranslateEditionUID; }
-ebml_context MATROSKA_ContextTrackTranslateCodec;
-const ebml_context *MATROSKA_getContextTrackTranslateCodec() { return &MATROSKA_ContextTrackTranslateCodec; }
 ebml_context MATROSKA_ContextTrackTranslateTrackID;
 const ebml_context *MATROSKA_getContextTrackTranslateTrackID() { return &MATROSKA_ContextTrackTranslateTrackID; }
+ebml_context MATROSKA_ContextTrackTranslateCodec;
+const ebml_context *MATROSKA_getContextTrackTranslateCodec() { return &MATROSKA_ContextTrackTranslateCodec; }
+ebml_context MATROSKA_ContextTrackTranslateEditionUID;
+const ebml_context *MATROSKA_getContextTrackTranslateEditionUID() { return &MATROSKA_ContextTrackTranslateEditionUID; }
 ebml_context MATROSKA_ContextTrackTranslate;
 const ebml_context *MATROSKA_getContextTrackTranslate() { return &MATROSKA_ContextTrackTranslate; }
 ebml_context MATROSKA_ContextFlagInterlaced;
@@ -551,9 +551,9 @@ const ebml_semantic EBML_SemanticSeekHead[] = {
 };
 
 const ebml_semantic EBML_SemanticChapterTranslate[] = {
-    {0, 0, &MATROSKA_ContextChapterTranslateEditionUID, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextChapterTranslateCodec, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterTranslateID, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextChapterTranslateCodec, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextChapterTranslateEditionUID, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
 
@@ -646,9 +646,9 @@ const ebml_semantic EBML_SemanticBlockAdditionMapping[] = {
 };
 
 const ebml_semantic EBML_SemanticTrackTranslate[] = {
-    {0, 0, &MATROSKA_ContextTrackTranslateEditionUID, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextTrackTranslateCodec, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTrackTranslateTrackID, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextTrackTranslateCodec, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextTrackTranslateEditionUID, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
 };
 
@@ -998,9 +998,9 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextNextUID = (ebml_context) {0x3EB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "NextUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextNextFilename = (ebml_context) {0x3E83BB, EBML_UNISTRING_CLASS, 0, 0, "NextFilename", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSegmentFamily = (ebml_context) {0x4444, EBML_BINARY_CLASS, 0, 0, "SegmentFamily", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextChapterTranslateEditionUID = (ebml_context) {0x69FC, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateEditionUID", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextChapterTranslateCodec = (ebml_context) {0x69BF, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateCodec", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterTranslateID = (ebml_context) {0x69A5, EBML_BINARY_CLASS, 0, 0, "ChapterTranslateID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextChapterTranslateCodec = (ebml_context) {0x69BF, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateCodec", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextChapterTranslateEditionUID = (ebml_context) {0x69FC, EBML_INTEGER_CLASS, 0, 0, "ChapterTranslateEditionUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterTranslate = (ebml_context) {0x6924, EBML_MASTER_CLASS, 0, 0, "ChapterTranslate", EBML_SemanticChapterTranslate, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTimestampScale = (ebml_context) {0x2AD7B1, EBML_INTEGER_CLASS, 1, (intptr_t)1000000, "TimestampScale", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextDuration = (ebml_context) {0x4489, EBML_FLOAT_CLASS, 0, 0, "Duration", NULL, EBML_getSemanticGlobals(), NULL};
@@ -1078,9 +1078,9 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextTrackOverlay = (ebml_context) {0x6FAB, EBML_INTEGER_CLASS, 0, 0, "TrackOverlay", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCodecDelay = (ebml_context) {0x56AA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "CodecDelay", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSeekPreRoll = (ebml_context) {0x56BB, EBML_INTEGER_CLASS, 1, (intptr_t)0, "SeekPreRoll", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextTrackTranslateEditionUID = (ebml_context) {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextTrackTranslateCodec = (ebml_context) {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTrackTranslateTrackID = (ebml_context) {0x66A5, EBML_BINARY_CLASS, 0, 0, "TrackTranslateTrackID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextTrackTranslateCodec = (ebml_context) {0x66BF, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateCodec", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextTrackTranslateEditionUID = (ebml_context) {0x66FC, EBML_INTEGER_CLASS, 0, 0, "TrackTranslateEditionUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTrackTranslate = (ebml_context) {0x6624, EBML_MASTER_CLASS, 0, 0, "TrackTranslate", EBML_SemanticTrackTranslate, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagInterlaced = (ebml_context) {0x9A, EBML_INTEGER_CLASS, 1, (intptr_t)0, "FlagInterlaced", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFieldOrder = (ebml_context) {0x9D, EBML_INTEGER_CLASS, 1, (intptr_t)2, "FieldOrder", NULL, EBML_getSemanticGlobals(), NULL};
