@@ -386,7 +386,7 @@
     <xsl:text>, &amp;MATROSKA_Context</xsl:text>
     <xsl:value-of select="$lib2Name" />
     <xsl:text>, </xsl:text>
-    <xsl:if test="(not($node/@minver) or $node/@minver &lt; 2) and not(ebml:extension[@webm='0']) and not(ebml:extension[@divx='0'])"><xsl:text>0</xsl:text></xsl:if>
+    <xsl:if test="(not($node/@minver) or $node/@minver &lt; 2) and ebml:extension[@webm='1'] and (not(ebml:extension[@divx]) or ebml:extension[@divx='1'])"><xsl:text>0</xsl:text></xsl:if>
     <xsl:if test="($node/@maxver and $node/@maxver &lt; 1) or ($node/@minver &gt; 1)">PROFILE_MATROSKA_V1</xsl:if>
     <xsl:if test="($node/@maxver and $node/@maxver &lt; 2) or ($node/@minver &gt; 2)">
         <xsl:if test="($node/@maxver and $node/@maxver &lt; 1) or ($node/@minver &gt; 1)"><xsl:text>|</xsl:text></xsl:if>
@@ -404,7 +404,7 @@
         <xsl:if test="($node/@maxver) or ($node/@minver &gt; 1)"><xsl:text>|</xsl:text></xsl:if>
         <xsl:text>PROFILE_DIVX</xsl:text>
     </xsl:if>
-    <xsl:if test="ebml:extension[@webm='0']">
+    <xsl:if test="not(ebml:extension[@webm='1'])">
         <xsl:if test="($node/@maxver) or ($node/@minver &gt; 1) or ebml:extension[@divx='0']">|</xsl:if>
         <xsl:text>PROFILE_WEBM</xsl:text>
     </xsl:if>
