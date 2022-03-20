@@ -526,6 +526,8 @@ ebml_context MATROSKA_ContextTagLanguageIETF;
 const ebml_context *MATROSKA_getContextTagLanguageIETF() { return &MATROSKA_ContextTagLanguageIETF; }
 ebml_context MATROSKA_ContextTagDefault;
 const ebml_context *MATROSKA_getContextTagDefault() { return &MATROSKA_ContextTagDefault; }
+ebml_context MATROSKA_ContextTagDefaultBogus;
+const ebml_context *MATROSKA_getContextTagDefaultBogus() { return &MATROSKA_ContextTagDefaultBogus; }
 ebml_context MATROSKA_ContextTagString;
 const ebml_context *MATROSKA_getContextTagString() { return &MATROSKA_ContextTagString; }
 ebml_context MATROSKA_ContextTagBinary;
@@ -957,6 +959,7 @@ const ebml_semantic EBML_SemanticSimpleTag[] = {
     {1, 1, &MATROSKA_ContextTagLanguage, 0},
     {0, 1, &MATROSKA_ContextTagLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTagDefault, 0},
+    {1, 1, &MATROSKA_ContextTagDefaultBogus, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTagString, 0},
     {0, 1, &MATROSKA_ContextTagBinary, 0},
     {0, 0, NULL ,0} // end of the table
@@ -1234,6 +1237,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextTagLanguage = (ebml_context) {0x447A, EBML_STRING_CLASS, 1, (intptr_t)"und", "TagLanguage", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagLanguageIETF = (ebml_context) {0x447B, EBML_STRING_CLASS, 0, 0, "TagLanguageIETF", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagDefault = (ebml_context) {0x4484, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TagDefault", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextTagDefaultBogus = (ebml_context) {0x44B4, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TagDefaultBogus", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagString = (ebml_context) {0x4487, EBML_UNISTRING_CLASS, 0, 0, "TagString", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagBinary = (ebml_context) {0x4485, EBML_BINARY_CLASS, 0, 0, "TagBinary", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSimpleTag = (ebml_context) {0x67C8, EBML_MASTER_CLASS, 0, 0, "SimpleTag", EBML_SemanticSimpleTag, EBML_getSemanticGlobals(), NULL};

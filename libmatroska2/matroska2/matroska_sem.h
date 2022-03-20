@@ -326,6 +326,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextTagName();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguage();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguageIETF();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefault();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefaultBogus();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagString();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagBinary();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSimpleTag();
