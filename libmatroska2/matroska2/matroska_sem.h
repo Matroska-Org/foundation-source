@@ -48,9 +48,9 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevFilename();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextNextUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextNextFilename();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFamily();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateCodec();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateCodec();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateEditionUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslate();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTimestampScale();
@@ -70,8 +70,8 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevSize();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSimpleBlock();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextBlock();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockVirtual();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditional();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockMore();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditions();
@@ -139,9 +139,9 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDecodeAll();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOverlay();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDelay();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekPreRoll();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateCodec();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateTrackID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateCodec();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateEditionUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslate();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagInterlaced();
