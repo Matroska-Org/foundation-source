@@ -1030,7 +1030,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextReferenceVirtual = (ebml_context) {0xFD, EBML_SINTEGER_CLASS, 0, 0, "ReferenceVirtual", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCodecState = (ebml_context) {0xA4, EBML_BINARY_CLASS, 0, 0, "CodecState", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextDiscardPadding = (ebml_context) {0x75A2, EBML_SINTEGER_CLASS, 0, 0, "DiscardPadding", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextLaceNumber = (ebml_context) {0xCC, EBML_INTEGER_CLASS, 1, (intptr_t)0, "LaceNumber", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextLaceNumber = (ebml_context) {0xCC, EBML_INTEGER_CLASS, 0, 0, "LaceNumber", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFrameNumber = (ebml_context) {0xCD, EBML_INTEGER_CLASS, 1, (intptr_t)0, "FrameNumber", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextBlockAdditionID = (ebml_context) {0xCB, EBML_INTEGER_CLASS, 1, (intptr_t)0, "BlockAdditionID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextDelay = (ebml_context) {0xCE, EBML_INTEGER_CLASS, 1, (intptr_t)0, "Delay", NULL, EBML_getSemanticGlobals(), NULL};
@@ -1049,11 +1049,11 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextFlagEnabled = (ebml_context) {0xB9, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "FlagEnabled", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagDefault = (ebml_context) {0x88, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "FlagDefault", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagForced = (ebml_context) {0x55AA, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagForced", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextFlagHearingImpaired = (ebml_context) {0x55AB, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagHearingImpaired", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextFlagVisualImpaired = (ebml_context) {0x55AC, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagVisualImpaired", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextFlagTextDescriptions = (ebml_context) {0x55AD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagTextDescriptions", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextFlagOriginal = (ebml_context) {0x55AE, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagOriginal", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextFlagCommentary = (ebml_context) {0x55AF, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "FlagCommentary", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagHearingImpaired = (ebml_context) {0x55AB, EBML_BOOLEAN_CLASS, 0, 0, "FlagHearingImpaired", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagVisualImpaired = (ebml_context) {0x55AC, EBML_BOOLEAN_CLASS, 0, 0, "FlagVisualImpaired", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagTextDescriptions = (ebml_context) {0x55AD, EBML_BOOLEAN_CLASS, 0, 0, "FlagTextDescriptions", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagOriginal = (ebml_context) {0x55AE, EBML_BOOLEAN_CLASS, 0, 0, "FlagOriginal", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFlagCommentary = (ebml_context) {0x55AF, EBML_BOOLEAN_CLASS, 0, 0, "FlagCommentary", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFlagLacing = (ebml_context) {0x9C, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "FlagLacing", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextMinCache = (ebml_context) {0x6DE7, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MinCache", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextMaxCache = (ebml_context) {0x6DF8, EBML_INTEGER_CLASS, 0, 0, "MaxCache", NULL, EBML_getSemanticGlobals(), NULL};
@@ -1177,7 +1177,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextCueClusterPosition = (ebml_context) {0xF1, EBML_INTEGER_CLASS, 0, 0, "CueClusterPosition", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCueRelativePosition = (ebml_context) {0xF0, EBML_INTEGER_CLASS, 0, 0, "CueRelativePosition", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCueDuration = (ebml_context) {0xB2, EBML_INTEGER_CLASS, 0, 0, "CueDuration", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextCueBlockNumber = (ebml_context) {0x5378, EBML_INTEGER_CLASS, 1, (intptr_t)1, "CueBlockNumber", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextCueBlockNumber = (ebml_context) {0x5378, EBML_INTEGER_CLASS, 0, 0, "CueBlockNumber", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCueCodecState = (ebml_context) {0xEA, EBML_INTEGER_CLASS, 1, (intptr_t)0, "CueCodecState", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCueRefTime = (ebml_context) {0x96, EBML_INTEGER_CLASS, 0, 0, "CueRefTime", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCueRefCluster = (ebml_context) {0x97, EBML_INTEGER_CLASS, 0, 0, "CueRefCluster", NULL, EBML_getSemanticGlobals(), NULL};
