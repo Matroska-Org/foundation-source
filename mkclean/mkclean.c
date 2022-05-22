@@ -1571,7 +1571,7 @@ int main(int argc, const char *argv[])
 #if defined(TARGET_WIN) && defined(UNICODE)
     Node_FromWcs(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
 #else
-    Node_FromStr(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
+    Node_FromUTF8(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
 #endif
     Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
