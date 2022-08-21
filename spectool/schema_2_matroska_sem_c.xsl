@@ -195,7 +195,7 @@
             <xsl:choose>
                 <xsl:when test="$node/@name='FileData'"><xsl:text>MATROSKA_BIGBINARY</xsl:text></xsl:when>
                 <xsl:when test="$node/@name='Block' or $node/@name='SimpleBlock'"><xsl:text>MATROSKA_BLOCK</xsl:text></xsl:when>
-                <xsl:when test="$node/@name='SegmentUID' or $node/@name='NextUID' or $node/@name='PrevUID'"><xsl:text>MATROSKA_SEGMENTUID</xsl:text></xsl:when>
+                <xsl:when test="$node/@name='SegmentUUID' or $node/@name='NextUUID' or $node/@name='PrevUUID'"><xsl:text>MATROSKA_SEGMENTUID</xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>EBML_BINARY</xsl:text></xsl:otherwise>
             </xsl:choose>
             <xsl:text>_CLASS</xsl:text>

@@ -40,16 +40,16 @@ ebml_context MATROSKA_ContextSeek;
 const ebml_context *MATROSKA_getContextSeek() { return &MATROSKA_ContextSeek; }
 ebml_context MATROSKA_ContextSeekHead;
 const ebml_context *MATROSKA_getContextSeekHead() { return &MATROSKA_ContextSeekHead; }
-ebml_context MATROSKA_ContextSegmentUID;
-const ebml_context *MATROSKA_getContextSegmentUID() { return &MATROSKA_ContextSegmentUID; }
+ebml_context MATROSKA_ContextSegmentUUID;
+const ebml_context *MATROSKA_getContextSegmentUUID() { return &MATROSKA_ContextSegmentUUID; }
 ebml_context MATROSKA_ContextSegmentFilename;
 const ebml_context *MATROSKA_getContextSegmentFilename() { return &MATROSKA_ContextSegmentFilename; }
-ebml_context MATROSKA_ContextPrevUID;
-const ebml_context *MATROSKA_getContextPrevUID() { return &MATROSKA_ContextPrevUID; }
+ebml_context MATROSKA_ContextPrevUUID;
+const ebml_context *MATROSKA_getContextPrevUUID() { return &MATROSKA_ContextPrevUUID; }
 ebml_context MATROSKA_ContextPrevFilename;
 const ebml_context *MATROSKA_getContextPrevFilename() { return &MATROSKA_ContextPrevFilename; }
-ebml_context MATROSKA_ContextNextUID;
-const ebml_context *MATROSKA_getContextNextUID() { return &MATROSKA_ContextNextUID; }
+ebml_context MATROSKA_ContextNextUUID;
+const ebml_context *MATROSKA_getContextNextUUID() { return &MATROSKA_ContextNextUUID; }
 ebml_context MATROSKA_ContextNextFilename;
 const ebml_context *MATROSKA_getContextNextFilename() { return &MATROSKA_ContextNextFilename; }
 ebml_context MATROSKA_ContextSegmentFamily;
@@ -466,8 +466,8 @@ ebml_context MATROSKA_ContextChapterFlagHidden;
 const ebml_context *MATROSKA_getContextChapterFlagHidden() { return &MATROSKA_ContextChapterFlagHidden; }
 ebml_context MATROSKA_ContextChapterFlagEnabled;
 const ebml_context *MATROSKA_getContextChapterFlagEnabled() { return &MATROSKA_ContextChapterFlagEnabled; }
-ebml_context MATROSKA_ContextChapterSegmentUID;
-const ebml_context *MATROSKA_getContextChapterSegmentUID() { return &MATROSKA_ContextChapterSegmentUID; }
+ebml_context MATROSKA_ContextChapterSegmentUUID;
+const ebml_context *MATROSKA_getContextChapterSegmentUUID() { return &MATROSKA_ContextChapterSegmentUUID; }
 ebml_context MATROSKA_ContextChapterSegmentEditionUID;
 const ebml_context *MATROSKA_getContextChapterSegmentEditionUID() { return &MATROSKA_ContextChapterSegmentEditionUID; }
 ebml_context MATROSKA_ContextChapterPhysicalEquiv;
@@ -560,11 +560,11 @@ const ebml_semantic EBML_SemanticChapterTranslate[] = {
 };
 
 const ebml_semantic EBML_SemanticInfo[] = {
-    {0, 1, &MATROSKA_ContextSegmentUID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextSegmentUUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextSegmentFilename, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextPrevUID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPrevUUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextPrevFilename, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextNextUID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextNextUUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextNextFilename, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextSegmentFamily, PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextChapterTranslate, PROFILE_WEBM},
@@ -920,7 +920,7 @@ const ebml_semantic EBML_SemanticChapterAtom[] = {
     {0, 1, &MATROSKA_ContextChapterTimeEnd, 0},
     {1, 1, &MATROSKA_ContextChapterFlagHidden, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterFlagEnabled, PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextChapterSegmentUID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChapterSegmentUUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterSegmentEditionUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterPhysicalEquiv, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterTrack, PROFILE_WEBM},
@@ -994,11 +994,11 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextSeekPosition = (ebml_context) {0x53AC, EBML_INTEGER_CLASS, 0, 0, "SeekPosition", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSeek = (ebml_context) {0x4DBB, MATROSKA_SEEKPOINT_CLASS, 0, 0, "Seek", EBML_SemanticSeek, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSeekHead = (ebml_context) {0x114D9B74, EBML_MASTER_CLASS, 0, 0, "SeekHead", EBML_SemanticSeekHead, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextSegmentUID = (ebml_context) {0x73A4, MATROSKA_SEGMENTUID_CLASS, 0, 0, "SegmentUID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextSegmentUUID = (ebml_context) {0x73A4, MATROSKA_SEGMENTUID_CLASS, 0, 0, "SegmentUUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSegmentFilename = (ebml_context) {0x7384, EBML_UNISTRING_CLASS, 0, 0, "SegmentFilename", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextPrevUID = (ebml_context) {0x3CB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "PrevUID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextPrevUUID = (ebml_context) {0x3CB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "PrevUUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextPrevFilename = (ebml_context) {0x3C83AB, EBML_UNISTRING_CLASS, 0, 0, "PrevFilename", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextNextUID = (ebml_context) {0x3EB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "NextUID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextNextUUID = (ebml_context) {0x3EB923, MATROSKA_SEGMENTUID_CLASS, 0, 0, "NextUUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextNextFilename = (ebml_context) {0x3E83BB, EBML_UNISTRING_CLASS, 0, 0, "NextFilename", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSegmentFamily = (ebml_context) {0x4444, EBML_BINARY_CLASS, 0, 0, "SegmentFamily", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterTranslateID = (ebml_context) {0x69A5, EBML_BINARY_CLASS, 0, 0, "ChapterTranslateID", NULL, EBML_getSemanticGlobals(), NULL};
@@ -1207,7 +1207,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextChapterTimeEnd = (ebml_context) {0x92, EBML_INTEGER_CLASS, 0, 0, "ChapterTimeEnd", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterFlagHidden = (ebml_context) {0x98, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "ChapterFlagHidden", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterFlagEnabled = (ebml_context) {0x4598, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "ChapterFlagEnabled", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextChapterSegmentUID = (ebml_context) {0x6E67, EBML_BINARY_CLASS, 0, 0, "ChapterSegmentUID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextChapterSegmentUUID = (ebml_context) {0x6E67, EBML_BINARY_CLASS, 0, 0, "ChapterSegmentUUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterSegmentEditionUID = (ebml_context) {0x6EBC, EBML_INTEGER_CLASS, 0, 0, "ChapterSegmentEditionUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterPhysicalEquiv = (ebml_context) {0x63C3, EBML_INTEGER_CLASS, 0, 0, "ChapterPhysicalEquiv", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterTrackNumber = (ebml_context) {0x89, EBML_INTEGER_CLASS, 0, 0, "ChapterTrackNumber", NULL, EBML_getSemanticGlobals(), NULL};
