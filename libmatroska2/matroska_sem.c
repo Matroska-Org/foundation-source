@@ -631,7 +631,7 @@ const ebml_semantic EBML_SemanticBlockGroup[] = {
 const ebml_semantic EBML_SemanticCluster[] = {
     {1, 1, &MATROSKA_ContextTimestamp, 0},
     {0, 1, &MATROSKA_ContextSilentTracks, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
-    {0, 1, &MATROSKA_ContextPosition, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextPosition, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextPrevSize, 0},
     {0, 0, &MATROSKA_ContextSimpleBlock, PROFILE_MATROSKA_V1},
     {0, 0, &MATROSKA_ContextBlockGroup, 0},
