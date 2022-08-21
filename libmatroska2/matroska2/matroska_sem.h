@@ -41,11 +41,11 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextSeek();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekHead();
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentUID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentUUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFilename();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevUID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevUUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevFilename();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextNextUID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextNextUUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextNextFilename();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFamily();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateID();
@@ -288,7 +288,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeStart();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeEnd();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagHidden();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagEnabled();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentUID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentUUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentEditionUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterPhysicalEquiv();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrackNumber();
