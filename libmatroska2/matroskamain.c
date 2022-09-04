@@ -189,22 +189,22 @@ static err_t CheckCompression(matroska_block *Block, int ForProfile)
 
             Header = (ebml_master*)EBML_MasterGetChild(Elt, MATROSKA_getContextContentCompAlgo(), ForProfile);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB)
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_LZO1X)
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_BZLIB)
 #endif
 #else
-            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #endif
                 return ERR_INVALID_DATA;
 
-            if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
             {
                 Header = (ebml_master*)EBML_MasterFindChild(Elt, MATROSKA_getContextContentCompSettings());
                 if (Header)
@@ -923,7 +923,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
     err_t Err = ERR_NONE;
     ebml_element *Elt, *Elt2, *Header = NULL;
     uint8_t *InBuf;
-    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
+    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
     if (!Element->Base.Base.bValueIsSet)
     {
@@ -948,22 +948,22 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
 
                 Header = EBML_MasterGetChild((ebml_master*)Elt, MATROSKA_getContextContentCompAlgo(),ForProfile);
 #if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB)
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_LZO1X)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_LZO1X)
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_BZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_BZLIB)
 #endif
 #else
-                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #endif
                     return ERR_INVALID_DATA;
 
-                if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
                     Header = EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextContentCompSettings());
             }
         }
@@ -973,7 +973,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
             return ERR_NOT_SUPPORTED;
 #endif
 
-        if (Header && Header->Context==MATROSKA_getContextContentCompAlgo() && !(CompressionScope & MATROSKA_COMPR_SCOPE_BLOCK))
+        if (Header && Header->Context==MATROSKA_getContextContentCompAlgo() && !(CompressionScope & MATROSKA_CONTENTENCODINGSCOPE_BLOCK))
             Header = NULL;
 
         Stream_Seek(Input,Element->FirstFrameLocation,SEEK_SET);
@@ -999,7 +999,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                     else
                     {
 #if defined(CONFIG_ZLIB)
-                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_ZLIB)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                         {
                             // get the ouput size, adjust the Element->SizeList value, write in Element->Data
                             z_stream stream;
@@ -1036,7 +1036,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                         }
 #endif
 #if defined(CONFIG_LZO1X)
-                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_LZO1X)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_LZO1X)
                         {
                             if (lzo_init() != LZO_E_OK)
                                 Err = ERR_INVALID_DATA;
@@ -1059,7 +1059,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                         }
 #endif
 #if defined(CONFIG_BZLIB)
-                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_BZLIB)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_BZLIB)
                         {
                             unsigned int outSize = ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2;
                             bz_stream strm;
@@ -1166,7 +1166,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_ZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                     {
                         z_stream stream;
                         int Res;
@@ -1202,7 +1202,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                     }
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_LZO1X)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_LZO1X)
                     {
                         if (lzo_init() != LZO_E_OK)
                             Err = ERR_INVALID_DATA;
@@ -1227,7 +1227,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                     }
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_BZLIB)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_BZLIB)
                     {
                         bz_stream stream;
                         int Res;
@@ -1651,7 +1651,7 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
     if (Frame >= ARRAYCOUNT(Element->SizeList,int32_t))
         return 0;
 
-    if (!Header || (CompScope & MATROSKA_COMPR_SCOPE_BLOCK)==0)
+    if (!Header || (CompScope & MATROSKA_CONTENTENCODINGSCOPE_BLOCK)==0)
         return ARRAYBEGIN(Element->SizeList,int32_t)[Frame];
     if (Header->Context==MATROSKA_getContextContentCompAlgo())
     {
@@ -1685,7 +1685,7 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
     size_t i;
     int32_t DataSize;
     ebml_element *Elt, *Elt2, *Header = NULL;
-    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
+    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
 	if (ARRAYCOUNT(Element->SizeList,int32_t) <= 1)
 		return LACING_NONE;
@@ -1720,13 +1720,13 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
 
             Header = EBML_MasterGetChild((ebml_master*)Elt, MATROSKA_getContextContentCompAlgo(),ForProfile);
 #if defined(CONFIG_ZLIB)
-            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB)
 #else
-            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #endif
                 return 0;
 
-            if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
                 Header = EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextContentCompSettings());
         }
     }
@@ -1762,7 +1762,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     uint8_t BlockHead[5], *Cursor;
     size_t ToWrite, Written, BlockHeadSize = 4;
     ebml_element *Elt, *Elt2, *Header = NULL;
-    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
+    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
     assert(Element->Lacing != LACING_AUTO);
 
     if (Element->TrackNumber < 0x80)
@@ -1826,16 +1826,16 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
 
             Header = EBML_MasterGetChild((ebml_master*)Elt, MATROSKA_getContextContentCompAlgo(),ForProfile);
 #if defined(CONFIG_ZLIB)
-            if (Header == NULL || (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB))
+            if (Header == NULL || (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB))
 #else
-            if (Header == NULL || EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+            if (Header == NULL || EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #endif
 			{
 				Err = ERR_NOT_SUPPORTED;
 				goto failed;
 			}
 
-            if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
+            if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
                 Header = EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextContentCompSettings());
         }
     }
@@ -1900,7 +1900,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     Node_SET(Element,MATROSKA_BLOCK_READ_TRACK,&Element->WriteTrack); // now use the write track for consecutive read of the same element
 
     Cursor = ARRAYBEGIN(Element->Data,uint8_t);
-    if (Header && (CompressionScope & MATROSKA_COMPR_SCOPE_BLOCK))
+    if (Header && (CompressionScope & MATROSKA_CONTENTENCODINGSCOPE_BLOCK))
     {
         int32_t* i;
         if (Header && Header->Context==MATROSKA_getContextContentCompAlgo())
@@ -2002,7 +2002,7 @@ static matroska_block *CopyBlockInfo(const matroska_block *Element, const void *
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
-    int CompressionScope = MATROSKA_COMPR_SCOPE_BLOCK;
+    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
         ebml_element *Header = NULL;
@@ -2031,13 +2031,13 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
 
                 Header = EBML_MasterGetChild((ebml_master*)Elt, MATROSKA_getContextContentCompAlgo(),ForProfile);
 #if defined(CONFIG_ZLIB)
-                if (Header == NULL || (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_ZLIB))
+                if (Header == NULL || (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP && EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB))
 #else
-                if (Header == NULL || EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_BLOCK_COMPR_HEADER)
+                if (Header == NULL || EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
 #endif
                     return ERR_INVALID_DATA;
 
-                if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_BLOCK_COMPR_HEADER)
+                if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
                     Header = EBML_MasterFindChild((ebml_master*)Elt, MATROSKA_getContextContentCompSettings());
             }
         }
@@ -2286,7 +2286,7 @@ static err_t ReadTrackEntry(matroska_trackentry *Element, stream *Input, const e
                 if (Elt)
                 {
                     ebml_integer *EncScope =  (ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope());
-                    Element->CodecPrivateCompressed = EncScope && (EBML_IntegerValue(EncScope) & MATROSKA_COMPR_SCOPE_PRIVATE)!=0;
+                    Element->CodecPrivateCompressed = EncScope && (EBML_IntegerValue(EncScope) & MATROSKA_CONTENTENCODINGSCOPE_PRIVATE)!=0;
                 }
             }
         }
@@ -2309,7 +2309,7 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
             if (Elt)
             {
                 Scope = (ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope());
-                CodecPrivateCompressed = Scope && (EBML_IntegerValue(Scope) & MATROSKA_COMPR_SCOPE_PRIVATE)!=0;
+                CodecPrivateCompressed = Scope && (EBML_IntegerValue(Scope) & MATROSKA_CONTENTENCODINGSCOPE_PRIVATE)!=0;
             }
         }
     }
@@ -2332,7 +2332,7 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
                 free(Compressed);
             }
             if (!Element->CodecPrivateCompressed)
-                EBML_IntegerSetValue(Scope, EBML_IntegerValue(Scope) ^ MATROSKA_COMPR_SCOPE_PRIVATE);
+                EBML_IntegerSetValue(Scope, EBML_IntegerValue(Scope) ^ MATROSKA_CONTENTENCODINGSCOPE_PRIVATE);
         }
         else
         {
@@ -2377,16 +2377,16 @@ int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int
     assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
     Encodings = EBML_MasterFindChild(TrackEntry,MATROSKA_getContextContentEncodings());
     if (!Encodings)
-        return MATROSKA_BLOCK_COMPR_NONE;
+        return MATROSKA_TRACK_ENCODING_COMP_NONE;
     Elt2 = EBML_MasterFindChild((ebml_master*)Encodings,MATROSKA_getContextContentEncoding());
     if (!Elt2)
-        return MATROSKA_BLOCK_COMPR_NONE;
+        return MATROSKA_TRACK_ENCODING_COMP_NONE;
     Elt =  EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope(), ForProfile);
-    if (!(EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_COMPR_SCOPE_BLOCK))
-        return MATROSKA_BLOCK_COMPR_NONE;
+    if (!(EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_CONTENTENCODINGSCOPE_BLOCK))
+        return MATROSKA_TRACK_ENCODING_COMP_NONE;
     Elt =  EBML_MasterFindChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression());
     if (!Elt)
-        return MATROSKA_BLOCK_COMPR_NONE;
+        return MATROSKA_TRACK_ENCODING_COMP_NONE;
     Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo(), ForProfile);
     return (int)EBML_IntegerValue((ebml_integer*)Elt2);
 }
@@ -2413,7 +2413,7 @@ bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Sco
 
         Elt =  EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression(), ForProfile);
         Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo(), ForProfile);
-        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_ZLIB);
+        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_TRACK_ENCODING_COMP_ZLIB);
     }
     return HadEncoding;
 }
@@ -2436,7 +2436,7 @@ bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const
 
         Elt =  EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression(), ForProfile);
         Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo(), ForProfile);
-        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_BLOCK_COMPR_HEADER);
+        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP);
         Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompSettings(), ForProfile);
         EBML_BinarySetData((ebml_binary*)Elt2, Header, HeaderSize);
     }
