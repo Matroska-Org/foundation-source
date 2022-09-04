@@ -83,7 +83,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input, 
     {
         assert(Track!=NULL);
         Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
-        if (!Elt || EBML_IntegerValue((ebml_integer*)Elt)!=TRACK_TYPE_AUDIO) // other track types not supported for now
+        if (!Elt || EBML_IntegerValue((ebml_integer*)Elt)!=MATROSKA_TRACK_TYPE_AUDIO) // other track types not supported for now
             Err = ERR_INVALID_DATA;
         else
         {
