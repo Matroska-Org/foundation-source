@@ -42,12 +42,12 @@
 #define CONTEXT_LIBMATROSKA_VERSION  0x00402
 
 // if a profile is set in ebml_semantic.DisabledProfile that means the element is not available for that profile
-#define PROFILE_MATROSKA_V1          1
-#define PROFILE_MATROSKA_V2          2
-#define PROFILE_MATROSKA_V3          4
-#define PROFILE_MATROSKA_V4          32
-#define PROFILE_WEBM                 8
-#define PROFILE_DIVX                16
+#define PROFILE_MATROSKA_V1          (1<<0)
+#define PROFILE_MATROSKA_V2          (1<<1)
+#define PROFILE_MATROSKA_V3          (1<<2)
+#define PROFILE_MATROSKA_V4          (1<<5)
+#define PROFILE_WEBM                 (1<<3)
+#define PROFILE_DIVX                 (1<<4)
 #define PROFILE_MATROSKA_ALL        (PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4) 
 #define PROFILE_MATROSKA_ANY        (PROFILE_MATROSKA_ALL|PROFILE_WEBM|PROFILE_DIVX) 
 
