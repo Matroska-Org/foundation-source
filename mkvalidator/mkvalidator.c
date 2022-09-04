@@ -216,7 +216,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 		Elt = EBML_MasterFindChild(Video,MATROSKA_getContextDisplayWidth());
 		if (Elt)
 			DisplayW = EL_Int(Elt);
-		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
+		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXELS)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel width"),TrackNum,EL_Pos(Track));
         else if (PixelW)
 			DisplayW = EL_Int(PixelW);
@@ -224,7 +224,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 		Elt = EBML_MasterFindChild(Video,MATROSKA_getContextDisplayHeight());
 		if (Elt)
 			DisplayH = EL_Int(Elt);
-		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXEL)
+		else if (EL_Int(Unit)!=MATROSKA_DISPLAY_UNIT_PIXELS)
 			Result |= OutputError(0xE2,T("Video track #%d at %") TPRId64 T(" has an implied non pixel height"),TrackNum,EL_Pos(Track));
 		else if (PixelH)
 			DisplayH = EL_Int(PixelH);
@@ -234,7 +234,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 		if (DisplayW==0)
 			Result |= OutputError(0xE7,T("Video track #%d at %") TPRId64 T(" has a null display width"),TrackNum,EL_Pos(Track));
 
-		if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_PIXEL && PixelW && PixelH)
+		if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_PIXELS && PixelW && PixelH)
 		{
 			// check if the pixel sizes appear valid
 			if (DisplayW < EL_Int(PixelW) && DisplayH < EL_Int(PixelH))
@@ -254,7 +254,7 @@ static int CheckVideoTrack(ebml_master *Track, int TrackNum, int ProfileNum)
 			}
 		}
 
-        if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_DAR)
+        if (EL_Int(Unit)==MATROSKA_DISPLAY_UNIT_DISPLAYASPECTRATIO)
         {
             // crop values should never exist
             Elt = EBML_MasterFindChild(Video,MATROSKA_getContextPixelCropTop());

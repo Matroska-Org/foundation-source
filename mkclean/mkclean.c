@@ -954,16 +954,16 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
             if (DisplayW || DisplayH)
             {
                 Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextDisplayUnit());
-                if (Elt2 && EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_DAR)
+                if (Elt2 && EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_DISPLAYASPECTRATIO)
                 {
                     // if the output size appears in pixel, fix it
                     if ((!DisplayW || Width==EBML_IntegerValue((ebml_integer*)DisplayW)) && (!DisplayH || Height==EBML_IntegerValue((ebml_integer*)DisplayH)))
-                        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_DISPLAY_UNIT_PIXEL);
+                        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_DISPLAY_UNIT_PIXELS);
                     else
                         CleanCropValues((ebml_master*)Elt, 0, 0);
                 }
 
-                if (!Elt2 || EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_PIXEL) // pixel AR
+                if (!Elt2 || EBML_IntegerValue((ebml_integer*)Elt2)==MATROSKA_DISPLAY_UNIT_PIXELS) // pixel AR
                 {
                     if (!DisplayW)
                     {
@@ -1035,7 +1035,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
 								    Elt2 = EBML_MasterFindFirstElt((ebml_master*)Elt,MATROSKA_getContextDisplayUnit(), 1, 0, 0);
 								    if (Elt2)
 								    {
-									    EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_DISPLAY_UNIT_DAR);
+									    EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_DISPLAY_UNIT_DISPLAYASPECTRATIO);
 									    EBML_IntegerSetValue((ebml_integer*)DisplayW,DW);
 									    EBML_IntegerSetValue((ebml_integer*)DisplayH,DH);
 								    }
@@ -1055,7 +1055,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                     }
                 }
                 Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextDisplayUnit(), DstProfile);
-                if (EBML_IntegerValue((ebml_integer*)Elt2)!=MATROSKA_DISPLAY_UNIT_DAR)
+                if (EBML_IntegerValue((ebml_integer*)Elt2)!=MATROSKA_DISPLAY_UNIT_DISPLAYASPECTRATIO)
                     CleanCropValues((ebml_master*)Elt, DisplayW?EBML_IntegerValue((ebml_integer*)DisplayW):Width, DisplayH?EBML_IntegerValue((ebml_integer*)DisplayH):Height);
             }
 
@@ -1077,15 +1077,15 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                             EBML_ElementForceContext(Elt2, MATROSKA_getContextStereoMode());
 
                         // replace the old values with the new ones
-                        if (Width==MATROSKA_VIDEO_OLDSTEREOMODE_BOTH)
+                        if (Width==MATROSKA_VIDEO_OLDSTEREOMODE_BOTH_EYES)
                         {
                             TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
-                            EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_VIDEO_STEREO_SIDEBYSIDE_L);
+                            EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_VIDEO_STEREO_LEFT_RIGHT);
                         }
                         else
                         {
                             EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_VIDEO_STEREO_MONO);
-                            TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT?T("left"):T("right"));
+                            TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT_EYE?T("left"):T("right"));
                             // look for the other track
                             for (OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,CurTrack);OtherTrack; OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,OtherTrack))
                             {
@@ -1096,13 +1096,13 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                     ebml_element *OtherStereo = EBML_MasterFindChild(VidElt,MATROSKA_getContextStereoMode());
                                     if (!OtherStereo)
                                         OtherStereo = EBML_MasterFindChild(VidElt,MATROSKA_getContextOldStereoMode());
-                                    if (OtherStereo && ((Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT && EBML_IntegerValue((ebml_integer*)OtherStereo)==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT) ||
-                                        (Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT && EBML_IntegerValue((ebml_integer*)OtherStereo)==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT)))
+                                    if (OtherStereo && ((Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT_EYE && EBML_IntegerValue((ebml_integer*)OtherStereo)==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE) ||
+                                        (Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE && EBML_IntegerValue((ebml_integer*)OtherStereo)==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT_EYE)))
                                     {
                                         ebml_master *CombinedTrack;
                                         int NewTrackUID;
 
-                                        TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT?T("left"):T("right"));
+                                        TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE?T("left"):T("right"));
                                         EBML_IntegerSetValue((ebml_integer*)OtherStereo,MATROSKA_VIDEO_STEREO_MONO);
 
                                         // create another track that is this one combined
@@ -1168,7 +1168,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                             Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneUID(), DstProfile);
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, EBML_IntegerValue((ebml_integer*)OtherStereo));
                                             Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneType(), DstProfile);
-                                            EBML_IntegerSetValue((ebml_integer*)Elt2, Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
+                                            EBML_IntegerSetValue((ebml_integer*)Elt2, Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT_EYE? MATROSKA_TRACKPLANETYPE_LEFT_EYE : MATROSKA_TRACKPLANETYPE_RIGHT_EYE);
 
                                             // track 2
                                             CombinedTrack = (ebml_master*)EBML_MasterAddElt((ebml_master*)Elt, MATROSKA_getContextTrackPlane(), 1, DstProfile);
@@ -1183,7 +1183,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                             Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneUID(), DstProfile);
                                             EBML_IntegerSetValue((ebml_integer*)Elt2, EBML_IntegerValue((ebml_integer*)OtherStereo));
                                             Elt2 = EBML_MasterGetChild(CombinedTrack, MATROSKA_getContextTrackPlaneType(), DstProfile);
-                                            EBML_IntegerSetValue((ebml_integer*)Elt2, Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT? TRACK_PLANE_LEFT : TRACK_PLANE_RIGHT);
+                                            EBML_IntegerSetValue((ebml_integer*)Elt2, Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE? MATROSKA_TRACKPLANETYPE_LEFT_EYE : MATROSKA_TRACKPLANETYPE_RIGHT_EYE);
                                         }
 
                                         return CleanTracks(Tracks, srcProfile, dstProfile, Attachments, Alternate3DTracks);
@@ -1191,7 +1191,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                 }
                             }
 
-                            TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT?T("left"):T("right"));
+                            TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE?T("left"):T("right"));
                         }
                     }
                 }
@@ -1202,7 +1202,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
         {
             // force the proper StereoMode value
             Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextStereoMode(), DstProfile);
-            EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_VIDEO_STEREO_ALTERNATE_PACKED_L);
+            EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_VIDEO_STEREO_BOTH_EYES_BLOCK_LR);
         }
 
         if (*dstProfile==PROFILE_WEBM)
@@ -1327,7 +1327,7 @@ static bool_t BlockIsCompressed(const matroska_block *Block)
                     return 1; // we don't support encryption
 
                 Elt = (ebml_master*)EBML_MasterGetChild(Elt, MATROSKA_getContextContentCompAlgo(), DstProfile);
-                if (Elt!=NULL && EBML_IntegerValue((ebml_integer*)Elt)==MATROSKA_BLOCK_COMPR_ZLIB)
+                if (Elt!=NULL && EBML_IntegerValue((ebml_integer*)Elt)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                     return 1;
             }
         }
@@ -2633,8 +2633,8 @@ int main(int argc, const char *argv[])
 		{
             if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextTrackEntry()))
             {
-                int encoding = MATROSKA_BLOCK_COMPR_NONE;
-                int zlib_scope = MATROSKA_COMPR_SCOPE_BLOCK;
+                int encoding = MATROSKA_TRACK_ENCODING_COMP_NONE;
+                int zlib_scope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
                 Elt2 = EBML_MasterFindChild(RLevel1,MATROSKA_getContextTrackNumber());
 			    if (!Elt2) continue;
@@ -2663,7 +2663,7 @@ int main(int argc, const char *argv[])
                 Encodings = (ebml_master*)EBML_MasterFindChild(RLevel1,MATROSKA_getContextContentEncodings());
                 if (UnOptimize)
                     // remove the previous track compression
-                    encoding = MATROSKA_BLOCK_COMPR_NONE;
+                    encoding = MATROSKA_TRACK_ENCODING_COMP_NONE;
                 else if (!Optimize)
                     // keep the same kind of encoding as before
                     encoding = MATROSKA_TrackGetBlockCompression((matroska_trackentry*)RLevel1, DstProfile);
@@ -2673,20 +2673,20 @@ int main(int argc, const char *argv[])
                     EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
                     if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN"))
                         || tcsisame_ascii(CodecID,T("V_UNCOMPRESSED"))|| tcsstr(CodecID,T("A_PCM"))==CodecID)
-                        encoding = MATROSKA_BLOCK_COMPR_ZLIB;
+                        encoding = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
                     else
                     {
                         // don't keep the zlib compression on compressed codecs
                         //encoding = MATROSKA_TrackGetBlockCompression((matroska_trackentry*)RLevel1);
-                        //if (encoding == MATROSKA_BLOCK_COMPR_NONE || encoding == MATROSKA_BLOCK_COMPR_HEADER)
+                        //if (encoding == MATROSKA_TRACK_ENCODING_COMP_NONE || encoding == MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
                         {
                             HeaderData = ARRAYBEGIN(TrackMaxHeader,array)+TrackNum;
                             if (ARRAYCOUNT(*HeaderData,uint8_t))
-                                encoding = MATROSKA_BLOCK_COMPR_HEADER;
+                                encoding = MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP;
                         }
                     }
                 }
-                if (encoding == MATROSKA_BLOCK_COMPR_NONE)
+                if (encoding == MATROSKA_TRACK_ENCODING_COMP_NONE)
                     zlib_scope = 0;
                 else
                 {
@@ -2703,19 +2703,19 @@ int main(int argc, const char *argv[])
                 }
 
                 // see if we can add CodecPrivate too
-                if ((Optimize || encoding != MATROSKA_BLOCK_COMPR_NONE) && encoding != MATROSKA_BLOCK_COMPR_HEADER && zlib_scope != MATROSKA_COMPR_SCOPE_PRIVATE)
+                if ((Optimize || encoding != MATROSKA_TRACK_ENCODING_COMP_NONE) && encoding != MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP && zlib_scope != MATROSKA_CONTENTENCODINGSCOPE_PRIVATE)
                 {
                     if (CodecPrivate!=NULL)
                     {
-                        size_t ExtraCompHeaderBytes = (encoding == MATROSKA_BLOCK_COMPR_NONE) ? 13 : 3; // extra bytes needed to add the comp header to the track
+                        size_t ExtraCompHeaderBytes = (encoding == MATROSKA_TRACK_ENCODING_COMP_NONE) ? 13 : 3; // extra bytes needed to add the comp header to the track
                         size_t CompressedSize = (size_t)EBML_ElementDataSize((ebml_element*)CodecPrivate, 1);
                         size_t origCompressedSize = CompressedSize;
                         uint8_t *Compressed = malloc(CompressedSize);
                         if (CompressFrameZLib(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &Compressed, &CompressedSize)==ERR_NONE
                             && (CompressedSize + ExtraCompHeaderBytes) < origCompressedSize)
                         {
-                            encoding = MATROSKA_BLOCK_COMPR_ZLIB;
-                            zlib_scope |= MATROSKA_COMPR_SCOPE_PRIVATE;
+                            encoding = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
+                            zlib_scope |= MATROSKA_CONTENTENCODINGSCOPE_PRIVATE;
                         }
                         free(Compressed);
                     }
@@ -2723,13 +2723,13 @@ int main(int argc, const char *argv[])
 
                 switch (encoding)
                 {
-                case MATROSKA_BLOCK_COMPR_ZLIB:
-                case MATROSKA_BLOCK_COMPR_BZLIB: // transform bzlib into zlib
-                case MATROSKA_BLOCK_COMPR_LZO1X: // transform lzo1x into zlib
+                case MATROSKA_TRACK_ENCODING_COMP_ZLIB:
+                case MATROSKA_TRACK_ENCODING_COMP_BZLIB: // transform bzlib into zlib
+                case MATROSKA_TRACK_ENCODING_COMP_LZO1X: // transform lzo1x into zlib
                     if (MATROSKA_TrackSetCompressionZlib((matroska_trackentry*)RLevel1, zlib_scope,DstProfile))
 						ClustersNeedRead = 1;
                     break;
-                case MATROSKA_BLOCK_COMPR_HEADER:
+                case MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP:
                     if (!HeaderData || MATROSKA_TrackSetCompressionHeader((matroska_trackentry*)RLevel1, ARRAYBEGIN(*HeaderData,uint8_t), ARRAYCOUNT(*HeaderData,uint8_t), DstProfile))
 					    ClustersNeedRead = 1;
                     break;
@@ -2745,11 +2745,11 @@ int main(int argc, const char *argv[])
                     if ((Elt2 = EBML_MasterFindChild(Encodings,MATROSKA_getContextContentEncoding())) != NULL)
                     {
                         Elt =  EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentEncodingScope(), DstProfile);
-                        if (EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_COMPR_SCOPE_BLOCK)
+                        if (EBML_IntegerValue((ebml_integer*)Elt) & MATROSKA_CONTENTENCODINGSCOPE_BLOCK)
                         {
                             Elt = EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression(), DstProfile);
                             Elt = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo(), DstProfile);
-                            if (EBML_IntegerValue((ebml_integer*)Elt)!=MATROSKA_BLOCK_COMPR_HEADER)
+                            if (EBML_IntegerValue((ebml_integer*)Elt)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
                                 ClustersNeedRead = 1;
                         }
                     }
