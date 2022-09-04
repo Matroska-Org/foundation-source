@@ -268,7 +268,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextCues();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFileDescription();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFileName();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileMimeType();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileMediaType();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFileData();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextFileReferral();
