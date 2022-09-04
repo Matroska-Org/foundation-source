@@ -322,7 +322,7 @@ static int CheckTracks(ebml_master *TrackEntries, int ProfileNum)
 					OutputWarning(0x308,T("Track #%d codec '%s' doesn't appear to be valid"),(int)EL_Int(TrackNum),String);
 
                 // check that the audio frequencies are not 0
-                if (EL_Int(TrackType) == TRACK_TYPE_AUDIO)
+                if (EL_Int(TrackType) == MATROSKA_TRACK_TYPE_AUDIO)
                 {
                     Elt = EBML_MasterGetChild(Track, MATROSKA_getContextAudio(), ProfileNum);
                     if (Elt==NULL)
@@ -340,16 +340,16 @@ static int CheckTracks(ebml_master *TrackEntries, int ProfileNum)
 
 				if (ProfileNum==PROFILE_WEBM)
 				{
-					if (EL_Int(TrackType) != TRACK_TYPE_AUDIO && EL_Int(TrackType) != TRACK_TYPE_VIDEO)
+					if (EL_Int(TrackType) != MATROSKA_TRACK_TYPE_AUDIO && EL_Int(TrackType) != MATROSKA_TRACK_TYPE_VIDEO)
 						Result |= OutputError(0x302,T("Track #%d type %d not supported for profile '%s'"),(int)EL_Int(TrackNum),(int)EL_Int(TrackType),GetProfileName(ProfileNum));
 					if (CodecID)
 					{
-						if (EL_Int(TrackType) == TRACK_TYPE_AUDIO)
+						if (EL_Int(TrackType) == MATROSKA_TRACK_TYPE_AUDIO)
 						{
 							if (!tcsisame_ascii(CodecName,T("A_VORBIS")) && !tcsisame_ascii(CodecName,T("A_OPUS")))
 								Result |= OutputError(0x303,T("Track #%d codec %s not supported for profile '%s'"),(int)EL_Int(TrackNum),CodecName,GetProfileName(ProfileNum));
 						}
-						else if (EL_Int(TrackType) == TRACK_TYPE_VIDEO)
+						else if (EL_Int(TrackType) == MATROSKA_TRACK_TYPE_VIDEO)
 						{
 							if (!tcsisame_ascii(CodecName,T("V_VP8")) && !tcsisame_ascii(CodecName,T("V_VP9")))
 								Result |= OutputError(0x304,T("Track #%d codec %s not supported for profile '%s'"),(int)EL_Int(TrackNum),CodecName,GetProfileName(ProfileNum));
@@ -591,7 +591,7 @@ static bool_t TrackIsVideo(int16_t TrackNum, int ProfileNum)
         if (EL_Int(TrackData) == TrackNum)
         {
             TrackData = EBML_MasterGetChild(Track, MATROSKA_getContextTrackType(), ProfileNum);
-            return EL_Int(TrackData) == TRACK_TYPE_VIDEO;
+            return EL_Int(TrackData) == MATROSKA_TRACK_TYPE_VIDEO;
         }
         // look for TrackNum in the next Track
         Track = (ebml_master*)EBML_MasterNextChild(RTrackInfo, Track);
@@ -611,9 +611,9 @@ static bool_t TrackNeedsKeyframe(int16_t TrackNum, int ProfileNum)
             TrackData = EBML_MasterGetChild(Track, MATROSKA_getContextTrackType(), ProfileNum);
             switch (EL_Int(TrackData))
             {
-            case TRACK_TYPE_VIDEO:
+            case MATROSKA_TRACK_TYPE_VIDEO:
                 return 0;
-            case TRACK_TYPE_AUDIO:
+            case MATROSKA_TRACK_TYPE_AUDIO:
                 {
                     tchar_t CodecName[MAXDATA];
                     ebml_string *CodecID = (ebml_string*)EBML_MasterGetChild(Track, MATROSKA_getContextCodecID(), ProfileNum);
@@ -1153,7 +1153,7 @@ int main(int argc, const char *argv[])
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
-                            if (EL_Int(EbmlDocVer)==TRACK_TYPE_VIDEO)
+                            if (EL_Int(EbmlDocVer)==MATROSKA_TRACK_TYPE_VIDEO)
 							{
 								Result |= CheckVideoTrack(Elt, ARRAYBEGIN(Tracks,track_info)[TrackCount].Num, MatroskaProfile);
                                 HasVideo = 1;
