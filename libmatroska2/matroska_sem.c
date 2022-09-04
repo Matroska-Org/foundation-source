@@ -430,8 +430,8 @@ ebml_context MATROSKA_ContextFileDescription;
 const ebml_context *MATROSKA_getContextFileDescription() { return &MATROSKA_ContextFileDescription; }
 ebml_context MATROSKA_ContextFileName;
 const ebml_context *MATROSKA_getContextFileName() { return &MATROSKA_ContextFileName; }
-ebml_context MATROSKA_ContextFileMimeType;
-const ebml_context *MATROSKA_getContextFileMimeType() { return &MATROSKA_ContextFileMimeType; }
+ebml_context MATROSKA_ContextFileMediaType;
+const ebml_context *MATROSKA_getContextFileMediaType() { return &MATROSKA_ContextFileMediaType; }
 ebml_context MATROSKA_ContextFileData;
 const ebml_context *MATROSKA_getContextFileData() { return &MATROSKA_ContextFileData; }
 ebml_context MATROSKA_ContextFileUID;
@@ -872,7 +872,7 @@ const ebml_semantic EBML_SemanticCues[] = {
 const ebml_semantic EBML_SemanticAttachedFile[] = {
     {0, 1, &MATROSKA_ContextFileDescription, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextFileName, PROFILE_WEBM},
-    {1, 1, &MATROSKA_ContextFileMimeType, PROFILE_WEBM},
+    {1, 1, &MATROSKA_ContextFileMediaType, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextFileData, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextFileUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextFileReferral, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
@@ -1189,7 +1189,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextCues = (ebml_context) {0x1C53BB6B, EBML_MASTER_CLASS, 0, 0, "Cues", EBML_SemanticCues, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFileDescription = (ebml_context) {0x467E, EBML_UNISTRING_CLASS, 0, 0, "FileDescription", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFileName = (ebml_context) {0x466E, EBML_UNISTRING_CLASS, 0, 0, "FileName", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextFileMimeType = (ebml_context) {0x4660, EBML_STRING_CLASS, 0, 0, "FileMimeType", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextFileMediaType = (ebml_context) {0x4660, EBML_STRING_CLASS, 0, 0, "FileMediaType", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFileData = (ebml_context) {0x465C, MATROSKA_BIGBINARY_CLASS, 0, 0, "FileData", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFileUID = (ebml_context) {0x46AE, EBML_INTEGER_CLASS, 0, 0, "FileUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextFileReferral = (ebml_context) {0x4675, EBML_BINARY_CLASS, 0, 0, "FileReferral", NULL, EBML_getSemanticGlobals(), NULL};
