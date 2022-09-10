@@ -401,6 +401,10 @@
         <xsl:if test="($node/@maxver and $node/@maxver &lt; 3) or ($node/@minver &gt; 3)"><xsl:text>|</xsl:text></xsl:if>
         <xsl:text>PROFILE_MATROSKA_V4</xsl:text>
     </xsl:if>
+    <xsl:if test="($node/@maxver and $node/@maxver &lt; 5) or ($node/@minver &gt; 5)">
+        <xsl:if test="($node/@maxver and $node/@maxver &lt; 4) or ($node/@minver &gt; 4)"><xsl:text>|</xsl:text></xsl:if>
+        <xsl:text>PROFILE_MATROSKA_V5</xsl:text>
+    </xsl:if>
     <xsl:if test="ebml:extension[@divx='0'] or ((not(ebml:extension[@divx]) or not(ebml:extension[@divx='1'])) and (($node/@maxver and $node/@maxver &lt; 2) or ($node/@minver &gt; 1)))">
         <xsl:if test="($node/@maxver) or ($node/@minver &gt; 1)"><xsl:text>|</xsl:text></xsl:if>
         <xsl:text>PROFILE_DIVX</xsl:text>
