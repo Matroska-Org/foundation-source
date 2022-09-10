@@ -456,6 +456,12 @@ ebml_context MATROSKA_ContextEditionFlagDefault;
 const ebml_context *MATROSKA_getContextEditionFlagDefault() { return &MATROSKA_ContextEditionFlagDefault; }
 ebml_context MATROSKA_ContextEditionFlagOrdered;
 const ebml_context *MATROSKA_getContextEditionFlagOrdered() { return &MATROSKA_ContextEditionFlagOrdered; }
+ebml_context MATROSKA_ContextEditionString;
+const ebml_context *MATROSKA_getContextEditionString() { return &MATROSKA_ContextEditionString; }
+ebml_context MATROSKA_ContextEditionLanguageIETF;
+const ebml_context *MATROSKA_getContextEditionLanguageIETF() { return &MATROSKA_ContextEditionLanguageIETF; }
+ebml_context MATROSKA_ContextEditionDisplay;
+const ebml_context *MATROSKA_getContextEditionDisplay() { return &MATROSKA_ContextEditionDisplay; }
 ebml_context MATROSKA_ContextChapterUID;
 const ebml_context *MATROSKA_getContextChapterUID() { return &MATROSKA_ContextChapterUID; }
 ebml_context MATROSKA_ContextChapterStringUID;
@@ -889,6 +895,12 @@ const ebml_semantic EBML_SemanticAttachments[] = {
     {0, 0, NULL ,0} // end of the table
 };
 
+const ebml_semantic EBML_SemanticEditionDisplay[] = {
+    {1, 1, &MATROSKA_ContextEditionString, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextEditionLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, NULL ,0} // end of the table
+};
+
 const ebml_semantic EBML_SemanticChapterTrack[] = {
     {1, 0, &MATROSKA_ContextChapterTrackNumber, PROFILE_WEBM},
     {0, 0, NULL ,0} // end of the table
@@ -937,6 +949,7 @@ const ebml_semantic EBML_SemanticEditionEntry[] = {
     {1, 1, &MATROSKA_ContextEditionFlagHidden, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextEditionFlagDefault, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextEditionFlagOrdered, PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextEditionDisplay, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {1, 0, &MATROSKA_ContextChapterAtom, 0},
     {0, 0, NULL ,0} // end of the table
 };
@@ -1205,6 +1218,9 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextEditionFlagHidden = (ebml_context) {0x45BD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagHidden", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextEditionFlagDefault = (ebml_context) {0x45DB, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagDefault", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextEditionFlagOrdered = (ebml_context) {0x45DD, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "EditionFlagOrdered", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextEditionString = (ebml_context) {0x4521, EBML_UNISTRING_CLASS, 0, 0, "EditionString", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextEditionLanguageIETF = (ebml_context) {0x45E4, EBML_STRING_CLASS, 0, 0, "EditionLanguageIETF", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextEditionDisplay = (ebml_context) {0x4520, EBML_MASTER_CLASS, 0, 0, "EditionDisplay", EBML_SemanticEditionDisplay, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterUID = (ebml_context) {0x73C4, EBML_INTEGER_CLASS, 0, 0, "ChapterUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterStringUID = (ebml_context) {0x5654, EBML_UNISTRING_CLASS, 0, 0, "ChapterStringUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterTimeStart = (ebml_context) {0x91, EBML_INTEGER_CLASS, 0, 0, "ChapterTimeStart", NULL, EBML_getSemanticGlobals(), NULL};
