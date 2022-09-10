@@ -283,6 +283,10 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagHidden();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagDefault();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagOrdered();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionString();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionLanguageIETF();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionDisplay();
+
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterStringUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeStart();
