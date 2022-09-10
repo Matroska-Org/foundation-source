@@ -124,7 +124,7 @@ typedef struct track_info
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX"), T("matroska v4")};
+static const tchar_t *Profile[8] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX"), T("matroska v4"), T("matroska v5")};
 	switch (ProfileNum)
 	{
 	default:                  return Profile[0];
@@ -134,6 +134,7 @@ static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska 
 	case PROFILE_WEBM:        return Profile[4];
 	case PROFILE_DIVX:        return Profile[5];
 	case PROFILE_MATROSKA_V4: return Profile[6];
+	case PROFILE_MATROSKA_V5: return Profile[7];
 	}
 }
 
@@ -148,6 +149,7 @@ static int GetProfileId(int Profile)
 	case PROFILE_WEBM:        return 4;
 	case PROFILE_DIVX:        return 5;
 	case PROFILE_MATROSKA_V4: return 6;
+	case PROFILE_MATROSKA_V5: return 7;
 	}
 }
 
@@ -1482,6 +1484,8 @@ int main(int argc, const char *argv[])
 				DstProfile = PROFILE_DIVX;
 			else if (tcsisame_ascii(Path,T("6")))
 				DstProfile = PROFILE_MATROSKA_V4;
+			else if (tcsisame_ascii(Path,T("7")))
+				DstProfile = PROFILE_MATROSKA_V5;
 			else
 			{
 		        TextPrintf(StdErr,T("Unknown doctype %s\r\n"),Path);
@@ -1630,6 +1634,8 @@ int main(int argc, const char *argv[])
         SrcProfile = PROFILE_MATROSKA_V3;
     else if (SrcProfile==PROFILE_MATROSKA_V1 && DocVersion==4)
         SrcProfile = PROFILE_MATROSKA_V4;
+    else if (SrcProfile==PROFILE_MATROSKA_V1 && DocVersion==5)
+        SrcProfile = PROFILE_MATROSKA_V5;
 
 	if (!DstProfile)
 		DstProfile = SrcProfile;
@@ -1858,8 +1864,10 @@ int main(int argc, const char *argv[])
 		DocVersion=3;
 	if (DstProfile==PROFILE_MATROSKA_V4)
 		DocVersion=4;
+	if (DstProfile==PROFILE_MATROSKA_V5)
+		DocVersion=5;
 
-    if (ARRAYCOUNT(Alternate3DTracks, block_info*) && DstProfile!=PROFILE_MATROSKA_V3 && DstProfile!=PROFILE_MATROSKA_V4)
+    if (ARRAYCOUNT(Alternate3DTracks, block_info*) && DstProfile!=PROFILE_MATROSKA_V3 && DstProfile!=PROFILE_MATROSKA_V4 && DstProfile!=PROFILE_MATROSKA_V5)
     {
         TextPrintf(StdErr,T("Using --alt-3d in profile '%s' try \"--doctype %d\"\r\n"),GetProfileName(DstProfile),GetProfileId(PROFILE_MATROSKA_V3));
         goto exit;
