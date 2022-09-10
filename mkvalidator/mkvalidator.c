@@ -113,7 +113,7 @@ void DebugMessage(const tchar_t* Msg,...)
 
 static const tchar_t *GetProfileName(size_t ProfileNum)
 {
-static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX"), T("matroska v4")};
+static const tchar_t *Profile[8] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX"), T("matroska v4"), T("matroska v5")};
 	switch (ProfileNum)
 	{
 	default:                  return Profile[0];
@@ -123,6 +123,7 @@ static const tchar_t *Profile[7] = {T("unknown"), T("matroska v1"), T("matroska 
 	case PROFILE_WEBM:        return Profile[4];
 	case PROFILE_DIVX:        return Profile[5];
 	case PROFILE_MATROSKA_V4: return Profile[6];
+	case PROFILE_MATROSKA_V5: return Profile[7];
 	}
 }
 
@@ -1001,6 +1002,8 @@ int main(int argc, const char *argv[])
 	{
         if (DivX)
 			MatroskaProfile = PROFILE_DIVX;
+        else if (EL_Int(EbmlDocVer)==5)
+		    MatroskaProfile = PROFILE_MATROSKA_V5;
         else if (EL_Int(EbmlDocVer)==4)
 		    MatroskaProfile = PROFILE_MATROSKA_V4;
         else if (EL_Int(EbmlDocVer)==3)
