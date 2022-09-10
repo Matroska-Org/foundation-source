@@ -127,7 +127,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditionMapping();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextName();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguage();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguageIETF();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguageBCP47();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecPrivate();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecName();
@@ -296,7 +296,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrack();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapString();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguage();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguageIETF();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguageBCP47();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapCountry();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterDisplay();
 
@@ -324,7 +324,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextTargets();
 
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagName();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguage();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguageIETF();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguageBCP47();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefault();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefaultBogus();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextTagString();

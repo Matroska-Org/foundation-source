@@ -190,8 +190,8 @@ ebml_context MATROSKA_ContextName;
 const ebml_context *MATROSKA_getContextName() { return &MATROSKA_ContextName; }
 ebml_context MATROSKA_ContextLanguage;
 const ebml_context *MATROSKA_getContextLanguage() { return &MATROSKA_ContextLanguage; }
-ebml_context MATROSKA_ContextLanguageIETF;
-const ebml_context *MATROSKA_getContextLanguageIETF() { return &MATROSKA_ContextLanguageIETF; }
+ebml_context MATROSKA_ContextLanguageBCP47;
+const ebml_context *MATROSKA_getContextLanguageBCP47() { return &MATROSKA_ContextLanguageBCP47; }
 ebml_context MATROSKA_ContextCodecID;
 const ebml_context *MATROSKA_getContextCodecID() { return &MATROSKA_ContextCodecID; }
 ebml_context MATROSKA_ContextCodecPrivate;
@@ -480,8 +480,8 @@ ebml_context MATROSKA_ContextChapString;
 const ebml_context *MATROSKA_getContextChapString() { return &MATROSKA_ContextChapString; }
 ebml_context MATROSKA_ContextChapLanguage;
 const ebml_context *MATROSKA_getContextChapLanguage() { return &MATROSKA_ContextChapLanguage; }
-ebml_context MATROSKA_ContextChapLanguageIETF;
-const ebml_context *MATROSKA_getContextChapLanguageIETF() { return &MATROSKA_ContextChapLanguageIETF; }
+ebml_context MATROSKA_ContextChapLanguageBCP47;
+const ebml_context *MATROSKA_getContextChapLanguageBCP47() { return &MATROSKA_ContextChapLanguageBCP47; }
 ebml_context MATROSKA_ContextChapCountry;
 const ebml_context *MATROSKA_getContextChapCountry() { return &MATROSKA_ContextChapCountry; }
 ebml_context MATROSKA_ContextChapterDisplay;
@@ -522,8 +522,8 @@ ebml_context MATROSKA_ContextTagName;
 const ebml_context *MATROSKA_getContextTagName() { return &MATROSKA_ContextTagName; }
 ebml_context MATROSKA_ContextTagLanguage;
 const ebml_context *MATROSKA_getContextTagLanguage() { return &MATROSKA_ContextTagLanguage; }
-ebml_context MATROSKA_ContextTagLanguageIETF;
-const ebml_context *MATROSKA_getContextTagLanguageIETF() { return &MATROSKA_ContextTagLanguageIETF; }
+ebml_context MATROSKA_ContextTagLanguageBCP47;
+const ebml_context *MATROSKA_getContextTagLanguageBCP47() { return &MATROSKA_ContextTagLanguageBCP47; }
 ebml_context MATROSKA_ContextTagDefault;
 const ebml_context *MATROSKA_getContextTagDefault() { return &MATROSKA_ContextTagDefault; }
 ebml_context MATROSKA_ContextTagDefaultBogus;
@@ -809,7 +809,7 @@ const ebml_semantic EBML_SemanticTrackEntry[] = {
     {0, 0, &MATROSKA_ContextBlockAdditionMapping, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextName, 0},
     {1, 1, &MATROSKA_ContextLanguage, 0},
-    {0, 1, &MATROSKA_ContextLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextLanguageBCP47, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextCodecID, 0},
     {0, 1, &MATROSKA_ContextCodecPrivate, 0},
     {0, 1, &MATROSKA_ContextCodecName, 0},
@@ -894,7 +894,7 @@ const ebml_semantic EBML_SemanticChapterTrack[] = {
 const ebml_semantic EBML_SemanticChapterDisplay[] = {
     {1, 1, &MATROSKA_ContextChapString, 0},
     {1, 0, &MATROSKA_ContextChapLanguage, 0},
-    {0, 0, &MATROSKA_ContextChapLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 0, &MATROSKA_ContextChapLanguageBCP47, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {0, 0, &MATROSKA_ContextChapCountry, 0},
     {0, 0, NULL ,0} // end of the table
 };
@@ -957,7 +957,7 @@ const ebml_semantic EBML_SemanticSimpleTag[] = {
     {0, 0, &MATROSKA_ContextSimpleTag, 0}, // recursive
     {1, 1, &MATROSKA_ContextTagName, 0},
     {1, 1, &MATROSKA_ContextTagLanguage, 0},
-    {0, 1, &MATROSKA_ContextTagLanguageIETF, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextTagLanguageBCP47, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_DIVX|PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextTagDefault, 0},
     {1, 1, &MATROSKA_ContextTagDefaultBogus, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextTagString, 0},
@@ -1069,7 +1069,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextBlockAdditionMapping = (ebml_context) {0x41E4, EBML_MASTER_CLASS, 0, 0, "BlockAdditionMapping", EBML_SemanticBlockAdditionMapping, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextName = (ebml_context) {0x536E, EBML_UNISTRING_CLASS, 0, 0, "Name", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextLanguage = (ebml_context) {0x22B59C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "Language", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextLanguageIETF = (ebml_context) {0x22B59D, EBML_STRING_CLASS, 0, 0, "LanguageIETF", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextLanguageBCP47 = (ebml_context) {0x22B59D, EBML_STRING_CLASS, 0, 0, "LanguageBCP47", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCodecID = (ebml_context) {0x86, EBML_STRING_CLASS, 0, 0, "CodecID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCodecPrivate = (ebml_context) {0x63A2, EBML_BINARY_CLASS, 0, 0, "CodecPrivate", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextCodecName = (ebml_context) {0x258688, EBML_UNISTRING_CLASS, 0, 0, "CodecName", NULL, EBML_getSemanticGlobals(), NULL};
@@ -1214,7 +1214,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextChapterTrack = (ebml_context) {0x8F, EBML_MASTER_CLASS, 0, 0, "ChapterTrack", EBML_SemanticChapterTrack, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapString = (ebml_context) {0x85, EBML_UNISTRING_CLASS, 0, 0, "ChapString", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapLanguage = (ebml_context) {0x437C, EBML_STRING_CLASS, 1, (intptr_t)"eng", "ChapLanguage", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextChapLanguageIETF = (ebml_context) {0x437D, EBML_STRING_CLASS, 0, 0, "ChapLanguageIETF", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextChapLanguageBCP47 = (ebml_context) {0x437D, EBML_STRING_CLASS, 0, 0, "ChapLanguageBCP47", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapCountry = (ebml_context) {0x437E, EBML_STRING_CLASS, 0, 0, "ChapCountry", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterDisplay = (ebml_context) {0x80, EBML_MASTER_CLASS, 0, 0, "ChapterDisplay", EBML_SemanticChapterDisplay, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapProcessCodecID = (ebml_context) {0x6955, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ChapProcessCodecID", NULL, EBML_getSemanticGlobals(), NULL};
@@ -1235,7 +1235,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextTargets = (ebml_context) {0x63C0, EBML_MASTER_CLASS, 0, 0, "Targets", EBML_SemanticTargets, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagName = (ebml_context) {0x45A3, EBML_UNISTRING_CLASS, 0, 0, "TagName", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagLanguage = (ebml_context) {0x447A, EBML_STRING_CLASS, 1, (intptr_t)"und", "TagLanguage", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextTagLanguageIETF = (ebml_context) {0x447B, EBML_STRING_CLASS, 0, 0, "TagLanguageIETF", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextTagLanguageBCP47 = (ebml_context) {0x447B, EBML_STRING_CLASS, 0, 0, "TagLanguageBCP47", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagDefault = (ebml_context) {0x4484, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TagDefault", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagDefaultBogus = (ebml_context) {0x44B4, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "TagDefaultBogus", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTagString = (ebml_context) {0x4487, EBML_UNISTRING_CLASS, 0, 0, "TagString", NULL, EBML_getSemanticGlobals(), NULL};
