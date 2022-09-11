@@ -68,7 +68,7 @@ END_LIBMATROSKA_NAMESPACE
 </xsl:template>
   <xsl:template match="ebml:element">
     <!-- Ignore EBML extra constraints -->
-    <xsl:if test="@name!='Segment' and @name!='Cluster' and @name!='BlockGroup' and @name!='Block' and @name!='BlockVirtual' and @name!='ReferenceBlock' and @name!='SimpleBlock' and @name!='Cues' and @name!='CuePoint' and @name!='CueTrackPositions' and @name!='CueReference' and @name!='NextUID' and @name!='PrevUID' and @name!='SeekHead' and @name!='Seek' and @name!='TrackEntry'">
+    <xsl:if test="@name!='Segment' and @name!='Cluster' and @name!='BlockGroup' and @name!='Block' and @name!='BlockVirtual' and @name!='ReferenceBlock' and @name!='SimpleBlock' and @name!='Cues' and @name!='CuePoint' and @name!='CueTrackPositions' and @name!='CueReference' and @name!='NextUUID' and @name!='PrevUUID' and @name!='SeekHead' and @name!='Seek' and @name!='TrackEntry'">
     <!-- <xsl:copy> -->
 
         <xsl:variable name="minVer">
@@ -109,7 +109,7 @@ END_LIBMATROSKA_NAMESPACE
             <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
         </xsl:choose>
         <xsl:text>)&#10;</xsl:text>
-        <xsl:if test="@name='SegmentUID'">
+        <xsl:if test="@name='SegmentUUID'">
             <xsl:text>#if defined(HAVE_EBML2) || defined(HAS_EBML2)&#10;</xsl:text>
             <xsl:text>public:&#10;</xsl:text>
             <xsl:text>  KaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);&#10;</xsl:text>

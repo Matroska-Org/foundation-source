@@ -150,7 +150,7 @@ END_LIBMATROSKA_NAMESPACE
                 <xsl:text>DEFINE_MKX_BINARY</xsl:text>
                 <xsl:choose>
                     <!-- Needs a special constructor -->
-                    <xsl:when test="@name='Block' or @name='SimpleBlock' or @name='BlockVirtual' or @name='NextUID' or @name='PrevUID'"><xsl:text>_CONS</xsl:text></xsl:when>
+                    <xsl:when test="@name='Block' or @name='SimpleBlock' or @name='BlockVirtual' or @name='NextUUID' or @name='PrevUUID'"><xsl:text>_CONS</xsl:text></xsl:when>
                     <xsl:otherwise><xsl:text> </xsl:text></xsl:otherwise>
                 </xsl:choose>
                 <xsl:text>(Kax</xsl:text>
@@ -478,7 +478,7 @@ END_LIBMATROSKA_NAMESPACE
 <xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /><xsl:text>/ </xsl:text> -->
     <xsl:choose>
         <xsl:when test="$node/@name='AttachedFile'"><xsl:value-of select="$node/@name" /></xsl:when>
-        <xsl:when test="$node/@name='FileMimeType'"><xsl:value-of select="$node/@name" /></xsl:when>
+        <xsl:when test="$node/@name='FileMediaType'"><xsl:text>FileMimeType</xsl:text></xsl:when>
         <xsl:when test="$node/@name='SeekHead'"><xsl:text>SeekHeader</xsl:text></xsl:when>
         <xsl:when test="$node/@name='Seek'"><xsl:text>SeekPoint</xsl:text></xsl:when>
         <xsl:when test="$node/@name='TagLanguage'"><xsl:value-of select="$node/@name" /></xsl:when>
