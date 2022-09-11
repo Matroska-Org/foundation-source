@@ -900,7 +900,8 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
 {
     ebml_master *Track, *CurTrack, *OtherTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
-    int TrackType, TrackNum, Width, Height;
+    int TrackNum, Width, Height;
+    MatroskaTrackType TrackType;
     tchar_t CodecID[MAXPATH];
     
     for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track;)
@@ -2633,8 +2634,8 @@ int main(int argc, const char *argv[])
 		{
             if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextTrackEntry()))
             {
-                int encoding = MATROSKA_TRACK_ENCODING_COMP_NONE;
-                int zlib_scope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
+                MatroskaTrackEncodingCompAlgo encoding = MATROSKA_TRACK_ENCODING_COMP_NONE;
+                MatroskaContentEncodingScope zlib_scope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
                 Elt2 = EBML_MasterFindChild(RLevel1,MATROSKA_getContextTrackNumber());
 			    if (!Elt2) continue;
