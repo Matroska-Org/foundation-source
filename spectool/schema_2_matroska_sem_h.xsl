@@ -170,6 +170,10 @@ void MATROSKA_InitSemantic();
                     <!-- <xsl:otherwise>17</xsl:otherwise>
                 </xsl:choose> -->
             </xsl:variable>
+
+            <xsl:text>/**&#10; *</xsl:text>
+            <xsl:value-of select="ebml:documentation[@purpose='definition']"/>
+            <xsl:text>&#10; */&#10;</xsl:text>
             <xsl:text>typedef enum {&#10;</xsl:text>
 
             <!-- Internal value not found in the specs -->
@@ -199,7 +203,16 @@ void MATROSKA_InitSemantic();
                     </xsl:when>
                     <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
                 </xsl:choose>
-                <xsl:text>,&#10;</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="ebml:documentation[@purpose='definition']">
+                        <xsl:text>, // </xsl:text>
+                        <xsl:value-of select="translate(ebml:documentation[@purpose='definition'], '&#10;', ' ')"/>
+                        <xsl:text>&#10;</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>,&#10;</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:for-each>
 
             <!-- Extra enum count -->
