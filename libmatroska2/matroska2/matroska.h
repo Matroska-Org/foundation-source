@@ -53,6 +53,8 @@
 
 #define MATROSKA_VERSION  2
 
+#include "matroska2/matroska_sem.h"
+
 MATROSKA_DLL err_t MATROSKA_Init(parsercontext *p);
 MATROSKA_DLL void MATROSKA_Done(parsercontext *p);
 
@@ -116,7 +118,7 @@ MATROSKA_DLL filepos_t MATROSKA_MetaSeekAbsolutePos(const matroska_seekpoint *Me
 MATROSKA_DLL matroska_cuepoint *MATROSKA_CuesGetTimestampStart(const ebml_element *Cues, mkv_timestamp_t Timestamp);
 
 #if defined(CONFIG_EBML_WRITING)
-MATROSKA_DLL int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile);
+MATROSKA_DLL MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry);

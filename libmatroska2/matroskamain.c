@@ -923,7 +923,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
     err_t Err = ERR_NONE;
     ebml_element *Elt, *Elt2, *Header = NULL;
     uint8_t *InBuf;
-    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
+    MatroskaContentEncodingScope CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
     if (!Element->Base.Base.bValueIsSet)
     {
@@ -1685,7 +1685,7 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
     size_t i;
     int32_t DataSize;
     ebml_element *Elt, *Elt2, *Header = NULL;
-    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
+    MatroskaContentEncodingScope CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
 	if (ARRAYCOUNT(Element->SizeList,int32_t) <= 1)
 		return LACING_NONE;
@@ -1762,7 +1762,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
     uint8_t BlockHead[5], *Cursor;
     size_t ToWrite, Written, BlockHeadSize = 4;
     ebml_element *Elt, *Elt2, *Header = NULL;
-    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
+    MatroskaContentEncodingScope CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
     assert(Element->Lacing != LACING_AUTO);
 
     if (Element->TrackNumber < 0x80)
@@ -2002,7 +2002,7 @@ static matroska_block *CopyBlockInfo(const matroska_block *Element, const void *
 
 static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
-    int CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
+    MatroskaContentEncodingScope CompressionScope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
         ebml_element *Header = NULL;
@@ -2371,7 +2371,7 @@ static matroska_trackentry *CopyTrackEntry(const matroska_trackentry *Element, c
 }
 
 
-int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile)
+MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile)
 {
     ebml_element *Encodings, *Elt, *Elt2;
     assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
@@ -2388,7 +2388,7 @@ int MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int
     if (!Elt)
         return MATROSKA_TRACK_ENCODING_COMP_NONE;
     Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo(), ForProfile);
-    return (int)EBML_IntegerValue((ebml_integer*)Elt2);
+    return (MatroskaTrackEncodingCompAlgo)EBML_IntegerValue((ebml_integer*)Elt2);
 }
 
 bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope, int ForProfile)
