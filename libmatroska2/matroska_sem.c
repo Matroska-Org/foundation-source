@@ -476,6 +476,8 @@ ebml_context MATROSKA_ContextChapterFlagEnabled;
 const ebml_context *MATROSKA_getContextChapterFlagEnabled() { return &MATROSKA_ContextChapterFlagEnabled; }
 ebml_context MATROSKA_ContextChapterSegmentUUID;
 const ebml_context *MATROSKA_getContextChapterSegmentUUID() { return &MATROSKA_ContextChapterSegmentUUID; }
+ebml_context MATROSKA_ContextChapterSkipType;
+const ebml_context *MATROSKA_getContextChapterSkipType() { return &MATROSKA_ContextChapterSkipType; }
 ebml_context MATROSKA_ContextChapterSegmentEditionUID;
 const ebml_context *MATROSKA_getContextChapterSegmentEditionUID() { return &MATROSKA_ContextChapterSegmentEditionUID; }
 ebml_context MATROSKA_ContextChapterPhysicalEquiv;
@@ -936,6 +938,7 @@ const ebml_semantic EBML_SemanticChapterAtom[] = {
     {1, 1, &MATROSKA_ContextChapterFlagHidden, PROFILE_WEBM},
     {1, 1, &MATROSKA_ContextChapterFlagEnabled, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterSegmentUUID, PROFILE_WEBM},
+    {0, 1, &MATROSKA_ContextChapterSkipType, PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4|PROFILE_DIVX|PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterSegmentEditionUID, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterPhysicalEquiv, PROFILE_WEBM},
     {0, 1, &MATROSKA_ContextChapterTrack, PROFILE_WEBM},
@@ -1228,6 +1231,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextChapterFlagHidden = (ebml_context) {0x98, EBML_BOOLEAN_CLASS, 1, (intptr_t)0, "ChapterFlagHidden", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterFlagEnabled = (ebml_context) {0x4598, EBML_BOOLEAN_CLASS, 1, (intptr_t)1, "ChapterFlagEnabled", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterSegmentUUID = (ebml_context) {0x6E67, MATROSKA_SEGMENTUID_CLASS, 0, 0, "ChapterSegmentUUID", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextChapterSkipType = (ebml_context) {0x4588, EBML_INTEGER_CLASS, 0, 0, "ChapterSkipType", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterSegmentEditionUID = (ebml_context) {0x6EBC, EBML_INTEGER_CLASS, 0, 0, "ChapterSegmentEditionUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterPhysicalEquiv = (ebml_context) {0x63C3, EBML_INTEGER_CLASS, 0, 0, "ChapterPhysicalEquiv", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChapterTrackNumber = (ebml_context) {0x89, EBML_INTEGER_CLASS, 0, 0, "ChapterTrackNumber", NULL, EBML_getSemanticGlobals(), NULL};

@@ -294,6 +294,7 @@ MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeEnd();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagHidden();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagEnabled();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentUUID();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSkipType();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentEditionUID();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterPhysicalEquiv();
 MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrackNumber();
@@ -654,6 +655,22 @@ typedef enum {
   MATROSKA_CONTENTSIGHASHALGO_SHA1_160         = 1,
   MATROSKA_CONTENTSIGHASHALGO_MD5              = 2,
 } MatroskaContentSigHashAlgo;
+
+/**
+ *Indicate what type of content the ChapterAtom contains and might be skipped. It can be used to automatically skip content based on the type.
+If a `ChapterAtom` is inside a `ChapterAtom` that has a `ChapterSkipType` set, it **MUST NOT** have a `ChapterSkipType` or have a `ChapterSkipType` with the same value as it's parent `ChapterAtom`.
+If the `ChapterAtom` doesn't contain a `ChapterTimeEnd`, the value of the `ChapterSkipType` is only valid until the next `ChapterAtom` with a `ChapterSkipType` value or the end of the file.
+    
+ */
+typedef enum {
+  MATROSKA_CHAPTERSKIPTYPE_NO_SKIPPING      = 0, // Content which should not be skipped.
+  MATROSKA_CHAPTERSKIPTYPE_OPENING_CREDITS  = 1, // Credits usually found at the beginning of the content.
+  MATROSKA_CHAPTERSKIPTYPE_END_CREDITS      = 2, // Credits usually found at the end of the content.
+  MATROSKA_CHAPTERSKIPTYPE_RECAP            = 3, // Recap of previous episodes of the content, usually found around the beginning.
+  MATROSKA_CHAPTERSKIPTYPE_NEXT_PREVIEW     = 4, // Preview of the next episode of the content, usually found around the end. It may contain spoilers the user wants to avoid.
+  MATROSKA_CHAPTERSKIPTYPE_PREVIEW          = 5, // Preview of the current episode of the content, usually found around the beginning. It may contain spoilers the user want to avoid.
+  MATROSKA_CHAPTERSKIPTYPE_ADVERTISEMENT    = 6, // Advertisement within the content.
+} MatroskaChapterSkipType;
 
 /**
  *Defines when the process command **SHOULD** be handled
