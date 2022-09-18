@@ -380,6 +380,7 @@
     </xsl:choose>
     <xsl:text>, </xsl:text>
     <xsl:choose>
+        <xsl:when test="$node/@recurring='1'"><xsl:text>0</xsl:text></xsl:when>
         <xsl:when test="$node/@maxOccurs='1'"><xsl:text>1</xsl:text></xsl:when>
         <xsl:otherwise><xsl:text>0</xsl:text></xsl:otherwise>
     </xsl:choose>
