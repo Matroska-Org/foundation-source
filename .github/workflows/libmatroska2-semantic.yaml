@@ -1,0 +1,39 @@
+name: "libmatroska2 Semantic"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    # branches: [ master ]
+
+jobs:
+  xlst_generators:
+    name: Generate code from EBML Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get pushed code
+        uses: actions/checkout@v3
+
+      - name: Get EBML Schema
+        run: curl -o ebml_matroska.xml https://raw.githubusercontent.com/ietf-wg-cellar/matroska-specification/master/ebml_matroska.xml
+
+      - name: Setup test tools
+        # we need the apt update because old packages won't load
+        run: |
+          sudo apt update
+          sudo apt install xsltproc
+
+      - name: Generate code
+        run: |
+          xsltproc -o _build/matroska_sem.c           spectool/schema_2_matroska_sem_c.xsl ebml_matroska.xml
+          xsltproc -o _build/matroska2/matroska_sem.h spectool/schema_2_matroska_sem_h.xsl ebml_matroska.xml
+
+      - name: Generate libmatroska2 artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libmatroska2-semantic
+          path: _build
+
+      - name: Verify libmatroska2 semantic
+        run: |
+          diff _build/matroska_sem.c           libmatroska2/matroska_sem.c || exit 1
+          diff _build/matroska2/matroska_sem.h libmatroska2/matroska2/matroska_sem.h || exit 1
