@@ -4,16 +4,17 @@ on:
     branches:
       - master
   release:
+  # pull_request: # ^ for testing
 
 jobs:
   build_tools_win32:
-    name: Build all tools for ${{ matrix.os }}
+    name: Build all binaries for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [windows-latest]
         # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: windows-latest
         include:
           - os: windows-latest
             triplet: x64-windows
