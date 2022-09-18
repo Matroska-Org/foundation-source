@@ -33,7 +33,7 @@
 
 #include "ebml/EbmlElement.h"
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     class EbmlString : public EbmlElement {
     public:

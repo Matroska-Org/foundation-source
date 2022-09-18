@@ -31,7 +31,7 @@
 
 #include "ebml/EbmlElement.h"
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     /*!
       \class UTFstring

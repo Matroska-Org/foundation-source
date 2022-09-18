@@ -55,7 +55,7 @@
 
 static parsercontext ccContext;
 
-using namespace LIBEBML_NAMESPACE;
+using namespace libebml;
 
 struct stream_io
 {
@@ -263,7 +263,7 @@ void ebml_done()
 }
 
 
-namespace LIBEBML_NAMESPACE
+namespace libebml
 {
 
 EbmlElement & DummyCreate()

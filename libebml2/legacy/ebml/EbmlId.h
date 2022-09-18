@@ -34,7 +34,7 @@
 #define EBML_ID_LENGTH(x)  (x).GetLength()
 #define EBML_ID_VALUE(x)   (fourcc_t)(x)
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     class EbmlId {
     public:
