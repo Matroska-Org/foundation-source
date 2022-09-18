@@ -1,5 +1,5 @@
 name: "Generate Matroska Foundation tools"
-on: [push, pull_request]
+on: pull_request
 
 jobs:
   build_tools_win32:
@@ -31,15 +31,3 @@ jobs:
       - name: Test installation
         run: |
           cmake --install _build --config Debug --prefix _built
-
-      - name: Generate mkclean artifcats
-        uses: actions/upload-artifact@v3
-        with:
-          name: mkclean-${{ matrix.os }}
-          path: _build/mkclean/pkg_bin
-
-      - name: Generate mkvalidator artifcats
-        uses: actions/upload-artifact@v3
-        with:
-          name: mkvalidator-${{ matrix.os }}
-          path: _build/mkvalidator/pkg_bin
