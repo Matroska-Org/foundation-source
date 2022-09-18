@@ -369,22 +369,6 @@ static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml
                     ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
                 }
             }
-
-            // output the Cluster position as well
-            if (Elt)
-                Elt2 = Elt; // make sure the Cluster Position is just after the PrevSize
-            else
-                Elt2 = EBML_MasterFindChild(*Cluster, MATROSKA_getContextTimestamp()); // make sure the Cluster Position is just after the ClusterTimestamp
-            if (Elt2 && DstProfile!=PROFILE_WEBM)
-            {
-                Elt = EBML_MasterGetChild(*Cluster, MATROSKA_getContextPosition(), DstProfile);
-                if (Elt)
-                {
-                    EBML_IntegerSetValue((ebml_integer*)Elt, ClusterPos - EBML_ElementPositionData((ebml_element*)Segment));
-                    NodeTree_SetParent(Elt,*Cluster,NodeTree_Next(Elt2));
-                    ExtraSizeDiff += (size_t)EBML_ElementFullSize(Elt,0);
-                }
-            }
         }
         EBML_ElementUpdateSize(*Cluster,0,0, DstProfile);
         ClusterSize = EBML_ElementFullSize((ebml_element*)*Cluster,0);
