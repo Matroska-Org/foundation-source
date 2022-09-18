@@ -55,9 +55,9 @@
 #include "ebml/EbmlMaster.h"
 #include "matroska/KaxDefines.h"
 
-using namespace LIBEBML_NAMESPACE;
+using namespace libebml;
 
-START_LIBMATROSKA_NAMESPACE
+namespace libmatroska {
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- <xsl:sort select="translate(@path, '\+', '\')" /> -->
     <xsl:apply-templates select="."/>
@@ -70,7 +70,7 @@ START_LIBMATROSKA_NAMESPACE
     <!-- Output the enums after the IDs -->
     <xsl:call-template name="outputAllEnums"/>
 </xsl:for-each>
-END_LIBMATROSKA_NAMESPACE
+} // namespace libmatroska
 
 #endif // LIBMATROSKA_SEMANTIC_H
 </xsl:template>

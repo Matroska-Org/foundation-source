@@ -51,7 +51,7 @@
 #include "matroska/KaxBlockData.h"
 #include "matroska/KaxCuesData.h"
 
-START_LIBMATROSKA_NAMESPACE
+namespace libmatroska {
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- sorting messes the detection of the previous element MATROSKA_VERSION state -->
     <!-- Maybe for each output we create we also create a counterpart call to check if the new MATROSKA_VERSION state that should be used -->
@@ -71,7 +71,7 @@ START_LIBMATROSKA_NAMESPACE
 <!-- <xsl:apply-templates select="ebml:element">
     <xsl:sort select="translate(@path, '\+', '\')" />
 </xsl:apply-templates> -->
-END_LIBMATROSKA_NAMESPACE
+} // namespace libmatroska
 </xsl:template>
   <xsl:template match="ebml:element">
     <xsl:variable name="plainPath">
