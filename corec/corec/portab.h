@@ -545,11 +545,7 @@ static INLINE void* SwapSP(void* in)
 #endif
 
 #ifndef NDEBUG
-# if defined(TARGET_OSX)
-#  include </usr/include/assert.h>
-# else
-#  include <assert.h>
-# endif
+# include <assert.h>
 #else // NDEBUG
 #ifndef assert
 #define assert(x)   ((void)0)
