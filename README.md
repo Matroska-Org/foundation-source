@@ -1,3 +1,6 @@
+![CI](https://github.com/Matroska-Org/foundation-source/actions/workflows/generate-tools.yaml/badge.svg)
+![binaries](https://github.com/Matroska-Org/foundation-source/actions/workflows/generate-tools-bin.yaml/badge.svg)
+
 libEBML2, libMatroska2, mkvalidator, mkclean and the specifications
 
 1/ Generate the makefiles with cmake
