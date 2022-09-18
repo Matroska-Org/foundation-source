@@ -36,7 +36,7 @@
 #define EBML_MASTER_RITERATOR EbmlMaster_rev_itr
 #define EBML_MASTER_CONST_RITERATOR EbmlMaster_rev_itr
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     class EbmlMaster;
 

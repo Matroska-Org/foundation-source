@@ -197,7 +197,7 @@
 #define EBML_CTX_IDX_INFO(c,i) *(c).GetSemantic(i).eClass     // EbmlSemanticContext -> EbmlCallbacks / ebml_context
 #define EBML_CTX_IDX_ID(c,i)   (c).GetSemantic(i).eClass->Id  // EbmlSemanticContext -> EbmlId
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     typedef int ScopeMode;
 

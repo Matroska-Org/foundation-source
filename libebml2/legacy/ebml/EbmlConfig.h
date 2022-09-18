@@ -31,8 +31,6 @@
 
 #include "corec/corec.h"
 
-#define LIBEBML_NAMESPACE libebml
-
 typedef uint8_t uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
@@ -50,7 +48,7 @@ typedef uint8_t binary;
 #define EBML_PRETTYLONGINT(c) (c)
 #endif // __GNUC__
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     enum endianess {
         big_endian,   ///< PowerPC, Alpha, 68000

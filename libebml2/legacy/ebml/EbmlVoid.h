@@ -31,7 +31,7 @@
 
 #include "ebml/EbmlBinary.h"
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
 DECLARE_EBML_VOID(EbmlVoid)
     public:

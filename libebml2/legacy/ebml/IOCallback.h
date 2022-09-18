@@ -36,7 +36,7 @@
 typedef struct stream stream;
 typedef struct stream_io stream_io;
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     enum seek_mode
     {

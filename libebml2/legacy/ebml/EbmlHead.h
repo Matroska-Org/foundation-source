@@ -31,7 +31,7 @@
 
 #include "ebml/EbmlMaster.h"
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     DECLARE_EBML_MASTER(EbmlHead)
     };

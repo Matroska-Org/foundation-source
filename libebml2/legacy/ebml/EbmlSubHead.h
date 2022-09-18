@@ -32,7 +32,7 @@
 #include "ebml/EbmlUInteger.h"
 #include "ebml/EbmlString.h"
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
 
     DECLARE_EBML_UINTEGER(EVersion)
     };

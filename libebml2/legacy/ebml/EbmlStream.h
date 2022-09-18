@@ -31,7 +31,7 @@
 
 #include "ebml/IOCallback.h"
 
-namespace LIBEBML_NAMESPACE {
+namespace libebml {
     class EbmlStream {
     public:
         EbmlStream(IOCallback &);
