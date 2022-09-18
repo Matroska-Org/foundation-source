@@ -1,4 +1,4 @@
-project("mkclean" VERSION 0.9.0)
+project("mkclean" VERSION 0.9.0 LANGUAGES C)
 
 add_executable("mkclean" mkclean.c)
 add_executable("mkWDclean" mkclean.c)
