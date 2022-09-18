@@ -33,6 +33,7 @@ target_compile_definitions("ebml2" PUBLIC HAS_EBML2)
 configure_file(ebml_config.h.in ebml2/ebml_config.h)
 set_target_properties("ebml2" PROPERTIES 
   PUBLIC_HEADER "${ebml2_PUBLIC_HEADERS}"
+  C_STANDARD 11
 )
 
 # the library needs to be static as it shares constants variables

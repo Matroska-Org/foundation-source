@@ -1,7 +1,13 @@
 project("mkclean" VERSION 0.9.0 LANGUAGES C)
 
 add_executable("mkclean" mkclean.c)
+set_target_properties("mkclean" PROPERTIES 
+  C_STANDARD 11
+)
 add_executable("mkWDclean" mkclean.c)
+set_target_properties("mkWDclean" PROPERTIES 
+  C_STANDARD 11
+)
 
 configure_file(mkclean_project.h.in mkclean_project.h)
 target_include_directories("mkclean" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

@@ -1,6 +1,9 @@
 project("mkvalidator" VERSION 0.6.0 LANGUAGES C)
 
 add_executable("mkvalidator" mkvalidator.c)
+set_target_properties("mkvalidator" PROPERTIES 
+  C_STANDARD 11
+)
 
 configure_file(mkvalidator_project.h.in mkvalidator_project.h)
 target_include_directories("mkvalidator" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

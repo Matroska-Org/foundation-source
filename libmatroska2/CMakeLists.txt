@@ -47,6 +47,7 @@ endif(NOT CONFIG_NOCODEC_HELPER)
 
 set_target_properties("matroska2" PROPERTIES 
   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
+  C_STANDARD 11
 )
 configure_file(matroska_config.h.in matroska2/matroska_config.h)
 
