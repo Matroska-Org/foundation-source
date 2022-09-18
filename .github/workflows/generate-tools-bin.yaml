@@ -1,4 +1,4 @@
-name: "Generate Matroska Foundation binaries"
+name: "Tool binaries"
 on: 
   push:
     branches:
