@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.2)
 
-project("mkvalidator")
+project("mkvalidator" LANGUAGES C)
 
 # CMake project placed at the root of the sources
 add_subdirectory("corec")

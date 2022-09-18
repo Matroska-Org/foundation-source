@@ -1,4 +1,4 @@
-project("mkcleanreg" VERSION 0.1.0)
+project("mkcleanreg" VERSION 0.1.0 LANGUAGES C)
 
 add_executable("mkcleanreg" mkcleanreg.c)
 

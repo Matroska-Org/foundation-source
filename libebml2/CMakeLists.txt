@@ -1,4 +1,4 @@
-project("ebml2" VERSION 0.21.3)
+project("ebml2" VERSION 0.21.3 LANGUAGES C)
 
 option(CONFIG_EBML_WRITING "Build libebml2 with write support" ON)
 

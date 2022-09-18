@@ -1,4 +1,4 @@
-project("matroska2" VERSION 0.22.3)
+project("matroska2" VERSION 0.22.3 LANGUAGES C)
 
 option(CONFIG_BZLIB "Enable bzlib (de)compression in libmatroska2" ON)
 option(CONFIG_LZO1X "Enable lzo (de)compression in libmatroska2" ON)

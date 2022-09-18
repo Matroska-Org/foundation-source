@@ -1,4 +1,4 @@
-project("mkparts" VERSION 0.1.0)
+project("mkparts" VERSION 0.1.0 LANGUAGES C)
 
 add_executable("mkparts" mkparts.c)
 
