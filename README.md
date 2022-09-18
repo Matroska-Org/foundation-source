@@ -2,14 +2,11 @@ libEBML2, libMatroska2, mkvalidator, mkclean and the specifications
 
 1/ Generate the makefiles with cmake
 
-> cmake .
-
-Where `.` is the path to the root of the sources.
-
+> cmake
 
 2/ build mkvalidator/mcklean and everything else
 
-> make
+> cmake --build
 
 
 ## Code of conduct
