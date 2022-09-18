@@ -22,3 +22,9 @@ target_link_libraries("mkclean" PUBLIC "matroska2" "ebml2" "corec")
 target_link_libraries("mkWDclean" PUBLIC "matroska2" "ebml2" "corec")
 
 add_subdirectory("regression")
+
+
+include(GNUInstallDirs)
+
+install(TARGETS mkclean RUNTIME)
+install(TARGETS mkWDclean RUNTIME)
