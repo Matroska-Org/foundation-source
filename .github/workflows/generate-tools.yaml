@@ -1,0 +1,45 @@
+name: "Generate Matroska Foundation tools"
+on: [push, pull_request]
+
+jobs:
+  build_tools_win32:
+    name: Build all tools for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: windows-latest
+            triplet: x64-windows
+          - os: ubuntu-latest
+            triplet: x64-linux
+          - os: macos-latest
+            triplet: x64-osx
+    steps:
+      - name: Get pushed code
+        uses: actions/checkout@v3
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Configure CMake 
+        run: cmake -S . -B _build
+
+      - name: Build with CMake
+        run: cmake --build _build --config Debug --parallel
+
+      - name: Test installation
+        run: |
+          cmake --install _build --config Debug --prefix _built
+
+      - name: Generate mkclean artifcats
+        uses: actions/upload-artifact@v3
+        with:
+          name: mkclean-${{ matrix.os }}
+          path: _build/mkclean/pkg_bin
+
+      - name: Generate mkvalidator artifcats
+        uses: actions/upload-artifact@v3
+        with:
+          name: mkvalidator-${{ matrix.os }}
+          path: _build/mkvalidator/pkg_bin
