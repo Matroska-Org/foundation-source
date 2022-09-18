@@ -1,4 +1,4 @@
-name: "Generate Matroska Foundation tools"
+name: "Build tools"
 on: pull_request
 
 jobs:
