@@ -13,3 +13,7 @@ target_link_libraries("mkvalidator" PUBLIC "matroska2" "ebml2" "corec")
 configure_file(pkg.sh.in pkg.sh)
 configure_file(src.br.in src.br)
 configure_file(CMakeLists.txt.in CMakeLists.txt)
+
+include(GNUInstallDirs)
+
+install(TARGETS mkvalidator RUNTIME)
