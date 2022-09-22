@@ -37,5 +37,5 @@ jobs:
 
       - name: Verify libmatroska2 semantic
         run: |
-          diff _build/matroska2/matroska_sem.h libmatroska2/matroska2/matroska_sem.h || exit 1
-          diff _build/matroska_sem.c           libmatroska2/matroska_sem.c || exit 1
+          diff -pur _build/matroska2/matroska_sem.h libmatroska2/matroska2/matroska_sem.h || exit 1
+          diff -pur _build/matroska_sem.c           libmatroska2/matroska_sem.c || exit 1
