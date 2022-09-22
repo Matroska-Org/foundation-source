@@ -42,5 +42,5 @@ jobs:
 
       - name: Verify libmatroska semantic
         run: |
-          diff _build/matroska/KaxSemantic.h  KaxSemantic.h   || exit 1
-          diff _build/src/KaxSemantic.cpp     KaxSemantic.cpp || exit 1
+          diff -pur _build/matroska/KaxSemantic.h  KaxSemantic.h   || exit 1
+          diff -pur _build/src/KaxSemantic.cpp     KaxSemantic.cpp || exit 1
