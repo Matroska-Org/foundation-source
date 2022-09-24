@@ -127,10 +127,10 @@ namespace libmatroska {
             <xsl:text>public:&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
-            <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, bool bSaveDefault);&#10;</xsl:text>
+            <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, bool bSaveDefault) override;&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@length">
-            <xsl:text>  virtual bool ValidateSize() const {return IsFiniteSize() &amp;&amp; GetSize() </xsl:text>
+            <xsl:text>  bool ValidateSize() const override {return IsFiniteSize() &amp;&amp; GetSize() </xsl:text>
             <xsl:choose>
                 <xsl:when test="contains(@length, '=') or contains(@length, '&lt;') or contains(@length, '&gt;')"><xsl:value-of select="@length"/></xsl:when>
                 <xsl:otherwise><xsl:text>== </xsl:text><xsl:value-of select="@length"/></xsl:otherwise>
