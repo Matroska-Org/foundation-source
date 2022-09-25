@@ -1,6 +1,4 @@
-project("mkclean" VERSION 0.9.0 LANGUAGES C)
-
-add_subdirectory("regression")
+project("mkclean" VERSION 0.10.0 LANGUAGES C)
 
 # force output of the program in a specific folder with ReadMe/Changelog
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_CURRENT_BINARY_DIR}/pkg_bin")
