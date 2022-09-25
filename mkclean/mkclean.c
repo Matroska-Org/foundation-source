@@ -167,17 +167,20 @@ static bool_t MasterError(void *cookie, int type, const tchar_t *ClassName, cons
     if (type==MASTER_CHECK_PROFILE_INVALID)
     {
     	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
-        TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
+        if (!Quiet)
+            TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is not part of profile '%s', skipping\r\n"),IdString,EBML_ElementPosition(i),GetProfileName(DstProfile));
     }
     else if (type==MASTER_CHECK_MULTIPLE_UNIQUE)
     {
     	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
-        TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" has multiple versions of the unique element %s, skipping\r\n"),IdString,EBML_ElementPosition(i),ClassName);
+        if (!Quiet)
+            TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" has multiple versions of the unique element %s, skipping\r\n"),IdString,EBML_ElementPosition(i),ClassName);
     }
     else if (type==MASTER_CHECK_MISSING_MANDATORY)
     {
     	EBML_ElementGetName(cookie,IdString,TSIZEOF(IdString));
-	    TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory element %s\r\n"),IdString,EBML_ElementPosition(cookie),ClassName);
+        if (!Quiet)
+    	    TextPrintf(StdErr,T("The %s element at %") TPRId64 T(" is missing mandatory element %s\r\n"),IdString,EBML_ElementPosition(cookie),ClassName);
     }
     return 1;
 }
@@ -655,7 +658,8 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
         mkv_timestamp_t OrigTimestamp = MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster);
         if (*PrevTimestamp >= OrigTimestamp)
         {
-            TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timestamp %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition((ebml_element*)Cluster),*PrevTimestamp,OrigTimestamp);
+            if (!Quiet)
+                TextPrintf(StdErr,T("The Cluster at position %") TPRId64 T(" has the same timestamp %") TPRId64 T(" as the previous cluster %") TPRId64 T(", incrementing\r\n"), EBML_ElementPosition((ebml_element*)Cluster),*PrevTimestamp,OrigTimestamp);
             MATROSKA_ClusterSetTimestamp((matroska_cluster*)Cluster, *PrevTimestamp + MATROSKA_ClusterTimestampScale((matroska_cluster*)Cluster, 0));
             CuesChanged = 1;
         }
@@ -984,7 +988,8 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                     }
                     else if (EBML_IntegerValue((ebml_integer*)DisplayH)==0)
                     {
-		                TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T("!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),EBML_IntegerValue((ebml_integer*)DisplayH));
+                        if (!Quiet)
+		                    TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" has invalid display height %") TPRId64 T(", deleting track!\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),EBML_IntegerValue((ebml_integer*)DisplayH));
 		                NodeDelete((node*)CurTrack);
 		                continue;
                     }
@@ -1056,7 +1061,8 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                     if (Width!=MATROSKA_VIDEO_OLDSTEREOMODE_MONO && Width <= 3) // upper values are probably the new ones
                     {
                         *dstProfile = PROFILE_MATROSKA_V3;
-                        TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
+                        if (!Quiet)
+                            TextPrintf(StdErr,T("The track %d at %") TPRId64 T(" is using an old StereoMode value, converting to profile '%s'\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
                         if (EBML_ElementIsType(Elt2, MATROSKA_getContextOldStereoMode()))
                             // replace the old by a new
                             EBML_ElementForceContext(Elt2, MATROSKA_getContextStereoMode());
@@ -1064,13 +1070,15 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                         // replace the old values with the new ones
                         if (Width==MATROSKA_VIDEO_OLDSTEREOMODE_BOTH_EYES)
                         {
-                            TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
+                            if (!Quiet)
+                                TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
                             EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_VIDEO_STEREO_LEFT_RIGHT);
                         }
                         else
                         {
                             EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_VIDEO_STEREO_MONO);
-                            TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT_EYE?T("left"):T("right"));
+                            if (!Quiet)
+                                TextPrintf(StdErr,T("  turning %s eye to mono\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_LEFT_EYE?T("left"):T("right"));
                             // look for the other track
                             for (OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,CurTrack);OtherTrack; OtherTrack = (ebml_master*)EBML_MasterNextChild(Tracks,OtherTrack))
                             {
@@ -1087,7 +1095,8 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                         ebml_master *CombinedTrack;
                                         int NewTrackUID;
 
-                                        TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE?T("left"):T("right"));
+                                        if (!Quiet)
+                                            TextPrintf(StdErr,T("  turning matching %s eye to mono and creating a new combined track\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE?T("left"):T("right"));
                                         EBML_IntegerSetValue((ebml_integer*)OtherStereo,MATROSKA_VIDEO_STEREO_MONO);
 
                                         // create another track that is this one combined
@@ -1176,7 +1185,8 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                 }
                             }
 
-                            TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE?T("left"):T("right"));
+                            if (!Quiet)
+                                TextPrintf(StdErr,T("  could not find the matching %s track!\r\n"), Width==MATROSKA_VIDEO_OLDSTEREOMODE_RIGHT_EYE?T("left"):T("right"));
                         }
                     }
                 }
