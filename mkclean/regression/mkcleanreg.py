@@ -48,7 +48,7 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
     if cli.quiet:
         mkclean_run.append("--quiet")
     if mkclean_options:
-        for option in mkclean_options.split():
+        for option in mkclean_options.strip().split():
             mkclean_run.append(option)
     mkclean_run.append(src_file)
     mkclean_run.append(outputfile)
@@ -116,7 +116,7 @@ def main():
     for line in args.regression_file:
         regression = line.split('\"')
         src_file = regression[1]
-        mkclean_options = regression[3].strip()
+        mkclean_options = regression[3]
         values = regression[4].strip().split()
         filesize = int(values[0])
         hash = values[1]
