@@ -114,14 +114,15 @@ def main():
 
     i = 0
     for line in args.regression_file:
-        regression = line.split('\"')
-        src_file = regression[1]
-        mkclean_options = regression[3]
-        values = regression[4].strip().split()
-        filesize = int(values[0])
-        hash = values[1]
-        testFile(args, i, src_file, mkclean_options, filesize, hash)
-        i = i+1
+        if not line.startswith('#'):
+            regression = line.split('\"')
+            src_file = regression[1]
+            mkclean_options = regression[3]
+            values = regression[4].strip().split()
+            filesize = int(values[0])
+            hash = values[1]
+            testFile(args, i, src_file, mkclean_options, filesize, hash)
+            i = i+1
 
 if __name__ == "__main__":
     exit(main())
