@@ -26,8 +26,8 @@ jobs:
 
       - name: Generate code
         run: |
-          xsltproc -o _build/src/KaxSemantic.cpp       spectool/schema_2_kaxsematic_cpp.xsl ebml_matroska.xml
-          xsltproc -o _build/matroska/KaxSemantic.h    spectool/schema_2_kaxsematic_h.xsl   ebml_matroska.xml
+          xsltproc -o _build/src/KaxSemantic.cpp       spectool/schema_2_kaxsemantic_cpp.xsl ebml_matroska.xml
+          xsltproc -o _build/matroska/KaxSemantic.h    spectool/schema_2_kaxsemantic_h.xsl   ebml_matroska.xml
 
       - name: Get current libmatroska code
         run: |

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
     File used to generate libmatroska KaxSemantic.h from ebml_matroska.xml 
-    Usage: xsltproc -o KaxSemantic.h schema_2_kaxsematic_h.xsl ebml_matroska.xml
+    Usage: xsltproc -o KaxSemantic.h schema_2_kaxsemantic_h.xsl ebml_matroska.xml
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
     xmlns:str="http://exslt.org/strings"
