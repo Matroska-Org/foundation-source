@@ -259,7 +259,22 @@ namespace libmatroska {
             <xsl:text>/**&#10; *</xsl:text>
             <xsl:value-of select="ebml:documentation[@purpose='definition']"/>
             <xsl:text>&#10; */&#10;</xsl:text>
-            <xsl:text>typedef enum {&#10;</xsl:text>
+            <xsl:text>enum Matroska</xsl:text>
+            <xsl:choose>
+                <xsl:when test="@name='ContentCompAlgo'"><xsl:text>TrackEncodingCompAlgo</xsl:text></xsl:when>
+                <xsl:when test="@name='ChromaSitingHorz'"><xsl:text>ColourChromaSitingHorz</xsl:text></xsl:when>
+                <xsl:when test="@name='ChromaSitingVert'"><xsl:text>ColourChromaSitingVert</xsl:text></xsl:when>
+                <xsl:when test="@name='ChapProcessTime'"><xsl:text>ChapterProcessTime</xsl:text></xsl:when>
+                <xsl:when test="@name='ContentSigAlgo'"><xsl:text>ContentSignatureAlgo</xsl:text></xsl:when>
+                <xsl:when test="@name='ContentEncAlgo'"><xsl:text>ContentEncodingAlgo</xsl:text></xsl:when>
+                <!-- <xsl:when test="@name='FlagInterlaced'"><xsl:text>VideoInterlaceFlag</xsl:text></xsl:when> -->
+                <!-- <xsl:when test="@name='StereoMode'"><xsl:text>VideoStereoModeType</xsl:text></xsl:when> -->
+                <xsl:when test="contains(@path,'\TrackEntry\Video\')"><xsl:text>Video</xsl:text><xsl:value-of select="@name"/></xsl:when>
+                <xsl:when test="contains(@path,'\TrackEntry\Audio\')"><xsl:text>Audio</xsl:text><xsl:value-of select="@name"/></xsl:when>
+                <xsl:otherwise><xsl:value-of select="@name"/></xsl:otherwise>
+            </xsl:choose>
+
+            <xsl:text> {&#10;</xsl:text>
 
             <!-- Internal value not found in the specs -->
             <!-- <xsl:if test="@name='TrackType'"><xsl:text>  MATROSKA_TRACK_TYPE_NONE     = 0x0,&#10;</xsl:text></xsl:if> -->
@@ -308,21 +323,7 @@ namespace libmatroska {
                 <!-- <xsl:when test="@name='StereoMode'"><xsl:text>  MATROSKA_VIDEO_STEREOMODE_TYPE_NB,&#10;</xsl:text></xsl:when> -->
             <!-- </xsl:choose> -->
 
-            <xsl:text>} Matroska</xsl:text>
-            <xsl:choose>
-                <xsl:when test="@name='ContentCompAlgo'"><xsl:text>TrackEncodingCompAlgo</xsl:text></xsl:when>
-                <xsl:when test="@name='ChromaSitingHorz'"><xsl:text>ColourChromaSitingHorz</xsl:text></xsl:when>
-                <xsl:when test="@name='ChromaSitingVert'"><xsl:text>ColourChromaSitingVert</xsl:text></xsl:when>
-                <xsl:when test="@name='ChapProcessTime'"><xsl:text>ChapterProcessTime</xsl:text></xsl:when>
-                <xsl:when test="@name='ContentSigAlgo'"><xsl:text>ContentSignatureAlgo</xsl:text></xsl:when>
-                <xsl:when test="@name='ContentEncAlgo'"><xsl:text>ContentEncodingAlgo</xsl:text></xsl:when>
-                <!-- <xsl:when test="@name='FlagInterlaced'"><xsl:text>VideoInterlaceFlag</xsl:text></xsl:when> -->
-                <!-- <xsl:when test="@name='StereoMode'"><xsl:text>VideoStereoModeType</xsl:text></xsl:when> -->
-                <xsl:when test="contains(@path,'\TrackEntry\Video\')"><xsl:text>Video</xsl:text><xsl:value-of select="@name"/></xsl:when>
-                <xsl:when test="contains(@path,'\TrackEntry\Audio\')"><xsl:text>Audio</xsl:text><xsl:value-of select="@name"/></xsl:when>
-                <xsl:otherwise><xsl:value-of select="@name"/></xsl:otherwise>
-            </xsl:choose>
-            <xsl:text>;&#10;&#10;</xsl:text>
+            <xsl:text>};&#10;&#10;</xsl:text>
         </xsl:if>
     </xsl:template>
 
