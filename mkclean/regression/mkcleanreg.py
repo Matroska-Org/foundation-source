@@ -114,7 +114,7 @@ def main():
 
     i = 0
     for line in args.regression_file:
-        if not line.startswith('#'):
+        if not line.startswith('#') and not line.strip() == '':
             regression = line.split('\"')
             src_file = regression[1]
             mkclean_options = regression[3]
