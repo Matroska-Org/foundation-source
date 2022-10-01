@@ -1159,7 +1159,7 @@ void MATROSKA_InitSemantic()
     MATROSKA_ContextChannels = (ebml_context) {0x9F, EBML_INTEGER_CLASS, 1, (intptr_t)1, "Channels", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextChannelPositions = (ebml_context) {0x7D7B, EBML_BINARY_CLASS, 0, 0, "ChannelPositions", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextBitDepth = (ebml_context) {0x6264, EBML_INTEGER_CLASS, 0, 0, "BitDepth", NULL, EBML_getSemanticGlobals(), NULL};
-    MATROSKA_ContextEmphasis = (ebml_context) {0x92F1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "Emphasis", NULL, EBML_getSemanticGlobals(), NULL};
+    MATROSKA_ContextEmphasis = (ebml_context) {0x52F1, EBML_INTEGER_CLASS, 1, (intptr_t)0, "Emphasis", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextAudio = (ebml_context) {0xE1, EBML_MASTER_CLASS, 0, 0, "Audio", EBML_SemanticAudio, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTrackPlaneUID = (ebml_context) {0xE5, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneUID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextTrackPlaneType = (ebml_context) {0xE6, EBML_INTEGER_CLASS, 0, 0, "TrackPlaneType", NULL, EBML_getSemanticGlobals(), NULL};
