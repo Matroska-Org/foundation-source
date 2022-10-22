@@ -45,14 +45,14 @@
 #define LIBMATROSKA_SEMANTIC_H
 
 #include "matroska/KaxTypes.h"
-#include "ebml/EbmlUInteger.h"
-#include "ebml/EbmlSInteger.h"
-#include "ebml/EbmlDate.h"
-#include "ebml/EbmlFloat.h"
-#include "ebml/EbmlString.h"
-#include "ebml/EbmlUnicodeString.h"
-#include "ebml/EbmlBinary.h"
-#include "ebml/EbmlMaster.h"
+#include &lt;ebml/EbmlUInteger.h&gt;
+#include &lt;ebml/EbmlSInteger.h&gt;
+#include &lt;ebml/EbmlDate.h&gt;
+#include &lt;ebml/EbmlFloat.h&gt;
+#include &lt;ebml/EbmlString.h&gt;
+#include &lt;ebml/EbmlUnicodeString.h&gt;
+#include &lt;ebml/EbmlBinary.h&gt;
+#include &lt;ebml/EbmlMaster.h&gt;
 #include "matroska/KaxDefines.h"
 
 using namespace libebml;
