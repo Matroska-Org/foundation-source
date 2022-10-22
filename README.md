@@ -7,11 +7,11 @@ libEBML2, libMatroska2, mkvalidator, mkclean and the specifications
 
 1/ Generate the makefiles with cmake
 
-> cmake
+> cmake -S . -B build
 
 2/ build mkvalidator/mcklean and everything else
 
-> cmake --build
+> cmake --build build
 
 
 ## Code of conduct
