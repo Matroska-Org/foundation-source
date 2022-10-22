@@ -206,7 +206,9 @@ void MATROSKA_InitSemantic();
                 <xsl:choose>
                     <xsl:when test="ebml:documentation[@purpose='definition']">
                         <xsl:text>, // </xsl:text>
-                        <xsl:value-of select="translate(ebml:documentation[@purpose='definition'], '&#10;', ' ')"/>
+                        <xsl:call-template name="cleanEnumDoc">
+                            <xsl:with-param name="label" select="ebml:documentation[@purpose='definition']"/>
+                        </xsl:call-template>
                         <xsl:text>&#10;</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
@@ -416,6 +418,30 @@ void MATROSKA_InitSemantic();
         </xsl:when>
         <xsl:otherwise>
             <xsl:value-of select="$label"/>
+        </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="cleanEnumDoc">
+    <xsl:param name="label"/>
+    <xsl:choose>
+        <xsl:when test="contains($label,' [@!')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' [@!'), ' (', substring-before(substring-after($label, ' [@!'), ']'), ')', substring-after(substring-after($label, ' [@!'), ']'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="contains($label,' [@?')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' [@?'), ' (', substring-before(substring-after($label, ' [@?'), ']'), ')', substring-after(substring-after($label, ' [@?'), ']'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="contains($label,'; see usage notes')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, '; see usage notes'), substring-after($label, '; see usage notes'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="translate($label, '&#10;', ' ')"/>
         </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
