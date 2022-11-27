@@ -1073,7 +1073,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                         if (Width==MATROSKA_VIDEO_OLDSTEREOMODE_BOTH_EYES)
                         {
                             if (!Quiet)
-                                TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"), TrackNum,EBML_ElementPosition((ebml_element*)CurTrack),GetProfileName(*dstProfile));
+                                TextPrintf(StdErr,T("  turning 'Both Eyes' into 'side by side (left first)\r\n"));
                             EBML_IntegerSetValue((ebml_integer*)Elt2,MATROSKA_VIDEO_STEREO_LEFT_RIGHT);
                         }
                         else
