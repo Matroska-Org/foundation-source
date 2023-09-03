@@ -31,3 +31,5 @@ mkvalidator/mkvalidator-*.zip
 *.compiled
 *.br.br
 *.sh.sh
+
+.DS_Store
