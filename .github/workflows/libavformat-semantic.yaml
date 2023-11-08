@@ -1,0 +1,46 @@
+name: "libavformat Semantic"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    # branches: [ master ]
+  schedule:
+    - cron: '44 16 * * 6'
+
+jobs:
+  xlst_generators:
+    name: Generate code from EBML Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get pushed code
+        uses: actions/checkout@v3
+
+      - name: Get EBML Schema
+        run: curl -o ebml_matroska.xml https://raw.githubusercontent.com/ietf-wg-cellar/matroska-specification/master/ebml_matroska.xml
+
+      - name: Setup test tools
+        # we need the apt update because old packages won't load
+        run: |
+          sudo apt update
+          sudo apt install xsltproc
+
+      - name: Generate code
+        run: |
+          xsltproc -o _build/matroska_ids.h spectool/schema_2_lavf_h.xsl     ebml_matroska.xml
+          xsltproc -o _build/matroskasem.c  spectool/schema_2_lavf_sem_c.xsl ebml_matroska.xml
+
+      - name: Get current libavformat code
+        run: |
+          curl -o matroskasem.c   https://git.ffmpeg.org/gitweb/ffmpeg.git/blob_plain/HEAD:/libavformat/matroskadec.c
+          curl -o matroska_ids.h  https://git.ffmpeg.org/gitweb/ffmpeg.git/blob_plain/HEAD:/libavformat/matroska_ids.h
+
+      - name: Generate libavformat artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libavformat-semantic
+          path: _build
+
+      - name: Verify libavformat semantic
+        run: |
+          diff -pur _build/matroska_ids.h  matroska_ids.h || exit 1
+          diff -pur _build/matroskasem.c   matroskasem.c  || exit 1
