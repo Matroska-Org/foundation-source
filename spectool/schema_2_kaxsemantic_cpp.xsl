@@ -1,43 +1,20 @@
 <?xml version="1.0"?>
 <!--
-    File used to generate libmatroska KaxSemantic.cpp from ebml_matroska.xml 
+    File used to generate libmatroska KaxSemantic.cpp from ebml_matroska.xml
     Usage: xsltproc -o KaxSemantic.cpp schema_2_kaxsemantic_cpp.xsl ebml_matroska.xml
 -->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:str="http://exslt.org/strings"
     exclude-result-prefixes="str xhtml ebml"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     xmlns="urn:ietf:rfc:8794" xmlns:ebml="urn:ietf:rfc:8794">
   <xsl:output encoding="UTF-8" method="text" version="1.0" indent="yes" />
-  <xsl:template match="ebml:EBMLSchema">/**********************************************************************
+  <xsl:template match="ebml:EBMLSchema">// Copyright © 2002-2020 Matroska (non-profit organisation).
+// SPDX-License-Identifier: LGPL-2.1-or-later
+
+/**********************************************************************
 **  DO NOT EDIT, GENERATED WITH schema_2_kaxsemantic_cpp.xsl
 **  https://github.com/Matroska-Org/foundation-source/tree/master/spectool
-**
-**  libmatroska : parse Matroska files, see https://www.matroska.org/
-**
-**  Copyright (c) 2002-2020, Matroska (non-profit organisation)
-**  All rights reserved.
-**
-** This file is part of libmatroska.
-**
-** This library is free software; you can redistribute it and/or
-** modify it under the terms of the GNU Lesser General Public
-** License as published by the Free Software Foundation; either
-** version 2.1 of the License, or (at your option) any later version.
-**
-** This library is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-** Lesser General Public License for more details.
-**
-** You should have received a copy of the GNU Lesser General Public
-** License along with this library; if not, write to the Free Software
-** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-**
-** See http://www.gnu.org/licenses/lgpl-2.1.html for LGPL licensing information.**
-** Contact license@matroska.org if any conditions of this licensing are
-** not clear to you.
-**
 **********************************************************************/
 
 #include "matroska/KaxContexts.h"
@@ -129,7 +106,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:choose>
                     <xsl:when test="not(contains(substring($plainPath,2),'\'))" />
                     <xsl:otherwise>
@@ -143,10 +120,10 @@ namespace libmatroska {
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='binary'">
-                
+
                 <xsl:text>DEFINE_MKX_BINARY</xsl:text>
                 <xsl:choose>
                     <!-- Needs a special constructor -->
@@ -160,7 +137,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -169,10 +146,10 @@ namespace libmatroska {
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='uinteger'">
-                
+
                 <xsl:text>DEFINE_MKX_UINTEGER</xsl:text>
                 <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
@@ -182,7 +159,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -192,10 +169,10 @@ namespace libmatroska {
                 </xsl:call-template>
                 <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>, </xsl:text><xsl:value-of select="@default" /></xsl:if>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='integer'">
-                
+
                 <xsl:text>DEFINE_MKX_SINTEGER</xsl:text>
                 <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>_DEF</xsl:text></xsl:if>
                 <!-- Needs a special constructor -->
@@ -207,7 +184,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -217,10 +194,10 @@ namespace libmatroska {
                 </xsl:call-template>
                 <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>, </xsl:text><xsl:value-of select="@default" /></xsl:if>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='utf-8'">
-                
+
                 <xsl:text>DEFINE_MKX_UNISTRING</xsl:text>
                 <xsl:if test="@default"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
@@ -230,7 +207,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -240,10 +217,10 @@ namespace libmatroska {
                 </xsl:call-template>
                 <xsl:if test="@default"><xsl:text>, "</xsl:text><xsl:value-of select="@default" />"</xsl:if>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='string'">
-                
+
                 <xsl:text>DEFINE_MKX_STRING</xsl:text>
                 <xsl:if test="@default"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
@@ -253,7 +230,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -263,10 +240,10 @@ namespace libmatroska {
                 </xsl:call-template>
                 <xsl:if test="@default"><xsl:text>, "</xsl:text><xsl:value-of select="@default" /><xsl:text>"</xsl:text></xsl:if>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='float'">
-                
+
                 <xsl:text>DEFINE_MKX_FLOAT</xsl:text>
                 <xsl:if test="@default and starts-with(@default,'0x')"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
@@ -276,7 +253,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -293,7 +270,7 @@ namespace libmatroska {
                     </xsl:choose>
                 </xsl:if>
                 <xsl:text>)&#10;</xsl:text>
-                
+
             </xsl:when>
             <xsl:when test="@type='date'">
                 <xsl:text>DEFINE_MKX_DATE</xsl:text>
@@ -308,7 +285,7 @@ namespace libmatroska {
                 </xsl:choose>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" /> 
+                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
