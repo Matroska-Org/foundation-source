@@ -28,6 +28,15 @@
 #include "matroska/KaxBlockData.h"
 #include "matroska/KaxCuesData.h"
 
+#ifndef DEFINE_SEMANTIC_ITEM_UINT
+#define DEFINE_SEMANTIC_ITEM_UINT(m,u,d,c)      DEFINE_SEMANTIC_ITEM(m,u,c)
+#define DEFINE_SEMANTIC_ITEM_SINT(m,u,d,c)      DEFINE_SEMANTIC_ITEM(m,u,c)
+#define DEFINE_SEMANTIC_ITEM_DATE(m,u,d,c)      DEFINE_SEMANTIC_ITEM(m,u,c)
+#define DEFINE_SEMANTIC_ITEM_FLOAT(m,u,d,c)     DEFINE_SEMANTIC_ITEM(m,u,c)
+#define DEFINE_SEMANTIC_ITEM_STRING(m,u,d,c)    DEFINE_SEMANTIC_ITEM(m,u,c)
+#define DEFINE_SEMANTIC_ITEM_UTF8(m,u,d,c)      DEFINE_SEMANTIC_ITEM(m,u,c)
+#endif
+
 namespace libmatroska {
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- sorting messes the detection of the previous element MATROSKA_VERSION state -->
@@ -320,7 +329,29 @@ namespace libmatroska {
     <!-- <xsl:if test="$minVer &gt; 1 or ebml:extension[@divx='1']">
         <xsl:text>#if MATROSKA_VERSION >= 2&#10;</xsl:text>
     </xsl:if> -->
-    <xsl:text>DEFINE_SEMANTIC_ITEM(</xsl:text>
+    <xsl:choose>
+        <xsl:when test="$node/@default and $node/@type='uinteger'">
+            <xsl:text>DEFINE_SEMANTIC_ITEM_UINT(</xsl:text>
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='integer'">
+            <xsl:text>DEFINE_SEMANTIC_ITEM_SINT(</xsl:text>
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='date'">
+            <xsl:text>DEFINE_SEMANTIC_ITEM_DATE(</xsl:text>
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='float'">
+            <xsl:text>DEFINE_SEMANTIC_ITEM_FLOAT(</xsl:text>
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='string'">
+            <xsl:text>DEFINE_SEMANTIC_ITEM_STRING(</xsl:text>
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='utf-8'">
+            <xsl:text>DEFINE_SEMANTIC_ITEM_UTF8(</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:text>DEFINE_SEMANTIC_ITEM(</xsl:text>
+        </xsl:otherwise>
+    </xsl:choose>
     <xsl:choose>
         <xsl:when test="$asRecursive=1"><xsl:text>false</xsl:text></xsl:when>
         <xsl:when test="$node/@minOccurs!='' and $node/@minOccurs!='0'"><xsl:text>true</xsl:text></xsl:when>
@@ -331,6 +362,26 @@ namespace libmatroska {
         <xsl:when test="$node/@recurring='1'"><xsl:text>false</xsl:text></xsl:when>
         <xsl:when test="$node/@maxOccurs='1'"><xsl:text>true</xsl:text></xsl:when>
         <xsl:otherwise><xsl:text>false</xsl:text></xsl:otherwise>
+    </xsl:choose>
+    <xsl:choose>
+        <xsl:when test="$node/@default and $node/@type='uinteger'">
+            <xsl:text>, </xsl:text><xsl:value-of select="$node/@default" />
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='integer'">
+            <xsl:text>, </xsl:text><xsl:value-of select="$node/@default" />
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='date'">
+            <xsl:text>, </xsl:text><xsl:value-of select="$node/@default" />
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='float'">
+            <xsl:text>, </xsl:text><xsl:value-of select="$node/@default" />
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='string'">
+            <xsl:text>, "</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>"</xsl:text>
+        </xsl:when>
+        <xsl:when test="$node/@default and $node/@type='utf-8'">
+            <xsl:text>, L"</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>"</xsl:text>
+        </xsl:when>
     </xsl:choose>
     <xsl:text>, Kax</xsl:text>
     <xsl:choose>
