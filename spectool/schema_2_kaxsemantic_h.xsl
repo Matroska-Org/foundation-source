@@ -1,43 +1,20 @@
 <?xml version="1.0"?>
 <!--
-    File used to generate libmatroska KaxSemantic.h from ebml_matroska.xml 
+    File used to generate libmatroska KaxSemantic.h from ebml_matroska.xml
     Usage: xsltproc -o KaxSemantic.h schema_2_kaxsemantic_h.xsl ebml_matroska.xml
 -->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:str="http://exslt.org/strings"
     exclude-result-prefixes="str xhtml ebml"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     xmlns="urn:ietf:rfc:8794" xmlns:ebml="urn:ietf:rfc:8794">
   <xsl:output encoding="UTF-8" method="text" version="1.0" indent="yes" />
-  <xsl:template match="ebml:EBMLSchema">/**********************************************************************
-**  DO NOT EDIT, GENERATED WITH DATA2LIB
+  <xsl:template match="ebml:EBMLSchema">// Copyright © 2002-2020 Matroska (non-profit organisation).
+// SPDX-License-Identifier: LGPL-2.1-or-later
+
+/**********************************************************************
+**  DO NOT EDIT, GENERATED WITH schema_2_kaxsemantic_h.xsl
 **  https://github.com/Matroska-Org/foundation-source/tree/master/spectool
-**
-**  libmatroska : parse Matroska files, see https://www.matroska.org/
-**
-**  Copyright (c) 2002-2022, Matroska (non-profit organisation)
-**  All rights reserved.
-**
-** This file is part of libmatroska.
-**
-** This library is free software; you can redistribute it and/or
-** modify it under the terms of the GNU Lesser General Public
-** License as published by the Free Software Foundation; either
-** version 2.1 of the License, or (at your option) any later version.
-**
-** This library is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-** Lesser General Public License for more details.
-**
-** You should have received a copy of the GNU Lesser General Public
-** License along with this library; if not, write to the Free Software
-** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-**
-** See http://www.gnu.org/licenses/lgpl-2.1.html for LGPL licensing information.**
-** Contact license@matroska.org if any conditions of this licensing are
-** not clear to you.
-**
 **********************************************************************/
 
 
@@ -451,7 +428,7 @@ namespace libmatroska {
         <xsl:when test="contains($label,'ITU-R BT.601 525')">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="'BT601 525'"/></xsl:call-template>
         </xsl:when>
-        
+
         <!-- MatrixCoefficients -->
         <xsl:when test="contains($label,' Non-constant Luminance')">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="concat(concat(substring-before($label, ' Non-constant Luminance'), substring-after($label, ' Non-constant Luminance')),' NCL')"/></xsl:call-template>
@@ -493,7 +470,7 @@ namespace libmatroska {
         </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
   <xsl:template name="finalOutputEnumLabel">
     <xsl:param name="label"/>
     <xsl:param name="align" as="xs:integer"/>
