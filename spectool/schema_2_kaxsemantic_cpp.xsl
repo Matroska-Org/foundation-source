@@ -24,7 +24,6 @@
 #include "matroska/KaxCluster.h"
 #include "matroska/KaxTracks.h"
 #include "matroska/KaxCues.h"
-#include "matroska/KaxInfoData.h"
 #include "matroska/KaxBlockData.h"
 #include "matroska/KaxCuesData.h"
 
@@ -127,7 +126,7 @@ namespace libmatroska {
                 <xsl:text>DEFINE_MKX_BINARY</xsl:text>
                 <xsl:choose>
                     <!-- Needs a special constructor -->
-                    <xsl:when test="@name='Block' or @name='SimpleBlock' or @name='BlockVirtual' or @name='NextUUID' or @name='PrevUUID'"><xsl:text>_CONS</xsl:text></xsl:when>
+                    <xsl:when test="@name='Block' or @name='SimpleBlock' or @name='BlockVirtual'"><xsl:text>_CONS</xsl:text></xsl:when>
                     <xsl:otherwise><xsl:text> </xsl:text></xsl:otherwise>
                 </xsl:choose>
                 <xsl:text>(Kax</xsl:text>
