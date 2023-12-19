@@ -94,12 +94,6 @@ namespace libmatroska {
             <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
         </xsl:choose>
         <xsl:text>)&#10;</xsl:text>
-        <xsl:if test="@name='SegmentUUID'">
-            <xsl:text>#if defined(HAVE_EBML2) || defined(HAS_EBML2)&#10;</xsl:text>
-            <xsl:text>public:&#10;</xsl:text>
-            <xsl:text>  KaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);&#10;</xsl:text>
-            <xsl:text>#endif&#10;</xsl:text>
-        </xsl:if>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3' or @length">
             <xsl:text>public:&#10;</xsl:text>
         </xsl:if>
