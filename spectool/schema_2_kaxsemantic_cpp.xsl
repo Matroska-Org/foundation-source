@@ -115,6 +115,10 @@ namespace libmatroska {
                         </xsl:call-template>
                     </xsl:otherwise>
                 </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="@unknownsizeallowed=1"><xsl:text>, true</xsl:text></xsl:when>
+                    <xsl:otherwise><xsl:text>, false</xsl:text></xsl:otherwise>
+                </xsl:choose>
                 <xsl:call-template name="output-display-name">
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
