@@ -53,7 +53,7 @@ namespace libmatroska {
 </xsl:template>
   <xsl:template match="ebml:element">
     <!-- Ignore EBML extra constraints -->
-    <xsl:if test="@name!='Segment' and @name!='Cluster' and @name!='BlockGroup' and @name!='Block' and @name!='BlockVirtual' and @name!='ReferenceBlock' and @name!='SimpleBlock' and @name!='Cues' and @name!='CuePoint' and @name!='CueTrackPositions' and @name!='CueReference' and @name!='NextUUID' and @name!='PrevUUID' and @name!='SeekHead' and @name!='Seek' and @name!='TrackEntry'">
+    <xsl:if test="@name!='Segment' and @name!='Cluster' and @name!='BlockGroup' and @name!='Block' and @name!='BlockVirtual' and @name!='ReferenceBlock' and @name!='SimpleBlock' and @name!='Cues' and @name!='CuePoint' and @name!='CueTrackPositions' and @name!='CueReference' and @name!='SeekHead' and @name!='Seek' and @name!='TrackEntry'">
     <!-- <xsl:copy> -->
 
         <xsl:variable name="minVer">
