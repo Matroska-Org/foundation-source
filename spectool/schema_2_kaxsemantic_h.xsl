@@ -32,8 +32,6 @@
 #include &lt;ebml/EbmlMaster.h&gt;
 #include "matroska/KaxDefines.h"
 
-using namespace libebml;
-
 namespace libmatroska {
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- <xsl:sort select="translate(@path, '\+', '\')" /> -->
@@ -98,7 +96,7 @@ namespace libmatroska {
             <xsl:text>public:&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
-            <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, ShouldWrite writeFilter) override;&#10;</xsl:text>
+            <xsl:text>  libebml::filepos_t RenderData(libebml::IOCallback &amp; output, bool bForceRender, ShouldWrite writeFilter) override;&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@length">
             <xsl:text>  bool ValidateSize() const override {return IsFiniteSize() &amp;&amp; GetSize() </xsl:text>
