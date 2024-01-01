@@ -63,30 +63,31 @@ namespace libmatroska {
         <!-- <xsl:if test="$minVer &gt; 1 or ebml:extension[@divx='1']">#if MATROSKA_VERSION >= 2&#10;</xsl:if> -->
         <xsl:choose>
             <xsl:when test="@type='master'">
-                <xsl:text>DECLARE_MKX_MASTER(Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_MASTER</xsl:text>
             </xsl:when>
             <xsl:when test="@type='binary'">
-                <xsl:text>DECLARE_MKX_BINARY (Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_BINARY</xsl:text>
             </xsl:when>
             <xsl:when test="@type='uinteger'">
-                <xsl:text>DECLARE_MKX_UINTEGER(Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_UINTEGER</xsl:text>
             </xsl:when>
             <xsl:when test="@type='integer'">
-                <xsl:text>DECLARE_MKX_SINTEGER(Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_SINTEGER</xsl:text>
             </xsl:when>
             <xsl:when test="@type='utf-8'">
-                <xsl:text>DECLARE_MKX_UNISTRING(Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_UNISTRING</xsl:text>
             </xsl:when>
             <xsl:when test="@type='string'">
-                <xsl:text>DECLARE_MKX_STRING(Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_STRING</xsl:text>
             </xsl:when>
             <xsl:when test="@type='float'">
-                <xsl:text>DECLARE_MKX_FLOAT(Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_FLOAT</xsl:text>
             </xsl:when>
             <xsl:when test="@type='date'">
-                <xsl:text>DECLARE_MKX_DATE    (Kax</xsl:text>
+                <xsl:text>DECLARE_MKX_DATE</xsl:text>
             </xsl:when>
         </xsl:choose>
+        <xsl:text>(Kax</xsl:text>
         <xsl:choose>
             <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
             <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
