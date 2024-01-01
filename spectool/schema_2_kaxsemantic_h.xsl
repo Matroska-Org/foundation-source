@@ -70,21 +70,27 @@ namespace libmatroska {
             </xsl:when>
             <xsl:when test="@type='uinteger'">
                 <xsl:text>DECLARE_MKX_UINTEGER</xsl:text>
+                <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>_DEF</xsl:text></xsl:if>
             </xsl:when>
             <xsl:when test="@type='integer'">
                 <xsl:text>DECLARE_MKX_SINTEGER</xsl:text>
+                <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>_DEF</xsl:text></xsl:if>
             </xsl:when>
             <xsl:when test="@type='utf-8'">
                 <xsl:text>DECLARE_MKX_UNISTRING</xsl:text>
+                <xsl:if test="@default"><xsl:text>_DEF</xsl:text></xsl:if>
             </xsl:when>
             <xsl:when test="@type='string'">
                 <xsl:text>DECLARE_MKX_STRING</xsl:text>
+                <xsl:if test="@default"><xsl:text>_DEF</xsl:text></xsl:if>
             </xsl:when>
             <xsl:when test="@type='float'">
                 <xsl:text>DECLARE_MKX_FLOAT</xsl:text>
+                <xsl:if test="@default and starts-with(@default,'0x')"><xsl:text>_DEF</xsl:text></xsl:if>
             </xsl:when>
             <xsl:when test="@type='date'">
                 <xsl:text>DECLARE_MKX_DATE</xsl:text>
+                <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>_DEF</xsl:text></xsl:if>
             </xsl:when>
         </xsl:choose>
         <xsl:text>(Kax</xsl:text>
