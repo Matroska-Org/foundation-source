@@ -29,8 +29,9 @@
 
 namespace libmatroska {
 
-static constexpr const MatroskaProfile VERSION_ALL_MATROSKA = {true, 0, MatroskaProfile::ANY_VERSION};
-static constexpr const MatroskaProfile VERSION_DEPRECATED   = {false, MatroskaProfile::ANY_VERSION, 0};
+static constexpr const MatroskaProfile VERSION_ALL_MATROSKA = {true, true, 0, MatroskaProfile::ANY_VERSION};
+static constexpr const MatroskaProfile VERSION_DEPRECATED   = {false, false, MatroskaProfile::ANY_VERSION, 0};
+static constexpr const MatroskaProfile VERSION_DIVX_ONLY    = {false, true, MatroskaProfile::ANY_VERSION, 0};
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- sorting messes the detection of the previous element MATROSKA_VERSION state -->
     <!-- Maybe for each output we create we also create a counterpart call to check if the new MATROSKA_VERSION state that should be used -->
@@ -358,11 +359,6 @@ static constexpr const MatroskaProfile VERSION_DEPRECATED   = {false, MatroskaPr
     </xsl:call-template>
     <xsl:text>)</xsl:text>
     <xsl:if test="$asRecursive=1"><xsl:text> // recursive</xsl:text></xsl:if>
-    <xsl:if test="$node/@maxver='0'">
-        <xsl:choose>
-            <xsl:when test="ebml:extension[@divx='1']"><xsl:text> // DivX specific</xsl:text></xsl:when>
-        </xsl:choose>
-    </xsl:if>
     <xsl:text>&#10;</xsl:text>
     <!-- <xsl:if test="$minVer &gt; 1 or ebml:extension[@divx='1']">
         <xsl:text>#endif // MATROSKA_VERSION&#10;</xsl:text>
@@ -487,11 +483,16 @@ static constexpr const MatroskaProfile VERSION_DEPRECATED   = {false, MatroskaPr
     <xsl:text>, </xsl:text>
     <xsl:choose>
         <xsl:when test="(not($node/@minver) or $node/@minver='0') and not($node/@maxver) and ebml:extension[@webm='1']"><xsl:text>VERSION_ALL_MATROSKA</xsl:text></xsl:when>
-        <xsl:when test="$node/@maxver='0'"><xsl:text>VERSION_DEPRECATED</xsl:text></xsl:when>
+        <xsl:when test="$node/@maxver='0' and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_DEPRECATED</xsl:text></xsl:when>
+        <xsl:when test="$node/@maxver='0' and ebml:extension[@divx='1']"><xsl:text>VERSION_DIVX_ONLY</xsl:text></xsl:when>
         <xsl:otherwise>
             <xsl:text>MatroskaProfile(</xsl:text>
             <xsl:choose>
                 <xsl:when test="not(ebml:extension[@webm='1'])"><xsl:text>false, </xsl:text></xsl:when>
+                <xsl:otherwise><xsl:text>true, </xsl:text></xsl:otherwise>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(ebml:extension[@divx='1'])"><xsl:text>false, </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>true, </xsl:text></xsl:otherwise>
             </xsl:choose>
             <xsl:choose>
