@@ -395,12 +395,12 @@ namespace libmatroska {
     <xsl:param name="node"/>
 
     <xsl:if test="$node/@maxver='0' or $node/@maxver='1' or $node/@maxver='2' or $node/@maxver='3'">
-        <xsl:text>&#10;filepos_t Kax</xsl:text>
+        <xsl:text>&#10;libebml::filepos_t Kax</xsl:text>
         <xsl:choose>
             <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
             <xsl:otherwise><xsl:value-of select="$node/@name" /></xsl:otherwise>
         </xsl:choose>
-        <xsl:text>::RenderData(IOCallback &amp; /* output */, bool /* bForceRender */, bool /* bSaveDefault */) {&#10;</xsl:text>
+        <xsl:text>::RenderData(libebml::IOCallback &amp; /* output */, bool /* bForceRender */, ShouldWrite /* writeFilter */) {&#10;</xsl:text>
         <xsl:text>  assert(false); // no you are not allowed to use this element !&#10;</xsl:text>
         <xsl:text>  return 0;&#10;</xsl:text>
         <xsl:text>}&#10;</xsl:text>
