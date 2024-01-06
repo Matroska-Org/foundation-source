@@ -29,8 +29,8 @@
 
 namespace libmatroska {
 
-static constexpr const libebml::EbmlDocVersion VERSION_ALL_MATROSKA = libebml::EbmlDocVersion{0, libebml::EbmlDocVersion::ANY_VERSION};
-static constexpr const libebml::EbmlDocVersion VERSION_DEPRECATED   = libebml::EbmlDocVersion{libebml::EbmlDocVersion::ANY_VERSION, 0};
+static constexpr const MatroskaProfile VERSION_ALL_MATROSKA = {0, MatroskaProfile::ANY_VERSION};
+static constexpr const MatroskaProfile VERSION_DEPRECATED   = {MatroskaProfile::ANY_VERSION, 0};
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- sorting messes the detection of the previous element MATROSKA_VERSION state -->
     <!-- Maybe for each output we create we also create a counterpart call to check if the new MATROSKA_VERSION state that should be used -->
@@ -489,9 +489,9 @@ static constexpr const libebml::EbmlDocVersion VERSION_DEPRECATED   = libebml::E
         <xsl:when test="(not($node/@minver) or $node/@minver='0') and not($node/@maxver)"><xsl:text>VERSION_ALL_MATROSKA</xsl:text></xsl:when>
         <xsl:when test="$node/@maxver='0'"><xsl:text>VERSION_DEPRECATED</xsl:text></xsl:when>
         <xsl:otherwise>
-            <xsl:text>libebml::EbmlDocVersion(</xsl:text>
+            <xsl:text>MatroskaProfile(</xsl:text>
             <xsl:choose>
-                <xsl:when test="$node/@maxver='0'">libebml::EbmlDocVersion::ANY_VERSION</xsl:when>
+                <xsl:when test="$node/@maxver='0'">MatroskaProfile::ANY_VERSION</xsl:when>
                 <xsl:when test="not($node/@minver)">0</xsl:when>
                 <xsl:otherwise><xsl:value-of select="$node/@minver" /></xsl:otherwise>
             </xsl:choose>
