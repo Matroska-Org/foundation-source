@@ -2,6 +2,7 @@
 [![binaries](https://github.com/Matroska-Org/foundation-source/actions/workflows/generate-tools-bin.yaml/badge.svg)](https://github.com/Matroska-Org/foundation-source/actions/workflows/generate-tools-bin.yaml)
 [![libmatroska2 code](https://github.com/Matroska-Org/foundation-source/actions/workflows/libmatroska2-semantic.yaml/badge.svg)](https://github.com/Matroska-Org/foundation-source/actions/workflows/libmatroska2-semantic.yaml)
 [![libmatroska code](https://github.com/Matroska-Org/foundation-source/actions/workflows/libmatroska-semantic.yaml/badge.svg)](https://github.com/Matroska-Org/foundation-source/actions/workflows/libmatroska-semantic.yaml)
+[![libmatroska v1.x code](https://github.com/Matroska-Org/foundation-source/actions/workflows/libmatroska-semantic_1x.yaml/badge.svg)](https://github.com/Matroska-Org/foundation-source/actions/workflows/libmatroska-semantic_1x.yaml)
 
 libEBML2, libMatroska2, mkvalidator, mkclean and the specifications
 

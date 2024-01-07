@@ -1,0 +1,46 @@
+name: "libmatroska v1.x Semantic"
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    # branches: [ master ]
+  schedule:
+    - cron: '44 16 * * 6'
+
+jobs:
+  xlst_generators:
+    name: Generate code from EBML Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get pushed code
+        uses: actions/checkout@v3
+
+      - name: Get EBML Schema
+        run: curl -o ebml_matroska.xml https://raw.githubusercontent.com/ietf-wg-cellar/matroska-specification/master/ebml_matroska.xml
+
+      - name: Setup test tools
+        # we need the apt update because old packages won't load
+        run: |
+          sudo apt update
+          sudo apt install xsltproc
+
+      - name: Generate code
+        run: |
+          xsltproc -o _build/src/KaxSemantic.cpp       spectool/schema_2_kaxsemantic_cpp_1x.xsl ebml_matroska.xml
+          xsltproc -o _build/matroska/KaxSemantic.h    spectool/schema_2_kaxsemantic_h_1x.xsl   ebml_matroska.xml
+
+      - name: Get current libmatroska v1.x code
+        run: |
+          curl -o KaxSemantic.cpp https://raw.githubusercontent.com/Matroska-Org/libmatroska/v1.x/src/KaxSemantic.cpp
+          curl -o KaxSemantic.h   https://raw.githubusercontent.com/Matroska-Org/libmatroska/v1.x/matroska/KaxSemantic.h
+
+      - name: Generate libmatroska v1.x artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libmatroska-semantic
+          path: _build
+
+      - name: Verify libmatroska semantic
+        run: |
+          diff -pur _build/matroska/KaxSemantic.h  KaxSemantic.h   || exit 1
+          diff -pur _build/src/KaxSemantic.cpp     KaxSemantic.cpp || exit 1
