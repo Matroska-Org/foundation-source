@@ -64,10 +64,9 @@ namespace libmatroska {
         <xsl:choose>
             <xsl:when test="@type='master'">
                 <xsl:text>&#10;DEFINE_START_SEMANTIC(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>)&#10;</xsl:text>
                 <xsl:variable name="masterMinVer">
                     <xsl:value-of select="$minVer" />
@@ -88,10 +87,9 @@ namespace libmatroska {
                     </xsl:call-template>
                 </xsl:for-each>
                 <xsl:text>DEFINE_END_SEMANTIC(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>)&#10;&#10;</xsl:text>
 
                 <xsl:text>DEFINE_MKX_MASTER</xsl:text>
@@ -99,10 +97,9 @@ namespace libmatroska {
                 <!-- Needs a special constructor -->
                 <xsl:if test="@name='Attachments' or @name='AttachedFile' or @name='Cluster' or @name='BlockGroup' or @name='TrackEntry'"><xsl:text>_CONS</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -134,10 +131,9 @@ namespace libmatroska {
                     <xsl:otherwise><xsl:text> </xsl:text></xsl:otherwise>
                 </xsl:choose>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -156,10 +152,9 @@ namespace libmatroska {
                 <xsl:text>DEFINE_MKX_UINTEGER</xsl:text>
                 <xsl:if test="@default and (number(@default)=number(@default))"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -181,10 +176,9 @@ namespace libmatroska {
                 <!-- Needs a special constructor -->
                 <xsl:if test="@name='ReferenceBlock'"><xsl:text>_CONS</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -204,10 +198,9 @@ namespace libmatroska {
                 <xsl:text>DEFINE_MKX_UNISTRING</xsl:text>
                 <xsl:if test="@default"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -227,10 +220,9 @@ namespace libmatroska {
                 <xsl:text>DEFINE_MKX_STRING</xsl:text>
                 <xsl:if test="@default"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -250,10 +242,9 @@ namespace libmatroska {
                 <xsl:text>DEFINE_MKX_FLOAT</xsl:text>
                 <xsl:if test="@default and starts-with(@default,'0x')"><xsl:text>_DEF</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -282,10 +273,9 @@ namespace libmatroska {
                     <xsl:otherwise><xsl:text>    </xsl:text></xsl:otherwise>
                 </xsl:choose>
                 <xsl:text>(Kax</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-                    <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-                </xsl:choose>
+                <xsl:call-template name="get-class-name">
+                    <xsl:with-param name="node" select="."/>
+                </xsl:call-template>
                 <xsl:text>, </xsl:text>
                 <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
                 <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
@@ -336,10 +326,9 @@ namespace libmatroska {
         <xsl:otherwise><xsl:text>false</xsl:text></xsl:otherwise>
     </xsl:choose>
     <xsl:text>, Kax</xsl:text>
-    <xsl:choose>
-        <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-        <xsl:otherwise><xsl:value-of select="$node/@name" /></xsl:otherwise>
-    </xsl:choose>
+    <xsl:call-template name="get-class-name">
+        <xsl:with-param name="node" select="."/>
+    </xsl:call-template>
     <xsl:text>)</xsl:text>
     <xsl:if test="$asRecursive=1"><xsl:text> // recursive</xsl:text></xsl:if>
     <xsl:if test="$node/@maxver='0'">
@@ -396,10 +385,9 @@ namespace libmatroska {
 
     <xsl:if test="$node/@maxver='0' or $node/@maxver='1' or $node/@maxver='2' or $node/@maxver='3'">
         <xsl:text>&#10;libebml::filepos_t Kax</xsl:text>
-        <xsl:choose>
-            <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-            <xsl:otherwise><xsl:value-of select="$node/@name" /></xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="get-class-name">
+            <xsl:with-param name="node" select="."/>
+        </xsl:call-template>
         <xsl:text>::RenderData(libebml::IOCallback &amp; /* output */, bool /* bForceRender */, ShouldWrite /* writeFilter */) {&#10;</xsl:text>
         <xsl:text>  assert(false); // no you are not allowed to use this element !&#10;</xsl:text>
         <xsl:text>  return 0;&#10;</xsl:text>
@@ -418,10 +406,9 @@ namespace libmatroska {
     </xsl:variable>
 
     <xsl:for-each select="/ebml:EBMLSchema/ebml:element[$node/@path = concat(concat(@path, '\'), $findName)]">
-        <xsl:choose>
-            <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-            <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="get-class-name">
+            <xsl:with-param name="node" select="."/>
+        </xsl:call-template>
     </xsl:for-each>
   </xsl:template>
 
@@ -447,6 +434,23 @@ namespace libmatroska {
         <xsl:when test="$node/@name='CueRefNumber'">2</xsl:when>
         <xsl:when test="$node/@name='CueRefCodecState'">2</xsl:when>
         <xsl:otherwise><xsl:value-of select="$node/@minver" /></xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="get-class-name">
+    <xsl:param name="node"/>
+
+    <xsl:choose>
+        <xsl:when test="$node/ebml:extension[@cppname]">
+            <xsl:choose>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='TimecodeScale'"><xsl:value-of select="$node/@name" /></xsl:when>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='ReferenceTimeCode'"><xsl:value-of select="$node/@name" /></xsl:when>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='TrackTimecodeScale'"><xsl:value-of select="$node/@name" /></xsl:when>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='ClusterTimecode'">ClusterTimestamp</xsl:when>
+                <xsl:otherwise><xsl:value-of select="$node/ebml:extension[@cppname][1]/@cppname" /></xsl:otherwise>
+            </xsl:choose>
+        </xsl:when>
+        <xsl:otherwise><xsl:value-of select="$node/@name" /></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
