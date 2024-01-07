@@ -94,10 +94,9 @@ namespace libmatroska {
             </xsl:when>
         </xsl:choose>
         <xsl:text>(Kax</xsl:text>
-        <xsl:choose>
-            <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
-            <xsl:otherwise><xsl:value-of select="@name" /></xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="get-class-name">
+            <xsl:with-param name="node" select="."/>
+        </xsl:call-template>
         <xsl:text>)&#10;</xsl:text>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3' or @length">
             <xsl:text>public:&#10;</xsl:text>
@@ -142,6 +141,23 @@ namespace libmatroska {
         <xsl:when test="$node/@name='CueRefNumber'">2</xsl:when>
         <xsl:when test="$node/@name='CueRefCodecState'">2</xsl:when>
         <xsl:otherwise><xsl:value-of select="$node/@minver" /></xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="get-class-name">
+    <xsl:param name="node"/>
+
+    <xsl:choose>
+        <xsl:when test="$node/ebml:extension[@cppname]">
+            <xsl:choose>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='TimecodeScale'"><xsl:value-of select="$node/@name" /></xsl:when>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='ReferenceTimeCode'"><xsl:value-of select="$node/@name" /></xsl:when>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='TrackTimecodeScale'"><xsl:value-of select="$node/@name" /></xsl:when>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='ClusterTimecode'">ClusterTimestamp</xsl:when>
+                <xsl:otherwise><xsl:value-of select="$node/ebml:extension[@cppname][1]/@cppname" /></xsl:otherwise>
+            </xsl:choose>
+        </xsl:when>
+        <xsl:otherwise><xsl:value-of select="$node/@name" /></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
