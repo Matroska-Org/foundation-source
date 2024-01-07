@@ -459,16 +459,25 @@ namespace libmatroska {
     <xsl:param name="node"/>
 
     <xsl:text>, "</xsl:text>
-<!-- <xsl:value-of select="ebml:extension[$node/@cppname][1]/@cppname" /><xsl:text>/ </xsl:text>
-<xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /><xsl:text>/ </xsl:text> -->
     <xsl:choose>
+        <!-- Don't use the cppname for these -->
         <xsl:when test="$node/@name='AttachedFile'"><xsl:value-of select="$node/@name" /></xsl:when>
+        <xsl:when test="$node/@name='TagLanguage'"><xsl:value-of select="$node/@name" /></xsl:when>
+        <xsl:when test="$node/@name='TimestampScale'"><xsl:value-of select="$node/@name" /></xsl:when>
+        <xsl:when test="$node/@name='ReferenceTimestamp'"><xsl:value-of select="$node/@name" /></xsl:when>
+        <xsl:when test="$node/@name='TrackTimestampScale'"><xsl:value-of select="$node/@name" /></xsl:when>
+        <!-- Custom legacy debug names -->
         <xsl:when test="$node/@name='FileMediaType'"><xsl:text>FileMimeType</xsl:text></xsl:when>
         <xsl:when test="$node/@name='SeekHead'"><xsl:text>SeekHeader</xsl:text></xsl:when>
         <xsl:when test="$node/@name='Seek'"><xsl:text>SeekPoint</xsl:text></xsl:when>
-        <xsl:when test="$node/@name='TagLanguage'"><xsl:value-of select="$node/@name" /></xsl:when>
         <xsl:when test="$node/@name='ReferencePriority'"><xsl:text>FlagReferenced</xsl:text></xsl:when>
-        <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
+        <!-- Use the cppname as debug name -->
+        <xsl:when test="$node/ebml:extension[@cppname]">
+            <xsl:choose>
+                <xsl:when test="$node/ebml:extension[@cppname][1]/@cppname='ClusterTimecode'">ClusterTimestamp</xsl:when>
+                <xsl:otherwise><xsl:value-of select="$node/ebml:extension[@cppname][1]/@cppname" /></xsl:otherwise>
+            </xsl:choose>
+        </xsl:when>
         <xsl:otherwise><xsl:value-of select="$node/@name" /></xsl:otherwise>
     </xsl:choose>
     <xsl:text>"</xsl:text>
