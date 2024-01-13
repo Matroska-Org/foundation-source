@@ -105,7 +105,7 @@ namespace libmatroska {
             <xsl:text>  libebml::filepos_t RenderData(libebml::IOCallback &amp; output, bool bForceRender, ShouldWrite writeFilter) override;&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@length">
-            <xsl:text>  bool ValidateSize() const override {return IsFiniteSize() &amp;&amp; GetSize() </xsl:text>
+            <xsl:text>  bool ValidateSize() const override {return GetSize() </xsl:text>
             <xsl:choose>
                 <xsl:when test="contains(@length, '=') or contains(@length, '&lt;') or contains(@length, '&gt;')"><xsl:value-of select="@length"/></xsl:when>
                 <xsl:otherwise><xsl:text>== </xsl:text><xsl:value-of select="@length"/></xsl:otherwise>
