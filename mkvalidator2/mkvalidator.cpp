@@ -50,6 +50,8 @@
 #include <vector>
 #include <limits>
 #include <string.h>
+#include <algorithm>
+#include <memory>
 
 using namespace libmatroska;
 using namespace libebml;
@@ -77,6 +79,7 @@ using tchar_t = char;
 #define TPRIx64 PRIx64
 #define tcslen(s)  strlen(s)
 #define tcscpy_s(d,dn,s) strcpy(d,s)
+#define tcscat_s(d,dn,s) strcat(d,s)
 #define tcscmp(a,b)  strcmp(a,b)
 
 #define Node_FromStr(c,d,dn,s)  strcpy(d,s)
@@ -96,6 +99,7 @@ using array = std::vector<EbmlElement>;
 #define ArrayClear(v)    (v)->clear()
 #define ArrayResize(v,s,t,a) (v)->resize(s)
 #define ArrayZero(v) // nothing, it's always used after resize
+#define ArrayAppend(v,e,s,a)  (v)->push_back(e)
 
 #define NodeDelete(o)    delete o
 
@@ -124,7 +128,7 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 #define EBML_ElementIsType(e,t)       ((e)->GetClassId() == EBML_ID(t))
 #define EBML_ElementReadData(e,i,b,c,s,f) (e)->ReadData(i,s)
 #define EBML_ElementSkipData(e,s,c,p,d)   (e)->SkipData(s,c,p,d)
-#define EBML_FindNextElement(stream, sem, level, dummy) (stream).FindNextElement(sem, *level, UINT64_MAX, dummy)
+#define EBML_FindNextElement(stream, sem, level, dummy) (stream)->FindNextElement(sem, *level, UINT64_MAX, dummy)
 
 #define ERR_NONE  (!INVALID_FILEPOS_T)
 
@@ -132,6 +136,7 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 #define EBML_MasterGetChild(m,c,u)    &GetChild<c>(*m)
 #define EBML_MasterNextChild(m,p)     GetNextChild<decltype(p)>(*m,p)
 #define EBML_MasterIsChecksumValid(m) (m)->VerifyChecksum()
+#define NodeTree_SetParent(e,p,u)     (p)->PushElement(*(e))
 
 #define EBML_IntegerValue(e)          (reinterpret_cast<const EbmlUInteger*>(e))->GetValue()
 
@@ -1224,6 +1229,7 @@ int main(int argc, const char *argv[])
 	void *p;
     // textwriter _StdErr;
     StdIOCallback *Input = NULL;
+	std::unique_ptr<EbmlStream> stream;
     tchar_t Path[MAXPATHFULL];
     tchar_t String[MAXLINE];
     EbmlMaster *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, *RLevelX;
@@ -1304,14 +1310,14 @@ int main(int argc, const char *argv[])
     }
 
     // parse the source file to determine if it's a Matroska file and determine the location of the key parts
-	EbmlStream stream{*Input};
+	stream = std::make_unique<EbmlStream>(*Input);
 #if 0
     RContext.Context = KaxStream;
     RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = NULL;
     RContext.Profile = EBML_ANY_PROFILE;
 #endif
-    EbmlHead = (EbmlMaster*)EBML_FindNextElement(stream, Context_KaxMatroska, &UpperElement, 0);
+    EbmlHead = (EbmlMaster*)EBML_FindNextElement(stream.get(), Context_KaxMatroska, &UpperElement, 0);
 	if (!EbmlHead || !EL_Type(&EbmlHead, libebml::EbmlHead))
     {
         Result = OutputError(3,T("EBML head not found! Are you sure it's a matroska/webm file?"));
@@ -1382,7 +1388,7 @@ int main(int argc, const char *argv[])
     if (!Quiet) fprintf(stderr,T("."));
 
 	// find the segment
-	RSegment = (EbmlMaster*)EBML_FindNextElement(stream, Context_KaxMatroska, &UpperElement, 1);
+	RSegment = (EbmlMaster*)EBML_FindNextElement(stream.get(), Context_KaxMatroska, &UpperElement, 1);
     if (RSegment == NULL)
     {
         Result = OutputError(0x20, T("No Segment found"));
@@ -1400,7 +1406,7 @@ int main(int argc, const char *argv[])
 	UpperElement = 0;
 	DotCount = 0;
 	Prev = NULL;
-    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream, Context_KaxSegment, &UpperElement, 1);
+    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream.get(), Context_KaxSegment, &UpperElement, 1);
     while (RLevel1)
 	{
         RLevelX = NULL;
@@ -1408,11 +1414,12 @@ int main(int argc, const char *argv[])
         {
             if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,0,SCOPE_PARTIAL_DATA,4)!=INVALID_FILEPOS_T)
 			{
-                ArrayAppend(&RClusters,&RLevel1,sizeof(RLevel1),256);
-				NodeTree_SetParent(RLevel1, RSegment, NULL);
+                ArrayAppend(&RClusters,(KaxCluster*)RLevel1,sizeof(RLevel1),256);
+				((KaxCluster*)RLevel1)->SetParent(*(KaxSegment*)RSegment);
+				// NodeTree_SetParent(RLevel1, RSegment, NULL);
 				VoidAmount += CheckUnknownElements(RLevel1);
 				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-                RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, stream, Context_KaxSegment, NULL, 1);
+                RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
 			}
 			else
 			{
@@ -1425,7 +1432,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 OutputWarning(0x170,T("The live stream has a SeekHead at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, stream, Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
@@ -1512,7 +1519,7 @@ int main(int argc, const char *argv[])
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
-                            TrackMax = max(TrackMax,(size_t)EL_Int(EbmlDocVer));
+                            TrackMax = std::max(TrackMax,(size_t)EL_Int(EbmlDocVer));
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EL_Int(EbmlDocVer);
                         }
                         EbmlDocVer = EBML_MasterFindChild(Elt,KaxTrackType);
@@ -1545,7 +1552,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 OutputWarning(0x171,T("The live stream has Cues at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, stream, Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
@@ -1572,7 +1579,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x172,T("The live stream has Chapters at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, stream, Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
@@ -1619,7 +1626,7 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x173,T("The live stream has a Attachments at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, stream, Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
@@ -1653,7 +1660,7 @@ int main(int argc, const char *argv[])
 			{
 				VoidAmount += EBML_ElementFullSize(RLevel1,0);
 			}
-			RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, stream, Context_KaxSegment, NULL, 1);
+			RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
             NodeDelete(RLevel1);
             RLevel1 = NULL;
 		}
@@ -1667,7 +1674,7 @@ int main(int argc, const char *argv[])
         if (RLevelX)
             RLevel1 = RLevelX;
         else
-		    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream, Context_KaxSegment, &UpperElement, 1);
+		    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream.get(), Context_KaxSegment, &UpperElement, 1);
 	}
 
 	if (!RSegmentInfo)
@@ -1791,6 +1798,7 @@ exit:
     if (EbmlHead)
         NodeDelete(EbmlHead);
     ArrayClear(&Tracks);
+	stream.reset();
 	delete Input;
 
 #if 0
