@@ -1,0 +1,181 @@
+2021-01-31
+version 0.6.0:
+    - replace coremake meta-build project with CMake projects
+    - add support for new (audio/subtitle) track selection elements
+    - fix misc warnings with modern C compilers (Clang 11, MSVC 19)
+    - fix elements changes from the latest Matroska IETF spec
+
+2017-08-22
+version 0.5.2:
+    - Display the filename at the end of the processing
+    - Add a --quick option to exit after the first error/warning
+    - Add new elements from IETF CELLAR group
+    - Deprecate more elements based on IETF CELLAR group
+    - fix crash with files that have no Segment
+    - fix crash on incomplete files
+    - fix crash on invalid ID
+    - fix bitrate display for high bitrate on large files
+
+2015-03-25
+version 0.5.0:
+    - Use DocType and not read DocType as the profile to check elements against
+    - Fix bug comparing DocType and read DocType versions the wrong way around:
+      read DocType must be smaller than or equal to DocType
+
+2012-xx-xx
+version 0.4.2:
+    - add support for Matroska v4 elements like CueDuration and CueRelativePosition
+
+2012-08-26
+version 0.4.1:
+    - handle non-latin command-line characters on windows
+    - detect elements with bogus sizes
+
+2012-05-13
+version 0.4.0:
+    - better differentiation between errors (will not play/not following specs) and warnings
+    - don't warn about a Cluster not starting with a keyframe if it has no keyframe
+
+2011-09-25
+version 0.3.7:
+    - allow TrueHD to have non-keyframes in the audio stream
+    - issue a warning when an aspect ratio unit seems to be in pixel values
+
+2011-08-15
+version 0.3.6:
+    - verify that the audio sampling freq is not 0
+
+2011-07-10
+version 0.3.5:
+    - fix the keyframe detection for WebM alt-ref frames (0 duration = non keyframe)
+    - More detailed error messages
+
+2011-04-03
+version 0.3.4:
+    - FlagForced, BlockVirtual and Slices should not be found multiple times at their level
+    - VideoFrameRate is not used in any profile
+    - add some support for some experimental elements from the generated specs
+
+2011-03-06
+version 0.3.3:
+    - add support for Matroska v3
+    - fix some mismatches with the specifications (especially WebM)
+
+2010-12-12
+version 0.3.2:
+    - header/zlib compression is not allowed in WebM
+
+2010-11-21
+version 0.3.1:
+    - fix some files reported as fine even though it contains hidden junk (not seen by libebml2 so far)
+    - fix return an error code when the Cue entries was reported as broken
+    - a warning on the aspect ratio should not result in an error code
+
+2010-11-14
+version 0.3.0:
+    - allow StereoMode for WebM
+    - internal code shuffling
+
+2010-11-01
+version 0.2.4:
+    - add a --quiet option
+
+2010-09-02
+version 0.2.3:
+    - fix the UNIX source package
+
+2010-08-22
+version 0.2.2:
+    - better error reporting for damaged files
+    - fix a potential crash when the last level1 encountered wasn't a legal element
+    - check the CRC-32 in the EBML head too
+    - don't crash when a Block with an invalid ID is found
+
+2010-08-14
+version 0.2.1:
+    - check if the CRC-32 is valid
+    - don't complain about a missing Cue if there is only one Cluster
+
+2010-08-05
+version 0.2.0:
+    - add --help and --version CLI options
+    - verify that the cropping values are correct
+    - verify that display values of 0 are not used
+    - check that the codec IDs are uppercase
+    - check that codec IDs are in the format (A|V|S|B)_xxx
+    - a display value can't be implied if it's not in pixels
+
+2010-07-19
+version 0.1.12:
+    - fix a crash when the DisplayWidth/DisplayHeight was not written in the file
+    - check that the Segment size matches the size of the data inside
+    - reject files that don't have an EBML header
+
+2010-07-17
+version 0.1.11:
+    - bootstrap.sh should now call the correct coremake config depending on the host platform
+    - rename boostrap.sh to configure
+    - read the track info even if there were errors before in the file
+    - check that track attachment links point to valid attachments
+    - add an option to accept DivX extensions (TrickTrack and font start/stop) with --divx
+
+2010-07-12
+version 0.1.10:
+    - display the 64 bits integers correctly on all platforms
+    - output a warning/error when incorrect aspect ratio values are detected
+    - output a warning when there is more than 4 KB of void data
+
+2010-06-24
+version 0.1.9:
+    - add a --details parameter to show the various tracks and bitrate of valid files
+    - add a warning when a track is defined but has no frame defined
+    - verify that timecodes of clusters are increasing
+    - fix keyframe checking of the first video frame of each cluster
+
+2010-05-27
+version 0.1.8:
+    - add a --live parameter to only check errors and warnings relevant to live streams
+    - fix some default values in chapters
+    - fix the end of reading of a master when the size is unknown/infinite
+    - adjust the severe/benign warnings and errors
+
+2010-05-23
+version 0.1.7:
+    - very that the Cluster PrevSize and Position are valid
+    - check when unique elements are found twice
+    - warn when a secondary SeekHead is found (useless)
+    - make sure audio frames are all keyframes (no known codec so far are not)
+    - warn when a Cluster's first video track is not a keyframe
+    - fix issues with live streams
+    - warn when a top level element is not present in the main SeekHead
+    - disable warnings with --no-warn
+
+2010-05-20
+version 0.1.6:
+    - unobfuscate the 'webm' and 'V_VP8' strings
+    - fix a crash when reading Sorenson Squeeze files (Ebml Void in the header)
+
+2010-05-18
+version 0.1.5:
+    - new package due to a bug in libmatroska2 0.9.6
+
+2010-05-17
+version 0.1.4:
+    - better profile handling
+
+2010-05-16
+version 0.1.3:
+    - verify that no lacing is used when lacing is disabled in the Track
+
+2010-05-15
+version 0.1.2:
+    - check the Cue entries for erroneous entries
+    - check if the Track entries are properly defined
+
+2010-05-14
+version 0.1.1:
+    - check the validity of (primary and secondary) SeekHead entries
+
+2010-05-13
+version 0.1.0:
+    - basic EBML/mandatory/profile checking

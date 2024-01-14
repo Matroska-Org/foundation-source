@@ -1,0 +1,33 @@
+# corec
+@PROJECT_SOURCE_DIR@/../corec @PROJECT_NAME@-@PROJECT_VERSION@/corec
+
+# libebml2
+@PROJECT_SOURCE_DIR@/../libebml2 @PROJECT_NAME@-@PROJECT_VERSION@/libebml2
+
+# libmatroska2
+@PROJECT_SOURCE_DIR@/../libmatroska2 @PROJECT_NAME@-@PROJECT_VERSION@/libmatroska2
+
+# @PROJECT_NAME@
+@PROJECT_SOURCE_DIR@ @PROJECT_NAME@-@PROJECT_VERSION@/@PROJECT_NAME@
+CMakeLists.txt @PROJECT_NAME@-@PROJECT_VERSION@/CMakeLists.txt
+#@PROJECT_NAME@_project.h @PROJECT_NAME@-@PROJECT_VERSION@/@PROJECT_NAME@/@PROJECT_NAME@_project.h
+@PROJECT_SOURCE_DIR@/ChangeLog.txt @PROJECT_NAME@-@PROJECT_VERSION@/ChangeLog.txt
+@PROJECT_SOURCE_DIR@/ReadMe.txt @PROJECT_NAME@-@PROJECT_VERSION@/ReadMe.txt
+@PROJECT_SOURCE_DIR@/@PROJECT_NAME@-@PROJECT_VERSION@ -
+
+
+*.br -
+*.vs -
+Makefile -
+*.vcproj -
+*.vcxproj -
+*.vcxproj.* -
+*.sln -
+*_project.h -
+*_stdafx.* -
+*.tlog -
+*.obj -
+*.log -
+*.pdb -
+*.zip -
+*.tar.bz2 -
