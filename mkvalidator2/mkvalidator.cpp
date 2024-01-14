@@ -134,7 +134,7 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 
 #define EBML_MasterFindChild(m,c)     FindChild<c>(*m)
 #define EBML_MasterGetChild(m,c,u)    &GetChild<c>(*m)
-#define EBML_MasterNextChild(m,p)     GetNextChild<decltype(p)>(*m,p)
+#define EBML_MasterNextChild(m,p)     FindNextChild(*m, *p)
 #define EBML_MasterIsChecksumValid(m) (m)->VerifyChecksum()
 #define NodeTree_SetParent(e,p,u)     (p)->PushElement(*(e))
 
