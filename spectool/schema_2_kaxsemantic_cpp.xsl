@@ -99,7 +99,7 @@ static constexpr const MatroskaProfile VERSION_DIVX_ONLY    = {false, true, Matr
                 <xsl:text>DEFINE_MKX_MASTER</xsl:text>
                 <xsl:if test="not(contains(substring($plainPath,2),'\'))"><xsl:text>_ORPHAN</xsl:text></xsl:if>
                 <!-- Needs a special constructor -->
-                <xsl:if test="@name='Attachments' or @name='AttachedFile' or @name='Cluster' or @name='BlockGroup' or @name='TrackEntry'"><xsl:text>_CONS</xsl:text></xsl:if>
+                <xsl:if test="@name='Attachments' or @name='AttachedFile' or @name='Cluster' or @name='BlockGroup'"><xsl:text>_CONS</xsl:text></xsl:if>
                 <xsl:text>(Kax</xsl:text>
                 <xsl:call-template name="get-class-name">
                     <xsl:with-param name="node" select="."/>
