@@ -697,7 +697,7 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 	ebml_element *Elt;
 	int64_t TrackNum = -1;
 	size_t *order;
-	
+
 	if (TrackOrder)
 		order = ARRAYBEGIN(*TrackOrder,size_t);
 	else
@@ -893,7 +893,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
     int TrackNum, Width, Height;
     MatroskaTrackType TrackType;
     tchar_t CodecID[MAXPATH];
-    
+
     for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track;)
     {
 		CurTrack = Track;
@@ -926,7 +926,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
 
         if (ARRAYCOUNT(*Alternate3DTracks, block_info*) >= (size_t)TrackNum && TrackType!=MATROSKA_TRACK_TYPE_VIDEO)
             ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackNum] = NULL;
-		
+
         // clean the aspect ratio
         Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextVideo());
         if (Elt)
@@ -1123,7 +1123,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                         Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextFlagEnabled());
                                         if (Elt)
                                             EBML_IntegerSetValue((ebml_integer*)Elt,1);
-                                        
+
                                         Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextFlagLacing());
                                         NodeDelete((node*)Elt);
                                         Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextMinCache());
@@ -1387,7 +1387,7 @@ static void WriteJunk(stream *Output, size_t Amount)
 		Stream_Write(Output,&Val,1,NULL);
 }
 
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 int wmain(int argc, const wchar_t *argv[])
 #else
 int main(int argc, const char *argv[])
@@ -1444,7 +1444,7 @@ int main(int argc, const char *argv[])
     memset(StdErr,0,sizeof(_StdErr));
     StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
 
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
     Node_FromWcs(&p,Path,TSIZEOF(Path),argv[0]);
 #else
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[0]);
@@ -1457,7 +1457,7 @@ int main(int argc, const char *argv[])
 
 	for (i=1;i<argc;++i)
 	{
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 	    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[i]);
 #else
 	    Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
@@ -1467,7 +1467,7 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--live"))) { Live = 1; InputPathIndex = i+1; }
 		else if (tcsisame_ascii(Path,T("--doctype")) && i+1<argc-1)
 		{
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 		    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
 #else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
@@ -1497,7 +1497,7 @@ int main(int argc, const char *argv[])
 		}
 		else if (tcsisame_ascii(Path,T("--timecodescale")) && i+1<argc-1)
 		{
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 		    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
 #else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
@@ -1508,7 +1508,7 @@ int main(int argc, const char *argv[])
 		else if (tcsisame_ascii(Path,T("--alt-3d")) && i+1<argc-1)
 		{
             size_t TrackId;
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 		    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
 #else
 		    Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
@@ -1533,7 +1533,7 @@ int main(int argc, const char *argv[])
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; InputPathIndex = i+1; }
 		else if (i<argc-2) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
-    
+
     if (argc < (1+InputPathIndex) || ShowVersion)
     {
         TextWrite(StdErr,PROJECT_NAME T(" v") PROJECT_VERSION T(", Copyright (c) 2010-2020 Matroska Foundation\r\n"));
@@ -1567,7 +1567,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
     Node_FromWcs(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
 #else
     Node_FromUTF8(&p,Path,TSIZEOF(Path),argv[InputPathIndex]);
@@ -1601,7 +1601,7 @@ int main(int argc, const char *argv[])
             stcatprintf_s(Path,TSIZEOF(Path),T("clean.%s"),String);
     }
     else
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
         Node_FromWcs(&p,Path,TSIZEOF(Path),argv[argc-1]);
 #else
         Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
@@ -2608,7 +2608,7 @@ int main(int argc, const char *argv[])
 								ReachedClusterEnd = 1;
 							break;
 						}
-					} 
+					}
 				}
 			}
 		}
@@ -2655,7 +2655,7 @@ int main(int argc, const char *argv[])
 				    Elt2 = EBML_MasterFindFirstElt(RLevel1,MATROSKA_getContextFlagLacing(),1,0,0);
 				    EBML_IntegerSetValue((ebml_integer*)Elt2,0);
 			    }
-                
+
                 CodecPrivate = (ebml_binary*) EBML_MasterFindChild(RLevel1,MATROSKA_getContextCodecPrivate());
                 if (CodecPrivate && EBML_ElementDataSize((ebml_element*)CodecPrivate, 1)==0)
                 {
@@ -2811,7 +2811,7 @@ int main(int argc, const char *argv[])
 
         if (!RAttachments)
             ExtraVoidSize += EXTRA_SEEK_SPACE;
-    
+
         if (!RChapters)
             ExtraVoidSize += EXTRA_SEEK_SPACE;
 
