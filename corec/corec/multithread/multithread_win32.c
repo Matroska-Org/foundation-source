@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
 
 #include "multithread.h"
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 
 //#define LOCK_TIMEOUT
 
@@ -201,7 +201,7 @@ uint32_t ThreadCPUMask()
 {
 	uintptr_t a=0;
 	uintptr_t b;
-	if ((!FuncGetProcessAffinityMask && !FindGetProcessAffinityMask()) || 
+	if ((!FuncGetProcessAffinityMask && !FindGetProcessAffinityMask()) ||
 		!FuncGetProcessAffinityMask(GetCurrentProcess(),&a,&b))
 		a = 0;
 	return (uint32_t)a;
@@ -218,16 +218,16 @@ void SemaphoreClose(void* Handle)
 }
 
 bool_t SemaphoreWait(void* Handle,int Time)
-{ 
-	return WaitForSingleObject(Handle,Time) == WAIT_OBJECT_0; 
+{
+	return WaitForSingleObject(Handle,Time) == WAIT_OBJECT_0;
 }
 
-void SemaphoreRelease(void* Handle,int n) 
-{ 
-	ReleaseSemaphore(Handle,n,NULL); 
+void SemaphoreRelease(void* Handle,int n)
+{
+	ReleaseSemaphore(Handle,n,NULL);
 }
 
-typedef struct condition_t 
+typedef struct condition_t
 {
 	LONG waiters;
 	void *semaphore;
@@ -257,7 +257,7 @@ bool_t ConditionWait(void* Handle, int Tick, void *Lock)
     InterlockedIncrement(&cond->waiters);
 	LockLeave(Lock);
 	ret = SemaphoreWait(cond->semaphore, Tick);
-	if (!ret) 
+	if (!ret)
         InterlockedDecrement(&cond->waiters);
 	LockEnter(Lock);
 	return ret;

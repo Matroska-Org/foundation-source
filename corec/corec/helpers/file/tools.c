@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -36,7 +36,7 @@ bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 
 	p = (tchar_t*) GetProtocol(URL,NULL,0,&HasHost);
 	q = p;
-	
+
 	p = tcsrchr(q,'\\');
     p2 = tcsrchr(q,'/');
     if (!p || (p2 && p2>p))
@@ -46,7 +46,7 @@ bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 	else
 	if (HasHost) // only hostname
 		return 0;
-	
+
 	if (!q[0]) // no filename at all?
 		return 0;
 
@@ -62,7 +62,7 @@ bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 void AddPathDelimiter(tchar_t* Path,size_t PathLen)
 {
     size_t n = tcslen(Path);
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     bool_t HasProtocol = GetProtocol(Path,NULL,0,NULL)==Path;
 	if (!n || (n>0 && (HasProtocol || Path[n-1] != '/') && (!HasProtocol || Path[n-1] != '\\')))
 	{
@@ -81,7 +81,7 @@ void RemovePathDelimiter(tchar_t* Path)
 {
     size_t n = tcslen(Path);
 	const tchar_t* s = GetProtocol(Path,NULL,0,NULL);
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     bool_t HasProtocol = s==Path;
 	if (s[0] && n>0 && ((HasProtocol && Path[n-1] == '\\') || (!HasProtocol && Path[n-1] == '/')))
 #else
@@ -166,7 +166,7 @@ bool_t SplitAddr(const tchar_t* URL, tchar_t* Peer, int PeerLen, tchar_t* Local,
         p2 = p;
     else
         Result = 1;
-    
+
     if (Peer)
         tcsncpy_s(Peer,PeerLen,URL,p2-URL);
 
@@ -197,7 +197,7 @@ void SplitURL(const tchar_t* URL, tchar_t* Protocol, int ProtocolLen, tchar_t* H
         if (!p)
             p = URL+tcslen(URL);
 
-        p2 = tcschr(URL,':'); 
+        p2 = tcschr(URL,':');
 	    if (p2 && p2<p)
 	    {
             if (Port)
@@ -239,7 +239,7 @@ void SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int 
 	tchar_t LocalURL[MAXPATH];
 	tchar_t Protocol[MAXPATH];
 
-	// mime 
+	// mime
 	p = GetProtocol(URL,Protocol,TSIZEOF(Protocol),&HasHost);
 
 	// dir
@@ -351,7 +351,7 @@ bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen)
 
 	RemovePathDelimiter(Path);
 	c = (tchar_t*)GetProtocol(Path,Mime,TSIZEOF(Mime),&HasHost);
-	
+
 	a = tcsrchr(c,'\\');
 	b = tcsrchr(c,'/');
 	if (!a || (b && b>a))
@@ -417,12 +417,12 @@ void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base)
 	else
 	if (Base && GetProtocol(Path,NULL,0,NULL)==Path && Path[0] != '/' && Path[0] != '\\' &&
 		!(Path[0] && Path[1]==':' && (Path[2]=='\\' || Path[2]=='\0')))
-	{	
+	{
 		// doesn't have mime or drive letter or pathdelimiter at the start
 		const tchar_t* MimeEnd = GetProtocol(Base,NULL,0,NULL);
 		tcscpy_s(Abs,AbsLen,Base);
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 		if (MimeEnd==Base)
 			AddPathDelimiter(Abs,AbsLen);
 		else
@@ -448,7 +448,7 @@ void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
     }
     else
     {
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
         tchar_t *i;
 		for (i=Abs;*i;++i)
 			if (*i == '/')
@@ -463,7 +463,7 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
     Folder = tcsstr(Abs,T("://")); // skip the protocol
     if (Folder)
         Abs = Folder+3;
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     Back = tcsstr(Abs,T("\\\\"));
 #else
     Back = tcsstr(Abs,T("//"));
@@ -471,14 +471,14 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
     while (Back)
     {
         memmove(Back,Back+1,tcsbytes(Back+1));
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
         Back = tcsstr(Abs,T("\\\\"));
 #else
         Back = tcsstr(Abs,T("//"));
 #endif
     }
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     Back = tcsstr(Abs,T("\\.."));
 #else
     Back = tcsstr(Abs,T("/.."));
@@ -488,7 +488,7 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
         Folder = Back;
         while (--Folder >= Abs)
         {
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
             if (*Folder == T('\\'))
 #else
             if (*Folder == T('/'))
@@ -498,7 +498,7 @@ void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
                 break;
             }
         }
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
         Back = tcsstr(Abs,T("\\.."));
 #else
         Back = tcsstr(Abs,T("/.."));
@@ -531,7 +531,7 @@ int CheckExts(const tchar_t* URL, const tchar_t* Exts)
 int ScaleRound(int_fast32_t v,int_fast32_t Num,int_fast32_t Den)
 {
 	int64_t i;
-	if (!Den) 
+	if (!Den)
 		return 0;
 	i = (int64_t)v * Num;
 	if (i<0)
@@ -596,7 +596,7 @@ void SplitURLLogin(const tchar_t *URL, tchar_t *UserName, size_t UserNameLen, tc
     if (SplitAddr(URL, LoginPass, TSIZEOF(LoginPass), NULL, 0))
     {
         tchar_t *s,*t;
-        if (URL2) 
+        if (URL2)
         {
             tcscpy_s(URL2, URL2Len, URL);
             t = (tchar_t*)GetProtocol(URL2,NULL,0,NULL);
@@ -614,7 +614,7 @@ void SplitURLLogin(const tchar_t *URL, tchar_t *UserName, size_t UserNameLen, tc
 // missing: resolving escape sequences
             if (Password)
                 tcscpy_s(Password, PasswordLen, s);
-        }  
+        }
         else
             tcsclr_s(Password, PasswordLen);
         if (UserName)
@@ -641,7 +641,7 @@ void SplitShare(const tchar_t *Path, tchar_t *Share, size_t ShareLen, tchar_t *P
              tcsncpy_s(Share, ShareLen, Path, s1 - Path);
         if (Path2)
              tcscpy_s(Path2, Path2Len, s1);
-    } else 
+    } else
     {
         if (Share)
              tcscpy_s(Share, ShareLen, Path);
@@ -703,7 +703,7 @@ tchar_t *AddCacheURL(tchar_t* Out, size_t Len, const tchar_t *In)
             *Out = 0;
     }
     else
-        stprintf_s(Out, Len, T("cache://%s"), In);   
+        stprintf_s(Out, Len, T("cache://%s"), In);
     return Out;
 }
 
@@ -724,10 +724,10 @@ bool_t RemoveURLParam(tchar_t* URL, const tchar_t* Param)
     l = tcslen(Param);
     if (!l)
         return 0;
-    s1 = tcschr(URL, '?'); 
+    s1 = tcschr(URL, '?');
     if (!s1)
-        s1 = tcschr(URL, ';'); 
-    while (s1) 
+        s1 = tcschr(URL, ';');
+    while (s1)
     {
         s2 = tcschr(s1+1, '&');
         if (!s2)
@@ -780,7 +780,7 @@ err_t FileStat(nodecontext* p, const tchar_t* Path, streamdir* Item)
         } while (Result == ERR_NONE);
     }
     NodeDelete((node *) s);
-	if (Result != ERR_NONE) 
+	if (Result != ERR_NONE)
 		Result = ERR_FILE_NOT_FOUND;
     return Result;
 }

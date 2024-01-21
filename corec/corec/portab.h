@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -534,7 +534,7 @@ static INLINE void* SwapSP(void* in)
 
 #endif /* __GNUC__ */
 
-#if defined(_MSC_VER) && defined(TARGET_WIN)
+#if defined(_MSC_VER) && defined(_WIN32)
 #define TRY_BEGIN __try {
 #define TRY_END   ;} __except (1) {}
 #define TRY_END_FUNC(func) ;} __except (1) { func; }
@@ -572,7 +572,7 @@ typedef int_fast32_t filepos_t;
 
 #define INVALID_FILEPOS_T  ((filepos_t)-1)
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 typedef long systick_t; /* same size as DWORD */
 #else
 typedef int systick_t;

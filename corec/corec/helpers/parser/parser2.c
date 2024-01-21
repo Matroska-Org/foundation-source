@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -312,7 +312,7 @@ const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
     Write = p->Buffer.Write; \
 
 #define PARSER_SAVE(p) \
-    p->Buffer.Read = Read; 
+    p->Buffer.Read = Read;
 
 #define PARSER_FILL(p) \
     PARSER_SAVE(p) \
@@ -447,7 +447,7 @@ typedef struct htmlchar
 static const htmlchar HTMLChar[] =
 {
 	{34,T("quot")},
-	{38,T("amp")},	
+	{38,T("amp")},
     {39,T("apos")},
 	{60,T("lt")},
 	{62,T("gt")},
@@ -717,7 +717,7 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
 
             if (Delimiter != '\n') // not ParserLine
                 ParserHTMLChars(p,Out,OutLen);
-            
+
             if (p->URL)
                 ParserHTMLToURL(Out,OutLen);
         }
@@ -906,7 +906,7 @@ bool_t ParserIsRootElement(parser *p, tchar_t* Root, size_t RootLen)
         {
             ParserElementSkip(p);
         }
-		else 
+		else
         {
             tcscpy_s(Root,RootLen,Token);
             return 1;
@@ -1349,7 +1349,7 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
 	case TYPE_BOOLEAN:
 		*(bool_t*)Data = StringToInt(Value,-1);
 		break;
-		
+
 	case TYPE_FOURCC:
 		*(fourcc_t*)Data = StringToFourCC(Value,(Flags & TUNIT_MASK)==TUNIT_UPPER);
 		break;
@@ -1385,7 +1385,7 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
     case TYPE_POINT:
     case TYPE_POINT16:
         return ExprToData(Data,&Size,Flags,State,&Value);
-        
+
 	default:
 		return 0;
 	}
@@ -1436,7 +1436,7 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
 
             if (!ExprToData(Data,&Size,Flags,State,&Expr))
                 break;
-            
+
             if (!ArrayAppend(&Array,Data,Size,0))
                 break;
 
@@ -1532,10 +1532,10 @@ err_t TextWrite(textwriter* p, const tchar_t* Msg)
 	size_t i;
 	char s[MAXLINE];
 	CharConvST(p->CC,s,sizeof(s),Msg);
-		
+
 	i = strlen(s);
-	
-#if defined(TARGET_WIN)
+
+#if defined(_WIN32)
 	{
 		char* nl = s;
 		while (i+1<sizeof(s) && (nl = strchr(nl,10))!=NULL)
@@ -1670,7 +1670,7 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
 	case TYPE_BOOLEAN:
 		IntToString(Value,ValueLen,(int32_t)*(bool_t*)Data,0);
 		break;
-		
+
 	case TYPE_FOURCC:
 		FourCCToString(Value,ValueLen,*(fourcc_t*)Data);
 		break;
@@ -1729,7 +1729,7 @@ void TextAttribEx(textwriter* Text, const tchar_t* Name, const void* Data, size_
         case TYPE_PACKET:
             DumpPtr(Text,Name,((pin*)Data)->Node,((pin*)Data)->Id,Value,TSIZEOF(Value));
             return;
-	    
+
         case TYPE_NODE:
             DumpPtr(Text,Name,*(node**)Data,0,Value,TSIZEOF(Value));
             return;
@@ -1827,7 +1827,7 @@ void TextElementAppendData(textwriter* Text, const tchar_t *Value)
 {
     if (Text->Deep==1 && tcsisame_ascii(Value,T(" ")))
         return; // root element
-    if (Text->HasChild) 
+    if (Text->HasChild)
 		TextWrite(Text,Value);
     else {
 		TextPrintf(Text,T(">%s"), Value);
@@ -2454,7 +2454,7 @@ void SimplifyFrac(cc_fraction* f, int64_t Num, int64_t Den)
             Den >>= 1;
         }
     }
-    
+
     f->Num = (int)(Sign?-Num:Num);
     f->Den = (int)Den;
 }
@@ -2639,7 +2639,7 @@ static void NodeDumpObject(node* p,textwriter* Text)
 	tchar_t Element[8];
     node** i;
 
-	TRY_BEGIN 
+	TRY_BEGIN
     if (!(NodeClassFlags(p) & CFLAG_LOCAL)) // example skin UI stuff
     {
         FourCCToString(Element,TSIZEOF(Element),Node_ClassId(p));
@@ -2658,7 +2658,7 @@ static void NodeDumpObject(node* p,textwriter* Text)
 
 void NodeDump(nodecontext* p,textwriter* Text)
 {
-	//no NodeLock, because may be stayed locked when dumping after crash 
+	//no NodeLock, because may be stayed locked when dumping after crash
 	node **i;
 	for (i=ARRAYBEGIN(p->NodeSingleton,node*);i!=ARRAYEND(p->NodeSingleton,node*);++i)
 		if (*i)

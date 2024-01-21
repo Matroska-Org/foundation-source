@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
 
 #include "file.h"
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 
 #ifndef STRICT
 #define STRICT
@@ -155,9 +155,9 @@ static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
     else
     {
 	    DWORD Error = GetLastError();
-	    if (Error == ERROR_DEVICE_REMOVED || 
+	    if (Error == ERROR_DEVICE_REMOVED ||
 		    Error == ERROR_DEVICE_NOT_AVAILABLE ||
-		    Error == ERROR_INVALID_HANDLE || 
+		    Error == ERROR_INVALID_HANDLE ||
 		    Error == ERROR_INVALID_DRIVE_OBJECT ||
 		    Error == ERROR_DEV_NOT_EXIST ||
 		    Error == ERROR_GEN_FAILURE)
@@ -166,7 +166,7 @@ static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
         Err = ERR_READ;
         n = 0;
     }
-    
+
     if (Readed)
         *Readed = n;
 
@@ -332,7 +332,7 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 	    while (!Item->FileName[0] && p->Find != INVALID_HANDLE_VALUE)
 	    {
 		    if (p->FindData.cFileName[0]!='.' && // skip unix/mac hidden files and . .. directory entries
-                !(p->FindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)) 
+                !(p->FindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
 		    {
 			    tcscpy_s(Item->FileName,TSIZEOF(Item->FileName),p->FindData.cFileName);
 
@@ -352,7 +352,7 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 					    Item->FileName[0] = 0; // skip
 			    }
 		    }
-			    
+
 		    if (!FindNextFile(p->Find,&p->FindData))
 		    {
 			    FindClose(p->Find);

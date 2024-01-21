@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
 #include "charconvert.h"
 #include "corec/str/str.h"
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 
 #ifndef STRICT
 #define STRICT
@@ -82,7 +82,7 @@ void CharConvSW(charconv* CC, char* Out, size_t OutLen, const wchar_t* In)
 	{
 		for (;OutLen>1 && *In;++In,--OutLen,++Out)
 			*Out = (char)(*In>255?'*':*In);
-		*Out = 0;	
+		*Out = 0;
 	}
 }
 
@@ -108,7 +108,7 @@ typedef struct codepage
 
 } codepage;
 
-static const codepage CodePage[] = 
+static const codepage CodePage[] =
 {
     {T("UTF-7"),        CP_UTF7,0},
     {T("UTF-8"),        CP_UTF8,0},

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -29,7 +29,7 @@
 
 #include "str.h"
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 
 #ifdef _MSC_VER
 #define wcsicmp _wcsicmp
@@ -42,7 +42,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-int tcsicmp(const tchar_t* a,const tchar_t* b) 
+int tcsicmp(const tchar_t* a,const tchar_t* b)
 {
     int i = CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,a,-1,b,-1);
     if (i)
@@ -56,7 +56,7 @@ int tcsicmp(const tchar_t* a,const tchar_t* b)
 #endif
 }
 
-int tcsnicmp(const tchar_t* a,const tchar_t* b,size_t n) 
+int tcsnicmp(const tchar_t* a,const tchar_t* b,size_t n)
 {
     int i = CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,a,min(tcslen(a),n),b,min(tcslen(b),n));
     if (i)
@@ -70,7 +70,7 @@ int tcsnicmp(const tchar_t* a,const tchar_t* b,size_t n)
 #endif
 }
 
-int tcscmp(const tchar_t* a,const tchar_t* b) 
+int tcscmp(const tchar_t* a,const tchar_t* b)
 {
     int i = CompareString(LOCALE_USER_DEFAULT,0,a,-1,b,-1);
     if (i)
@@ -84,7 +84,7 @@ int tcscmp(const tchar_t* a,const tchar_t* b)
 #endif
 }
 
-int tcsncmp(const tchar_t* a,const tchar_t* b,size_t n) 
+int tcsncmp(const tchar_t* a,const tchar_t* b,size_t n)
 {
     int i = CompareString(LOCALE_USER_DEFAULT,0,a,min(tcslen(a),n),b,min(tcslen(b),n));
     if (i)

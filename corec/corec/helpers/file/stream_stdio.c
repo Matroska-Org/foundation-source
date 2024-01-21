@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
 #include "file.h"
 
 #include <stdio.h>
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 #include <fcntl.h>
 #include <io.h>
 #else
@@ -79,7 +79,7 @@ static err_t Flush(stdio_stream *p)
 
 static err_t CreateStdIn(stdio_stream *p)
 {
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     _setmode(_fileno(stdin),_O_BINARY);
 #endif
     p->Stream = stdin;
@@ -88,7 +88,7 @@ static err_t CreateStdIn(stdio_stream *p)
 
 static err_t GetTty(stdio_stream *p, dataid UNUSED_PARAM(Id), bool_t *Value, size_t UNUSED_PARAM(Size))
 {
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     *Value = _isatty(_fileno(p->Stream))!=0;
 #else
     *Value = isatty(fileno(p->Stream))!=0;
@@ -98,7 +98,7 @@ static err_t GetTty(stdio_stream *p, dataid UNUSED_PARAM(Id), bool_t *Value, siz
 
 static err_t CreateStdOut(stdio_stream *p)
 {
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     _setmode(_fileno(stdout),_O_BINARY);
 #endif
     p->Stream = stdout;
@@ -107,7 +107,7 @@ static err_t CreateStdOut(stdio_stream *p)
 
 static err_t CreateStdErr(stdio_stream *p)
 {
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
     _setmode(_fileno(stderr),_O_BINARY);
 #endif
     p->Stream = stderr;

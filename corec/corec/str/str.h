@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -77,7 +77,7 @@ STR_DLL tchar_t* tcsreplacechar(tchar_t *ts, tchar_t From, tchar_t To);
 
 STR_DLL size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
 
-static INLINE tchar_t* tcsclr_s(tchar_t *ts, size_t len)   
+static INLINE tchar_t* tcsclr_s(tchar_t *ts, size_t len)
 {
     if (ts && len)
         *ts = 0;
@@ -87,7 +87,7 @@ static INLINE tchar_t* tcsclr_s(tchar_t *ts, size_t len)
 STR_DLL size_t utf16len(const utf16_t *);
 
 #ifndef stricmp
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 #define stricmp(x,y) _stricmp(x,y)
 #else
 #define stricmp(x,y) strcasecmp(x,y)
@@ -101,4 +101,3 @@ STR_DLL size_t tcsbytes(const tchar_t*);
 #endif
 
 #endif
-

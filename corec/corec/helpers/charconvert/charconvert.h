@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -49,7 +49,7 @@ typedef struct charconv charconv;
 #define MAX_CHARSET_NAME    16
 
 #define CHARSET_DEFAULT	T("")
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 #define CHARSET_WCHAR	T("UCS-2")
 #elif SIZEOF_WCHAR==4
 #define CHARSET_WCHAR	T("UTF-32")

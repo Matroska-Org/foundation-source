@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -45,13 +45,13 @@ extern "C" {
 #endif
 
 DATE_DLL systick_t GetTimeTick(void);
-#if defined(TARGET_WIN) || defined(TARGET_LINUX) || defined(TARGET_OSX) || defined(TARGET_ANDROID)
+#if defined(_WIN32) || defined(TARGET_LINUX) || defined(TARGET_OSX) || defined(TARGET_ANDROID)
 #define GetTimeFreq()  1000
 #else
 DATE_DLL int GetTimeFreq();
 #endif
 
-typedef struct datepack_t 
+typedef struct datepack_t
 {
     intptr_t Year; // 2001, 2007, etc
     intptr_t Month; // 1-12
