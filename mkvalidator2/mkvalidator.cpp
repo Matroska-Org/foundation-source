@@ -18,6 +18,7 @@
 #include <matroska/KaxSeekHead.h>
 #include <matroska/KaxCuesData.h>
 #include <matroska/KaxContexts.h>
+#include <matroska/KaxSegment.h>
 #include "mkvalidator_project.h"
 
 #include <cstdio>
@@ -203,53 +204,72 @@ bool_t tcsisame_ascii(const tchar_t* a,const tchar_t* b)
 #define MASTER_CHECK_MISSING_MANDATORY  1
 #define MASTER_CHECK_MULTIPLE_UNIQUE    2
 
+static bool AllowedInProfile(int ProfileMask, const MatroskaProfile &profile)
+{
+    return true;
+}
+
 void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrCallback)(void *cookie, int type, const tchar_t *ClassName, const EbmlElement*), void *cookie)
 {
 	tchar_t ClassString[MAXPATH];
-	EBML_MASTER_ITERATOR i, SubElt;
+	EBML_MASTER_ITERATOR i;
+    EbmlElement *SubElt;
     const EbmlSemantic *s;
-#if 0 // TODO
+#if 1 // TODO
 	for (i=EBML_MasterChildren(Element);EBML_MasterEnd(i,Element);EBML_MasterNext(i))
 	{
 		if ((*i)->GetClassId() == EBML_ID(EbmlDummy))
         {
-		    for (s=Element->Base.Context->Semantic; s->eClass; ++s)
+            for (size_t si=0; si < EBML_CTX_SIZE(EBML_CONTEXT(Element)); si++)
+		    //for (s=Element->Base.Context->Semantic; s->eClass; ++s)
 		    {
-			    if (s->eClass->Id == i->Context->Id)
+                s = &EBML_CTX_IDX(EBML_CONTEXT(Element), si);
+			    //if (s->eClass->Id == i->Context->Id)
+			    if (EBML_INFO_ID(s->GetCallbacks()) == (*i)->GetClassId())
 			    {
-                    if (s->DisabledProfile & ProfileMask)
+#if 1
+                    const auto & cb = s->GetCallbacks();
+                    auto profiles = reinterpret_cast<const MatroskaProfile &>(cb.GetVersions());
+                    // if (s->DisabledProfile & ProfileMask)
+                    if (!AllowedInProfile(ProfileMask, profiles))
                     {
-				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
                         {
-                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
-					        NodeDelete(i);
+                            // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
+					        // TODO NodeDelete(i);
 					        i=EBML_MasterChildren(Element);
                             break;
                         }
                     }
-                    if (s->Unique && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
+                    if (s->IsUnique() && (SubElt=Element->FindFirstElt(cb, false)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
+                    // if (s->IsUnique() && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     {
-		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
-                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,*SubElt))
+		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
                         {
-                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
-			                NodeDelete(i);
+                            // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
+			                // TODO NodeDelete(i);
 			                i=EBML_MasterChildren(Element);
                             break;
                         }
                     }
 				    break;
+#endif
 			    }
 		    }
         }
 	}
 
-	for (s=Element->Base.Context->Semantic; s->eClass; ++s)
+    for (size_t si=0; si < EBML_CTX_SIZE(EBML_CONTEXT(Element)); si++)
+	//for (s=Element->Base.Context->Semantic; s->eClass; ++s)
 	{
-	    if (s->IsMandatory() && !s->eClass->HasDefault && !EBML_MasterFindChild(Element,s->eClass))
+        s = &EBML_CTX_IDX(EBML_CONTEXT(Element), si);
+        const auto & cb = s->GetCallbacks();
+	    if (s->IsMandatory() && !cb.HasDefault() && !Element->FindFirstElt(cb, false))
 	    {
-		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+		    // Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
+		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
             if (ErrCallback)
                 ErrCallback(cookie,MASTER_CHECK_MISSING_MANDATORY,ClassString,NULL);
 	    }
