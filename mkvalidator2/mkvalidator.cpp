@@ -120,6 +120,7 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 #define EBML_IntegerValue(e)          (reinterpret_cast<const EbmlUInteger*>(e))->GetValue()
 
 #define EBML_StringGet(e,d,dn)         strcpy(d,(e)->GetValue().c_str())
+#define EBML_StringGetUnicode(e,d,dn)  strcpy(d,(e)->GetValueUTF8().c_str())
 
 #define EBML_FloatValue(e)             (reinterpret_cast<EbmlFloat*>(e))->GetValue()
 
@@ -782,7 +783,7 @@ static int CheckProfileViolation(EbmlElement *Elt, int ProfileMask)
 static int CheckSeekHead(const KaxSegment& RSegment, EbmlMaster *SeekHead)
 {
 	int Result = 0;
-	matroska_seekpoint *RLevel1 = (matroska_seekpoint*)EBML_MasterFindChild(SeekHead, KaxSeek);
+	matroska_seekpoint *RLevel1 = EBML_MasterFindChild(SeekHead, KaxSeek);
     bool BSegmentInfo = 0, BTrackInfo = 0, BCues = 0, BTags = 0, BChapters = 0, BAttachments = 0, BSecondSeek = 0;
 	while (RLevel1)
 	{
@@ -1158,7 +1159,7 @@ static int CheckCueEntries(EbmlMaster *Cues)
 		Result |= OutputError(0x310,T("A Cues (index) is defined but no SegmentInfo was found"));
 	else if (ARRAYCOUNT(RClusters,matroska_cluster*))
 	{
-		matroska_cuepoint *CuePoint = (matroska_cuepoint*)EBML_MasterFindChild(Cues, KaxCuePoint);
+		matroska_cuepoint *CuePoint = EBML_MasterFindChild(Cues, KaxCuePoint);
 		while (CuePoint)
 		{
             if (!Quiet && ClustNum++ % 24 == 0)
@@ -1204,7 +1205,7 @@ int main(int argc, const char *argv[])
     EbmlMaster *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, *RLevelX;
 	decltype(RClusters)::iterator Cluster;
 	EbmlElement *EbmlDocVer, *EbmlReadDocVer;
-    EbmlString *LibName, *AppName;
+    EbmlUnicodeString *LibName, *AppName;
     // ebml_parser_context RContext;
     // ebml_parser_context RSegmentContext;
     int i,UpperElement;
@@ -1502,7 +1503,7 @@ int main(int argc, const char *argv[])
 							}
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Kind = (int)EL_Int(EbmlDocVer);
                         }
-                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = (EbmlString*)EBML_MasterFindChild(Elt,KaxCodecID);
+                        ARRAYBEGIN(Tracks,track_info)[TrackCount].CodecID = EBML_MasterFindChild(Elt,KaxCodecID);
                         Elt = (EbmlMaster*)EBML_MasterNextChild(RTrackInfo,Elt);
                         ++TrackCount;
                     }
@@ -1725,16 +1726,16 @@ exit:
         {
             tchar_t App[MAXPATH];
             App[0] = 0;
-            LibName = (EbmlString*)EBML_MasterFindChild(RSegmentInfo, KaxMuxingApp);
-            AppName = (EbmlString*)EBML_MasterFindChild(RSegmentInfo, KaxWritingApp);
+            LibName = EBML_MasterFindChild(RSegmentInfo, KaxMuxingApp);
+            AppName = EBML_MasterFindChild(RSegmentInfo, KaxWritingApp);
             if (LibName)
             {
-                EBML_StringGet(LibName, String, TSIZEOF(String));
+                EBML_StringGetUnicode(LibName, String, TSIZEOF(String));
                 tcscat_s(App, TSIZEOF(App), String);
             }
             if (AppName)
             {
-                EBML_StringGet(AppName, String, TSIZEOF(String));
+                EBML_StringGetUnicode(AppName, String, TSIZEOF(String));
                 if (App[0])
                     tcscat_s(App, TSIZEOF(App), T(" / "));
                 tcscat_s(App, TSIZEOF(App), String);
