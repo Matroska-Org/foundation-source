@@ -1193,7 +1193,7 @@ static int CheckCueEntries(EbmlMaster *Cues)
 	return Result;
 }
 
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 int wmain(int argc, const wchar_t *argv[])
 #else
 int main(int argc, const char *argv[])
@@ -1237,7 +1237,7 @@ int main(int argc, const char *argv[])
 
 	for (i=1;i<argc;++i)
 	{
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
 	    Node_FromWcs(&p,Path,TSIZEOF(Path),argv[i]);
 #else
 		Node_FromStr(&p,Path,TSIZEOF(Path),argv[i]);
@@ -1272,7 +1272,7 @@ int main(int argc, const char *argv[])
         goto exit;
     }
 
-#if defined(TARGET_WIN) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE)
     Node_FromWcs(&p,Path,TSIZEOF(Path),argv[argc-1]);
 #else
 	Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
