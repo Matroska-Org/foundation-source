@@ -325,41 +325,35 @@ bool MATROSKA_BlockLaced(const KaxInternalBlock *Block)
 	return Block->GetCurrentLacing() != LacingType::LACING_NONE;
 }
 
-mkv_timestamp_t MATROSKA_BlockTimestamp(const KaxInternalBlock *Block)
+mkv_timestamp_t MATROSKA_BlockTimestamp(matroska_cluster *Cluster, const KaxInternalBlock *Block)
 {
 #if 0 //TODO
-    ebml_element *Cluster;
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
 	if (Block->GlobalTimestamp!=INVALID_TIMESTAMP_T)
 		return Block->GlobalTimestamp;
     if (Block->ReadTrack==NULL)
         return INVALID_TIMESTAMP_T;
     assert(Block->LocalTimestampUsed);
-    Cluster = EBML_ElementParent(Block);
-    while (Cluster && !EBML_ElementIsType(Cluster, KaxCluster))
-        Cluster = EBML_ElementParent(Cluster);
-    if (!Cluster)
-        return INVALID_TIMESTAMP_T;
     Block->GlobalTimestamp = MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster) + (mkv_timestamp_t)(Block->LocalTimestamp * MATROSKA_SegmentInfoTimestampScale(Block->ReadSegInfo) * MATROSKA_TrackTimestampScale(Block->ReadTrack));
     MATROSKA_BlockSetTimestamp(Block, Block->GlobalTimestamp, MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster));
     return Block->GlobalTimestamp;
 #endif
-	return Block->GlobalTimestamp();
+    return Cluster->GetBlockGlobalTimestamp(Block->GlobalTimestamp());
 }
 
 matroska_block *MATROSKA_GetBlockForTimestamp(matroska_cluster *Cluster, mkv_timestamp_t Timestamp, int16_t Track)
 {
     EBML_MASTER_CONST_ITERATOR Block, GBlock;
-    for (Block = EBML_MasterChildren(Cluster);EBML_MasterEnd(Block,Cluster);Block=EBML_MasterNext(Block))
+    for (Block = EBML_MasterChildren(Cluster);EBML_MasterEnd(Block,Cluster);EBML_MasterNext(Block))
     {
         if (EBML_ElementIsType(*Block, KaxBlockGroup))
         {
-            for (GBlock = EBML_MasterChildren((KaxBlockGroup*)*Block);EBML_MasterEnd(GBlock,(KaxBlockGroup*)*Block);GBlock=EBML_MasterNext(GBlock))
+            for (GBlock = EBML_MasterChildren((KaxBlockGroup*)*Block);EBML_MasterEnd(GBlock,(KaxBlockGroup*)*Block);EBML_MasterNext(GBlock))
             {
                 if (EBML_ElementIsType(*GBlock, KaxBlock))
                 {
                     if (MATROSKA_BlockTrackNum((matroska_block*)*GBlock) == Track &&
-                        MATROSKA_BlockTimestamp((matroska_block*)*GBlock) == Timestamp)
+                        MATROSKA_BlockTimestamp(Cluster, (matroska_block*)*GBlock) == Timestamp)
                     {
                         return (matroska_block*)*GBlock;
                     }
@@ -369,7 +363,7 @@ matroska_block *MATROSKA_GetBlockForTimestamp(matroska_cluster *Cluster, mkv_tim
         else if (EBML_ElementIsType(*Block, KaxSimpleBlock))
         {
             if (MATROSKA_BlockTrackNum((matroska_block*)*Block) == Track &&
-                MATROSKA_BlockTimestamp((matroska_block*)*Block) == Timestamp)
+                MATROSKA_BlockTimestamp(Cluster, (matroska_block*)*Block) == Timestamp)
             {
                 return (matroska_block*)*Block;
             }
@@ -1109,7 +1103,7 @@ static int CheckLacingKeyframe(int ProfileNum)
                                 ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((KaxBlock*)*GBlock,Frame);
                             if (Details)
                             {
-                                BlockTime = MATROSKA_BlockTimestamp((KaxBlock*)*GBlock);
+                                BlockTime = MATROSKA_BlockTimestamp(*Cluster, (KaxBlock*)*GBlock);
                                 if (MinTime==INVALID_TIMESTAMP_T || MinTime>BlockTime)
                                     MinTime = BlockTime;
                                 if (MaxTime==INVALID_TIMESTAMP_T || MaxTime<BlockTime)
@@ -1139,7 +1133,7 @@ static int CheckLacingKeyframe(int ProfileNum)
                         ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((KaxSimpleBlock*)*Block,Frame);
                     if (Details)
                     {
-                        BlockTime = MATROSKA_BlockTimestamp((KaxSimpleBlock*)*Block);
+                        BlockTime = MATROSKA_BlockTimestamp(*Cluster, (KaxSimpleBlock*)*Block);
                         if (MinTime==INVALID_TIMESTAMP_T || MinTime>BlockTime)
                             MinTime = BlockTime;
                         if (MaxTime==INVALID_TIMESTAMP_T || MaxTime<BlockTime)
