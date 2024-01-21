@@ -806,14 +806,14 @@ static int CheckProfileViolation(EbmlElement *Elt, int ProfileMask)
 	return Result;
 }
 
-static int CheckSeekHead(EbmlMaster *SeekHead)
+static int CheckSeekHead(const KaxSegment& RSegment, EbmlMaster *SeekHead)
 {
 	int Result = 0;
 	matroska_seekpoint *RLevel1 = (matroska_seekpoint*)EBML_MasterFindChild(SeekHead, KaxSeek);
     bool BSegmentInfo = 0, BTrackInfo = 0, BCues = 0, BTags = 0, BChapters = 0, BAttachments = 0, BSecondSeek = 0;
 	while (RLevel1)
 	{
-		filepos_t Pos = RLevel1->Location();
+		filepos_t Pos = RSegment.GetGlobalPosition(RLevel1->Location());
 		auto aSeekId = GetChild<KaxSeekID>(*RLevel1);
 		auto SeekId = EbmlId(aSeekId.GetBuffer(), aSeekId.GetSize());
 		tchar_t IdString[32];
@@ -1692,9 +1692,9 @@ int main(int argc, const char *argv[])
 		    OutputWarning(0x801,T("The segment has no SeekHead section"));
     }
 	else
-		Result |= CheckSeekHead(RSeekHead);
+		Result |= CheckSeekHead(*reinterpret_cast<KaxSegment*>(RSegment), RSeekHead);
 	if (RSeekHead2)
-		Result |= CheckSeekHead(RSeekHead2);
+		Result |= CheckSeekHead(*reinterpret_cast<KaxSegment*>(RSegment), RSeekHead2);
 
 	if (ARRAYCOUNT(RClusters,EbmlElement*))
 	{
