@@ -19,6 +19,7 @@
 #include <matroska/KaxCuesData.h>
 #include <matroska/KaxContexts.h>
 #include <matroska/KaxSegment.h>
+#include <matroska/KaxBlockData.h>
 #include "mkvalidator_project.h"
 
 #include <cstdio>
@@ -303,46 +304,35 @@ mkv_timestamp_t MATROSKA_CueTimestamp(const matroska_cuepoint *Cue)
 void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, EbmlMaster *RSegmentInfo, EbmlMaster *Tracks, bool_t KeepUnmatched, int ForProfile)
 {
 	// TODO
+    auto timestamp = GetChild<KaxClusterTimestamp>(*Cluster);
+    auto timestampscale = GetChild<KaxTimestampScale>(*RSegmentInfo);
+    Cluster->InitTimestamp(static_cast<std::uint64_t>(timestamp), static_cast<std::uint64_t>(timestampscale));
 }
 
 mkv_timestamp_t MATROSKA_ClusterTimestamp(matroska_cluster *Cluster)
 {
-	// TODO move in libmatroska
 	return Cluster->GetBlockGlobalTimestamp(0);
 }
 
-bool MATROSKA_BlockKeyframe(const KaxInternalBlock *Block)
+bool MATROSKA_BlockKeyframe(KaxBlockGroup *BlockGroup, const KaxInternalBlock *Block)
 {
-#if 0 // TODO
-    ebml_master *BlockGroup;
-    ebml_integer *Duration;
-
-    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-    if (Block->IsKeyframe)
-        return 1;
-
-	if (!EBML_ElementIsType((const ebml_element*)Block, KaxBlock))
-        return 0;
-
-	BlockGroup = (ebml_master*)EBML_ElementParent(Block);
-    if (!BlockGroup || !Node_IsPartOf(BlockGroup,MATROSKA_BLOCKGROUP_CLASS))
-        return 0;
+    if (!BlockGroup)
+        return false;
 
 	if (EBML_MasterFindChild(BlockGroup,KaxReferenceBlock))
-        return 0;
+        return false;
 
-    Duration = (ebml_integer*)EBML_MasterFindChild(BlockGroup,KaxBlockDuration);
+    const auto *Duration = EBML_MasterFindChild(BlockGroup,KaxBlockDuration);
 	if (Duration!=NULL && EBML_IntegerValue(Duration)==0)
-        return 0;
+        return false;
 
-    return 1;
-#endif
 	return true;
 }
 
 bool MATROSKA_BlockLaced(const KaxInternalBlock *Block)
 {
 	// TODO move in libmatroska
+    assert(Block->GetBestLacingType() != LacingType::LACING_AUTO);
 	return Block->GetBestLacingType() != LacingType::LACING_NONE;
 }
 
@@ -1030,7 +1020,7 @@ static int CheckVideoStart(int ProfileNum)
 							OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64 T(" in Block at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster),EL_Pos((KaxBlock*)*GBlock));
                         else if (TrackIsVideo(BlockNum, ProfileNum))
 						{
-							if (!ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] && MATROSKA_BlockKeyframe((KaxBlock*)*GBlock))
+							if (!ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] && MATROSKA_BlockKeyframe((KaxBlockGroup*)*Block, (KaxBlock*)*GBlock))
 								ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] = 1;
 							if (!ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] && ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum]==0)
 								ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum] = EL_Pos(*Cluster);
@@ -1046,7 +1036,7 @@ static int CheckVideoStart(int ProfileNum)
                     OutputError(0xC3,T("Unknown track #%d in Cluster at %") TPRId64 T(" in SimpleBlock at %") TPRId64,(int)BlockNum,EL_Pos(*Cluster),EL_Pos((KaxSimpleBlock*)*Block));
                 else if (TrackIsVideo(BlockNum, ProfileNum))
 				{
-					if (!ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] && MATROSKA_BlockKeyframe((KaxSimpleBlock*)*Block))
+					if (!ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] && reinterpret_cast<const KaxSimpleBlock*>(*Block)->IsKeyframe())
 						ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] = 1;
 					if (!ARRAYBEGIN(TrackKeyframe,bool)[BlockNum] && ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum]==0)
 						ARRAYBEGIN(TrackFirstKeyframePos,filepos_t)[BlockNum] = EL_Pos(*Cluster);
@@ -1123,7 +1113,7 @@ static int CheckLacingKeyframe(int ProfileNum)
                         {
                             if (MATROSKA_BlockLaced((KaxBlock*)*GBlock) && !TrackIsLaced(BlockNum, ProfileNum))
                                 Result |= OutputError(0xB0,T("Block at %") TPRId64 T(" track #%d is laced but the track is not"),EL_Pos(*GBlock),(int)BlockNum);
-                            if (!MATROSKA_BlockKeyframe((KaxBlock*)*GBlock) && TrackNeedsKeyframe(BlockNum, ProfileNum))
+                            if (!MATROSKA_BlockKeyframe((KaxBlockGroup*)*Block, (KaxBlock*)*GBlock) && TrackNeedsKeyframe(BlockNum, ProfileNum))
                                 Result |= OutputError(0xB1,T("Block at %") TPRId64 T(" track #%d is not a keyframe"),EL_Pos(*GBlock),(int)BlockNum);
 
                             for (Frame=0; Frame<MATROSKA_BlockGetFrameCount((KaxBlock*)*GBlock); ++Frame)
@@ -1154,7 +1144,7 @@ static int CheckLacingKeyframe(int ProfileNum)
                 {
                     if (MATROSKA_BlockLaced((KaxSimpleBlock*)*Block) && !TrackIsLaced(BlockNum, ProfileNum))
                         Result |= OutputError(0xB0,T("SimpleBlock at %") TPRId64 T(" track #%d is laced but the track is not"),EL_Pos(*Block),(int)BlockNum);
-                    if (!MATROSKA_BlockKeyframe((KaxSimpleBlock*)*Block) && TrackNeedsKeyframe(BlockNum, ProfileNum))
+                    if (!reinterpret_cast<const KaxSimpleBlock*>(*Block)->IsKeyframe() && TrackNeedsKeyframe(BlockNum, ProfileNum))
                         Result |= OutputError(0xB1,T("SimpleBlock at %") TPRId64 T(" track #%d is not a keyframe"),EL_Pos(*Block),(int)BlockNum);
                     for (Frame=0; Frame<MATROSKA_BlockGetFrameCount((KaxSimpleBlock*)*Block); ++Frame)
                         ARRAYBEGIN(Tracks,track_info)[TrackIdx].DataLength += MATROSKA_BlockGetLength((KaxSimpleBlock*)*Block,Frame);
