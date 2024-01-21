@@ -278,27 +278,16 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 #endif
 }
 
-void MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_master *SegmentInfo)
+mkv_timestamp_t MATROSKA_CueTimestamp(const matroska_cuepoint *Cue, KaxInfo *SegmentInfo)
 {
-#if 0 // TODO
-    assert(EBML_ElementIsType((ebml_element*)Cue, KaxCuePoint));
-    assert(EBML_ElementIsType((ebml_element*)SegmentInfo, KaxInfo));
-    Node_SET(Cue,MATROSKA_CUE_SEGMENTINFO,&SegmentInfo);
-#endif
-}
-
-mkv_timestamp_t MATROSKA_CueTimestamp(const matroska_cuepoint *Cue)
-{
-#if 0 // TODO
     const ebml_integer *Timestamp;
     assert(EBML_ElementIsType((ebml_element*)Cue, KaxCuePoint));
+    const auto & SegmentScale = GetChild<KaxTimestampScale>(*SegmentInfo);
 	mkv_timestamp_t timestamp;
-	if (!Cue->Timestamp(timestamp, ))
+	if (!Cue->Timestamp(timestamp, static_cast<std::uint64_t>(SegmentScale)))
         return INVALID_TIMESTAMP_T;
     // return EBML_IntegerValue(Timestamp) * MATROSKA_SegmentInfoTimestampScale(Cue->SegInfo);
     return timestamp;
-#endif
-	return INVALID_TIMESTAMP_T;
 }
 
 void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, EbmlMaster *RSegmentInfo, EbmlMaster *Tracks, bool_t KeepUnmatched, int ForProfile)
@@ -332,8 +321,8 @@ bool MATROSKA_BlockKeyframe(KaxBlockGroup *BlockGroup, const KaxInternalBlock *B
 bool MATROSKA_BlockLaced(const KaxInternalBlock *Block)
 {
 	// TODO move in libmatroska
-    assert(Block->GetBestLacingType() != LacingType::LACING_AUTO);
-	return Block->GetBestLacingType() != LacingType::LACING_NONE;
+    assert(Block->GetCurrentLacing() != LacingType::LACING_AUTO);
+	return Block->GetCurrentLacing() != LacingType::LACING_NONE;
 }
 
 mkv_timestamp_t MATROSKA_BlockTimestamp(const KaxInternalBlock *Block)
@@ -1180,8 +1169,7 @@ static int CheckCueEntries(EbmlMaster *Cues)
 		{
             if (!Quiet && ClustNum++ % 24 == 0)
                 fprintf(stderr,T("."));
-			MATROSKA_LinkCueSegmentInfo(CuePoint,RSegmentInfo);
-			TimestampEntry = MATROSKA_CueTimestamp(CuePoint);
+			TimestampEntry = MATROSKA_CueTimestamp(CuePoint, static_cast<KaxInfo*>(RSegmentInfo));
 			TrackNumEntry = MATROSKA_CueTrackNum(CuePoint);
 
 			if (TimestampEntry < PrevTimestamp && PrevTimestamp != INVALID_TIMESTAMP_T)
