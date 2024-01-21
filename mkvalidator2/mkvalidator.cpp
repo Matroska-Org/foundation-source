@@ -206,9 +206,15 @@ bool_t tcsisame_ascii(const tchar_t* a,const tchar_t* b)
 #define MASTER_CHECK_MISSING_MANDATORY  1
 #define MASTER_CHECK_MULTIPLE_UNIQUE    2
 
-static bool AllowedInProfile(int ProfileMask, const MatroskaProfile &profile)
+static bool AllowedInProfile(int Profile, const MatroskaProfile &profile)
 {
-    return true;
+    if (profile.IsAlwaysDeprecated())
+        return false;
+    if (Profile == PROFILE_WEBM)
+        return profile.InWebM;
+    if (Profile == PROFILE_DIVX)
+        return profile.InDivX;
+    return profile.IsValidInVersion(Profile);
 }
 
 void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrCallback)(void *cookie, int type, const tchar_t *ClassName, const EbmlElement*), void *cookie)
