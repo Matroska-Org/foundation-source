@@ -31,7 +31,7 @@
 
 #define MAX_TRACKS 32 // safety
 
-#if defined(TARGET_WIN)
+#if defined(_WIN32)
 #define snprintf _snprintf
 #endif
 
@@ -960,7 +960,7 @@ static bool_t parseSimpleTag(ebml_element *SimpleTag, MatroskaFile *File, char *
 		else if (EBML_ElementClassID(Elt) == MATROSKA_getContextTagString()->Id)
 			simpleTag.Default = EBML_IntegerValue(Elt)!=0;
 	}
-	
+
 	if (!simpleTag.Value || !simpleTag.Name || !ArrayAppend(&Parent->aSimpleTags,&simpleTag,sizeof(simpleTag),256))
 	{
 		if (simpleTag.Value) File->Input->io->memfree(File->Input->io, simpleTag.Value);
