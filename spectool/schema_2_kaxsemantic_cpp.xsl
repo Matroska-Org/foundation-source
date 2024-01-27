@@ -29,9 +29,36 @@
 
 namespace libmatroska {
 
+// available in all Matroska/WebM/DivX version
 static constexpr const MatroskaProfile VERSION_ALL_MATROSKA = {true, true, 0, MatroskaProfile::ANY_VERSION};
+// available in all versions of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_ONLY = {false, false, 0};
+// not available in any version on Matroska, WebM or DivX
 static constexpr const MatroskaProfile VERSION_DEPRECATED   = {false, false, MatroskaProfile::ANY_VERSION, 0};
+// element specific to DivX
 static constexpr const MatroskaProfile VERSION_DIVX_ONLY    = {false, true, MatroskaProfile::ANY_VERSION, 0};
+// available in all Matroska/WebM/DivX since version 2
+static constexpr const MatroskaProfile VERSION_SINCE_V2 = {true, true, 2};
+// available since version 2 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_SINCE_V2 = {false, false, 2};
+// available since version 3 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_SINCE_V3 = {false, false, 3};
+// available since version 4 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_SINCE_V4 = {false, false, 4};
+// available since version 5 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_SINCE_V5 = {false, false, 5};
+// available since version 2 of Matroska and WebM but not DivX
+static constexpr const MatroskaProfile VERSION_WEBM_SINCE_V2 = {true, false, 2};
+// available since version 3 of Matroska and WebM but not DivX
+static constexpr const MatroskaProfile VERSION_WEBM_SINCE_V3 = {true, false, 3};
+// available since version 4 of Matroska and WebM but not DivX
+static constexpr const MatroskaProfile VERSION_WEBM_SINCE_V4 = {true, false, 4};
+// available since version 1 and 2 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_UP_TO_V2 = {false, false, 0, 2};
+// available since version 1, 2 and 3 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_UP_TO_V3 = {false, false, 0, 3};
+// available since version 1, 2, 3 and 4 of Matroska and WebM but not DivX
+static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 4};
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- sorting messes the detection of the previous element MATROSKA_VERSION state -->
     <!-- Maybe for each output we create we also create a counterpart call to check if the new MATROSKA_VERSION state that should be used -->
@@ -485,6 +512,18 @@ static constexpr const MatroskaProfile VERSION_DIVX_ONLY    = {false, true, Matr
         <xsl:when test="(not($node/@minver) or $node/@minver='0') and not($node/@maxver) and ebml:extension[@webm='1']"><xsl:text>VERSION_ALL_MATROSKA</xsl:text></xsl:when>
         <xsl:when test="$node/@maxver='0' and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_DEPRECATED</xsl:text></xsl:when>
         <xsl:when test="$node/@maxver='0' and ebml:extension[@divx='1']"><xsl:text>VERSION_DIVX_ONLY</xsl:text></xsl:when>
+        <xsl:when test="(not($node/@minver) or $node/@minver='0') and not($node/@maxver) and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_ONLY</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='2' and not($node/@maxver) and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_SINCE_V2</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='3' and not($node/@maxver) and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_SINCE_V3</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='4' and not($node/@maxver) and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_SINCE_V4</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='5' and not($node/@maxver) and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_SINCE_V5</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='2' and not($node/@maxver) and ebml:extension[@webm='1'] and ebml:extension[@divx='1']"><xsl:text>VERSION_SINCE_V2</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='3' and not($node/@maxver) and ebml:extension[@webm='1'] and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_WEBM_SINCE_V2</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='2' and not($node/@maxver) and ebml:extension[@webm='1'] and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_WEBM_SINCE_V3</xsl:text></xsl:when>
+        <xsl:when test="$node/@minver='4' and not($node/@maxver) and ebml:extension[@webm='1'] and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_WEBM_SINCE_V4</xsl:text></xsl:when>
+        <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='2' and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_UP_TO_V2</xsl:text></xsl:when>
+        <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='3' and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_UP_TO_V3</xsl:text></xsl:when>
+        <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='4' and ebml:extension[@webm='1'] and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_WEBM_UP_TO_V4</xsl:text></xsl:when>
         <xsl:otherwise>
             <xsl:text>MatroskaProfile(</xsl:text>
             <xsl:choose>
