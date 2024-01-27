@@ -132,8 +132,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:choose>
                     <xsl:when test="not(contains(substring($plainPath,2),'\'))" />
                     <xsl:otherwise>
@@ -169,8 +168,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -193,8 +191,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -220,8 +217,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -245,8 +241,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -270,8 +265,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -295,8 +289,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
@@ -329,8 +322,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
                 <xsl:text>, </xsl:text>
-                <xsl:value-of select="@id" /><xsl:text>, </xsl:text>
-                <xsl:value-of select="((string-length(@id) - 2) * 0.5)" />
+                <xsl:value-of select="@id" />
                 <xsl:text>, Kax</xsl:text>
                 <xsl:call-template name="output-master-parent">
                     <xsl:with-param name="node" select="."/>
