@@ -117,15 +117,42 @@ bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use)
 #endif
 }
 
-static bool_t CheckMandatory(const ebml_master *Element, bool_t bWithDefault, int ForProfile)
+static bool_t CheckMandatory(const ebml_master *Element, int ForProfile)
 {
+  const EbmlSemanticContext & MasterContext = EBML_CONTEXT(Element);
+  assert(MasterContext.GetSize() != 0);
+
+  unsigned int EltIdx;
+  for (EltIdx = 0; EltIdx < EBML_CTX_SIZE(MasterContext); EltIdx++) {
+    if (EBML_CTX_IDX(MasterContext,EltIdx).IsMandatory()) {
+      EbmlElement *found = Element->FindElt(EBML_CTX_IDX_INFO(MasterContext,EltIdx));
+      if (found == nullptr) {
+        const auto & semcb = EBML_CTX_IDX(MasterContext,EltIdx).GetCallbacks();
+        const bool hasDefaultValue = semcb.HasDefault();
+
+#if !defined(NDEBUG)
+        // you are missing this Mandatory element
+//         const char * MissingName = semcb.GetName();
+#endif // !NDEBUG
+        if (!hasDefaultValue)
+          return false;
+      } else {
+        if (found->IsMaster() && !reinterpret_cast<EbmlMaster *>(found)->CheckMandatory())
+          return false;
+      }
+    }
+  }
+
+  return true;
     const ebml_semantic *i;
     for (i=Element->Base.Context->Semantic;i->eClass;++i)
     {
-        if (i->Mandatory && (i->DisabledProfile & ForProfile) == 0 &&
-            (bWithDefault || !i->eClass->HasDefault) &&
-            !EBML_MasterFindChild(Element,i->eClass))
-            return 0;
+        if (i->Mandatory) {
+            if (i->DisabledProfile & ForProfile) == 0 &&
+                !i->eClass->HasDefault &&
+                !EBML_MasterFindChild(Element,i->eClass))
+                return 0;
+        }
     }
     return 1;
 }
@@ -133,13 +160,13 @@ static bool_t CheckMandatory(const ebml_master *Element, bool_t bWithDefault, in
 bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault, int ForProfile)
 {
 	EBML_MASTER_ITERATOR *Child;
-	if (!CheckMandatory(Element, bWithDefault, ForProfile))
+	if (!Element->CheckMandatory(ForProfile))
 		return 0;
 
     for (Child = EBML_MasterChildren(Element);EBML_MasterEnd(Child,Element); EBML_MasterNext(Child))
 	// for (Child = EBML_MasterChildren(Element); Child; Child = EBML_MasterNext(Child))
 	{
-		if ((*Child)->IsMaster() && !EBML_MasterCheckMandatory((ebml_master*)*Child, bWithDefault, ForProfile))
+		if ((*Child)->IsMaster() && !EBML_MasterCheckMandatory((ebml_master*)*Child, false, ForProfile))
 		// if (Node_IsPartOf(Child,EBML_MASTER_CLASS) && !EBML_MasterCheckMandatory((ebml_master*)Child, bWithDefault, ForProfile))
 			return 0;
 	}
