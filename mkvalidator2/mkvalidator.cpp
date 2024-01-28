@@ -545,6 +545,7 @@ static filepos_t CheckUnknownElements(EbmlMaster *Elt)
 		{
 			VoidAmount = EBML_ElementFullSize(*SubElt,0);
 		}
+        // else if (Node_IsPartOf(SubElt,EBML_MASTER_CLASS))
 		else if ((*SubElt)->IsMaster())
 		{
 			VoidAmount += CheckUnknownElements(reinterpret_cast<EbmlMaster*>(*SubElt));
@@ -1658,6 +1659,7 @@ int main(int argc, const char *argv[])
 		}
 		else
 		{
+			// if (Node_IsPartOf(RLevel1,EBML_DUMMY_ID))
 			if ((RLevel1)->GetClassId() == EBML_ID(EbmlDummy))
 			{
 				tchar_t Id[32];
