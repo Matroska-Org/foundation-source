@@ -1,6 +1,6 @@
 project("mkvalidator2" VERSION 0.0.1 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # force output of the program in a specific folder with ReadMe/Changelog
