@@ -410,7 +410,7 @@ static constexpr const MatroskaProfile VERSION_DIVX_ONLY    = {false, true, Matr
         <xsl:call-template name="get-class-name">
             <xsl:with-param name="node" select="."/>
         </xsl:call-template>
-        <xsl:text>::RenderData(libebml::IOCallback &amp; /* output */, bool /* bForceRender */, ShouldWrite /* writeFilter */) {&#10;</xsl:text>
+        <xsl:text>::RenderData(libebml::IOCallback &amp; /* output */, bool /* bForceRender */, const ShouldWrite &amp; /* writeFilter */) {&#10;</xsl:text>
         <xsl:text>  assert(false); // no you are not allowed to use this element !&#10;</xsl:text>
         <xsl:text>  return 0;&#10;</xsl:text>
         <xsl:text>}&#10;</xsl:text>

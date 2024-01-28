@@ -106,7 +106,7 @@ namespace libmatroska {
             <xsl:text>public:&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
-            <xsl:text>  libebml::filepos_t RenderData(libebml::IOCallback &amp; output, bool bForceRender, ShouldWrite writeFilter) override;&#10;</xsl:text>
+            <xsl:text>  libebml::filepos_t RenderData(libebml::IOCallback &amp; output, bool bForceRender, const ShouldWrite &amp; writeFilter) override;&#10;</xsl:text>
         </xsl:if>
         <xsl:text>};&#10;</xsl:text>
         <!-- <xsl:if test="$minVer &gt; 1 or ebml:extension[@divx='1']">#endif&#10;</xsl:if> -->
