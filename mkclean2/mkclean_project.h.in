@@ -1,0 +1,3 @@
+#define PROJECT_VERSION T("@mkclean_VERSION_MAJOR@.@mkclean_VERSION_MINOR@.@mkclean_VERSION_PATCH@")
+#define MKCLEAN_VERSION ((@mkclean_VERSION_MAJOR@ << 24) | (@mkclean_VERSION_MINOR@ << 16) | @mkclean_VERSION_PATCH@)
+#define PROJECT_NAME    T("@PROJECT_NAME@")

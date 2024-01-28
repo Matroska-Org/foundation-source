@@ -1,0 +1,14 @@
+#ifndef T
+#define T(x) x
+#define HAS_DEFINED_T
+#endif /* T */
+
+#define PROJECT_VERSION T("@mkcleanreg_VERSION_MAJOR@.@mkcleanreg_VERSION_MINOR@.@mkcleanreg_VERSION_PATCH@")
+#define MKCLEANREG_VERSION ((@mkcleanreg_VERSION_MAJOR@ << 24) | (@mkcleanreg_VERSION_MINOR@ << 16) | @mkcleanreg_VERSION_PATCH@)
+#define PROJECT_NAME    T("@PROJECT_NAME@")
+
+#ifdef HAS_DEFINED_T
+#undef T
+#undef HAS_DEFINED_T
+#endif /* HAS_DEFINED_T */
+

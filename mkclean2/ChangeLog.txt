@@ -1,0 +1,292 @@
+2022-xx-xx
+version 0.10.0:
+    - don't write Cluster/Position anymore
+
+2021-01-31
+version 0.9.0:
+    - replace coremake meta-build project with CMake projects
+    - add support for new (audio/subtitle) track selection elements
+    - fix misc warnings with modern C compilers (Clang 11, MSVC 19)
+    - fix elements changes from the latest Matroska IETF spec
+
+2012-08-22
+version 0.8.10:
+    - update the list of Matroska elements from the IETF CELLAR group work
+    - fix many parsing crashes in libebml2
+
+2012-04-26
+version 0.8.9:
+    - add support for Opus and VP9
+    - add support for colourspace elements
+    - add support for 360°/VR elements
+
+2012-xx-xx
+version 0.8.8:
+    - add support for Matroska v4 elements like CueDuration and CueRelativePosition
+
+2012-08-26
+version 0.8.7:
+    - handle non-latin command-line characters on windows
+
+2011-09-25
+version 0.8.6:
+    - correct DisplayUnit that appears to be in pixels but marked as Display Aspect Ratio (DAR)
+
+2011-08-15
+version 0.8.5:
+    - fix the recompression of the CodecPrivate through successive mkclean calls
+
+2011-07-10
+version 0.8.4:
+    - fix the keyframe detection for WebM alt-ref frames (0 duration = non keyframe)
+
+2011-06-02
+version 0.8.3:
+    - fix the Segment duration when using --timecodescale
+    - fix the progress display on segments with no size set (like live streams)
+    - add -alt-3d to pack video frames by 2 when left/right eyes are coded sequentially in time (half duration frames)
+
+2011-04-03
+version 0.8.2:
+    - add support for Codec Private zlib compression with --optimize (for Vorbis)
+    - add support for zlib compression of A_PCM and V_UNCOMPRESS tracks when --optimize is set
+    - fix a bogus aspect ratio fix
+    - use the generated semantic for libmatroska2 (no more mismatch with the specs)
+
+2011-03-13
+version 0.8.1:
+    - turn old StereoMode values into the Matroska v3 ones
+    - remove the ClusterPosition field in WebM files as it's not supported
+
+2011-03-06
+version 0.8.0:
+    - add support for Matroska v3
+    - fix some odd case where some file other than the bogus output file would be deleted after an error
+    - add more padding after the SeekHead to make room for links to chapters/tags/attachments/others and/or editing
+    - add a link to the first Cluster in the Seek Head
+
+2010-12-19
+version 0.7.3:
+    - add --optimize_nv to use header stripping where possible except video tracks (for some hardware)
+
+2010-12-12
+version 0.7.2:
+    - discard --optimize for WebM
+
+2010-11-21
+version 0.7.1:
+    - fix the regression test check on large files
+    - fix the cues when blocks could not be read and written in the output
+    - fix the timecodes when --optimize and --timecodescale are used
+    - fix in libebml2 not to read data too far in a bogus EBML master
+    - the regression tests pass under Linux too
+    - add a --quiet option for the regression tests to disable mkvalidator error display
+
+2010-11-14
+version 0.7.0:
+    - fix an incorrect element size computing when invalid data was read
+    - allow StereoMode for WebM
+    - adjust the timecodescale automatically if it's too small
+    - fix AC-3 duration detection issues when remuxing
+    - better handling of default/mandatory values
+    - internal code shuffling
+    - make the regression test tool compile under UNIX
+
+2010-11-01
+version 0.6.1:
+    - add a progress phase during the cue creation as it's sometimes slow
+    - safer handling of broken files
+    - fix EBML reading on big endian processors (PowerPC)
+    - add a regression test tool (needs mkvalidator too)
+    - fix a wrong warning on files with only 1 Cluster
+    - fix some errors when the source mkv was truncated at the end
+
+2010-09-26
+version 0.6.0:
+    - fix a size update issue with the new "smarter" system
+    - don't delete the mkclean binary if it's run with no parameter
+    - put the attachments before the Cue entries (index)
+    - put cover.jpg/cover.png at the front of attachments
+    - support bz2 and lzo1x track reading (transformed to zlib when writing)
+    - make sure cluster timecodes are always incrementing
+    - add --regression to output files that can used for comparison in regression tests
+    - fix OS X building (gcc_osx_x86 and xcode_x86)
+    - fix float handling on some systems (thanks Monty)
+
+2010-09-14
+version 0.5.7:
+    - fix a problem with attachments in safe mode (--unsafe not set)
+    - put the attachments at the front as it usually makes more sense (fonts or cover art)
+
+2010-09-02
+version 0.5.6:
+    - fix a major memory leak that could result in unexpected errors with large file
+    - fix the UNIX source package
+
+2010-08-22
+version 0.5.5:
+    - fix a timecode bug when --timecodescale was specified on input
+    - improve the recovery of damaged files
+    - fix command line errors when --doctype x was used as the last param
+    - delete the output file in case the output file didn't finish correctly
+    - add a timecode offset to files created with --live as live streams usually don't start at 0
+    - write some junk before the first cluster in --live mode, like a dumb server would do
+    - fix the PrevSize computing in the --live mode
+    - fix cleaning of files that had infinite sizes (live streams)
+
+2010-08-17
+version 0.5.4:
+    - fix a potential use of free'd memory when using the --optimize mode with --remux
+
+2010-08-16
+version 0.5.3:
+    - write CRC-32 elements on key parts for better file safety (not in unsafe mode)
+    - don't write a Cue if there is only one Cluster
+
+2010-08-08
+version 0.5.2:
+    - fix the use of <input> <output> file use in the command line
+    - don't allow source video tracks with 0 pixel values
+    - fix a bug/crash when moving a whole Block to the next Cluster
+    - fix a crash when handling files with CRC (like AviMux GUI files)
+
+2010-08-02
+version 0.5.1:
+    - fix an issue when fixing aspect ratio that only had one value (width or height) set
+
+2010-08-02
+version 0.5.0:
+    - prepend the output filename with "clean." if no output filename is specified
+    - fix a bug when header compression was used but not lacing
+    - add a --no-optimize option to forbid track compression
+    - add a mkWDclean tool to remove the track compression from the output files
+
+2010-08-01
+version 0.4.6:
+    - remove bad cropping values
+    - fix some potential issues when EBML lacing and header stripping was combined
+    - support zlib compressed input and output tracks
+    - don't try to strip headers of track with zlib compression or encryption
+    - force zlib compression for a set of codecs (S_USF, S_VOBSUB, S_HDMV/PGS, B_VOBBTN) in --optimize mode
+
+2010-07-25
+version 0.4.5:
+    - fix --remux when BlockGroup was encountered (rather than SimpleBlock)
+    - fix --optimize on video tracks
+
+2010-07-25
+version 0.4.4:
+    - fix a possible infinite loop when only --optimize was used
+    - fix a potential timecode issue at the cluster boundaries
+
+2010-07-19
+version 0.4.3:
+    - fix a bug in the segment size when a placeholder was added for later tag reference
+    - reject files that don't have an EBML header
+    - add --help and --version CLI options
+    - put the timecodescale first in the segment info, put the duration just after
+    - fix the amount of phases displayed
+
+2010-07-17
+version 0.4.2:
+    - use DAR aspect ratio when pixels are not accurate enough
+    - bootstrap.sh should now call the correct coremake config depending on the host platform
+    - rename boostrap.sh to configure
+    - avoid crashing with files that have no TrackInfo
+    - read and skip custome elements rather than discarding (could result in corruption)
+    - avoid a possible output corruption when the Segment size is much smaller than the original
+    - fix the AppWriting string when there was no library in the source file
+    - don't keep elements that are not valid for the output profile
+    - check that track attachment links point to valid attachments and remove the invalid ones
+
+2010-07-04
+version 0.4.1:
+    - fix a possible data corruption when optimizing blocks
+    - add a --quiet option to only output errors
+    - keep the discardable flag as-is when reclustering
+    - fix the --timecodescale handling
+
+2010-07-03
+version 0.4.0:
+    - allow using compressed headers (with --optimize) automatically picking the best size
+    - delete CRC-32 elements until we can update them correctly
+    - display the 64 bits integers correctly on all platforms
+    - write the Cluster PrevSize and position in the Segment by default (can be disabled with --unsafe)
+    - reserve a place after the SeekHead for a reference to Tags when they are not there (for easy editing)
+    - make sure audio/subtitles frames are all keyframes (no known codec so far are not)
+    - make sure the lacing flag in the track info matches what is used in the file
+    - clean Haali's style aspect ratio (16/9 instead of the pixel values)
+    - remove values that are the same as their (indirect) default values (like DisplayWidth/DisplayHeight and OutputSamplingFreq)
+    - put the TrackNumber, TrackType and CodecId at the front of the Track elements
+
+2010-06-11
+version 0.3.1:
+    - output an error when the remuxing is not possible due to a low TimecodeScale (thanks to Ben Danper)
+    - add a --timecodescale <v> option to force the global timecodescale
+
+2010-06-09
+version 0.3.0:
+    - always put the matching audio frames before the video frames
+    - do a "relacing" when remuxing to put audio frames close to the corresponding video keyframes (not all audio codecs are supported)
+      for Vorbis (via Tremor), MP3, AC3, E-AC3, AAC, DTS
+
+2010-05-27
+version 0.2.5:
+    - make sure only V_VP8 and A_VORBIS tracks are kept for webm
+    - disable writing webm v1 (--doctype 3)
+    - fix some default values in chapters
+    - fix reading of elements with unknown/infinite sizes
+
+2010-05-22
+version 0.2.4:
+    - in --live mode the Cluster also have an infinite/unknown size
+    - remove the Cluster duration from the --live mode
+
+2010-05-21
+version 0.2.3:
+    - add a --live option to create ouptut files that look like a live stream (not seekable)
+    - do not write ClusterPosition and PrevSize (until we support it)
+    - do not silently force a doctype change, but tell the user the CLI to use
+
+2010-05-20
+version 0.2.2:
+    - unobfuscate the 'webm' and 'V_VP8' strings
+    - fix a crash when reading Sorenson Squeeze files (Ebml Void in the header)
+
+2010-05-18
+version 0.2.1:
+    - add an option to change the DocType name/version (no validity check)
+    - put the (re)muxing date in the file (or if there was no date)
+
+2010-05-17
+version 0.2.0:
+    - add an option to remux files with better Cluster boundaries
+    - enforce mandatory elements are always (virtually) there
+    - remove Master elements that are missing mandatory elements and are not unique in the context
+
+2010-05-13
+version 0.1.5:
+    - create Cues from scratch
+    - add a "--keep-cues" option to keep the original Cues instead of creating from scratch
+
+2010-05-10
+version 0.1.4:
+    - Allow files with no Track/Clusters (a file with only "logical" chapters is possible)
+
+2010-05-05
+version 0.1.3:
+    - By default build with support for large files (>4GB)
+    - Sort the Cue entries
+    - Optimize the Cue/Block linking speed by starting from, the previous matching Cluster found
+
+2010-05-04
+version 0.1.2:
+    - Fix the wrong EBML header in release builds (doh!)
+
+version 0.1.1:
+    - Fix the Seek Head computing mismatch for large files
+    - Add a progress info during the cleaning (in 3 phases)
+
+2010-05-04
+version 0.1.0:
+    - Initial public release
