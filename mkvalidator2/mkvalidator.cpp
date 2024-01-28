@@ -235,21 +235,23 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 			    //if (s->eClass->Id == i->Context->Id)
 			    if (EBML_INFO_ID(s->GetCallbacks()) == (*i)->GetClassId())
 			    {
-#if 1
                     const auto & cb = s->GetCallbacks();
-                    auto profiles = reinterpret_cast<const MatroskaProfile &>(cb.GetVersions());
-                    // if (s->DisabledProfile & ProfileMask)
-                    if (!AllowedInProfile(ProfileMask, profiles))
-                    {
-				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
-                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
-                        {
-                            // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
-					        // TODO NodeDelete(i);
-					        i=EBML_MasterChildren(Element);
-                            break;
-                        }
-                    }
+#if 1
+//                     const auto & semcb = Element->ElementSpec();
+//                     const auto & profiles = reinterpret_cast<const MatroskaProfile &>(cb.GetVersions());
+//                     // if (s->DisabledProfile & ProfileMask)
+//                     if (!AllowedInProfile(ProfileMask, profiles))
+//                     {
+// AllowedInProfile(ProfileMask, profiles);
+// 				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+//                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
+//                         {
+//                             // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
+// 					        // TODO NodeDelete(i);
+// 					        i=EBML_MasterChildren(Element);
+//                             break;
+//                         }
+//                     }
                     if (s->IsUnique() && (SubElt=Element->FindFirstElt(cb, false)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     // if (s->IsUnique() && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     {
@@ -267,6 +269,21 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 			    }
 		    }
         }
+
+        const auto & semcb = (*i)->ElementSpec();
+        auto profiles = reinterpret_cast<const MatroskaProfile &>(semcb.GetVersions());
+        // if (s->DisabledProfile & ProfileMask)
+        if (!AllowedInProfile(ProfileMask, profiles))
+        {
+            Node_FromStr(*i,ClassString,TSIZEOF(ClassString),semcb.GetName());
+            if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
+            {
+                // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
+                // TODO NodeDelete(i);
+                i=EBML_MasterChildren(Element);
+                break;
+            }
+        }
 	}
 
     for (size_t si=0; si < EBML_CTX_SIZE(EBML_CONTEXT(Element)); si++)
@@ -274,6 +291,21 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 	{
         s = &EBML_CTX_IDX(EBML_CONTEXT(Element), si);
         const auto & cb = s->GetCallbacks();
+
+        // auto profiles = reinterpret_cast<const MatroskaProfile &>(cb.GetVersions());
+        // // if (s->DisabledProfile & ProfileMask)
+        // if (!AllowedInProfile(ProfileMask, profiles))
+        // {
+        //     Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+        //     if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,Element))
+        //     {
+        //         // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
+        //         // TODO NodeDelete(i);
+        //         i=EBML_MasterChildren(Element);
+        //         break;
+        //     }
+        // }
+
 	    if (s->IsMandatory() && !cb.HasDefault() && !Element->FindFirstElt(cb, false))
 	    {
 		    // Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
@@ -1769,8 +1801,9 @@ exit:
         NodeDelete(RSegmentInfo);
     if (RLevel1)
         NodeDelete(RLevel1);
-    if (RSegment)
-        NodeDelete(RSegment);
+    // let it leak for now
+    // if (RSegment)
+    //     NodeDelete(RSegment);
     if (EbmlHead)
         NodeDelete(EbmlHead);
     ArrayClear(&Tracks);
