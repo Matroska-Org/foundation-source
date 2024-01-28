@@ -828,7 +828,7 @@ static int CheckSeekHead(const KaxSegment& RSegment, EbmlMaster *SeekHead)
 	{
 		filepos_t Pos = RSegment.GetGlobalPosition(RLevel1->Location());
 		auto aSeekId = GetChild<KaxSeekID>(*RLevel1);
-		auto SeekId = EbmlId(aSeekId.GetBuffer(), aSeekId.GetSize());
+		auto SeekId = EbmlId(EbmlId::FromBuffer(aSeekId.GetBuffer(), aSeekId.GetSize()));
 		tchar_t IdString[32];
 
 		EBML_IdToString(IdString,TSIZEOF(IdString),SeekId);
