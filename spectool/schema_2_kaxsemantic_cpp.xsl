@@ -176,6 +176,17 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
                 <xsl:call-template name="output-display-name">
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
+                <xsl:choose>
+                    <xsl:when test="@name='Block' or @name='SimpleBlock' or @name='BlockVirtual'"><xsl:text>, KaxInternalBlock::SizeIsValid</xsl:text></xsl:when>
+                    <xsl:when test="not(@length)"><xsl:text>, libebml::EbmlBinary::SizeIsValid</xsl:text></xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>, Kax</xsl:text>
+                        <xsl:call-template name="get-class-name">
+                            <xsl:with-param name="node" select="."/>
+                        </xsl:call-template>
+                        <xsl:text>::SizeIsValid</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
                 <xsl:call-template name="output-minmax">
                     <xsl:with-param name="node" select="."/>
                 </xsl:call-template>
