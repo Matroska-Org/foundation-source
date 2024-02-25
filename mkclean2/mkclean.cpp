@@ -117,7 +117,7 @@ bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use)
 #endif
 }
 
-static bool_t CheckMandatory(const ebml_master *Element, int ForProfile)
+static bool_t CheckMandatory(const ebml_master *Element, const EbmlElement::ShouldWrite &ForProfile)
 {
   const EbmlSemanticContext & MasterContext = EBML_CONTEXT(Element);
   assert(MasterContext.GetSize() != 0);
@@ -144,6 +144,7 @@ static bool_t CheckMandatory(const ebml_master *Element, int ForProfile)
   }
 
   return true;
+#if 0
     const ebml_semantic *i;
     for (i=Element->Base.Context->Semantic;i->eClass;++i)
     {
@@ -155,9 +156,10 @@ static bool_t CheckMandatory(const ebml_master *Element, int ForProfile)
         }
     }
     return 1;
+#endif
 }
 
-bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault, int ForProfile)
+bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault, const EbmlElement::ShouldWrite & ForProfile)
 {
 	EBML_MASTER_ITERATOR *Child;
 	if (!Element->CheckMandatory(ForProfile))
@@ -261,39 +263,47 @@ typedef struct track_info
 
 } track_info;
 
-static const tchar_t *GetProfileName(size_t ProfileNum)
+static const tchar_t *GetProfileName(const EbmlElement::ShouldWrite & ProfileNum)
 {
 static const tchar_t *Profile[8] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX"), T("matroska v4"), T("matroska v5")};
-	switch (ProfileNum)
+    const auto *asWebM = dynamic_cast<const TargetVersionWebM *>(&ProfileNum);
+    if (asWebM != nullptr)
+        return Profile[4];
+    const auto *asDiVX = dynamic_cast<const TargetVersionDivX *>(&ProfileNum);
+    if (asDiVX != nullptr)
+        return Profile[5];
+	switch (ProfileNum.version)
 	{
-	default:                  return Profile[0];
-	case PROFILE_MATROSKA_V1: return Profile[1];
-	case PROFILE_MATROSKA_V2: return Profile[2];
-	case PROFILE_MATROSKA_V3: return Profile[3];
-	case PROFILE_WEBM:        return Profile[4];
-	case PROFILE_DIVX:        return Profile[5];
-	case PROFILE_MATROSKA_V4: return Profile[6];
-	case PROFILE_MATROSKA_V5: return Profile[7];
+	default: return Profile[0];
+	case 1:  return Profile[1];
+	case 2:  return Profile[2];
+	case 3:  return Profile[3];
+	case 4:  return Profile[6];
+	case 5:  return Profile[7];
 	}
 }
 
-static int GetProfileId(int Profile)
+static int GetProfileId(const EbmlElement::ShouldWrite & Profile)
 {
-	switch (Profile)
+    const auto *asWebM = dynamic_cast<const TargetVersionWebM *>(&Profile);
+    if (asWebM != nullptr)
+        return 4;
+    const auto *asDiVX = dynamic_cast<const TargetVersionDivX *>(&Profile);
+    if (asDiVX != nullptr)
+        return 5;
+	switch (Profile.version)
 	{
-	default:                  return 0;
-	case PROFILE_MATROSKA_V1: return 1;
-	case PROFILE_MATROSKA_V2: return 2;
-	case PROFILE_MATROSKA_V3: return 3;
-	case PROFILE_WEBM:        return 4;
-	case PROFILE_DIVX:        return 5;
-	case PROFILE_MATROSKA_V4: return 6;
-	case PROFILE_MATROSKA_V5: return 7;
+	default: return 0;
+	case 1:  return 1;
+	case 2:  return 2;
+	case 3:  return 3;
+	case 4:  return 6;
+	case 5:  return 7;
 	}
 }
 
 static int DocVersion = 1;
-static int SrcProfile = 0, DstProfile = 0;
+static EbmlElement::ShouldWrite SrcProfile(0), DstProfile(0);
 // static textwriter *StdErr = NULL;
 static size_t ExtraSizeDiff = 0;
 static bool_t Quiet = 0;
