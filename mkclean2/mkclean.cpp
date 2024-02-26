@@ -119,7 +119,7 @@ bool_t EBML_MasterUseChecksum(ebml_master *Element, bool_t Use)
 
 static bool_t CheckMandatory(const ebml_master *Element, const EbmlElement::ShouldWrite &ForProfile)
 {
-  const EbmlSemanticContext & MasterContext = EBML_CONTEXT(Element);
+  const auto & MasterContext = EBML_CONTEXT(Element);
   assert(MasterContext.GetSize() != 0);
 
   unsigned int EltIdx;
@@ -132,7 +132,7 @@ static bool_t CheckMandatory(const ebml_master *Element, const EbmlElement::Shou
 
 #if !defined(NDEBUG)
         // you are missing this Mandatory element
-//         const char * MissingName = semcb.GetName();
+//         const char * MissingName = EBML_INFO_NAME(semcb);
 #endif // !NDEBUG
         if (!hasDefaultValue)
           return false;
@@ -161,8 +161,8 @@ static bool_t CheckMandatory(const ebml_master *Element, const EbmlElement::Shou
 
 bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_t bWithDefault, const EbmlElement::ShouldWrite & ForProfile)
 {
-	EBML_MASTER_ITERATOR *Child;
-	if (!Element->CheckMandatory(ForProfile))
+	EBML_MASTER_CONST_ITERATOR Child;
+	if (!CheckMandatory(Element, ForProfile))
 		return 0;
 
     for (Child = EBML_MasterChildren(Element);EBML_MasterEnd(Child,Element); EBML_MasterNext(Child))
@@ -263,43 +263,70 @@ typedef struct track_info
 
 } track_info;
 
+static bool WriteWebM(const EbmlElement & Elt)
+{
+    const auto & profile = Elt.ElementSpec().GetVersions();
+    if (profile.GetNameSpace() == MatroskaProfile::Namespace)
+    {
+        const auto & profiles = reinterpret_cast<const MatroskaProfile &>(profile);
+        if (!profiles.InWebM)
+            return false;
+    }
+    return EbmlElement::WriteSkipDefault(Elt);
+}
+static const EbmlElement::ShouldWrite ProfileWebM = WriteWebM;
+
+static bool WriteDivX(const EbmlElement & Elt)
+{
+    const auto & profile = Elt.ElementSpec().GetVersions();
+    if (profile.GetNameSpace() == MatroskaProfile::Namespace)
+    {
+        const auto & profiles = reinterpret_cast<const MatroskaProfile &>(profile);
+        if (!profiles.InDivX)
+            return false;
+    }
+    return EbmlElement::WriteSkipDefault(Elt);
+}
+static const EbmlElement::ShouldWrite ProfileDiVX = WriteDivX;
+
+template<EbmlDocVersion::version_type N>
+static bool WriteProfile(const EbmlElement & Elt)
+{
+    const auto & semcb = Elt.ElementSpec();
+    const auto & profiles = semcb.GetVersions();
+    if (!profiles.IsValidInVersion(N))
+        return false;
+    return EbmlElement::WriteSkipDefault(Elt);
+}
+static const EbmlElement::ShouldWrite Profile1 = WriteProfile<1>;
+static const EbmlElement::ShouldWrite Profile2 = WriteProfile<2>;
+static const EbmlElement::ShouldWrite Profile3 = WriteProfile<3>;
+static const EbmlElement::ShouldWrite Profile4 = WriteProfile<4>;
+static const EbmlElement::ShouldWrite Profile5 = WriteProfile<5>;
+
+static int GetProfileId(const EbmlElement::ShouldWrite & ProfileNum)
+{
+    if (&ProfileNum != &ProfileWebM)
+        return 4;
+    if (&ProfileNum != &ProfileDiVX)
+        return 5;
+	if (&ProfileNum == &Profile1)
+        return 1;
+	if (&ProfileNum == &Profile2)
+        return 2;
+	if (&ProfileNum == &Profile3)
+        return 3;
+	if (&ProfileNum == &Profile4)
+        return 6;
+	if (&ProfileNum == &Profile5)
+        return 7;
+	return 0;
+}
+
 static const tchar_t *GetProfileName(const EbmlElement::ShouldWrite & ProfileNum)
 {
 static const tchar_t *Profile[8] = {T("unknown"), T("matroska v1"), T("matroska v2"), T("matroska v3"), T("webm"), T("matroska+DivX"), T("matroska v4"), T("matroska v5")};
-    const auto *asWebM = dynamic_cast<const TargetVersionWebM *>(&ProfileNum);
-    if (asWebM != nullptr)
-        return Profile[4];
-    const auto *asDiVX = dynamic_cast<const TargetVersionDivX *>(&ProfileNum);
-    if (asDiVX != nullptr)
-        return Profile[5];
-	switch (ProfileNum.version)
-	{
-	default: return Profile[0];
-	case 1:  return Profile[1];
-	case 2:  return Profile[2];
-	case 3:  return Profile[3];
-	case 4:  return Profile[6];
-	case 5:  return Profile[7];
-	}
-}
-
-static int GetProfileId(const EbmlElement::ShouldWrite & Profile)
-{
-    const auto *asWebM = dynamic_cast<const TargetVersionWebM *>(&Profile);
-    if (asWebM != nullptr)
-        return 4;
-    const auto *asDiVX = dynamic_cast<const TargetVersionDivX *>(&Profile);
-    if (asDiVX != nullptr)
-        return 5;
-	switch (Profile.version)
-	{
-	default: return 0;
-	case 1:  return 1;
-	case 2:  return 2;
-	case 3:  return 3;
-	case 4:  return 6;
-	case 5:  return 7;
-	}
+	return Profile[GetProfileId(ProfileNum)];
 }
 
 static int DocVersion = 1;

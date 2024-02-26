@@ -243,7 +243,7 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 //                     if (!AllowedInProfile(ProfileMask, profiles))
 //                     {
 // AllowedInProfile(ProfileMask, profiles);
-// 				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+// 				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
 //                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
 //                         {
 //                             // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
@@ -255,7 +255,7 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
                     if (s->IsUnique() && (SubElt=Element->FindFirstElt(cb, false)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     // if (s->IsUnique() && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
                     {
-		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
                         {
                             // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
@@ -270,12 +270,17 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 		    }
         }
 
-        const auto & semcb = (*i)->ElementSpec();
-        auto profiles = reinterpret_cast<const MatroskaProfile &>(semcb.GetVersions());
-        // if (s->DisabledProfile & ProfileMask)
-        if (!AllowedInProfile(ProfileMask, profiles))
+        bool allowed = false; // unknown or libebml
+        const auto & profile = (*i)->ElementSpec().GetVersions();
+        if (profile.GetNameSpace() == MatroskaProfile::Namespace)
         {
-            Node_FromStr(*i,ClassString,TSIZEOF(ClassString),semcb.GetName());
+            const auto & profiles = reinterpret_cast<const MatroskaProfile &>(profile);
+            allowed = AllowedInProfile(ProfileMask, profiles);
+        }
+        // if (s->DisabledProfile & ProfileMask)
+        if (!allowed)
+        {
+            Node_FromStr(*i,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME((*i)->ElementSpec()));
             if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
             {
                 // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
@@ -296,7 +301,7 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
         // // if (s->DisabledProfile & ProfileMask)
         // if (!AllowedInProfile(ProfileMask, profiles))
         // {
-        //     Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+        //     Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
         //     if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,Element))
         //     {
         //         // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
@@ -309,7 +314,7 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 	    if (s->IsMandatory() && !cb.HasDefault() && !Element->FindFirstElt(cb, false))
 	    {
 		    // Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
-		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),cb.GetName());
+		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
             if (ErrCallback)
                 ErrCallback(cookie,MASTER_CHECK_MISSING_MANDATORY,ClassString,NULL);
 	    }
