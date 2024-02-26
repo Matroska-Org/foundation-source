@@ -11,7 +11,7 @@ find_package(Matroska 2.0.0 REQUIRED)
 
 add_executable("mkclean2" mkclean.cpp)
 
-configure_file(mkclean_project.h.in mkclean_project.h)
+configure_file(mkclean2_project.h.in mkclean2_project.h)
 target_include_directories("mkclean2" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries("mkclean2" PUBLIC EBML::ebml)
 target_link_libraries("mkclean2" PUBLIC Matroska::matroska)
