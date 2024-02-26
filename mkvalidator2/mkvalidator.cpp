@@ -20,7 +20,7 @@
 #include <matroska/KaxContexts.h>
 #include <matroska/KaxSegment.h>
 #include <matroska/KaxBlockData.h>
-//#include "mkvalidator_project.h"
+#include "mkvalidator2_project.h"
 
 #include <cstdio>
 #include <cassert>
@@ -226,7 +226,7 @@ void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrC
 #if 1 // TODO
 	for (i=EBML_MasterChildren(Element);EBML_MasterEnd(i,Element);EBML_MasterNext(i))
 	{
-		if ((*i)->GetClassId() == EBML_ID(EbmlDummy))
+		if ((*i)->IsDummy())
         {
             for (size_t si=0; si < EBML_CTX_SIZE(EBML_CONTEXT(Element)); si++)
 		    //for (s=Element->Base.Context->Semantic; s->eClass; ++s)
@@ -535,7 +535,7 @@ static filepos_t CheckUnknownElements(EbmlMaster *Elt)
 	filepos_t VoidAmount = 0;
 	for (SubElt = EBML_MasterChildren(Elt); EBML_MasterEnd(SubElt,Elt); EBML_MasterNext(SubElt))
 	{
-		if ((*SubElt)->GetClassId() == EBML_ID(EbmlDummy))
+		if ((*SubElt)->IsDummy())
 		{
             EBML_ElementGetName(Elt,String,TSIZEOF(String));
 			EBML_IdToString(IdStr,TSIZEOF(IdStr),EBML_ElementClassID(SubElt));
@@ -1660,7 +1660,7 @@ int main(int argc, const char *argv[])
 		else
 		{
 			// if (Node_IsPartOf(RLevel1,EBML_DUMMY_ID))
-			if ((RLevel1)->GetClassId() == EBML_ID(EbmlDummy))
+			if ((RLevel1)->IsDummy())
 			{
 				tchar_t Id[32];
 				EBML_IdToString(Id,TSIZEOF(Id),EBML_ElementClassID(&RLevel1));
