@@ -1057,20 +1057,20 @@ int main(int argc, const char *argv[])
 	UpperElement = 0;
 	DotCount = 0;
 	Prev = NULL;
-    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream.get(), Context_KaxSegment, &UpperElement, 1);
+    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream.get(), EBML_CLASS_CONTEXT(KaxSegment), &UpperElement, 1);
     while (RLevel1)
 	{
         RLevelX = NULL;
         if (EL_Type(&RLevel1, KaxCluster))
         {
-            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,0,SCOPE_PARTIAL_DATA,4)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),0,SCOPE_PARTIAL_DATA,4)!=INVALID_FILEPOS_T)
 			{
                 ArrayAppend(&RClusters,(KaxCluster*)RLevel1,sizeof(RLevel1),256);
 				((KaxCluster*)RLevel1)->SetParent(*(KaxSegment*)RSegment);
 				// NodeTree_SetParent(RLevel1, RSegment, NULL);
 				VoidAmount += CheckUnknownElements(RLevel1);
 				Result |= CheckProfileViolation(RLevel1, MatroskaProfile);
-                RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
+                RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), EBML_CLASS_CONTEXT(KaxSegment), NULL, 1);
 			}
 			else
 			{
@@ -1083,11 +1083,11 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 OutputWarning(0x170,T("The live stream has a SeekHead at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), EBML_CLASS_CONTEXT(KaxSegment), NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,2)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,2)!=INVALID_FILEPOS_T)
 			{
 				if (!RSeekHead)
 					RSeekHead = RLevel1;
@@ -1110,7 +1110,7 @@ int main(int argc, const char *argv[])
 		}
         else if (EL_Type(&RLevel1, KaxInfo))
         {
-            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,1)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,1)!=INVALID_FILEPOS_T)
 			{
 				if (RSegmentInfo != NULL)
 					OutputWarning(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1137,7 +1137,7 @@ int main(int argc, const char *argv[])
 		}
         else if (EL_Type(&RLevel1, KaxTracks))
         {
-            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
 			{
 				if (RTrackInfo != NULL)
 					OutputWarning(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1203,11 +1203,11 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 OutputWarning(0x171,T("The live stream has Cues at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), EBML_CLASS_CONTEXT(KaxSegment), NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
 			{
 				if (RCues != NULL)
 					OutputWarning(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1230,11 +1230,11 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x172,T("The live stream has Chapters at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), EBML_CLASS_CONTEXT(KaxSegment), NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,16)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,16)!=INVALID_FILEPOS_T)
 			{
 				if (RChapters != NULL)
 					OutputWarning(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1254,7 +1254,7 @@ int main(int argc, const char *argv[])
 		}
         else if (EL_Type(&RLevel1, KaxTags))
         {
-            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
 			{
 				if (RTags != NULL)
 					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1277,11 +1277,11 @@ int main(int argc, const char *argv[])
             if (Live)
             {
                 Result |= OutputError(0x173,T("The live stream has a Attachments at %") TPRId64,EL_Pos(RLevel1));
-			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
+			    RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), EBML_CLASS_CONTEXT(KaxSegment), NULL, 1);
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,EBML_CLASS_CONTEXT(KaxSegment),1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
 			{
 				if (RAttachments != NULL)
 					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1312,7 +1312,7 @@ int main(int argc, const char *argv[])
 			{
 				VoidAmount += EBML_ElementFullSize(RLevel1,0);
 			}
-			RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), Context_KaxSegment, NULL, 1);
+			RLevelX = (EbmlMaster*)EBML_ElementSkipData(RLevel1, *stream.get(), EBML_CLASS_CONTEXT(KaxSegment), NULL, 1);
             NodeDelete(RLevel1);
             RLevel1 = NULL;
 		}
@@ -1326,7 +1326,7 @@ int main(int argc, const char *argv[])
         if (RLevelX)
             RLevel1 = RLevelX;
         else
-		    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream.get(), Context_KaxSegment, &UpperElement, 1);
+		    RLevel1 = (EbmlMaster*)EBML_FindNextElement(stream.get(), EBML_CLASS_CONTEXT(KaxSegment), &UpperElement, 1);
 	}
 
 	if (!RSegmentInfo)

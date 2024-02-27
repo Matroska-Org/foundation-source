@@ -1,10 +1,12 @@
 #include <ebml/EbmlMaster.h>
 #include <ebml/EbmlUInteger.h>
+#include <ebml/EbmlVoid.h>
 #include <matroska/KaxSemantic.h>
 #include <matroska/KaxCluster.h>
 #include <matroska/KaxBlock.h>
 #include <matroska/KaxSeekHead.h>
 #include <matroska/KaxCuesData.h>
+#include <matroska/KaxSegment.h>
 
 #include <limits>
 #include <cstdint>
@@ -21,6 +23,7 @@ using tchar_t = char;
 #define tcscmp(a,b)  strcmp(a,b)
 
 #define TextPrintf fprintf
+#define TextWrite fwrite
 using textwriter = FILE;
 #define StdErr stderr
 
@@ -33,7 +36,6 @@ using textwriter = FILE;
 
 using bool_t = bool;
 
-using array = std::vector<libebml::EbmlElement>;
 #define ARRAYBEGIN(v,t)  (v).begin()
 #define ARRAYEND(v,t)    (v).end()
 #define ARRAYCOUNT(v,t)  (v).size()
@@ -47,23 +49,45 @@ using array = std::vector<libebml::EbmlElement>;
 
 using ebml_element = libebml::EbmlElement;
 using ebml_master = libebml::EbmlMaster;
-using ebml_integer = libebml::EbmlSInteger;
+using ebml_integer = libebml::EbmlUInteger;
 using ebml_float = libebml::EbmlFloat;
+using ebml_string = libebml::EbmlString;
 using matroska_cluster = libmatroska::KaxCluster;
 using matroska_block = libmatroska::KaxInternalBlock;
 using matroska_seekpoint = libmatroska::KaxSeek;
 using matroska_cuepoint = libmatroska::KaxCuePoint;
+using matroska_frame = libmatroska::DataBuffer;
 
 using stream = libebml::IOCallback;
 
 using mkv_timestamp_t = std::uint64_t;
 constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_timestamp_t>::max();
 
+#define ERR_NONE          (!INVALID_FILEPOS_T)
+#define ERR_INVALID_DATA  INVALID_FILEPOS_T
+using err_t = libebml::filepos_t;
+
+
+#define EBML_getContextHead()                libebml::EbmlHead
+#define EBML_getContextReadVersion()         libebml::EReadVersion
+#define EBML_getContextMaxIdLength()         libebml::EMaxIdLength
+#define EBML_getContextMaxSizeLength()       libebml::EMaxSizeLength
+#define EBML_getContextDocType()             libebml::EDocType
+#define EBML_getContextDocTypeReadVersion()  libebml::EDocTypeReadVersion
+
+#define MATROSKA_getContextInfo()           libmatroska::KaxInfo
+#define MATROSKA_getContextTimestampScale() libmatroska::KaxTimestampScale
+#define MATROSKA_getContextSeek()           libmatroska::KaxSeek
+#define MATROSKA_getContextSegment()        libmatroska::KaxSegment
+#define MATROSKA_getContextSeekID()         libmatroska::KaxSeekID
+#define MATROSKA_getContextSeekPosition()   libmatroska::KaxSeekPosition
+
 #define EBML_MasterChildren(m)  ((libebml::EbmlMaster *)(m))->begin()
 #define EBML_MasterEnd(i,m)     (i) != ((libebml::EbmlMaster *)(m))->end()
 #define EBML_MasterNext(i)      (i)++
 #define EBML_MasterEmpty(m)     ((static_cast<const EbmlMaster *>(m))->begin() == (static_cast<const EbmlMaster *>(m))->end())
 #define EBML_MasterRemove(m,e)  (m)->Remove(e)
+#define EBML_MasterAppend(m,e)  (m)->PushElement(*(e))
 
 #define EBML_ElementGetName(e,d,dn)   strcpy(d,EBML_NAME(e))
 #define EBML_ElementClassID(e)        (*e)->GetClassId()
@@ -78,24 +102,25 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 #define EBML_FindNextElement(stream, sem, level, dummy) (stream)->FindNextElement(sem, *level, UINT64_MAX, dummy)
 #define EBML_ElementSetSizeLength(e,s) (e)->SetSizeLength(s)
 #define EBML_ElementSetInfiniteSize(e,i)  (e)->SetSizeInfinite(i)
+#define EBML_ElementUpdateSize(m,d,f,p) (m)->UpdateSize(p,f)
 
 #define EBML_ElementForcePosition(e,p)  (e)->ForcePosition(p)
-
-#define ERR_NONE  (!INVALID_FILEPOS_T)
-using err_t = libebml::filepos_t;
+#define EBML_ElementForceContext(e,c) // FIXME turn OldStereo to new Stereo
 
 #define EBML_MasterFindChild(m,c)     FindChild<c>(*(libebml::EbmlMaster *)(m))
 #define EBML_MasterGetChild(m,c,u)    &GetChild<c>(*(libebml::EbmlMaster *)(m))
 #define EBML_MasterNextChild(m,p)     FindNextChild(*(libebml::EbmlMaster *)(m), *p)
 #define EBML_MasterIsChecksumValid(m) (m)->VerifyChecksum()
 #define NodeTree_SetParent(e,p,u)     (static_cast<libebml::EbmlMaster *>(p))->PushElement(*(e))
-#define EBML_ElementUpdateSize(m,d,f,p) (m)->UpdateSize(p,f)
+#define EBML_MasterFindFirstElt(m,c,n,d,p)  &GetChild<c>(*(libebml::EbmlMaster *)(m))
+#define EBML_MasterAddElt(m,c,d,p)    (m)->AddNewElt(EBML_INFO(c))
 
 #define EBML_IntegerValue(e)          (reinterpret_cast<const libebml::EbmlUInteger*>(e))->GetValue()
 #define EBML_IntegerSetValue(e,v)     (reinterpret_cast<libebml::EbmlUInteger*>(e))->SetValue(v)
 
 #define EBML_StringGet(e,d,dn)         strcpy(d,(e)->GetValue().c_str())
 #define EBML_StringGetUnicode(e,d,dn)  strcpy(d,(e)->GetValueUTF8().c_str())
+#define EBML_StringSetValue(e,s)       (e)->SetValue(s)
 
 #define EBML_FloatValue(e)             (reinterpret_cast<libebml::EbmlFloat*>(e))->GetValue()
 
@@ -103,9 +128,11 @@ using err_t = libebml::filepos_t;
 
 #define MATROSKA_BlockTrackNum(b)      (b)->TrackNum()
 #define MATROSKA_BlockGetFrameCount(b) (b)->NumberFrames()
+#define MATROSKA_BlockGetFrame(b,i,f,d) (b)->GetBuffer(i)
 #define MATROSKA_BlockGetLength(b,i)   (b)->GetFrameSize(i)
 
 #define MATROSKA_CueTrackNum(c)        (c)->GetSeekPosition()->TrackNumber()
+#define MATROSKA_CuesSort(c)           (c)->Sort()
 
 
 #define PROFILE_MATROSKA_V1  1
@@ -116,9 +143,27 @@ using err_t = libebml::filepos_t;
 #define PROFILE_DIVX 0
 #define PROFILE_WEBM 10
 
+#define EBML_MAX_VERSION    1
+#define EBML_MAX_ID         4
+#define EBML_MAX_SIZE       8
+#define MATROSKA_MAX_VERSION 5
+
 #define MATROSKA_BlockReadData(b,s,p)  (b)->ReadData((*s))
 #define MATROSKA_BlockReleaseData(b,r) ERR_NONE, (b)->ReleaseFrames()
 
+
+static inline err_t EBML_ElementRender(libebml::EbmlElement *e, libebml::IOCallback *o, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, const libebml::EbmlElement::ShouldWrite &p, libebml::filepos_t *r)
+{
+    auto res = (e)->Render(*(o),p,bKeepPosition,bForceWithoutMandatory);
+    if (r != nullptr && res != INVALID_FILEPOS_T)
+        *(r) = res;
+    return res;
+}
+
+static inline ebml_element *EBML_ElementCopy(const void*, const void *Cookie)
+{
+    return nullptr; // TODO
+}
 
 
 static inline size_t EBML_IdToString(tchar_t *Out, size_t OutLen, const libebml::EbmlId & Id)
@@ -326,9 +371,59 @@ static inline void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, libebml
     Cluster->InitTimestamp(static_cast<std::uint64_t>(timestamp), static_cast<std::uint64_t>(timestampscale));
 }
 
+static inline void MATROSKA_LinkCueSegmentInfo(matroska_cuepoint *Cue, ebml_master *SegmentInfo)
+{
+    // TODO
+}
+
+static inline void MATROSKA_LinkCuePointBlock(matroska_cuepoint *CuePoint, matroska_block *Block)
+{
+    // TODO on KaxCues
+    // CuePoint->PositionSet(*Block);
+}
+
+static inline void MATROSKA_LinkClusterWriteSegmentInfo(matroska_cluster *Cluster, ebml_master *SegmentInfo)
+{
+    // TODO
+}
+
 static inline mkv_timestamp_t MATROSKA_ClusterTimestamp(matroska_cluster *Cluster)
 {
 	return Cluster->GetBlockGlobalTimestamp(0);
+}
+
+static inline void MATROSKA_ClusterSetTimestamp(matroska_cluster *Cluster, mkv_timestamp_t Timestamp)
+{
+    Cluster->InitTimestamp(Timestamp, Cluster->GlobalTimestampScale());
+}
+
+static inline mkv_timestamp_t MATROSKA_SegmentInfoTimestampScale(const ebml_master *SegmentInfo)
+{
+    ebml_integer *TimestampScale = NULL;
+    if (SegmentInfo)
+    {
+        assert(EBML_ElementIsType((ebml_element*)SegmentInfo, MATROSKA_getContextInfo()));
+        TimestampScale = (ebml_integer*)EBML_MasterFindChild(SegmentInfo,MATROSKA_getContextTimestampScale());
+    }
+    if (!TimestampScale)
+#if 1 // turn into a macro
+        return libmatroska::KaxTimestampScale::GetElementSpec().DefaultValue();
+#else
+        return MATROSKA_getContextTimestampScale()->DefaultValue;
+#endif
+    return EBML_IntegerValue(TimestampScale);
+}
+
+static inline mkv_timestamp_t MATROSKA_ClusterTimestampScale(matroska_cluster *Cluster, bool_t Read)
+{
+    // TODO tie the KaxCluster to a KaxInfo
+    // return MATROSKA_SegmentInfoTimestampScale(Cluster->ReadSegInfo);
+    return Cluster->GlobalTimestampScale();
+}
+
+static inline bool MATROSKA_BlockKeyframe(libmatroska::KaxSimpleBlock *Block)
+{
+    return Block->IsKeyframe();
 }
 
 static inline bool MATROSKA_BlockKeyframe(libmatroska::KaxBlockGroup *BlockGroup, const libmatroska::KaxInternalBlock *Block)
@@ -336,14 +431,21 @@ static inline bool MATROSKA_BlockKeyframe(libmatroska::KaxBlockGroup *BlockGroup
     if (!BlockGroup)
         return false;
 
-	if (EBML_MasterFindChild(BlockGroup,libmatroska::KaxReferenceBlock))
+	if (FindChild<libmatroska::KaxReferenceBlock>(*BlockGroup))
         return false;
 
-    const auto *Duration = EBML_MasterFindChild(BlockGroup,libmatroska::KaxBlockDuration);
+    const auto *Duration = FindChild<libmatroska::KaxBlockDuration>(*BlockGroup);
 	if (Duration!=NULL && EBML_IntegerValue(Duration)==0)
         return false;
 
 	return true;
+}
+
+static inline void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set)
+{
+    if (EBML_ElementIsType(Block, libmatroska::KaxSimpleBlock))
+        static_cast<libmatroska::KaxSimpleBlock*>(Block)->SetKeyframe(Set);
+    // TODO handle BlockGroup for KaxBlock
 }
 
 static inline bool MATROSKA_BlockLaced(const libmatroska::KaxInternalBlock *Block)
@@ -351,6 +453,12 @@ static inline bool MATROSKA_BlockLaced(const libmatroska::KaxInternalBlock *Bloc
 	// TODO move in libmatroska
     assert(Block->GetCurrentLacing() != libmatroska::LacingType::LACING_AUTO);
 	return Block->GetCurrentLacing() != libmatroska::LacingType::LACING_NONE;
+}
+
+void MATROSKA_BlockSetDiscardable(matroska_block *Block, bool_t Set)
+{
+    if (EBML_ElementIsType(Block, libmatroska::KaxSimpleBlock))
+        static_cast<libmatroska::KaxSimpleBlock*>(Block)->SetDiscardable(Set);
 }
 
 static inline mkv_timestamp_t MATROSKA_BlockTimestamp(matroska_cluster *Cluster, const libmatroska::KaxInternalBlock *Block)
@@ -368,6 +476,17 @@ static inline mkv_timestamp_t MATROSKA_BlockTimestamp(matroska_cluster *Cluster,
 #endif
     return Cluster->GetBlockGlobalTimestamp(Block->GlobalTimestamp());
 }
+
+ebml_element *MATROSKA_BlockReadTrack(const matroska_block *Block)
+{
+    // TODO Block->GetParentCluster();
+    // ebml_element *Track;
+    // if (Node_GET((node*)Block,MATROSKA_BLOCK_READ_TRACK,&Track)!=ERR_NONE)
+    //     return NULL;
+    // return Track;
+    return nullptr;
+}
+
 
 static inline matroska_block *MATROSKA_GetBlockForTimestamp(matroska_cluster *Cluster, mkv_timestamp_t Timestamp, int16_t Track)
 {
@@ -460,3 +579,38 @@ static inline bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_
 }
 
 err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment, const libebml::EbmlElement::ShouldWrite & ForProfile);
+
+err_t MATROSKA_MetaSeekUpdate(matroska_seekpoint *MetaSeek)
+{
+    ebml_element *WSeekID, *WSeekPosSegmentInfo, *RSegment, *Link = NULL;
+    size_t IdSize;
+    err_t Err;
+    uint8_t IdBuffer[4];
+
+    if (EBML_ElementIsType(MetaSeek,libebml::EbmlVoid))
+    // if (Node_IsPartOf(MetaSeek,EBML_VOID_CLASS))
+        return ERR_NONE;
+
+    assert(EBML_ElementIsType((ebml_element*)MetaSeek, MATROSKA_getContextSeek()));
+#if 0 // TODO
+    RSegment = EBML_ElementParent(MetaSeek);
+    while (RSegment && !EBML_ElementIsType(RSegment, MATROSKA_getContextSegment()))
+        RSegment = EBML_ElementParent(RSegment);
+    if (!RSegment)
+        return ERR_INVALID_DATA;
+
+    Err = Node_GET(MetaSeek,MATROSKA_SEEKPOINT_ELEMENT,&Link);
+    if (Err != ERR_NONE)
+        return Err;
+    if (Link==NULL)
+        return ERR_INVALID_DATA;
+
+    WSeekID = EBML_MasterFindFirstElt((ebml_master*)MetaSeek,MATROSKA_getContextSeekID(),1,0,0);
+    IdSize = EBML_FillBufferID(IdBuffer,sizeof(IdBuffer),EBML_ElementClassID(Link));
+    EBML_BinarySetData((ebml_binary*)WSeekID,IdBuffer,IdSize);
+#endif
+    WSeekPosSegmentInfo = EBML_MasterFindFirstElt((ebml_master*)MetaSeek,MATROSKA_getContextSeekPosition(),1,0,0);
+    EBML_IntegerSetValue((ebml_integer*)WSeekPosSegmentInfo, EBML_ElementPosition(Link) - EBML_ElementPositionData(RSegment));
+
+    return Err;
+}
