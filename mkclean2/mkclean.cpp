@@ -445,7 +445,7 @@ static void SetClusterPrevSize(array Clusters, stream *Input)
 
 static void UpdateCues(ebml_master *Cues, ebml_master *Segment)
 {
-    EBML_MASTER_CONST_ITERATOR Cue,NextCue;
+    EBML_MASTER_ITERATOR Cue,NextCue;
 
     // reevaluate the size needed for the Cues
     for (Cue=EBML_MasterChildren(Cues);EBML_MasterEnd(Cue,Cues);Cue=NextCue)
@@ -453,7 +453,7 @@ static void UpdateCues(ebml_master *Cues, ebml_master *Segment)
         NextCue =EBML_MasterNext(Cue);
         if (MATROSKA_CuePointUpdate((matroska_cuepoint*)*Cue, (ebml_element*)Segment, DstProfile)!=ERR_NONE)
         {
-            EBML_MasterRemove(Cues,(ebml_element*)*Cue); // make sure it doesn't remain in the list
+            EBML_MasterRemove(Cues,Cue); // make sure it doesn't remain in the list
             NodeDelete(*Cue);
         }
     }
@@ -471,9 +471,9 @@ static void SettleClustersWithCues(array Clusters, filepos_t ClusterStart, ebml_
     for (Cluster=ARRAYBEGIN(Clusters,ebml_master*);Cluster!=ARRAYEND(Clusters,ebml_master*);++Cluster)
     {
         if (Input!=NULL)
-            ReadClusterData(*Cluster,Input);
+            ReadClusterData(&reinterpret_cast<ebml_master &>(*Cluster),Input);
 
-        EBML_ElementForcePosition((ebml_element*)*Cluster, ClusterPos);
+        EBML_ElementForcePosition((ebml_element*)&(*Cluster), ClusterPos);
         if (SafeClusters)
         {
             Elt = NULL;
@@ -502,7 +502,7 @@ static void SettleClustersWithCues(array Clusters, filepos_t ClusterStart, ebml_
 
     ClusterPos = EBML_ElementUpdateSize(Cues,0,0, DstProfile);
     if (ClusterPos != OriginalSize)
-        SettleClustersWithCues(*Clusters,ClusterStart,Cues,Segment, SafeClusters, Input);
+        SettleClustersWithCues(Clusters,ClusterStart,Cues,Segment, SafeClusters, Input);
 
 }
 
@@ -518,7 +518,7 @@ static void EndProgress()
         TextPrintf(StdErr,T("Progress %d/%d: 100%%\r\n"), CurrentPhase, TotalPhases);
 }
 
-static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters, matroska_cluster **StartCluster, filepos_t TotalSize)
+static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, libmatroska::KaxInfo *SegmentInfo, array *Clusters, matroska_cluster **StartCluster, filepos_t TotalSize)
 {
     matroska_cluster **Cluster;
     matroska_block *Block;
@@ -527,7 +527,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
     size_t StartBoost = 7;
 
     CueTrack = MATROSKA_CueTrackNum(Cue);
-    CueTimestamp = MATROSKA_CueTimestamp(Cue);
+    CueTimestamp = MATROSKA_CueTimestamp(Cue, SegmentInfo);
     ++CurrentPhase;
     if (StartCluster)
     {
@@ -649,13 +649,13 @@ static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegme
 	if (ReLink)
 	{
 		// link each Cue entry to the segment
-		for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);EBML_MasterEnd(Cue,Cues);Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
-			MATROSKA_LinkCueSegmentInfo(Cue,RSegmentInfo);
+		for (Cue = EBML_MasterChildren(Cues);EBML_MasterEnd(Cue,Cues);Cue=EBML_MasterNext(Cue))
+			MATROSKA_LinkCueSegmentInfo(static_cast<matroska_cuepoint>(*Cue),RSegmentInfo);
 
 		// link each Cue entry to the corresponding Block/SimpleBlock in the Cluster
 		Cluster = NULL;
-		for (Cue = (matroska_cuepoint*)EBML_MasterChildren(Cues);EBML_MasterEnd(Cue,Cues);Cue=(matroska_cuepoint*)EBML_MasterNext(Cue))
-			Cluster = LinkCueCluster(Cue,Clusters,Cluster,TotalSize);
+		for (Cue = EBML_MasterChildren(Cues);EBML_MasterEnd(Cue,Cues);Cue=EBML_MasterNext(Cue))
+			Cluster = LinkCueCluster(static_cast<matroska_cuepoint>(*Cue),RSegmentInfo,Clusters,Cluster,TotalSize);
 		EndProgress();
 	}
 
@@ -802,7 +802,7 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
 static void MetaSeekUpdate(ebml_master *SeekHead)
 {
     EBML_MASTER_CONST_ITERATOR SeekPoint;
-    for (SeekPoint=(matroska_seekpoint*)EBML_MasterChildren(SeekHead); EBML_MasterEnd(SeekPoint,SeekHead); SeekPoint=(matroska_seekpoint*)EBML_MasterNext(SeekPoint))
+    for (SeekPoint=EBML_MasterChildren(SeekHead); EBML_MasterEnd(SeekPoint,SeekHead); SeekPoint=(matroska_seekpoint*)EBML_MasterNext(SeekPoint))
         MATROSKA_MetaSeekUpdate(SeekPoint);
     EBML_ElementUpdateSize(SeekHead,0,0, DstProfile);
 }
@@ -1962,7 +1962,7 @@ int main(int argc, const char *argv[])
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,EBML_getContextDocType(), EBML_ANY_PROFILE);
     if (!RLevel1)
         goto exit;
-    assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
+    // assert(Node_IsPartOf(RLevel1,EBML_STRING_CLASS));
     if (DstProfile == PROFILE_WEBM)
     {
         if (EBML_StringSetValue((ebml_string*)RLevel1,"webm") != ERR_NONE)
@@ -1993,14 +1993,14 @@ int main(int argc, const char *argv[])
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,EBML_getContextDocTypeVersion(), EBML_ANY_PROFILE);
     if (!RLevel1)
         goto exit;
-    assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
+    // assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     EBML_IntegerSetValue((ebml_integer*)RLevel1, DocVersion);
 
     // Doctype readable version
     RLevel1 = (ebml_master*)EBML_MasterGetChild(EbmlHead,EBML_getContextDocTypeReadVersion(), EBML_ANY_PROFILE);
     if (!RLevel1)
         goto exit;
-    assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
+    // assert(Node_IsPartOf(RLevel1,EBML_INTEGER_CLASS));
     EBML_IntegerSetValue((ebml_integer*)RLevel1, DocVersion);
 
     if (EBML_ElementRender((ebml_element*)EbmlHead,Output,1,0,1,DstProfile,NULL)!=ERR_NONE)

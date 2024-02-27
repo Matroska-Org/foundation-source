@@ -63,6 +63,7 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 #define EBML_MasterEnd(i,m)     (i) != ((libebml::EbmlMaster *)(m))->end()
 #define EBML_MasterNext(i)      (i)++
 #define EBML_MasterEmpty(m)     ((static_cast<const EbmlMaster *>(m))->begin() == (static_cast<const EbmlMaster *>(m))->end())
+#define EBML_MasterRemove(m,e)  (m)->Remove(e)
 
 #define EBML_ElementGetName(e,d,dn)   strcpy(d,EBML_NAME(e))
 #define EBML_ElementClassID(e)        (*e)->GetClassId()
@@ -77,6 +78,8 @@ constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_ti
 #define EBML_FindNextElement(stream, sem, level, dummy) (stream)->FindNextElement(sem, *level, UINT64_MAX, dummy)
 #define EBML_ElementSetSizeLength(e,s) (e)->SetSizeLength(s)
 #define EBML_ElementSetInfiniteSize(e,i)  (e)->SetSizeInfinite(i)
+
+#define EBML_ElementForcePosition(e,p)  (e)->ForcePosition(p)
 
 #define ERR_NONE  (!INVALID_FILEPOS_T)
 using err_t = libebml::filepos_t;
@@ -141,6 +144,11 @@ static inline int64_t Scale64(int64_t v,int64_t Num,int64_t Den)
 	if (Den)
 		return (v * Num) / Den;
 	return 0;
+}
+
+static inline int Scale32(int64_t v,int64_t Num,int64_t Den)
+{
+    return (int)Scale64(v, Num, Den);
 }
 
 static inline tchar_t* tcsupr(tchar_t* p)
@@ -222,7 +230,7 @@ static inline void EBML_MasterCheckContext(libebml::EbmlMaster *Element, int Pro
 // 				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
 //                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
 //                         {
-//                             // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
+//                             // TODO EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
 // 					        // TODO NodeDelete(i);
 // 					        i=EBML_MasterChildren(Element);
 //                             break;
@@ -234,8 +242,8 @@ static inline void EBML_MasterCheckContext(libebml::EbmlMaster *Element, int Pro
 		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
                         {
-                            // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
-			                // TODO NodeDelete(i);
+                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
+			                NodeDelete(*i);
 			                i=EBML_MasterChildren(Element);
                             break;
                         }
@@ -450,3 +458,5 @@ static inline bool_t EBML_MasterCheckMandatory(const ebml_master *Element, bool_
 	}
     return 1;
 }
+
+err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment, const libebml::EbmlElement::ShouldWrite & ForProfile);
