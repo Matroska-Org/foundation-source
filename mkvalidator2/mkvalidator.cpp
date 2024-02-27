@@ -22,6 +22,9 @@
 #include <matroska/KaxBlockData.h>
 #include "mkvalidator2_project.h"
 
+// TODO remove
+#include "../mkclean2/porting.h"
+
 #include <cstdio>
 #include <cassert>
 #include <cstdint>
@@ -49,372 +52,6 @@ using namespace libebml;
 #define EBML_MAX_ID         4
 #define EBML_MAX_SIZE       8
 
-
-// FIXME remove ?
-using tchar_t = char;
-#define T(x)  x
-#define TSIZEOF(x) sizeof(x)
-#define TPRId64 PRId64
-#define TPRIx64 PRIx64
-#define tcslen(s)  strlen(s)
-#define tcscpy_s(d,dn,s) strcpy(d,s)
-#define tcscat_s(d,dn,s) strcat(d,s)
-#define tcscmp(a,b)  strcmp(a,b)
-
-#define Node_FromStr(c,d,dn,s)  strcpy(d,s)
-
-#define MAXPATH 1024
-#define MAXPATHFULL 1024
-#define MAXLINE 2048
-#define MAXDATA 2048
-
-using bool_t = bool;
-
-using array = std::vector<EbmlElement>;
-#define ARRAYBEGIN(v,t)  (v).begin()
-#define ARRAYEND(v,t)    (v).end()
-#define ARRAYCOUNT(v,t)  (v).size()
-#define ArrayInit(v)     (v)->clear()
-#define ArrayClear(v)    (v)->clear()
-#define ArrayResize(v,s,t,a) (v)->resize(s)
-#define ArrayZero(v) // nothing, it's always used after resize
-#define ArrayAppend(v,e,s,a)  (v)->push_back(e)
-
-#define NodeDelete(o)    delete o
-
-using ebml_element = EbmlElement;
-using ebml_master = EbmlMaster;
-using ebml_integer = EbmlSInteger;
-using matroska_cluster = KaxCluster;
-using matroska_block = KaxInternalBlock;
-using matroska_seekpoint = KaxSeek;
-using matroska_cuepoint = KaxCuePoint;
-
-using mkv_timestamp_t = std::uint64_t;
-constexpr const mkv_timestamp_t INVALID_TIMESTAMP_T = std::numeric_limits<mkv_timestamp_t>::max();
-
-#define EBML_MasterChildren(m)  (m)->begin()
-#define EBML_MasterEnd(i,m)     (i) != (m)->end()
-#define EBML_MasterNext(i)      (i)++
-
-#define EBML_ElementGetName(e,d,dn)   strcpy(d,EBML_NAME(e))
-#define EBML_ElementClassID(e)        (*e)->GetClassId()
-#define EBML_ElementPosition(e)       (e)->GetElementPosition()
-#define EBML_ElementDataSize(e,u)     (e)->GetSize()
-#define EBML_ElementFullSize(e,u)     (e)->ElementSize((u != 0) ? EbmlElement::WriteAll : EbmlElement::WriteSkipDefault)
-#define EBML_ElementPositionEnd(e)    (e)->GetEndPosition()
-#define EBML_ElementPositionData(e)   ((e)->GetEndPosition() - (e)->GetSize())
-#define EBML_ElementIsType(e,t)       ((e)->GetClassId() == EBML_ID(t))
-#define EBML_ElementReadData(e,i,b,c,s,f) (e)->ReadData(i,s)
-#define EBML_ElementSkipData(e,s,c,p,d)   (e)->SkipData(s,c,p,d)
-#define EBML_FindNextElement(stream, sem, level, dummy) (stream)->FindNextElement(sem, *level, UINT64_MAX, dummy)
-
-#define ERR_NONE  (!INVALID_FILEPOS_T)
-
-#define EBML_MasterFindChild(m,c)     FindChild<c>(*m)
-#define EBML_MasterGetChild(m,c,u)    &GetChild<c>(*m)
-#define EBML_MasterNextChild(m,p)     FindNextChild(*m, *p)
-#define EBML_MasterIsChecksumValid(m) (m)->VerifyChecksum()
-#define NodeTree_SetParent(e,p,u)     (p)->PushElement(*(e))
-
-#define EBML_IntegerValue(e)          (reinterpret_cast<const EbmlUInteger*>(e))->GetValue()
-
-#define EBML_StringGet(e,d,dn)         strcpy(d,(e)->GetValue().c_str())
-#define EBML_StringGetUnicode(e,d,dn)  strcpy(d,(e)->GetValueUTF8().c_str())
-
-#define EBML_FloatValue(e)             (reinterpret_cast<EbmlFloat*>(e))->GetValue()
-
-#define MATROSKA_MetaSeekIsClass(s,c)  (s)->IsEbmlId(EBML_ID(c))
-
-#define MATROSKA_BlockTrackNum(b)      (b)->TrackNum()
-#define MATROSKA_BlockGetFrameCount(b) (b)->NumberFrames()
-#define MATROSKA_BlockGetLength(b,i)   (b)->GetFrameSize(i)
-
-#define MATROSKA_CueTrackNum(c)        (c)->GetSeekPosition()->TrackNumber()
-
-
-#define PROFILE_MATROSKA_V1  1
-#define PROFILE_MATROSKA_V2  2
-#define PROFILE_MATROSKA_V3  3
-#define PROFILE_MATROSKA_V4  4
-#define PROFILE_MATROSKA_V5  5
-#define PROFILE_DIVX 0
-#define PROFILE_WEBM 10
-
-
-size_t EBML_IdToString(tchar_t *Out, size_t OutLen, const EbmlId & Id)
-{
-    size_t i,FinalHeadSize = Id.GetLength();
-	if (OutLen < FinalHeadSize*4+1)
-		return 0;
-	Out[0] = 0;
-    for (i=0;i<4;++i)
-	{
-		if (Out[0] || (Id.GetValue() >> 8*(3-i)) & 0xFF)
-		{
-			tchar_t tmp[5];
-			snprintf(tmp,TSIZEOF(tmp), T("[%02X]"),(Id.GetValue() >> 8*(3-i)) & 0xFF);
-			strcat(Out,tmp);
-		}
-	}
-	return FinalHeadSize*4;
-}
-
-static inline int64_t Scale64(int64_t v,int64_t Num,int64_t Den)
-{
-	if (Den)
-		return (v * Num) / Den;
-	return 0;
-}
-
-tchar_t* tcsupr(tchar_t* p)
-{
-	tchar_t* i=p;
-	for (;*i;++i)
-		*i = (tchar_t)toupper(*i);
-	return p;
-}
-
-#define isame_ascii(a,b,i) \
-    ca=a[i]; \
-    cb=b[i]; \
-    cb ^= ca; \
-    if (cb) /* not equal? */\
-    { \
-        cb &= ~0x20; /* only allow the 0x20 bit to be different */ \
-        ca &= ~0x20; /* and only in the 'A'..'Z' range */ \
-        if (cb || ca<'A' || ca>'Z') \
-            return 0; \
-    } \
-    if (!ca) /* both zero? */ \
-        break;
-
-bool_t tcsisame_ascii(const tchar_t* a,const tchar_t* b)
-{
-    int ca,cb;
-    for (;;a+=4,b+=4)
-    {
-        isame_ascii(a,b,0)
-        isame_ascii(a,b,1)
-        isame_ascii(a,b,2)
-        isame_ascii(a,b,3)
-    }
-    return 1;
-}
-
-#define MASTER_CHECK_PROFILE_INVALID    0
-#define MASTER_CHECK_MISSING_MANDATORY  1
-#define MASTER_CHECK_MULTIPLE_UNIQUE    2
-
-static bool AllowedInProfile(int Profile, const MatroskaProfile &profile)
-{
-    if (profile.IsAlwaysDeprecated())
-        return false;
-    if (Profile == PROFILE_WEBM)
-        return profile.InWebM;
-    if (Profile == PROFILE_DIVX)
-        return profile.InDivX;
-    return profile.IsValidInVersion(Profile);
-}
-
-void EBML_MasterCheckContext(EbmlMaster *Element, int ProfileMask, bool_t (*ErrCallback)(void *cookie, int type, const tchar_t *ClassName, const EbmlElement*), void *cookie)
-{
-	tchar_t ClassString[MAXPATH];
-	EBML_MASTER_ITERATOR i;
-    EbmlElement *SubElt;
-    const EbmlSemantic *s;
-#if 1 // TODO
-	for (i=EBML_MasterChildren(Element);EBML_MasterEnd(i,Element);EBML_MasterNext(i))
-	{
-		if ((*i)->IsDummy())
-        {
-            for (size_t si=0; si < EBML_CTX_SIZE(EBML_CONTEXT(Element)); si++)
-		    //for (s=Element->Base.Context->Semantic; s->eClass; ++s)
-		    {
-                s = &EBML_CTX_IDX(EBML_CONTEXT(Element), si);
-			    //if (s->eClass->Id == i->Context->Id)
-			    if (EBML_INFO_ID(s->GetCallbacks()) == (*i)->GetClassId())
-			    {
-                    const auto & cb = s->GetCallbacks();
-#if 1
-//                     const auto & semcb = Element->ElementSpec();
-//                     const auto & profiles = reinterpret_cast<const MatroskaProfile &>(cb.GetVersions());
-//                     // if (s->DisabledProfile & ProfileMask)
-//                     if (!AllowedInProfile(ProfileMask, profiles))
-//                     {
-// AllowedInProfile(ProfileMask, profiles);
-// 				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
-//                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
-//                         {
-//                             // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
-// 					        // TODO NodeDelete(i);
-// 					        i=EBML_MasterChildren(Element);
-//                             break;
-//                         }
-//                     }
-                    if (s->IsUnique() && (SubElt=Element->FindFirstElt(cb, false)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
-                    // if (s->IsUnique() && (SubElt=EBML_MasterFindChild(Element,s->eClass)) && (SubElt=EBML_MasterNextChild(Element,SubElt)))
-                    {
-		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
-                        if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
-                        {
-                            // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
-			                // TODO NodeDelete(i);
-			                i=EBML_MasterChildren(Element);
-                            break;
-                        }
-                    }
-				    break;
-#endif
-			    }
-		    }
-        }
-
-        bool allowed = false; // unknown or libebml
-        const auto & profile = (*i)->ElementSpec().GetVersions();
-        if (profile.GetNameSpace() == MatroskaProfile::Namespace)
-        {
-            const auto & profiles = reinterpret_cast<const MatroskaProfile &>(profile);
-            allowed = AllowedInProfile(ProfileMask, profiles);
-        }
-        // if (s->DisabledProfile & ProfileMask)
-        if (!allowed)
-        {
-            Node_FromStr(*i,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME((*i)->ElementSpec()));
-            if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,*i))
-            {
-                // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
-                // TODO NodeDelete(i);
-                i=EBML_MasterChildren(Element);
-                break;
-            }
-        }
-	}
-
-    for (size_t si=0; si < EBML_CTX_SIZE(EBML_CONTEXT(Element)); si++)
-	//for (s=Element->Base.Context->Semantic; s->eClass; ++s)
-	{
-        s = &EBML_CTX_IDX(EBML_CONTEXT(Element), si);
-        const auto & cb = s->GetCallbacks();
-
-        // auto profiles = reinterpret_cast<const MatroskaProfile &>(cb.GetVersions());
-        // // if (s->DisabledProfile & ProfileMask)
-        // if (!AllowedInProfile(ProfileMask, profiles))
-        // {
-        //     Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
-        //     if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,Element))
-        //     {
-        //         // TODO EBML_MasterRemove(Element,*i); // make sure it doesn't remain in the list
-        //         // TODO NodeDelete(i);
-        //         i=EBML_MasterChildren(Element);
-        //         break;
-        //     }
-        // }
-
-	    if (s->IsMandatory() && !cb.HasDefault() && !Element->FindFirstElt(cb, false))
-	    {
-		    // Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
-		    Node_FromStr(Element,ClassString,TSIZEOF(ClassString),EBML_INFO_NAME(cb));
-            if (ErrCallback)
-                ErrCallback(cookie,MASTER_CHECK_MISSING_MANDATORY,ClassString,NULL);
-	    }
-	}
-#endif
-}
-
-mkv_timestamp_t MATROSKA_CueTimestamp(const matroska_cuepoint *Cue, KaxInfo *SegmentInfo)
-{
-    const ebml_integer *Timestamp;
-    assert(EBML_ElementIsType((ebml_element*)Cue, KaxCuePoint));
-    const auto & SegmentScale = GetChild<KaxTimestampScale>(*SegmentInfo);
-	mkv_timestamp_t timestamp;
-	if (!Cue->Timestamp(timestamp, static_cast<std::uint64_t>(SegmentScale)))
-        return INVALID_TIMESTAMP_T;
-    // return EBML_IntegerValue(Timestamp) * MATROSKA_SegmentInfoTimestampScale(Cue->SegInfo);
-    return timestamp;
-}
-
-void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, EbmlMaster *RSegmentInfo, EbmlMaster *Tracks, bool_t KeepUnmatched, int ForProfile)
-{
-	// TODO
-    auto timestamp = GetChild<KaxClusterTimestamp>(*Cluster);
-    auto timestampscale = GetChild<KaxTimestampScale>(*RSegmentInfo);
-    Cluster->InitTimestamp(static_cast<std::uint64_t>(timestamp), static_cast<std::uint64_t>(timestampscale));
-}
-
-mkv_timestamp_t MATROSKA_ClusterTimestamp(matroska_cluster *Cluster)
-{
-	return Cluster->GetBlockGlobalTimestamp(0);
-}
-
-bool MATROSKA_BlockKeyframe(KaxBlockGroup *BlockGroup, const KaxInternalBlock *Block)
-{
-    if (!BlockGroup)
-        return false;
-
-	if (EBML_MasterFindChild(BlockGroup,KaxReferenceBlock))
-        return false;
-
-    const auto *Duration = EBML_MasterFindChild(BlockGroup,KaxBlockDuration);
-	if (Duration!=NULL && EBML_IntegerValue(Duration)==0)
-        return false;
-
-	return true;
-}
-
-bool MATROSKA_BlockLaced(const KaxInternalBlock *Block)
-{
-	// TODO move in libmatroska
-    assert(Block->GetCurrentLacing() != LacingType::LACING_AUTO);
-	return Block->GetCurrentLacing() != LacingType::LACING_NONE;
-}
-
-mkv_timestamp_t MATROSKA_BlockTimestamp(matroska_cluster *Cluster, const KaxInternalBlock *Block)
-{
-#if 0 //TODO
-    assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
-	if (Block->GlobalTimestamp!=INVALID_TIMESTAMP_T)
-		return Block->GlobalTimestamp;
-    if (Block->ReadTrack==NULL)
-        return INVALID_TIMESTAMP_T;
-    assert(Block->LocalTimestampUsed);
-    Block->GlobalTimestamp = MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster) + (mkv_timestamp_t)(Block->LocalTimestamp * MATROSKA_SegmentInfoTimestampScale(Block->ReadSegInfo) * MATROSKA_TrackTimestampScale(Block->ReadTrack));
-    MATROSKA_BlockSetTimestamp(Block, Block->GlobalTimestamp, MATROSKA_ClusterTimestamp((matroska_cluster*)Cluster));
-    return Block->GlobalTimestamp;
-#endif
-    return Cluster->GetBlockGlobalTimestamp(Block->GlobalTimestamp());
-}
-
-matroska_block *MATROSKA_GetBlockForTimestamp(matroska_cluster *Cluster, mkv_timestamp_t Timestamp, int16_t Track)
-{
-    EBML_MASTER_CONST_ITERATOR Block, GBlock;
-    for (Block = EBML_MasterChildren(Cluster);EBML_MasterEnd(Block,Cluster);EBML_MasterNext(Block))
-    {
-        if (EBML_ElementIsType(*Block, KaxBlockGroup))
-        {
-            for (GBlock = EBML_MasterChildren((KaxBlockGroup*)*Block);EBML_MasterEnd(GBlock,(KaxBlockGroup*)*Block);EBML_MasterNext(GBlock))
-            {
-                if (EBML_ElementIsType(*GBlock, KaxBlock))
-                {
-                    if (MATROSKA_BlockTrackNum((matroska_block*)*GBlock) == Track &&
-                        MATROSKA_BlockTimestamp(Cluster, (matroska_block*)*GBlock) == Timestamp)
-                    {
-                        return (matroska_block*)*GBlock;
-                    }
-                }
-            }
-        }
-        else if (EBML_ElementIsType(*Block, KaxSimpleBlock))
-        {
-            if (MATROSKA_BlockTrackNum((matroska_block*)*Block) == Track &&
-                MATROSKA_BlockTimestamp(Cluster, (matroska_block*)*Block) == Timestamp)
-            {
-                return (matroska_block*)*Block;
-            }
-        }
-    }
-    return NULL;
-}
 
 
 typedef struct track_info
@@ -1340,7 +977,7 @@ int main(int argc, const char *argv[])
 
     if (!Quiet) fprintf(stderr,T("."));
 
-	if (EBML_ElementReadData(EbmlHead,*Input,&RContext,0,SCOPE_ALL_DATA, 1)==INVALID_FILEPOS_T)
+	if (EBML_ElementReadData(EbmlHead,Input,&RContext,0,SCOPE_ALL_DATA, 1)==INVALID_FILEPOS_T)
     {
         Result = OutputError(4,T("Could not read the EBML head"));
         goto exit;
@@ -1426,7 +1063,7 @@ int main(int argc, const char *argv[])
         RLevelX = NULL;
         if (EL_Type(&RLevel1, KaxCluster))
         {
-            if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,0,SCOPE_PARTIAL_DATA,4)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,0,SCOPE_PARTIAL_DATA,4)!=INVALID_FILEPOS_T)
 			{
                 ArrayAppend(&RClusters,(KaxCluster*)RLevel1,sizeof(RLevel1),256);
 				((KaxCluster*)RLevel1)->SetParent(*(KaxSegment*)RSegment);
@@ -1450,7 +1087,7 @@ int main(int argc, const char *argv[])
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,2)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,2)!=INVALID_FILEPOS_T)
 			{
 				if (!RSeekHead)
 					RSeekHead = RLevel1;
@@ -1473,7 +1110,7 @@ int main(int argc, const char *argv[])
 		}
         else if (EL_Type(&RLevel1, KaxInfo))
         {
-            if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,1)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,1)!=INVALID_FILEPOS_T)
 			{
 				if (RSegmentInfo != NULL)
 					OutputWarning(0x110,T("Extra SegmentInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1500,7 +1137,7 @@ int main(int argc, const char *argv[])
 		}
         else if (EL_Type(&RLevel1, KaxTracks))
         {
-            if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
 			{
 				if (RTrackInfo != NULL)
 					OutputWarning(0x120,T("Extra TrackInfo found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1570,7 +1207,7 @@ int main(int argc, const char *argv[])
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
 			{
 				if (RCues != NULL)
 					OutputWarning(0x130,T("Extra Cues found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1597,7 +1234,7 @@ int main(int argc, const char *argv[])
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,16)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,16)!=INVALID_FILEPOS_T)
 			{
 				if (RChapters != NULL)
 					OutputWarning(0x140,T("Extra Chapters found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1617,7 +1254,7 @@ int main(int argc, const char *argv[])
 		}
         else if (EL_Type(&RLevel1, KaxTags))
         {
-            if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
+            if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,4)!=INVALID_FILEPOS_T)
 			{
 				if (RTags != NULL)
 					Result |= OutputError(0x150,T("Extra Tags found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
@@ -1644,7 +1281,7 @@ int main(int argc, const char *argv[])
                 NodeDelete(RLevel1);
                 RLevel1 = NULL;
             }
-            else if (EBML_ElementReadData(RLevel1,*Input,Context_KaxSegment,1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
+            else if (EBML_ElementReadData(RLevel1,Input,Context_KaxSegment,1,SCOPE_ALL_DATA,3)!=INVALID_FILEPOS_T)
 			{
 				if (RAttachments != NULL)
 					Result |= OutputError(0x160,T("Extra Attachments found at %") TPRId64 T(" (size %") TPRId64 T(")"),EL_Pos(RLevel1),EL_DataSize(&RLevel1));
