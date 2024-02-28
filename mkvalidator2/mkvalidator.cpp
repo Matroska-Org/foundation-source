@@ -951,8 +951,7 @@ int main(int argc, const char *argv[])
 #else
 	Node_FromStr(&p,Path,TSIZEOF(Path),argv[argc-1]);
 #endif
-    // Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
-	Input = new StdIOCallback(Path, MODE_READ);
+    Input = StreamOpen(&p,Path,SFLAG_RDONLY/*|SFLAG_BUFFERED*/);
     if (!Input)
     {
         fprintf(stderr,T("Could not open file \"%s\" for reading\r\n"),Path);
