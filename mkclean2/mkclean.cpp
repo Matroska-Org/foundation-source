@@ -156,8 +156,12 @@ typedef struct track_info
 using array = std::vector<libebml::EbmlElement>; // TODO use reference or pointer of shared_ptr
 using array_ebml_element_p = std::vector<ebml_element*>; // TODO use reference or pointer of shared_ptr
 using array_size_t = std::vector<std::size_t>;
-using array_block_info = std::vector<block_info*>;
+using array_block_info_p = std::vector<block_info*>;
+using array_block_info = std::vector<block_info>;
+using array_array_block_info = std::vector<array_block_info>;
 using array_binary = std::vector<binary>;
+// using array_array_binary = std::vector<array_binary>;
+using array_array_binary = array_binary;
 using array_track_info = std::vector<track_info>;
 using array_matroska_cluster_p = std::vector<matroska_cluster*>;
 
@@ -1057,7 +1061,7 @@ static bool_t tHasTrackUID(ebml_master *Tracks, int TrackUID)
     return 0;
 }
 
-static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebml_master *Attachments, array_block_info *Alternate3DTracks)
+static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebml_master *Attachments, array_block_info_p *Alternate3DTracks)
 {
     ebml_master *Track, *CurTrack, *OtherTrack;
     ebml_element *Elt, *Elt2, *DisplayW, *DisplayH;
@@ -1470,10 +1474,14 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
     return 0;
 }
 
-static void InitCommonHeader(array *TrackHeader)
+static void InitCommonHeader(binary *TrackHeader)
 {
     // special mark to tell the header has not been used yet
-    // TrackHeader->_Begin = TABLE_MARKER;
+#if 1
+    // *TrackHeader = TABLE_MARKER;
+#else
+    TrackHeader->_Begin = TABLE_MARKER;
+#endif
 }
 
 static bool_t BlockIsCompressed(const matroska_block *Block)
@@ -1548,7 +1556,7 @@ static void ShrinkCommonHeader(array_binary *TrackHeader, matroska_block *Block,
     MATROSKA_BlockReleaseData(Block,1);
 }
 
-static void ClearCommonHeader(array *TrackHeader)
+static void ClearCommonHeader(array_binary *TrackHeader)
 {
     // if (TrackHeader->_Begin == TABLE_MARKER)
     //     TrackHeader->_Begin = NULL;
@@ -1597,9 +1605,9 @@ int main(int argc, const char *argv[])
     int InputPathIndex = 1;
 	int64_t TimestampScale = 0, OldTimestampScale;
     size_t MaxTrackNum = 0;
-    array_binary TrackMaxHeader; // array of uint8_t (max common header)
+    array_array_binary TrackMaxHeader; // array of uint8_t (max common header)
     filepos_t TotalSize;
-    array_block_info Alternate3DTracks;
+    array_block_info_p Alternate3DTracks;
     const KaxTimestampScale *TimeScale;
 
 #if 0
@@ -2319,7 +2327,7 @@ int main(int argc, const char *argv[])
             RLevel1 = EBML_MasterNext(Elt);
             if (EBML_ElementIsType(*Elt, KaxBlockGroup))
             {
-                for (auto Elt2 = EBML_MasterChildren((KaxBlockGroup*)*Elt);EBML_MasterEnd(Elt2,(KaxBlockGroup*)*Elt);Elt2=EBML_MasterNext((ebml_master*)Elt2))
+                for (auto Elt2 = EBML_MasterChildren((KaxBlockGroup*)*Elt);EBML_MasterEnd(Elt2,(KaxBlockGroup*)*Elt);Elt2=EBML_MasterNext(Elt2))
                 {
                     if (EBML_ElementIsType(*Elt2, KaxBlock))
                     {
@@ -2345,12 +2353,13 @@ int main(int argc, const char *argv[])
     if (Optimize && !UnOptimize)
     {
         int16_t BlockTrack;
-        ebml_element *Block, *GBlock;
-        array::iterator ClusterR;
+        array_ebml_element_p::iterator Block;
+        KaxBlock *GBlock;
+        array_matroska_cluster_p::iterator ClusterR;
 
 	    if (!Quiet) TextWrite(StdErr,T("Optimizing...\r\n"));
 
-		ArrayResize(&TrackMaxHeader, sizeof(array)*(MaxTrackNum+1), 0);
+		ArrayResize(&TrackMaxHeader, MaxTrackNum+1, binary, 0);
 		ArrayZero(&TrackMaxHeader);
         for (i=0;(size_t)i<=MaxTrackNum;++i) {
             bool_t OptimizeTrack = 1;
@@ -2380,25 +2389,25 @@ int main(int argc, const char *argv[])
 	    {
 		    for (Block = EBML_MasterChildren(*ClusterR);EBML_MasterEnd(Block,*ClusterR);Block=EBML_MasterNext(Block))
 		    {
-			    if (EBML_ElementIsType(Block, KaxBlockGroup))
+			    if (EBML_ElementIsType(*Block, KaxBlockGroup))
 			    {
-				    GBlock = EBML_MasterFindChild((ebml_master*)Block, KaxBlock);
+				    GBlock = EBML_MasterFindChild((KaxBlockGroup*)*Block, KaxBlock);
 				    if (GBlock)
 				    {
 					    BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)&(*GBlock));
-                        ShrinkCommonHeader(&ARRAYBEGIN(TrackMaxHeader,binary)[BlockTrack], (matroska_block*)&(*GBlock), Input);
+                        ShrinkCommonHeader(&TrackMaxHeader+BlockTrack/*ARRAYBEGIN(TrackMaxHeader,binary) FIXME [BlockTrack]*/, GBlock, Input);
 				    }
 			    }
-			    else if (EBML_ElementIsType(Block, KaxSimpleBlock))
+			    else if (EBML_ElementIsType(*Block, KaxSimpleBlock))
 			    {
-				    BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)&(*Block));
-                    ShrinkCommonHeader(&ARRAYBEGIN(TrackMaxHeader,binary)[BlockTrack], (matroska_block*)&(*Block), Input);
+				    BlockTrack = MATROSKA_BlockTrackNum((KaxSimpleBlock*)*Block);
+                    ShrinkCommonHeader(&TrackMaxHeader+BlockTrack/*ARRAYBEGIN(TrackMaxHeader,binary) FIXME [BlockTrack]*/, (KaxSimpleBlock*)*Block, Input);
 			    }
 		    }
 	    }
 
         for (i=0;(size_t)i<=MaxTrackNum;++i)
-            ClearCommonHeader(&(ARRAYBEGIN(TrackMaxHeader,binary)[i]));
+            ClearCommonHeader(&TrackMaxHeader+i/*ARRAYBEGIN(TrackMaxHeader,binary) FIXME [i]*/);
     }
 
 	if (Remux && WTrackInfo)
@@ -2416,9 +2425,10 @@ int main(int argc, const char *argv[])
 		bool_t Deleted;
 		array KeyFrameTimestamps, *pTrackBlock;
 		array_size_t TrackBlockCurrIdx, TrackOrder;
-        std::vector<array_block_info> TrackBlocks;
+        array_array_block_info TrackBlocks;
         // matroska_frame FrameData;
-		block_info BlockInfo,*pBlockInfo;
+		block_info BlockInfo;
+        array_block_info::iterator pBlockInfo;
 		err_t Result;
 
 		if (!Quiet) TextWrite(StdErr,T("Remuxing...\r\n"));
@@ -2453,16 +2463,16 @@ int main(int argc, const char *argv[])
 					GBlock = EBML_MasterFindChild((KaxBlockGroup*)&*Block, KaxBlock);
 					if (GBlock)
 					{
-						BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)&(*GBlock));
-						BlockInfo.Block = (matroska_block*)&(*GBlock);
-						ArrayAppend(&ARRAYBEGIN(TrackBlocks,array_block_info)[BlockTrack],BlockInfo,array_block_info,1024);
+						BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)GBlock);
+						BlockInfo.Block = (KaxBlock*)GBlock;
+						ArrayAppend(&ARRAYAT(TrackBlocks,array_block_info,BlockTrack),BlockInfo,array_block_info,1024);
 					}
 				}
 				else if (EBML_ElementIsType(*Block, KaxSimpleBlock))
 				{
 					BlockTrack = MATROSKA_BlockTrackNum((matroska_block*)&(*Block));
-					BlockInfo.Block = (matroska_block*)&(*Block);
-					ArrayAppend(&ARRAYBEGIN(TrackBlocks,array_block_info)[BlockTrack],BlockInfo,array_block_info,1024);
+					BlockInfo.Block = (KaxSimpleBlock*)*Block;
+					ArrayAppend(&ARRAYAT(TrackBlocks,array_block_info,BlockTrack),BlockInfo,array_block_info,1024);
 				}
 			}
 		}
@@ -2510,11 +2520,11 @@ int main(int argc, const char *argv[])
 			BlockEnd = INVALID_TIMESTAMP_T;
 			for (pBlockInfo=ARRAYBEGIN(*pTrackBlock,block_info);pBlockInfo!=ARRAYEND(*pTrackBlock,block_info);++pBlockInfo)
 			{
-				BlockTime = MATROSKA_BlockTimestamp(pBlockInfo->Block);
+				BlockTime = MATROSKA_BlockTimestamp((*pBlockInfo).Block);
 				pBlockInfo->DecodeTime = BlockTime;
 				if ((pBlockInfo+1)!=ARRAYEND(*pTrackBlock,block_info) && BlockEnd!=INVALID_TIMESTAMP_T)
 				{
-					BlockDuration = MATROSKA_BlockTimestamp((pBlockInfo+1)->Block);
+					BlockDuration = MATROSKA_BlockTimestamp((*(pBlockInfo+1)).Block);
 					if (BlockTime > BlockDuration)
 					{
 						//assert(BlockDuration > BlockEnd);
@@ -2527,7 +2537,7 @@ int main(int argc, const char *argv[])
 
 		// get all the keyframe timestamps for our main track
 		ArrayInit(&KeyFrameTimestamps);
-		pTrackBlock=ARRAYBEGIN(TrackBlocks,array_block_info) + MainTrack;
+		pTrackBlock=ARRAYAT(TrackBlocks,array_block_info,MainTrack);
 		for (pBlockInfo=ARRAYBEGIN(*pTrackBlock,block_info);pBlockInfo!=ARRAYEND(*pTrackBlock,block_info);++pBlockInfo)
 		{
 			if (MATROSKA_BlockKeyframe(pBlockInfo->Block))

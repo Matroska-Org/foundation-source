@@ -56,6 +56,7 @@ using bool_t = bool;
 #define ARRAYBEGIN(v,t)  (v).begin()
 #define ARRAYEND(v,t)    (v).end()
 #define ARRAYCOUNT(v,t)  (v).size()
+#define ARRAYAT(v,t,i)   (v).at(i)
 #define ArrayInit(v)     (v)->clear()
 #define ArrayClear(v)    (v)->clear()
 #define ArrayResize(v,s,t,a) (v)->resize(s)
