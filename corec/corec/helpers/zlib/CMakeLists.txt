@@ -4,6 +4,9 @@ option(CONFIG_ZLIB "Enable zlib (de)compression" ON)
 
 if (CONFIG_ZLIB)
     add_library("zlib" STATIC)
+    if (BUILD_SHARED_LIBS)
+        set_property(TARGET "zlib" PROPERTY POSITION_INDEPENDENT_CODE ON)
+    endif()
     set(zlib_group_PUBLIC_HEADERS
         crc32.h
         inffast.h

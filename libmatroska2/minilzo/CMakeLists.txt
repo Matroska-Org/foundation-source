@@ -1,6 +1,9 @@
 # minilzo library API
 
 add_library("minilzo" STATIC)
+if (BUILD_SHARED_LIBS)
+    set_property(TARGET "minilzo" PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
 set(MINILZO_GROUP_PUBLIC_HEADERS
     minilzo.h
     lzoconf.h
