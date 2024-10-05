@@ -262,10 +262,10 @@ void MATROSKA_InitSemantic();
         <xsl:when test="$label='bff'">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="'BottomFieldFirst'"/></xsl:call-template>
         </xsl:when>
-        <xsl:when test="$label='tff(swapped)'">
+        <xsl:when test="$label='tff (interleaved)'">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="'TopFieldSwapped'"/></xsl:call-template>
         </xsl:when>
-        <xsl:when test="$label='bff(swapped)'">
+        <xsl:when test="$label='bff (interleaved)'">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="'BottomFieldSwapped'"/></xsl:call-template>
         </xsl:when>
 
