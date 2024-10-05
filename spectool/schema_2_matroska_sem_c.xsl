@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-    File used to generate libmatroska2 matroska_sem.c from ebml_matroska.xml 
+    File used to generate libmatroska2 matroska_sem.c from ebml_matroska.xml
     Usage: xsltproc -o matroska_sem.c schema_2_matroska_sem_c.xsl ebml_matroska.xml
 -->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:str="http://exslt.org/strings"
     exclude-result-prefixes="str xhtml ebml"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -184,10 +184,10 @@
             <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
-            
+
         </xsl:when>
         <xsl:when test="$node/@type='binary'">
-            
+
             <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
             <xsl:text> = (ebml_context) {</xsl:text>
@@ -208,7 +208,7 @@
             <xsl:text>};&#10;</xsl:text>
         </xsl:when>
         <xsl:when test="$node/@type='uinteger'">
-            
+
             <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
             <xsl:text> = (ebml_context) {</xsl:text>
@@ -226,10 +226,10 @@
             <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
-            
+
         </xsl:when>
         <xsl:when test="$node/@type='integer'">
-            
+
             <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
             <xsl:text> = (ebml_context) {</xsl:text>
@@ -244,10 +244,10 @@
             <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
-            
+
         </xsl:when>
         <xsl:when test="$node/@type='utf-8'">
-            
+
             <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
             <xsl:text> = (ebml_context) {</xsl:text>
@@ -262,10 +262,10 @@
             <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
-            
+
         </xsl:when>
         <xsl:when test="$node/@type='string'">
-            
+
             <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
             <xsl:text> = (ebml_context) {</xsl:text>
@@ -280,10 +280,10 @@
             <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
-            
+
         </xsl:when>
         <xsl:when test="$node/@type='float'">
-            
+
             <xsl:text>    MATROSKA_Context</xsl:text>
             <xsl:value-of select="$lib2Name" />
             <xsl:text> = (ebml_context) {</xsl:text>
@@ -306,7 +306,7 @@
             <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
             <xsl:text>NULL</xsl:text>
             <xsl:text>};&#10;</xsl:text>
-            
+
         </xsl:when>
         <xsl:when test="$node/@type='date'">
             <xsl:text>    MATROSKA_Context</xsl:text>
