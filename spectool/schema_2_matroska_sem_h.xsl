@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-    File used to generate libmatroska2 matroska_sem.h from ebml_matroska.xml 
+    File used to generate libmatroska2 matroska_sem.h from ebml_matroska.xml
     Usage: xsltproc -o matroska_sem.h schema_2_matroska_sem_h.xsl ebml_matroska.xml
 -->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:str="http://exslt.org/strings"
     exclude-result-prefixes="str xhtml ebml"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -366,7 +366,7 @@ void MATROSKA_InitSemantic();
         <xsl:when test="contains($label,'ITU-R BT.601 525')">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="'BT601 525'"/></xsl:call-template>
         </xsl:when>
-        
+
         <!-- MatrixCoefficients -->
         <xsl:when test="contains($label,' Non-constant Luminance')">
             <xsl:call-template name="outputEnumLabel"><xsl:with-param name="align" select="$align"/><xsl:with-param name="label" select="concat(concat(substring-before($label, ' Non-constant Luminance'), substring-after($label, ' Non-constant Luminance')),' NCL')"/></xsl:call-template>
@@ -408,7 +408,7 @@ void MATROSKA_InitSemantic();
         </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  
+
   <xsl:template name="finalOutputEnumLabel">
     <xsl:param name="label"/>
     <xsl:param name="align" as="xs:integer"/>
