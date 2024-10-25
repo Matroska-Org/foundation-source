@@ -15,6 +15,9 @@
 #if defined(CONFIG_LZO1X)
 #include "minilzo.h"
 #endif
+#if defined(CONFIG_ZSTD)
+#include <zstd.h>
+#endif
 #include <corec/helpers/file/streams.h>
 #include <corec/str/str.h>
 #include <corec/helpers/parser/parser.h>
@@ -225,6 +228,94 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
 #endif // CONFIG_EBML_WRITING
 #endif // CONFIG_ZLIB
 
+#if defined(CONFIG_ZSTD)
+err_t UnCompressFrameZstd(const uint8_t *Cursor, size_t CursorSize, array *OutBuf, size_t *FrameSize, size_t *ArrayOffset)
+{
+    uint8_t Buffer[4+14]; // 14: max frame header size
+    STORE32LE(Buffer, ZSTD_MAGICNUMBER);
+    memcpy(&Buffer[4], Cursor, MIN(sizeof(Buffer)-4, CursorSize));
+
+    unsigned long long outSize = ZSTD_getFrameContentSize(Buffer, sizeof(Buffer));
+    if (ZSTD_isError(outSize))
+        return ERR_INVALID_DATA;
+    if (!ArrayResize(OutBuf, outSize + *ArrayOffset, 0))
+        return ERR_OUT_OF_MEMORY;
+
+    err_t Err = ERR_NONE;
+    ZSTD_DStream *dstream = ZSTD_createDStream();
+    if (dstream == NULL)
+        return ERR_OUT_OF_MEMORY;
+    size_t Count;
+    Count = ZSTD_initDStream(dstream);
+    if (ZSTD_isError(Count))
+        Err = ERR_INVALID_DATA;
+    else
+    {
+        ZSTD_inBuffer  in;
+        ZSTD_outBuffer out;
+        out.dst = ARRAYBEGIN(*OutBuf,uint8_t) + *ArrayOffset;
+        out.size = ARRAYCOUNT(*OutBuf,uint8_t) - *ArrayOffset;
+        out.pos = 0;
+
+        // feed the header
+        in.src = Buffer;
+        in.size = 4;
+        in.pos = 0;
+        Count = ZSTD_decompressStream(dstream, &out, &in);
+        if (ZSTD_isError(Count))
+            Err = ERR_INVALID_DATA;
+        else
+        {
+            // feed the data
+            in.src = Cursor;
+            in.size = CursorSize;
+            in.pos = 0;
+            Count = ZSTD_decompressStream(dstream, &out, &in);
+            if (ZSTD_isError(Count))
+                Err = ERR_INVALID_DATA;
+            else
+                *FrameSize = out.size + *ArrayOffset;
+        }
+    }
+    ZSTD_freeDStream(dstream);
+    return Err;
+}
+
+#if defined(CONFIG_EBML_WRITING)
+err_t CompressFrameZstd(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+{
+    ZSTD_CCtx* cctx = ZSTD_createCCtx();
+    if (cctx == NULL)
+        return ERR_OUT_OF_MEMORY;
+    void *output;
+    if (OutBuf)
+        output = *OutBuf;
+    else
+    {
+        output = malloc(CursorSize + 14); // extra header in case the compression is bad
+        if (output == NULL)
+        {
+            ZSTD_freeCCtx(cctx);
+            return ERR_OUT_OF_MEMORY;
+        }
+        *OutSize += 14;
+    }
+    size_t result = ZSTD_compressCCtx(cctx, output, *OutSize, Cursor, CursorSize, ZSTD_CLEVEL_DEFAULT);
+    ZSTD_freeCCtx(cctx);
+    assert(ZSTD_isError(result) || *((fourcc_t*)output) == ZSTD_MAGICNUMBER);
+    if (!OutBuf)
+        free(output);
+    if (ZSTD_isError(result))
+        return ERR_WRITE;
+    // strip the magic number
+    if (OutBuf)
+        *OutBuf = *OutBuf + 4;
+    *OutSize = result - 4;
+    return ERR_NONE;
+}
+#endif // CONFIG_EBML_WRITING
+#endif // CONFIG_ZSTD
+
 static err_t CheckCompression(matroska_block *Block, int ForProfile)
 {
     ebml_master *Elt, *Header;
@@ -260,6 +351,10 @@ static err_t CheckCompression(matroska_block *Block, int ForProfile)
 #endif
 #if defined(CONFIG_BZLIB)
             else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_BZLIB)
+                CanDecompress = 1;
+#endif
+#if defined(CONFIG_ZSTD)
+            else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD)
                 CanDecompress = 1;
 #endif
             if (!CanDecompress)
@@ -1018,6 +1113,10 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                 else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_BZLIB)
                     CanDecompress = 1;
 #endif
+#if defined(CONFIG_ZSTD)
+                else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD)
+                    CanDecompress = 1;
+#endif
                 if (!CanDecompress)
                     return ERR_INVALID_DATA;
 
@@ -1026,7 +1125,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
             }
         }
 
-#if !defined(CONFIG_ZLIB) && !defined(CONFIG_LZO1X) && !defined(CONFIG_BZLIB)
+#if !defined(CONFIG_ZLIB) && !defined(CONFIG_LZO1X) && !defined(CONFIG_BZLIB) && !defined(CONFIG_ZSTD)
         if (Header && Header->Context==MATROSKA_getContextContentCompAlgo())
             return ERR_NOT_SUPPORTED;
 #endif
@@ -1040,7 +1139,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
         switch (Element->Lacing)
         {
         case LACING_NONE:
-#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
+#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB) || defined(CONFIG_ZSTD)
             if (Header && Header->Context==MATROSKA_getContextContentCompAlgo())
             {
                 // zlib handling, read the buffer in temp memory
@@ -1062,6 +1161,19 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                             size_t UncompressedSize;
                             size_t Offset = 0;
                             Err = UnCompressFrameZLib(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[0], &Element->Data, &UncompressedSize, &Offset);
+                            if (Err == ERR_NONE)
+                            {
+                                ArrayResize(&Element->Data, UncompressedSize, 0);
+                                ARRAYBEGIN(Element->SizeList,int32_t)[0] = UncompressedSize;
+                            }
+                        }
+#endif
+#if defined(CONFIG_ZSTD)
+                        if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZSTD)
+                        {
+                            size_t UncompressedSize;
+                            size_t Offset = 0;
+                            Err = UnCompressFrameZstd(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[0], &Element->Data, &UncompressedSize, &Offset);
                             if (Err == ERR_NONE)
                             {
                                 ArrayResize(&Element->Data, UncompressedSize, 0);
@@ -1173,7 +1285,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
             BufSize = 0;
             for (NumFrame=0;NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 BufSize += ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
+#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB) || defined(CONFIG_ZSTD)
             if (Header && Header->Context==MATROSKA_getContextContentCompAlgo())
             {
                 // zlib handling, read the buffer in temp memory
@@ -1206,6 +1318,18 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                     {
                         size_t UncompressedSize;
                         Err = UnCompressFrameZLib(InBuf, FrameSize, &Element->Data, &UncompressedSize, &Offset);
+                        if (Err == ERR_NONE)
+                        {
+                            OutSize += UncompressedSize;
+                            ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = UncompressedSize;
+                        }
+                    }
+#endif
+#if defined(CONFIG_ZSTD)
+                    if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZSTD)
+                    {
+                        size_t UncompressedSize;
+                        Err = UnCompressFrameZstd(InBuf, FrameSize, &Element->Data, &UncompressedSize, &Offset);
                         if (Err == ERR_NONE)
                         {
                             OutSize += UncompressedSize;
@@ -1602,6 +1726,10 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
         if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB && CompressFrameZLib(Data,ARRAYBEGIN(Element->SizeList,int32_t)[Frame],NULL,&OutSize)!=ERR_NONE)
             return ARRAYBEGIN(Element->SizeList,int32_t)[Frame]; // we can't tell the final size without decoding the data
 #endif
+#if defined(CONFIG_ZSTD)
+        if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD && CompressFrameZstd(Data,ARRAYBEGIN(Element->SizeList,int32_t)[Frame],NULL,&OutSize)!=ERR_NONE)
+            return ARRAYBEGIN(Element->SizeList,int32_t)[Frame]; // we can't tell the final size without decoding the data
+#endif
 #endif
         return OutSize;
     }
@@ -1657,6 +1785,10 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
                 CanCompress = 1;
 #if defined(CONFIG_ZLIB)
             else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                CanCompress = 1;
+#endif
+#if defined(CONFIG_ZSTD)
+            else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD)
                 CanCompress = 1;
 #endif
             if (!CanCompress)
@@ -1771,6 +1903,10 @@ static err_t RenderBlockData(matroska_block *Element, struct stream *Output, boo
             else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                 CanCompress = 1;
 #endif
+#if defined(CONFIG_ZSTD)
+            else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD)
+                CanCompress = 1;
+#endif
             if (!CanCompress)
             {
                 Err = ERR_NOT_SUPPORTED;
@@ -1864,6 +2000,39 @@ static err_t RenderBlockData(matroska_block *Element, struct stream *Output, boo
                     OutBuf = ARRAYBEGIN(TmpBuf,uint8_t);
                     ToWrite = ARRAYCOUNT(TmpBuf,uint8_t);
                     if (CompressFrameZLib(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
+                    {
+                        ArrayClear(&TmpBuf);
+                        Err = ERR_OUT_OF_MEMORY;
+                        break;
+                    }
+
+                    Err = Stream_Write(Output,OutBuf,ToWrite,&Written);
+                    ArrayClear(&TmpBuf);
+                    if (Rendered)
+                        *Rendered += Written;
+                    Cursor += *i;
+                    if (Err!=ERR_NONE)
+                        break;
+                }
+            }
+#endif
+#if defined(CONFIG_ZSTD)
+            if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD)
+            {
+                uint8_t *OutBuf;
+                array TmpBuf;
+                ArrayInit(&TmpBuf);
+                for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
+                {
+                    if (!ArrayResize(&TmpBuf,*i + 100,0))
+                    {
+                        ArrayClear(&TmpBuf);
+                        Err = ERR_OUT_OF_MEMORY;
+                        break;
+                    }
+                    OutBuf = ARRAYBEGIN(TmpBuf,uint8_t);
+                    ToWrite = ARRAYCOUNT(TmpBuf,uint8_t);
+                    if (CompressFrameZstd(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
                     {
                         ArrayClear(&TmpBuf);
                         Err = ERR_OUT_OF_MEMORY;
@@ -1983,6 +2152,10 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
                     CanCompress = 1;
 #if defined(CONFIG_ZLIB)
                 else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                    CanCompress = 1;
+#endif
+#if defined(CONFIG_ZSTD)
+                else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD)
                     CanCompress = 1;
 #endif
                 if (!CanCompress)
@@ -2292,6 +2465,14 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
                         Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
                 }
 #endif
+#if defined(CONFIG_ZSTD)
+                if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD &&
+                    CompressFrameZstd(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &NewCompressed, &CompressedSize)==ERR_NONE)
+                {
+                    if (EBML_BinarySetData(CodecPrivate, NewCompressed, CompressedSize)==ERR_NONE)
+                        Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZSTD;
+                }
+#endif
                 free(Compressed);
             }
             if (Element->CodecPrivateCompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_NONE)
@@ -2309,6 +2490,14 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
 #if defined(CONFIG_ZLIB)
                 if (Element->CodecPrivateCompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB &&
                     UnCompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize, &Offset)==ERR_NONE)
+                {
+                    if (EBML_BinarySetData(CodecPrivate, ARRAYBEGIN(Compressed,uint8_t), CompressedSize)==ERR_NONE)
+                        Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_NONE;
+                }
+#endif
+#if defined(CONFIG_ZSTD)
+                if (Element->CodecPrivateCompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZSTD &&
+                    UnCompressFrameZstd(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize, &Offset)==ERR_NONE)
                 {
                     if (EBML_BinarySetData(CodecPrivate, ARRAYBEGIN(Compressed,uint8_t), CompressedSize)==ERR_NONE)
                         Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_NONE;
@@ -2358,10 +2547,12 @@ MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_t
 
 bool_t MATROSKA_TrackSetCompressionAlgo(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile, MatroskaTrackEncodingCompAlgo algo)
 {
-    // force zlib compression
+    // force zlib or Zstd compression
     bool_t HadEncoding;
     ebml_element *Encodings, *Elt, *Elt2;
     assert(Node_IsPartOf(TrackEntry, MATROSKA_TRACKENTRY_CLASS));
+    if (Scope != 0 && algo != MATROSKA_TRACK_ENCODING_COMP_ZLIB && algo != MATROSKA_TRACK_ENCODING_COMP_ZSTD)
+        return 0;
     // remove the previous compression and the new optimized one
     Encodings = EBML_MasterFindChild(TrackEntry,MATROSKA_getContextContentEncodings());
     HadEncoding = Encodings!=NULL;

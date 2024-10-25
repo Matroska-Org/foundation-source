@@ -107,6 +107,14 @@ static INLINE err_t CompressFrameZLib(const uint8_t * UNUSED_PARAM(Cursor), size
     return ERR_NOT_SUPPORTED;
 }
 #endif // !CONFIG_ZLIB
+#if defined(CONFIG_ZSTD)
+MATROSKA_DLL err_t CompressFrameZstd(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
+#else // !CONFIG_ZLIB
+static INLINE err_t CompressFrameZstd(const uint8_t * UNUSED_PARAM(Cursor), size_t UNUSED_PARAM(CursorSize), uint8_t ** UNUSED_PARAM(OutBuf), size_t * UNUSED_PARAM(OutSize))
+{
+    return ERR_NOT_SUPPORTED;
+}
+#endif // !CONFIG_ZLIB
 #endif
 
 MATROSKA_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!

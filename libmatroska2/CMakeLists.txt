@@ -3,6 +3,7 @@ project("matroska2" VERSION 0.22.3 LANGUAGES C)
 option(CONFIG_ZLIB "Enable zlib (de)compression" ON)
 option(CONFIG_BZLIB "Enable bzlib decompression in libmatroska2" ON)
 option(CONFIG_LZO1X "Enable lzo decompression in libmatroska2" ON)
+option(CONFIG_ZSTD "Enable Zstandard/zstd (de)compression in libmatroska2" ON)
 option(CONFIG_CODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
 
 if (CONFIG_ZLIB)
@@ -25,6 +26,30 @@ if (CONFIG_ZLIB)
     target_compile_definitions("zlibstatic" PRIVATE NO_GZIP)
   endif()
 endif()
+
+if (CONFIG_ZSTD)
+  # find_package(Zstd)
+
+  # if(NOT Zstd_FOUND)
+    include(FetchContent)
+
+    set(ZSTD_BUILD_STATIC ON)
+    set(ZSTD_BUILD_SHARED OFF)
+    set(ZSTD_BUILD_PROGRAMS OFF)
+    set(ZSTD_BUILD_TESTS OFF)
+    set(ZSTD_LEGACY_SUPPORT OFF)
+
+    FetchContent_Declare(
+        zstd
+        URL      "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz"
+        URL_HASH SHA256=eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        SOURCE_SUBDIR build/cmake
+    )
+
+    FetchContent_MakeAvailable(zstd)
+  # endif()
+endif(CONFIG_ZSTD)
 
 set(matroska2_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/matroskamain.c
@@ -75,6 +100,11 @@ if (CONFIG_BZLIB)
     target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:bzlib>)
   endif()
 endif(CONFIG_BZLIB)
+
+if (CONFIG_ZSTD)
+  target_include_directories("matroska2" PRIVATE ${zstd_SOURCE_DIR}/lib)
+  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:libzstd_static>)
+endif(CONFIG_ZSTD)
 
 if (CONFIG_CODEC_HELPER)
   add_subdirectory("tremor")
