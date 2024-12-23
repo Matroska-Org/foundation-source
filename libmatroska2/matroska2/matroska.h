@@ -49,8 +49,8 @@
 #define PROFILE_MATROSKA_V5          (1<<6)
 #define PROFILE_WEBM                 (1<<3)
 #define PROFILE_DIVX                 (1<<4)
-#define PROFILE_MATROSKA_ALL        (PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4) 
-#define PROFILE_MATROSKA_ANY        (PROFILE_MATROSKA_ALL|PROFILE_WEBM|PROFILE_DIVX) 
+#define PROFILE_MATROSKA_ALL        (PROFILE_MATROSKA_V1|PROFILE_MATROSKA_V2|PROFILE_MATROSKA_V3|PROFILE_MATROSKA_V4)
+#define PROFILE_MATROSKA_ANY        (PROFILE_MATROSKA_ALL|PROFILE_WEBM|PROFILE_DIVX)
 
 #define MATROSKA_VERSION  2
 
@@ -120,7 +120,7 @@ MATROSKA_DLL matroska_cuepoint *MATROSKA_CuesGetTimestampStart(const ebml_elemen
 
 #if defined(CONFIG_EBML_WRITING)
 MATROSKA_DLL MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile);
-MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope, int ForProfile);
+MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry);
 #if defined(CONFIG_ZLIB)
