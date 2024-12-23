@@ -2391,7 +2391,7 @@ MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_t
     return (MatroskaTrackEncodingCompAlgo)EBML_IntegerValue((ebml_integer*)Elt2);
 }
 
-bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile)
+bool_t MATROSKA_TrackSetCompressionAlgo(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile, MatroskaTrackEncodingCompAlgo algo)
 {
     // force zlib compression
     bool_t HadEncoding;
@@ -2413,7 +2413,7 @@ bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, Matrosk
 
         Elt =  EBML_MasterGetChild((ebml_master*)Elt2,MATROSKA_getContextContentCompression(), ForProfile);
         Elt2 = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentCompAlgo(), ForProfile);
-        EBML_IntegerSetValue((ebml_integer*)Elt2, MATROSKA_TRACK_ENCODING_COMP_ZLIB);
+        EBML_IntegerSetValue((ebml_integer*)Elt2, algo);
     }
     return HadEncoding;
 }
