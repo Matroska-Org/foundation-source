@@ -2637,7 +2637,7 @@ int main(int argc, const char *argv[])
             if (EBML_ElementIsType((ebml_element*)RLevel1, MATROSKA_getContextTrackEntry()))
             {
                 MatroskaTrackEncodingCompAlgo encoding = MATROSKA_TRACK_ENCODING_COMP_NONE;
-                MatroskaContentEncodingScope zlib_scope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
+                MatroskaContentEncodingScope compress_scope = MATROSKA_CONTENTENCODINGSCOPE_BLOCK;
 
                 Elt2 = EBML_MasterFindChild(RLevel1,MATROSKA_getContextTrackNumber());
 			    if (!Elt2) continue;
@@ -2690,7 +2690,7 @@ int main(int argc, const char *argv[])
                     }
                 }
                 if (encoding == MATROSKA_TRACK_ENCODING_COMP_NONE)
-                    zlib_scope = 0;
+                    compress_scope = 0;
                 else
                 {
                     if (Encodings)
@@ -2700,13 +2700,13 @@ int main(int argc, const char *argv[])
                         {
                             Elt2 =  EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextContentEncodingScope(), DstProfile);
                             if (Elt2)
-                                zlib_scope = EBML_IntegerValue((ebml_integer*)Elt2);
+                                compress_scope = EBML_IntegerValue((ebml_integer*)Elt2);
                         }
                     }
                 }
 
                 // see if we can add CodecPrivate too
-                if ((Optimize || encoding != MATROSKA_TRACK_ENCODING_COMP_NONE) && encoding != MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP && zlib_scope != MATROSKA_CONTENTENCODINGSCOPE_PRIVATE)
+                if ((Optimize || encoding != MATROSKA_TRACK_ENCODING_COMP_NONE) && encoding != MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP && compress_scope != MATROSKA_CONTENTENCODINGSCOPE_PRIVATE)
                 {
                     if (CodecPrivate!=NULL)
                     {
@@ -2718,7 +2718,7 @@ int main(int argc, const char *argv[])
                             && (CompressedSize + ExtraCompHeaderBytes) < origCompressedSize)
                         {
                             encoding = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
-                            zlib_scope |= MATROSKA_CONTENTENCODINGSCOPE_PRIVATE;
+                            compress_scope |= MATROSKA_CONTENTENCODINGSCOPE_PRIVATE;
                         }
                         free(Compressed);
                     }
@@ -2729,7 +2729,7 @@ int main(int argc, const char *argv[])
                 case MATROSKA_TRACK_ENCODING_COMP_ZLIB:
                 case MATROSKA_TRACK_ENCODING_COMP_BZLIB: // transform bzlib into zlib
                 case MATROSKA_TRACK_ENCODING_COMP_LZO1X: // transform lzo1x into zlib
-                    if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, zlib_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_ZLIB))
+                    if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, compress_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_ZLIB))
 						ClustersNeedRead = 1;
                     break;
                 case MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP:
