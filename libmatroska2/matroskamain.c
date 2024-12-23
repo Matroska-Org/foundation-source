@@ -64,7 +64,7 @@ err_t MATROSKA_Init(parsercontext *p)
         if (!MATROSKA_init_once)
         {
             MATROSKA_init_once = 1;
-            
+
             MATROSKA_InitSemantic();
 
             EBML_SemanticMatroska[0] = (ebml_semantic){1, 0, EBML_getContextHead()        ,0};
@@ -645,7 +645,7 @@ bool_t MATROSKA_BlockKeyframe(const matroska_block *Block)
 
 	if (!EBML_ElementIsType((const ebml_element*)Block, MATROSKA_getContextBlock()))
         return 0;
-	
+
 	BlockGroup = (ebml_master*)EBML_ElementParent(Block);
     if (!BlockGroup || !Node_IsPartOf(BlockGroup,MATROSKA_BLOCKGROUP_CLASS))
         return 0;
@@ -782,7 +782,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment, int
     if (!TrackNum)
         return ERR_OUT_OF_MEMORY;
 	EBML_IntegerSetValue(TrackNum, MATROSKA_BlockTrackNum(Cue->Block));
-	
+
     PosInCluster = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextCueClusterPosition(), ForProfile);
     if (!PosInCluster)
         return ERR_OUT_OF_MEMORY;
@@ -793,7 +793,7 @@ err_t MATROSKA_CuePointUpdate(matroska_cuepoint *Cue, ebml_element *Segment, int
         return ERR_INVALID_DATA;
 
     assert(EBML_ElementPosition(Elt) != INVALID_FILEPOS_T);
-    
+
     EBML_IntegerSetValue((ebml_integer*)PosInCluster, EBML_ElementPosition(Elt) - EBML_ElementPositionData(Segment));
 
     return ERR_NONE;
@@ -1777,7 +1777,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         Cursor = &BlockHead[2];
         BlockHeadSize = 5;
     }
-    else 
+    else
         return ERR_INVALID_DATA;
 
     STORE16BE(Cursor,Element->LocalTimestamp);
@@ -2174,7 +2174,7 @@ static int CmpAttachedFile(const ebml_master* a,const ebml_master* b)
 		return -1;
 	if (NameA==NULL)
 		return 1;
-	
+
 	EBML_StringGet((ebml_string*)NameA,FilenameA,TSIZEOF(FilenameA));
 	EBML_StringGet((ebml_string*)NameB,FilenameB,TSIZEOF(FilenameB));
 
@@ -2391,7 +2391,7 @@ MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_t
     return (MatroskaTrackEncodingCompAlgo)EBML_IntegerValue((ebml_integer*)Elt2);
 }
 
-bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, int Scope, int ForProfile)
+bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile)
 {
     // force zlib compression
     bool_t HadEncoding;
