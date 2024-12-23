@@ -120,7 +120,7 @@ MATROSKA_DLL matroska_cuepoint *MATROSKA_CuesGetTimestampStart(const ebml_elemen
 
 #if defined(CONFIG_EBML_WRITING)
 MATROSKA_DLL MatroskaTrackEncodingCompAlgo MATROSKA_TrackGetBlockCompression(const matroska_trackentry *TrackEntry, int ForProfile);
-MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionZlib(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile);
+MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionAlgo(matroska_trackentry *TrackEntry, MatroskaContentEncodingScope Scope, int ForProfile, MatroskaTrackEncodingCompAlgo algo);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionHeader(matroska_trackentry *TrackEntry, const uint8_t *Header, size_t HeaderSize, int ForProfile);
 MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackEntry);
 #if defined(CONFIG_ZLIB)

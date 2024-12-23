@@ -2729,7 +2729,7 @@ int main(int argc, const char *argv[])
                 case MATROSKA_TRACK_ENCODING_COMP_ZLIB:
                 case MATROSKA_TRACK_ENCODING_COMP_BZLIB: // transform bzlib into zlib
                 case MATROSKA_TRACK_ENCODING_COMP_LZO1X: // transform lzo1x into zlib
-                    if (MATROSKA_TrackSetCompressionZlib((matroska_trackentry*)RLevel1, zlib_scope,DstProfile))
+                    if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, zlib_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_ZLIB))
 						ClustersNeedRead = 1;
                     break;
                 case MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP:
