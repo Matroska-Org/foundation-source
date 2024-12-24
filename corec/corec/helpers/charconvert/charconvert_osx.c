@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -202,7 +202,7 @@ void CharConvWW(charconv* Conv, wchar_t* Out, size_t OutLen, const wchar_t* In)
     }
 }
 
-static NOINLINE void GetDefault()
+static NOINLINE void GetDefault(void)
 {
     if (!Current)
     {
@@ -243,10 +243,10 @@ charconv* CharConvOpen(const tchar_t* From, const tchar_t* To)
 {
 	charconv_osx TmpConv;
 	charconv_osx *CC;
-	
+
 	TmpConv.EncFrom = GetEncoding(From);
 	TmpConv.EncTo = GetEncoding(To);
-	
+
 	if (TmpConv.EncFrom == kCFStringEncodingInvalidId || TmpConv.EncTo == kCFStringEncodingInvalidId || TmpConv.EncFrom == TmpConv.EncTo)
 		return NULL;
 
