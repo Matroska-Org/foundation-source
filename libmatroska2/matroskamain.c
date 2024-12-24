@@ -1881,33 +1881,36 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         if (Header && Header->Context==MATROSKA_getContextContentCompAlgo())
         {
 #if defined(CONFIG_ZLIB)
-            uint8_t *OutBuf;
-            array TmpBuf;
-            ArrayInit(&TmpBuf);
-            for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
+            if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB)
             {
-                if (!ArrayResize(&TmpBuf,*i + 100,0))
+                uint8_t *OutBuf;
+                array TmpBuf;
+                ArrayInit(&TmpBuf);
+                for (i=ARRAYBEGIN(Element->SizeList,int32_t);i!=ARRAYEND(Element->SizeList,int32_t);++i)
                 {
-                    ArrayClear(&TmpBuf);
-                    Err = ERR_OUT_OF_MEMORY;
-                    break;
-                }
-                OutBuf = ARRAYBEGIN(TmpBuf,uint8_t);
-                ToWrite = ARRAYCOUNT(TmpBuf,uint8_t);
-                if (CompressFrameZLib(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
-                {
-                    ArrayClear(&TmpBuf);
-                    Err = ERR_OUT_OF_MEMORY;
-                    break;
-                }
+                    if (!ArrayResize(&TmpBuf,*i + 100,0))
+                    {
+                        ArrayClear(&TmpBuf);
+                        Err = ERR_OUT_OF_MEMORY;
+                        break;
+                    }
+                    OutBuf = ARRAYBEGIN(TmpBuf,uint8_t);
+                    ToWrite = ARRAYCOUNT(TmpBuf,uint8_t);
+                    if (CompressFrameZLib(Cursor, *i, &OutBuf, &ToWrite) != ERR_NONE)
+                    {
+                        ArrayClear(&TmpBuf);
+                        Err = ERR_OUT_OF_MEMORY;
+                        break;
+                    }
 
-                Err = Stream_Write(Output,OutBuf,ToWrite,&Written);
-                ArrayClear(&TmpBuf);
-                if (Rendered)
-                    *Rendered += Written;
-                Cursor += *i;
-                if (Err!=ERR_NONE)
-                    break;
+                    Err = Stream_Write(Output,OutBuf,ToWrite,&Written);
+                    ArrayClear(&TmpBuf);
+                    if (Rendered)
+                        *Rendered += Written;
+                    Cursor += *i;
+                    if (Err!=ERR_NONE)
+                        break;
+                }
             }
 #endif
         }
