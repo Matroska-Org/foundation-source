@@ -78,7 +78,6 @@ err_t MATROSKA_Init(parsercontext *p)
 
 void MATROSKA_Done(parsercontext *p)
 {
-    EBML_Done(p);
 }
 
 

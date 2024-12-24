@@ -198,8 +198,6 @@ int main(int argc, const char *argv[])
         StreamClose(Input);
     }
 
-    // EBML ending
-    EBML_Done(&p);
     // Core-C ending
     ParserContext_Done(&p);
 

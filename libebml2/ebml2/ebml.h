@@ -138,7 +138,6 @@ typedef struct ebml_element_vmt
 #define EBML_ElementCopy(p,c)                VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
 
 EBML_DLL err_t EBML_Init(parsercontext *p);
-EBML_DLL void EBML_Done(parsercontext *p);
 
 EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile, const void *Cookie);
 
