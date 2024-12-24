@@ -676,7 +676,7 @@ static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, 
         TextPrintf(StdErr,T("Failed to write a Cluster at the required position %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),IntendedPosition);
     if (!Live && PrevSize!=INVALID_FILEPOS_T)
     {
-        Elt = EBML_MasterGetChild(Cluster, MATROSKA_getContextPrevSize(), DstProfile);
+        Elt = EBML_MasterFindChild(Cluster, MATROSKA_getContextPrevSize());
         if (Elt && PrevSize!=EBML_IntegerValue((ebml_integer*)Elt))
             TextPrintf(StdErr,T("The PrevSize of the Cluster at the position %") TPRId64 T(" is wrong: %") TPRId64 T(" vs %") TPRId64 T("\r\n"), EBML_ElementPosition((ebml_element*)Cluster),EBML_IntegerValue((ebml_integer*)Elt),PrevSize);
     }
@@ -697,7 +697,7 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 	ebml_element *Elt;
 	int64_t TrackNum = -1;
 	size_t *order;
-	
+
 	if (TrackOrder)
 		order = ARRAYBEGIN(*TrackOrder,size_t);
 	else
@@ -893,7 +893,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
     int TrackNum, Width, Height;
     MatroskaTrackType TrackType;
     tchar_t CodecID[MAXPATH];
-    
+
     for (Track = (ebml_master*)EBML_MasterFindChild(Tracks,MATROSKA_getContextTrackEntry()); Track;)
     {
 		CurTrack = Track;
@@ -926,7 +926,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
 
         if (ARRAYCOUNT(*Alternate3DTracks, block_info*) >= (size_t)TrackNum && TrackType!=MATROSKA_TRACK_TYPE_VIDEO)
             ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackNum] = NULL;
-		
+
         // clean the aspect ratio
         Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextVideo());
         if (Elt)
@@ -1123,7 +1123,7 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
                                         Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextFlagEnabled());
                                         if (Elt)
                                             EBML_IntegerSetValue((ebml_integer*)Elt,1);
-                                        
+
                                         Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextFlagLacing());
                                         NodeDelete((node*)Elt);
                                         Elt = EBML_MasterFindChild(CombinedTrack,MATROSKA_getContextMinCache());
@@ -1533,7 +1533,7 @@ int main(int argc, const char *argv[])
         else if (tcsisame_ascii(Path,T("--help"))) {ShowVersion = 1; ShowUsage = 1; InputPathIndex = i+1; }
 		else if (i<argc-2) TextPrintf(StdErr,T("Unknown parameter '%s'\r\n"),Path);
 	}
-    
+
     if (argc < (1+InputPathIndex) || ShowVersion)
     {
         TextWrite(StdErr,PROJECT_NAME T(" v") PROJECT_VERSION T(", Copyright (c) 2010-2020 Matroska Foundation\r\n"));
@@ -2608,7 +2608,7 @@ int main(int argc, const char *argv[])
 								ReachedClusterEnd = 1;
 							break;
 						}
-					} 
+					}
 				}
 			}
 		}
@@ -2655,7 +2655,7 @@ int main(int argc, const char *argv[])
 				    Elt2 = EBML_MasterFindFirstElt(RLevel1,MATROSKA_getContextFlagLacing(),1,0,0);
 				    EBML_IntegerSetValue((ebml_integer*)Elt2,0);
 			    }
-                
+
                 CodecPrivate = (ebml_binary*) EBML_MasterFindChild(RLevel1,MATROSKA_getContextCodecPrivate());
                 if (CodecPrivate && EBML_ElementDataSize((ebml_element*)CodecPrivate, 1)==0)
                 {
@@ -2811,7 +2811,7 @@ int main(int argc, const char *argv[])
 
         if (!RAttachments)
             ExtraVoidSize += EXTRA_SEEK_SPACE;
-    
+
         if (!RChapters)
             ExtraVoidSize += EXTRA_SEEK_SPACE;
 
