@@ -754,7 +754,7 @@ static int CheckLacingKeyframe(int ProfileNum)
                         for (TrackIdx=0; TrackIdx<ARRAYCOUNT(Tracks,track_info); ++TrackIdx)
                             if (ARRAYBEGIN(Tracks,track_info)[TrackIdx].Num == BlockNum)
                                 break;
-                        
+
                         if (TrackIdx==ARRAYCOUNT(Tracks,track_info))
                             Result |= OutputError(0xB2,T("Block at %") TPRId64 T(" is using an unknown track #%d"),EL_Pos(GBlock),(int)BlockNum);
                         else
@@ -785,7 +785,7 @@ static int CheckLacingKeyframe(int ProfileNum)
                 for (TrackIdx=0; TrackIdx<ARRAYCOUNT(Tracks,track_info); ++TrackIdx)
                     if (ARRAYBEGIN(Tracks,track_info)[TrackIdx].Num == BlockNum)
                         break;
-                
+
                 if (TrackIdx==ARRAYCOUNT(Tracks,track_info))
                     Result |= OutputError(0xB2,T("Block at %") TPRId64 T(" is using an unknown track #%d"),EL_Pos(Block),(int)BlockNum);
                 else
@@ -1430,9 +1430,6 @@ exit:
     ArrayClear(&Tracks);
     if (Input)
         StreamClose(Input);
-
-    // EBML & Matroska ending
-    MATROSKA_Done(&p);
 
     // Core-C ending
     ParserContext_Done(&p);
