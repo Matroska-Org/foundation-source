@@ -44,10 +44,6 @@ err_t EBML_Init(parsercontext *p)
     return ERR_NONE;
 }
 
-void EBML_Done(parsercontext *p)
-{
-}
-
 static CONTEXT_CONST ebml_context EBML_ContextDummy = {0xFF, EBML_DUMMY_ID, 0, 0, "DummyElement", NULL, NULL};
 
 static CONTEXT_CONST ebml_context EBML_ContextEbmlVoid   = {0xEC, EBML_VOID_CLASS, 0, 0, "EBMLVoid", NULL, NULL};
@@ -521,7 +517,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
 
     assert(Context != NULL);
 	OrigContext = *pContext;
-	
+
     // adjust the Context to allow the StartPos to make sense
     while (Context && Context->EndPosition != INVALID_FILEPOS_T && (StartPos >= Context->EndPosition))
     {

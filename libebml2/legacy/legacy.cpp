@@ -63,7 +63,7 @@ struct stream_io
     IOCallback *cpp;
 };
 
-static filepos_t Seek(stream_io* p,filepos_t Pos,int SeekMode) 
+static filepos_t Seek(stream_io* p,filepos_t Pos,int SeekMode)
 {
     if (SeekMode == SEEK_CUR)
     {
@@ -96,7 +96,7 @@ static err_t Write(stream_io* p,const void* Data,size_t Size, size_t* Written)
 }
 
 static err_t Read(stream_io* p,void* Data,size_t Size,size_t* Readed)
-{ 
+{
     uint32_t Read = p->cpp->read(Data,Size);
     if (Readed)
         *Readed = Read;
@@ -258,7 +258,6 @@ void ebml_init()
 
 void ebml_done()
 {
-    EBML_Done(&ccContext);
     ParserContext_Done(&ccContext);
 }
 
@@ -463,7 +462,7 @@ size_t EbmlElement::HeadSize() const
 {
     filepos_t Result = EBML_ElementFullSize(Node,1);
     if (Result != INVALID_FILEPOS_T)
-        Result -= EBML_ElementDataSize(Node, 1); 
+        Result -= EBML_ElementDataSize(Node, 1);
     return Result;
 }
 
