@@ -42,14 +42,13 @@ extern "C" {
 struct ebml_context
 {
     fourcc_t Id;
-    fourcc_t Class; // TODO: store a pointer to make creation faster 
+    fourcc_t Class; // TODO: store a pointer to make creation faster
     bool_t HasDefault;
     intptr_t DefaultValue;
     const char *ElementName;
     // TODO: create sub class so we don't have to assign it all the time
     const ebml_semantic *Semantic; // table with last element class set to NULL
     const ebml_semantic *GlobalContext; // table with last element class set to NULL
-    void (*PostCreate)(ebml_element *p, const void *Cookie);
 };
 
 struct ebml_element

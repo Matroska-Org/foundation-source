@@ -70,7 +70,7 @@ err_t MATROSKA_Init(parsercontext *p)
             EBML_SemanticMatroska[0] = (ebml_semantic){1, 0, EBML_getContextHead()        ,0};
             EBML_SemanticMatroska[1] = (ebml_semantic){1, 0, MATROSKA_getContextSegment() ,0};
             EBML_SemanticMatroska[2] = (ebml_semantic){0, 0, NULL                         ,0}; // end of the table
-            MATROSKA_ContextStream = (ebml_context){FOURCC('M','K','X','_'), EBML_MASTER_CLASS, 0, 0, "Matroska Stream", EBML_SemanticMatroska, EBML_getSemanticGlobals(), NULL};
+            MATROSKA_ContextStream = (ebml_context){FOURCC('M','K','X','_'), EBML_MASTER_CLASS, 0, 0, "Matroska Stream", EBML_SemanticMatroska, EBML_getSemanticGlobals()};
         }
     }
     return Err;
