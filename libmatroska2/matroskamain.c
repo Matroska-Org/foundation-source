@@ -1652,7 +1652,7 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
 #endif // CONFIG_EBML_WRITING
 #endif // CONFIG_ZLIB
 
-static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header, int CompScope)
+static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header, MatroskaContentEncodingScope CompScope)
 {
     if (Frame >= ARRAYCOUNT(Element->SizeList,int32_t))
         return 0;
