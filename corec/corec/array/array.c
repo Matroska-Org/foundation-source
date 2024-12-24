@@ -133,15 +133,6 @@ static NOINLINE void Data_Clear(uint8_t** a)
         Data_Release(a);
 }
 
-static bool_t Data_Set(uint8_t** a,const uint8_t* b,size_t pos,size_t len)
-{
-    if (!Data_ReAlloc(a,pos+len))
-        return 0;
-
-    memcpy(*a+pos,b,len);
-    return 1;
-}
-
 size_t ArraySize(const array*p)
 {
     return p->_End-p->_Begin;
