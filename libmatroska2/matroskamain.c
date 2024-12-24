@@ -1091,37 +1091,13 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
 #if defined(CONFIG_ZLIB)
                         if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                         {
-                            // get the ouput size, adjust the Element->SizeList value, write in Element->Data
-                            z_stream stream;
-                            int Res;
-                            memset(&stream,0,sizeof(stream));
-                            Res = inflateInit(&stream);
-                            if (Res != Z_OK)
-                                Err = ERR_INVALID_DATA;
-                            else
+                            size_t UncompressedSize;
+                            size_t Offset = 0;
+                            Err = UnCompressFrameZLib(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[0], &Element->Data, &UncompressedSize, &Offset);
+                            if (Err == ERR_NONE)
                             {
-                                size_t Count = 0;
-                                stream.next_in = InBuf;
-                                stream.avail_in = ARRAYBEGIN(Element->SizeList,int32_t)[0];
-                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t);
-                                do {
-                                    Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
-                                    stream.avail_out = 1024;
-                                    if (!ArrayResize(&Element->Data, Count + stream.avail_out, 0))
-                                    {
-                                        Res = Z_MEM_ERROR;
-                                        break;
-                                    }
-                                    stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
-                                    Res = inflate(&stream, Z_NO_FLUSH);
-                                    if (Res!=Z_STREAM_END && Res!=Z_OK)
-                                        break;
-                                } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
-                                ArrayResize(&Element->Data, stream.total_out, 0);
-                                ARRAYBEGIN(Element->SizeList,int32_t)[0] = stream.total_out;
-                                inflateEnd(&stream);
-                                if (Res != Z_STREAM_END)
-                                    Err = ERR_INVALID_DATA;
+                                ArrayResize(&Element->Data, UncompressedSize, 0);
+                                ARRAYBEGIN(Element->SizeList,int32_t)[0] = UncompressedSize;
                             }
                         }
 #endif
@@ -1258,36 +1234,13 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
 #if defined(CONFIG_ZLIB)
                     if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                     {
-                        z_stream stream;
-                        int Res;
-                        memset(&stream,0,sizeof(stream));
-                        Res = inflateInit(&stream);
-                        if (Res != Z_OK)
-                            Err = ERR_INVALID_DATA;
-                        else
+                        size_t UncompressedSize;
+                        size_t Offset = 0;
+                        Err = UnCompressFrameZLib(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame], &Element->Data, &UncompressedSize, &Offset);
+                        if (Err == ERR_NONE)
                         {
-                            size_t Count;
-                            stream.next_in = InBuf;
-                            stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
-                            stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + OutSize;
-                            do {
-                                Count = stream.next_out - ARRAYBEGIN(Element->Data,uint8_t);
-                                if (!ArrayResize(&Element->Data, Count + 1024, 0))
-                                {
-                                    Res = Z_MEM_ERROR;
-                                    break;
-                                }
-                                stream.avail_out = ARRAYCOUNT(Element->Data,uint8_t) - Count;
-                                stream.next_out = ARRAYBEGIN(Element->Data,uint8_t) + Count;
-                                Res = inflate(&stream, Z_NO_FLUSH);
-                                if (Res!=Z_STREAM_END && Res!=Z_OK)
-                                    break;
-                            } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
-                            ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = stream.total_out;
-                            OutSize += stream.total_out;
-                            inflateEnd(&stream);
-                            if (Res != Z_STREAM_END)
-                                Err = ERR_INVALID_DATA;
+                            ArrayResize(&Element->Data, UncompressedSize, 0);
+                            ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = UncompressedSize;
                         }
                     }
 #endif
