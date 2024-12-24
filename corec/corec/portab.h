@@ -535,10 +535,6 @@ void * __alloca(size_t size);
 #define UNUSED_PARAM(x) (x)
 #endif
 
-#if defined(TARGET_IPHONE) && !defined(__ARM_NEON__)
-#undef CONFIG_NEON
-#endif
-
 #ifdef CONFIG_FILEPOS_64
 typedef int_fast64_t filepos_t;
 #define MAX_FILEPOS MAX_INT64
