@@ -2356,11 +2356,12 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
             {
                 size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
                 uint8_t *Compressed = malloc(CompressedSize);
+                uint8_t *NewCompressed = Compressed;
 #if defined(CONFIG_ZLIB)
                 if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB &&
-                    CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE)
+                    CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &NewCompressed, &CompressedSize)==ERR_NONE)
                 {
-                    if (EBML_BinarySetData(CodecPrivate, Compressed, CompressedSize)==ERR_NONE)
+                    if (EBML_BinarySetData(CodecPrivate, NewCompressed, CompressedSize)==ERR_NONE)
                         Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
                 }
 #endif
