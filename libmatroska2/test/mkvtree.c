@@ -244,7 +244,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
 
 static void OutputTree(stream *Input)
 {
-    ebml_element *Element = EBML_ElementCreate(Input,MATROSKA_getContextStream(),0,PROFILE_MATROSKA_ANY,NULL);
+    ebml_element *Element = EBML_ElementCreate(Input,MATROSKA_getContextStream(),0,PROFILE_MATROSKA_ANY);
     if (Element)
     {
 		int Level = -1;

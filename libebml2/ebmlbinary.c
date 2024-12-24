@@ -89,9 +89,9 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p);
 }
 
-static ebml_binary *Copy(const ebml_binary *Element, const void *Cookie)
+static ebml_binary *Copy(const ebml_binary *Element)
 {
-    ebml_binary *Result = (ebml_binary*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_binary *Result = (ebml_binary*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         ArrayCopy(&Result->Data,&Element->Data);

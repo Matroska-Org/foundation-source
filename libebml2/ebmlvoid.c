@@ -58,9 +58,9 @@ static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceWith
 }
 #endif
 
-static ebml_element *Copy(const ebml_element *Element, const void *Cookie)
+static ebml_element *Copy(const ebml_element *Element)
 {
-    ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_element *Result = EBML_ElementCreate(Element,Element->Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         Result->bValueIsSet = Element->bValueIsSet;
@@ -114,7 +114,7 @@ filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, s
     if (EBML_ElementFullSize(Void,1) - EBML_ElementFullSize(ReplacedWith,1) > 1)
     {
         // fill the rest with another void element
-        ebml_element *aTmp = EBML_ElementCreate(Void,Void->Context,0,EBML_ANY_PROFILE,NULL);
+        ebml_element *aTmp = EBML_ElementCreate(Void,Void->Context,0,EBML_ANY_PROFILE);
         if (aTmp)
         {
             filepos_t HeadBefore,HeadAfter;
