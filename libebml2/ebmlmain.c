@@ -76,8 +76,6 @@ static CONTEXT_CONST ebml_semantic EBML_SemanticHead[] = {
 static CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CLASS, 0, 0, "EBMLHead\0mfthis", EBML_SemanticHead, EBML_SemanticGlobals};
 
 
-static CONTEXT_CONST ebml_context EBML_ContextGlobals = {0, 0, 0, 0, "GlobalContext", EBML_SemanticGlobals, EBML_SemanticGlobals};
-
 CONTEXT_CONST ebml_context *EBML_getContextHead(void)
 {
 	return &EBML_ContextHead;
