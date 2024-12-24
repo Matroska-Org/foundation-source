@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -43,14 +43,14 @@
 #define MAX_CACHED_YEAR 2015
 
 static TIME_ZONE_INFORMATION fix_tz;
-static int fix_tz_ready; 
+static int fix_tz_ready;
 static FILETIME fTimeCache[MAX_CACHED_YEAR - MIN_CACHED_YEAR + 2][2];
 
 #ifndef TIME_ZONE_ID_INVALID
 #define TIME_ZONE_ID_INVALID ((DWORD)0xFFFFFFFF)
 #endif
 
-systick_t GetTimeTick()
+systick_t GetTimeTick(void)
 {
 	return GetTickCount();
 }
@@ -78,7 +78,7 @@ void RelToFileTime(datetime_t t, FILETIME *fTime)
     int64time *= 10000000;
     fTime->dwLowDateTime = (DWORD)int64time;
     int64time >>= 32;
-    fTime->dwHighDateTime = (DWORD)int64time;   
+    fTime->dwHighDateTime = (DWORD)int64time;
 }
 
 static void GetFixedTZ()
@@ -160,8 +160,8 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
     SYSTEMTIME TimeStruct = {0};
     FILETIME fTime;
     datetime_t t;
-    
-    if (!tp) 
+
+    if (!tp)
         return INVALID_DATETIME_T;
 
     TimeStruct.wMilliseconds = (WORD)0;
@@ -174,19 +174,19 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
 	TimeStruct.wDayOfWeek = (WORD)(tp->WeekDay ? tp->WeekDay-1:0);
 
 #ifdef TARGET_WIN2K
-    if (Local) 
+    if (Local)
     {
         SYSTEMTIME sysTimeStruct;
         TIME_ZONE_INFORMATION timeZoneInfo;
         GetTimeZoneInformation(&timeZoneInfo);
         if (!TzSpecificLocalTimeToSystemTime(&timeZoneInfo, &TimeStruct, &sysTimeStruct))
             return INVALID_DATETIME_T;
-        if (!SystemTimeToFileTime( &sysTimeStruct, &fTime )) 
+        if (!SystemTimeToFileTime( &sysTimeStruct, &fTime ))
             return INVALID_DATETIME_T;
     }
-    else 
+    else
 #endif
-        if (!SystemTimeToFileTime( &TimeStruct, &fTime )) 
+        if (!SystemTimeToFileTime( &TimeStruct, &fTime ))
             return INVALID_DATETIME_T;
 
     t = FileTimeToRel(&fTime);
@@ -199,7 +199,7 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
             t += fix_tz.DaylightBias * 60;
         else
             t += fix_tz.StandardBias * 60;
-        if (t==INVALID_DATETIME_T) 
+        if (t==INVALID_DATETIME_T)
             ++t;
     }
 #endif
@@ -211,8 +211,8 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
 {
     SYSTEMTIME TimeStruct = {0};
     FILETIME fTime = {0};
-    
-    if (!tp || t == INVALID_DATETIME_T) 
+
+    if (!tp || t == INVALID_DATETIME_T)
         return 0;
 
 #ifndef TARGET_WIN2K
@@ -229,18 +229,18 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
     RelToFileTime(t, &fTime);
 
 #ifdef TARGET_WIN2K
-    if (Local) 
+    if (Local)
     {
         SYSTEMTIME sysTimeStruct = {0};
         TIME_ZONE_INFORMATION timeZoneInfo;
-        if (!FileTimeToSystemTime(&fTime, &sysTimeStruct)) 
+        if (!FileTimeToSystemTime(&fTime, &sysTimeStruct))
             return 0;
         GetTimeZoneInformation(&timeZoneInfo);
         SystemTimeToTzSpecificLocalTime(&timeZoneInfo, &sysTimeStruct, &TimeStruct);
     }
-    else 
-#endif        
-        if (!FileTimeToSystemTime(&fTime, &TimeStruct)) 
+    else
+#endif
+        if (!FileTimeToSystemTime(&fTime, &TimeStruct))
             return 0;
 
     tp->Year = TimeStruct.wYear;
@@ -261,12 +261,12 @@ bool_t GetIsDst(datetime_t t)
     SYSTEMTIME sysTimeStruct = {0};
     SYSTEMTIME TimeStruct = {0};
     int Hour;
-	
-    if (t == INVALID_DATETIME_T) 
+
+    if (t == INVALID_DATETIME_T)
         return 0;
 
     RelToFileTime(t, &fTime);
-    if (!FileTimeToSystemTime(&fTime, &sysTimeStruct)) 
+    if (!FileTimeToSystemTime(&fTime, &sysTimeStruct))
         return 0;
     GetTimeZoneInformation(&timeZoneInfo);
     if (!SystemTimeToTzSpecificLocalTime(&timeZoneInfo, &sysTimeStruct, &TimeStruct))
@@ -285,7 +285,7 @@ bool_t GetIsDst(datetime_t t)
     int Year;
     int YearIndex;
     SYSTEMTIME TimeStruct = {0};
-    if (t == INVALID_DATETIME_T) 
+    if (t == INVALID_DATETIME_T)
         return 0;
 
     GetFixedTZ();
@@ -295,7 +295,7 @@ bool_t GetIsDst(datetime_t t)
     t -= fix_tz.Bias * 60; // we need local (biased) time
 
     RelToFileTime(t, &fTime);
-    if (!FileTimeToSystemTime(&fTime, &TimeStruct)) 
+    if (!FileTimeToSystemTime(&fTime, &TimeStruct))
         return 0;
     Year = TimeStruct.wYear;
 
@@ -319,18 +319,18 @@ bool_t GetIsDst(datetime_t t)
         fTimeEnd = &fTime2;
     }
     else {
-        YearIndex = Year - MIN_CACHED_YEAR + 1;  
+        YearIndex = Year - MIN_CACHED_YEAR + 1;
         fTimeStart = &(fTimeCache[YearIndex][0]);
         fTimeEnd = &(fTimeCache[YearIndex][1]);
     }
-        
-    if (YearIndex == 0 || (fTimeStart->dwLowDateTime == 0 && 
+
+    if (YearIndex == 0 || (fTimeStart->dwLowDateTime == 0 &&
         fTimeStart->dwHighDateTime == 0)) {
         ConvertDaylightDateToFileTime(Year, &fix_tz.DaylightDate, fTimeStart);
         ConvertDaylightDateToFileTime(Year, &fix_tz.StandardDate, fTimeEnd);
     }
 
-    if (CompareFileTime(&fTime, fTimeStart) < 0 || 
+    if (CompareFileTime(&fTime, fTimeStart) < 0 ||
         CompareFileTime(&fTime, fTimeEnd) >= 0)
         return 0;
 

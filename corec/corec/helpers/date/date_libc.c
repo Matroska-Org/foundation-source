@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -34,12 +34,12 @@
 #include <sys/time.h>
 #include <time.h>
 
-systick_t GetTimeTick()
+systick_t GetTimeTick(void)
 {
 	struct timeval t;
 	gettimeofday(&t,NULL);
 	return t.tv_sec*1000 + t.tv_usec/1000;
-} 
+}
 
 datetime_t LinuxToDateTime(time_t t)
 {
@@ -66,7 +66,7 @@ static time_t DateTimeTZOffset(time_t t)
 	return offset;
 }
 
-datetime_t GetTimeDate()
+datetime_t GetTimeDate(void)
 {
     return LinuxToDateTime(time(NULL));
 }
@@ -76,7 +76,7 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
     struct tm date;
 	time_t ot = 0;
 
-	if (!tp) 
+	if (!tp)
         return INVALID_DATETIME_T;
 
     date.tm_sec = (int)tp->Second;
@@ -86,7 +86,7 @@ datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
     date.tm_mon = (int)tp->Month - 1;
     date.tm_year = (int)tp->Year - 1900;
     date.tm_isdst = -1; // use auto
-	
+
     ot = mktime(&date);
     if (ot == (time_t) -1)
         return INVALID_DATETIME_T;
@@ -102,7 +102,7 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
 	time_t ot;
 	struct tm *date;
 
-	if (!tp || t == INVALID_DATETIME_T) 
+	if (!tp || t == INVALID_DATETIME_T)
         return 0;
 
 	ot = t + DATETIME_OFFSET;
@@ -111,7 +111,7 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
     else
 	    date = gmtime(&ot);
 
-	if (date) 
+	if (date)
     {
 		tp->Second = date->tm_sec;
 		tp->Minute = date->tm_min;
@@ -131,7 +131,7 @@ bool_t GetIsDst(datetime_t t)
 	time_t ot;
 	struct tm *date;
 
-	if (t == INVALID_DATETIME_T) 
+	if (t == INVALID_DATETIME_T)
         return 0;
 
 	ot = t + DATETIME_OFFSET;
