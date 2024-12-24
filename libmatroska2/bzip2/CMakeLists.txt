@@ -1,6 +1,9 @@
 # bzlib library API
 
 add_library("bzlib" STATIC)
+if (BUILD_SHARED_LIBS)
+    set_property(TARGET "bzlib" PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
 set(BZLIB_GROUP_PUBLIC_HEADERS
     bzlib.h
 )
