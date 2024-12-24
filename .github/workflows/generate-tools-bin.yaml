@@ -1,5 +1,5 @@
 name: "Tool binaries"
-on: 
+on:
   push:
     branches:
       - master
@@ -22,14 +22,16 @@ jobs:
           #   triplet: x64-linux
           # - os: macos-latest
           #   triplet: x64-osx
+    env:
+      CMAKE_OPTIONS: -DDEV_MODE=ON
     steps:
       - name: Get pushed code
         uses: actions/checkout@v3
 
       - uses: lukka/get-cmake@latest
 
-      - name: Configure CMake 
-        run: cmake -S . -B _build
+      - name: Configure CMake
+        run: cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
 
       - name: Build Release
         run: cmake --build _build --config Release --parallel
