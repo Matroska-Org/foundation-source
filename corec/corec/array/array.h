@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -94,7 +94,7 @@ ARRAY_DLL void ArrayRandomize(array* Array,size_t Width,uint32_t RndSeed);
 #define ARRAYEND(Array,Type)		((Type*)((Array)._End))
 #define ARRAYEMPTY(Array)			((Array)._Begin==(Array)._End)
 #endif
-#define ARRAYCOUNT(Array,Type)		((size_t)(ARRAYEND(Array,Type)-ARRAYBEGIN(Array,Type)))
+#define ARRAYCOUNT(Array,Type)		((size_t)(((Array)._End)-((Array)._Begin))/sizeof(Type))
 
 // TODO: move this to base/mem and depend on "mem" platform dependently(?)
 typedef struct block
@@ -130,9 +130,9 @@ ARRAY_DLL void Fifo_Drop(cc_fifo*);
 ARRAY_DLL bool_t Fifo_Alloc(cc_fifo* p, size_t Size, size_t Align);
 ARRAY_DLL uint8_t* Fifo_Write(cc_fifo*, const void* Ptr, size_t Length, size_t Align);
 
-static INLINE void Fifo_Readed(cc_fifo* p, size_t Length) 
-{ 
-    p->_Read += Length; 
+static INLINE void Fifo_Readed(cc_fifo* p, size_t Length)
+{
+    p->_Read += Length;
 }
 
 #define FIFO_SIZE(p)  (ARRAYEND((p)._Base,uint8_t)-(p)._Read)
