@@ -82,52 +82,52 @@ static CONTEXT_CONST ebml_context EBML_ContextHead = {0x1A45DFA3, EBML_MASTER_CL
 
 static CONTEXT_CONST ebml_context EBML_ContextGlobals = {0, 0, 0, 0, "GlobalContext", EBML_SemanticGlobals, EBML_SemanticGlobals};
 
-CONTEXT_CONST ebml_context *EBML_getContextHead()
+CONTEXT_CONST ebml_context *EBML_getContextHead(void)
 {
 	return &EBML_ContextHead;
 }
-CONTEXT_CONST ebml_context *EBML_getContextDummy()
+CONTEXT_CONST ebml_context *EBML_getContextDummy(void)
 {
 	return &EBML_ContextDummy;
 }
-CONTEXT_CONST ebml_context *EBML_getContextVersion()
+CONTEXT_CONST ebml_context *EBML_getContextVersion(void)
 {
 	return &EBML_ContextVersion;
 }
-CONTEXT_CONST ebml_context *EBML_getContextReadVersion()
+CONTEXT_CONST ebml_context *EBML_getContextReadVersion(void)
 {
 	return &EBML_ContextReadVersion;
 }
-CONTEXT_CONST ebml_context *EBML_getContextMaxIdLength()
+CONTEXT_CONST ebml_context *EBML_getContextMaxIdLength(void)
 {
 	return &EBML_ContextMaxIdLength;
 }
-CONTEXT_CONST ebml_context *EBML_getContextMaxSizeLength()
+CONTEXT_CONST ebml_context *EBML_getContextMaxSizeLength(void)
 {
 	return &EBML_ContextMaxSizeLength;
 }
-CONTEXT_CONST ebml_context *EBML_getContextDocType()
+CONTEXT_CONST ebml_context *EBML_getContextDocType(void)
 {
 	return &EBML_ContextDocType;
 }
-CONTEXT_CONST ebml_context *EBML_getContextDocTypeVersion()
+CONTEXT_CONST ebml_context *EBML_getContextDocTypeVersion(void)
 {
 	return &EBML_ContextDocTypeVersion;
 }
-CONTEXT_CONST ebml_context *EBML_getContextDocTypeReadVersion()
+CONTEXT_CONST ebml_context *EBML_getContextDocTypeReadVersion(void)
 {
 	return &EBML_ContextDocTypeReadVersion;
 }
-CONTEXT_CONST ebml_context *EBML_getContextEbmlVoid()
+CONTEXT_CONST ebml_context *EBML_getContextEbmlVoid(void)
 {
 	return &EBML_ContextEbmlVoid;
 }
-CONTEXT_CONST ebml_context *EBML_getContextEbmlCrc32()
+CONTEXT_CONST ebml_context *EBML_getContextEbmlCrc32(void)
 {
 	return &EBML_ContextEbmlCrc32;
 }
 
-const ebml_semantic *EBML_getSemanticGlobals()
+const ebml_semantic *EBML_getSemanticGlobals(void)
 {
 	return EBML_SemanticGlobals;
 }
