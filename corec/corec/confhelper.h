@@ -33,40 +33,11 @@
 
 /* force some defines */
 
-#if (defined(ARM) || defined(MIPS) || defined(SH3) || defined(SH4)) && !defined(TARGET_IPHONE)
-#undef CONFIG_DYNCODE
-#define CONFIG_DYNCODE /* platforms when dynamic code can be used */
-#endif
-
 #if defined(TARGET_WIN32) || defined(TARGET_WIN64) || defined(TARGET_OSX) || defined(TARGET_LINUX)
 #define CONFIG_FILEPOS_64 /* platforms where 64 bits file position/size should be favoured */
 #endif
 
-#if defined(ARM) || defined(MIPS)
-#define CONFIG_FIXED_POINT /* platforms where fixed point arithmetic processing should favoured */
-#endif
-
 /* forbid some defines */
-
-#if !defined(ARM) || defined(TARGET_IPHONE)
-#undef CONFIG_WMMX /* platforms that don't support Wireless MMX CPUs/instructions */
-#endif
-
-#if !defined(ARM)
-#undef CONFIG_ARMV6 /* platforms that don't support ARMv6 CPUs/instructions */
-#endif
-
-#if !defined(IX86)
-#undef CONFIG_MMX /* platforms that don't support MMX CPUs/instructions */
-#endif
-
-#if !defined(ARM) || (!defined(TARGET_IPHONE) && !defined(TARGET_ANDROID))
-#undef CONFIG_NEON /* platforms that don't support NEON/ARMv7 instructions */
-#endif
-
-#if !defined(POWERPC)
-#undef CONFIG_ALTIVEC
-#endif
 
 #if defined(CONFIG_UNICODE_WCHAR)
 #define UNICODE
