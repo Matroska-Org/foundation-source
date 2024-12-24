@@ -167,6 +167,90 @@ static err_t ClusterTimeChanged(matroska_cluster *Cluster)
     return ERR_NONE;
 }
 
+#if defined(CONFIG_ZLIB)
+err_t UnCompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, array *OutBuf, size_t *FrameSize, size_t *ArrayOffset)
+{
+    z_stream stream;
+    int Res;
+    err_t Err = ERR_NONE;
+
+    memset(&stream,0,sizeof(stream));
+    Res = inflateInit(&stream);
+    if (Res != Z_OK)
+        Err = ERR_INVALID_DATA;
+    else
+    {
+        size_t Count;
+        stream.next_in = (Bytef*)Cursor;
+        stream.avail_in = CursorSize;
+        stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + *ArrayOffset;
+        do {
+            Count = stream.next_out - ARRAYBEGIN(*OutBuf,uint8_t);
+            if (!ArrayResize(OutBuf, Count + 1024, 0))
+            {
+                Res = Z_MEM_ERROR;
+                break;
+            }
+            stream.avail_out = ARRAYCOUNT(*OutBuf,uint8_t) - Count;
+            stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + Count;
+            Res = inflate(&stream, Z_NO_FLUSH);
+            if (Res!=Z_STREAM_END && Res!=Z_OK)
+                break;
+        } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
+        *FrameSize = stream.total_out;
+        *ArrayOffset = *ArrayOffset + stream.total_out;
+        inflateEnd(&stream);
+        if (Res != Z_STREAM_END)
+            Err = ERR_INVALID_DATA;
+    }
+    return Err;
+}
+
+#if defined(CONFIG_EBML_WRITING)
+err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+{
+    err_t Err = ERR_NONE;
+    z_stream stream;
+    size_t Count;
+    array TmpBuf;
+    int Res;
+
+    memset(&stream,0,sizeof(stream));
+    if (deflateInit(&stream, 9)!=Z_OK)
+        return ERR_INVALID_DATA;
+    stream.next_in = (Bytef*)Cursor;
+    stream.avail_in = CursorSize;
+    Count = 0;
+    ArrayInit(&TmpBuf);
+    stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t);
+    do {
+        Count = stream.next_out - ARRAYBEGIN(TmpBuf,uint8_t);
+        if (!ArrayResize(&TmpBuf,CursorSize + Count,0))
+        {
+            ArrayClear(&TmpBuf);
+            Err = ERR_OUT_OF_MEMORY;
+            break;
+        }
+        stream.avail_out = ARRAYCOUNT(TmpBuf,uint8_t) - Count;
+        stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t) + Count;
+        Res = deflate(&stream, Z_FINISH);
+    } while (stream.avail_out==0 && Res!=Z_STREAM_END);
+
+    if (OutBuf && OutSize)
+        // TODO: write directly in the output buffer
+        memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), min(*OutSize, stream.total_out));
+    ArrayClear(&TmpBuf);
+
+    if (OutSize)
+        *OutSize = stream.total_out;
+
+    deflateEnd(&stream);
+
+    return Err;
+}
+#endif // CONFIG_EBML_WRITING
+#endif // CONFIG_ZLIB
+
 static err_t CheckCompression(matroska_block *Block, int ForProfile)
 {
     ebml_master *Elt, *Header;
@@ -1568,89 +1652,6 @@ err_t MATROSKA_BlockAppendFrame(matroska_block *Block, const matroska_frame *Fra
     return ERR_NONE;
 }
 
-#if defined(CONFIG_ZLIB)
-err_t UnCompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, array *OutBuf, size_t *FrameSize, size_t *ArrayOffset)
-{
-    z_stream stream;
-    int Res;
-    err_t Err = ERR_NONE;
-
-    memset(&stream,0,sizeof(stream));
-    Res = inflateInit(&stream);
-    if (Res != Z_OK)
-        Err = ERR_INVALID_DATA;
-    else
-    {
-        size_t Count;
-        stream.next_in = (Bytef*)Cursor;
-        stream.avail_in = CursorSize;
-        stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + *ArrayOffset;
-        do {
-            Count = stream.next_out - ARRAYBEGIN(*OutBuf,uint8_t);
-            if (!ArrayResize(OutBuf, Count + 1024, 0))
-            {
-                Res = Z_MEM_ERROR;
-                break;
-            }
-            stream.avail_out = ARRAYCOUNT(*OutBuf,uint8_t) - Count;
-            stream.next_out = ARRAYBEGIN(*OutBuf,uint8_t) + Count;
-            Res = inflate(&stream, Z_NO_FLUSH);
-            if (Res!=Z_STREAM_END && Res!=Z_OK)
-                break;
-        } while (Res!=Z_STREAM_END && stream.avail_in && !stream.avail_out);
-        *FrameSize = stream.total_out;
-        *ArrayOffset = *ArrayOffset + stream.total_out;
-        inflateEnd(&stream);
-        if (Res != Z_STREAM_END)
-            Err = ERR_INVALID_DATA;
-    }
-    return Err;
-}
-
-#if defined(CONFIG_EBML_WRITING)
-err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
-{
-    err_t Err = ERR_NONE;
-    z_stream stream;
-    size_t Count;
-    array TmpBuf;
-    int Res;
-
-    memset(&stream,0,sizeof(stream));
-    if (deflateInit(&stream, 9)!=Z_OK)
-        return ERR_INVALID_DATA;
-    stream.next_in = (Bytef*)Cursor;
-    stream.avail_in = CursorSize;
-    Count = 0;
-    ArrayInit(&TmpBuf);
-    stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t);
-    do {
-        Count = stream.next_out - ARRAYBEGIN(TmpBuf,uint8_t);
-        if (!ArrayResize(&TmpBuf,CursorSize + Count,0))
-        {
-            ArrayClear(&TmpBuf);
-            Err = ERR_OUT_OF_MEMORY;
-            break;
-        }
-        stream.avail_out = ARRAYCOUNT(TmpBuf,uint8_t) - Count;
-        stream.next_out = ARRAYBEGIN(TmpBuf,uint8_t) + Count;
-        Res = deflate(&stream, Z_FINISH);
-    } while (stream.avail_out==0 && Res!=Z_STREAM_END);
-
-    if (OutBuf && OutSize)
-        // TODO: write directly in the output buffer
-        memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), min(*OutSize, stream.total_out));
-    ArrayClear(&TmpBuf);
-
-    if (OutSize)
-        *OutSize = stream.total_out;
-
-    deflateEnd(&stream);
-
-    return Err;
-}
-#endif // CONFIG_EBML_WRITING
-#endif // CONFIG_ZLIB
 
 static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header,
                                    MatroskaTrackEncodingCompAlgo CompAlgo, MatroskaContentEncodingScope CompScope)
