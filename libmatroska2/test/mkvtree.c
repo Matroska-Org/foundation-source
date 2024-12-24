@@ -288,8 +288,6 @@ int main(int argc, const char *argv[])
         StreamClose(Input);
     }
 
-    // EBML & Matroska ending
-    MATROSKA_Done(&p);
     // Core-C ending
     ParserContext_Done(&p);
 

@@ -960,7 +960,7 @@ static bool_t parseSimpleTag(ebml_element *SimpleTag, MatroskaFile *File, char *
 		else if (EBML_ElementClassID(Elt) == MATROSKA_getContextTagString()->Id)
 			simpleTag.Default = EBML_IntegerValue(Elt)!=0;
 	}
-	
+
 	if (!simpleTag.Value || !simpleTag.Name || !ArrayAppend(&Parent->aSimpleTags,&simpleTag,sizeof(simpleTag),256))
 	{
 		if (simpleTag.Value) File->Input->io->memfree(File->Input->io, simpleTag.Value);
@@ -1255,8 +1255,7 @@ void mkv_Close(MatroskaFile *File)
 	if (File->SegmentInfo) NodeDelete((node*)File->SegmentInfo);
 	if (File->Segment) NodeDelete((node*)File->Segment);
 
-	// Core-C, EBML & Matroska Done
-	MATROSKA_Done(&File->p);
+	// Core-C Done
 	ParserContext_Done(&File->p);
 
 	Input->io->memfree(Input, File);

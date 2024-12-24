@@ -76,10 +76,6 @@ err_t MATROSKA_Init(parsercontext *p)
     return Err;
 }
 
-void MATROSKA_Done(parsercontext *p)
-{
-}
-
 
 #define MATROSKA_CUE_SEGMENTINFO     0x100
 #define MATROSKA_CUE_BLOCK           0x101

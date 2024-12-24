@@ -330,9 +330,6 @@ exit:
     if (Output)
         StreamClose(Output);
 
-    // EBML & Matroska ending
-    MATROSKA_Done(&p);
-
     // Core-C ending
     ParserContext_Done(&p);
 

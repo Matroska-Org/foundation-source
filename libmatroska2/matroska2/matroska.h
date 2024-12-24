@@ -57,7 +57,6 @@
 #include "matroska2/matroska_sem.h"
 
 MATROSKA_DLL err_t MATROSKA_Init(parsercontext *p);
-MATROSKA_DLL void MATROSKA_Done(parsercontext *p);
 
 #define INVALID_TIMESTAMP_T      MAX_INT64
 typedef int64_t    mkv_timestamp_t; // in nanoseconds

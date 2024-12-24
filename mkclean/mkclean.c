@@ -3105,9 +3105,6 @@ exit:
     if (Result<0 && Path[0])
         FileErase((nodecontext*)&p,Path,1,0);
 
-    // EBML & Matroska ending
-    MATROSKA_Done(&p);
-
     // Core-C ending
     if (!Regression) // until all the memory leaks are fixed
     ParserContext_Done(&p);
