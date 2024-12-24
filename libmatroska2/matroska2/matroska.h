@@ -160,7 +160,7 @@ MATROSKA_DLL bool_t MATROSKA_BlockIsKeyframe(const matroska_block *Block);
 MATROSKA_DLL matroska_block *MATROSKA_GetBlockForTimestamp(matroska_cluster *Cluster, mkv_timestamp_t Timestamp, int16_t Track);
 MATROSKA_DLL void MATROSKA_LinkClusterBlocks(matroska_cluster *Cluster, ebml_master *RSegmentInfo, ebml_master *Tracks, bool_t KeepUnmatched, int ForProfile);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextStream();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextStream(void);
 
 #define MATROSKA_BLOCK_CLASS      FOURCC('M','K','B','L')
 #define MATROSKA_BLOCKGROUP_CLASS FOURCC('M','K','B','G')

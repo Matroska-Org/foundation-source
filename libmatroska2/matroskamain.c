@@ -46,7 +46,7 @@ ebml_context MATROSKA_ContextStream;
 ebml_semantic EBML_SemanticMatroska[3];
 static int MATROSKA_init_once = 0;
 
-const ebml_context *MATROSKA_getContextStream()
+const ebml_context *MATROSKA_getContextStream(void)
 {
     return &MATROSKA_ContextStream;
 }

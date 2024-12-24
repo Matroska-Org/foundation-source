@@ -33,315 +33,315 @@
 #ifndef MATROSKA_SEMANTIC_H
 #define MATROSKA_SEMANTIC_H
 
-void MATROSKA_InitSemantic();
+void MATROSKA_InitSemantic(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekPosition();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSeek();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekPosition(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSeek(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekHead();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekHead(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentUUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFilename();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevUUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevFilename();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextNextUUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextNextFilename();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFamily();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateCodec();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslate();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentUUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFilename(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevUUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevFilename(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextNextUUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextNextFilename(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSegmentFamily(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateCodec(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslateEditionUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTranslate(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTimestampScale();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDuration();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDateUTC();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTitle();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMuxingApp();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextWritingApp();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextInfo();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTimestampScale(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDuration(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDateUTC(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTitle(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMuxingApp(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextWritingApp(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextInfo(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTimestamp();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSilentTrackNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSilentTracks();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTimestamp(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSilentTrackNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSilentTracks(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPosition();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevSize();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSimpleBlock();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlock();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockVirtual();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditional();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockMore();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPosition(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrevSize(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSimpleBlock(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlock(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockVirtual(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditional(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockMore(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditions();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditions(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockDuration();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextReferencePriority();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceBlock();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceVirtual();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecState();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDiscardPadding();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextLaceNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFrameNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditionID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDelay();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSliceDuration();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTimeSlice();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockDuration(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextReferencePriority(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceBlock(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceVirtual(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecState(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDiscardPadding(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextLaceNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFrameNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditionID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDelay(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSliceDuration(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTimeSlice(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSlices();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSlices(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceOffset();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceTimestamp();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceFrame();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceOffset(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceTimestamp(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextReferenceFrame(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockGroup();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockGroup(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEncryptedBlock();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCluster();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEncryptedBlock(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCluster(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagEnabled();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagDefault();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagForced();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagHearingImpaired();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagVisualImpaired();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagTextDescriptions();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagOriginal();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagCommentary();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagLacing();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMinCache();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxCache();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDefaultDuration();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDefaultDecodedFieldDuration();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTimestampScale();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOffset();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxBlockAdditionID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDValue();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDName();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDExtraData();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditionMapping();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagEnabled(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagDefault(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagForced(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagHearingImpaired(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagVisualImpaired(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagTextDescriptions(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagOriginal(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagCommentary(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagLacing(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMinCache(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxCache(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDefaultDuration(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDefaultDecodedFieldDuration(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTimestampScale(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOffset(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxBlockAdditionID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDValue(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDName(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAddIDExtraData(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBlockAdditionMapping(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextName();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguage();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguageBCP47();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecPrivate();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecName();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAttachmentLink();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecSettings();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecInfoURL();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDownloadURL();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDecodeAll();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOverlay();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDelay();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekPreRoll();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateTrackID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateCodec();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslate();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextName(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguage(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextLanguageBCP47(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecPrivate(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecName(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAttachmentLink(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecSettings(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecInfoURL(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDownloadURL(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDecodeAll(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOverlay(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCodecDelay(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSeekPreRoll(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateTrackID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateCodec(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslateEditionUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackTranslate(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagInterlaced();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFieldOrder();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextStereoMode();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAlphaMode();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextOldStereoMode();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelWidth();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelHeight();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropBottom();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropTop();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropLeft();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropRight();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayWidth();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayHeight();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayUnit();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAspectRatioType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextUncompressedFourCC();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextGammaValue();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFrameRate();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMatrixCoefficients();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBitsPerChannel();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSubsamplingHorz();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSubsamplingVert();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCbSubsamplingHorz();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCbSubsamplingVert();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSitingHorz();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSitingVert();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextRange();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTransferCharacteristics();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaries();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxCLL();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxFALL();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryRChromaticityX();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryRChromaticityY();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryGChromaticityX();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryGChromaticityY();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryBChromaticityX();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryBChromaticityY();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextWhitePointChromaticityX();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextWhitePointChromaticityY();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextLuminanceMax();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextLuminanceMin();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextMasteringMetadata();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFlagInterlaced(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFieldOrder(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextStereoMode(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAlphaMode(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextOldStereoMode(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelWidth(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelHeight(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropBottom(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropTop(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropLeft(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPixelCropRight(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayWidth(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayHeight(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextDisplayUnit(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAspectRatioType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextUncompressedFourCC(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextGammaValue(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFrameRate(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMatrixCoefficients(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBitsPerChannel(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSubsamplingHorz(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSubsamplingVert(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCbSubsamplingHorz(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCbSubsamplingVert(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSitingHorz(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChromaSitingVert(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextRange(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTransferCharacteristics(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaries(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxCLL(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMaxFALL(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryRChromaticityX(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryRChromaticityY(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryGChromaticityX(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryGChromaticityY(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryBChromaticityX(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextPrimaryBChromaticityY(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextWhitePointChromaticityX(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextWhitePointChromaticityY(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextLuminanceMax(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextLuminanceMin(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextMasteringMetadata(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextColour();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextColour(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPrivate();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPoseYaw();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPosePitch();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPoseRoll();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextProjection();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPrivate(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPoseYaw(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPosePitch(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextProjectionPoseRoll(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextProjection(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextVideo();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextVideo(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSamplingFrequency();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextOutputSamplingFrequency();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChannels();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChannelPositions();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextBitDepth();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEmphasis();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAudio();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSamplingFrequency(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextOutputSamplingFrequency(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChannels(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChannelPositions(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextBitDepth(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEmphasis(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAudio(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackPlaneUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackPlaneType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackPlane();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackPlaneUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackPlaneType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackPlane(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackCombinePlanes();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackCombinePlanes(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackJoinUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackJoinBlocks();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackJoinUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackJoinBlocks(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOperation();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackOperation(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickTrackUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickTrackSegmentUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickTrackFlag();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickMasterTrackUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickMasterTrackSegmentUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodingOrder();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodingScope();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodingType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentCompAlgo();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentCompSettings();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentCompression();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickTrackUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickTrackSegmentUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickTrackFlag(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickMasterTrackUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrickMasterTrackSegmentUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodingOrder(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodingScope(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodingType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentCompAlgo(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentCompSettings(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentCompression(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncAlgo();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncKeyID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAESSettingsCipherMode();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncAESSettings();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncAlgo(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncKeyID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAESSettingsCipherMode(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncAESSettings(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSignature();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSigKeyID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSigAlgo();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSigHashAlgo();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncryption();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSignature(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSigKeyID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSigAlgo(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentSigHashAlgo(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncryption(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncoding();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncoding(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodings();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextContentEncodings(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackEntry();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTrackEntry(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTracks();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTracks(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueTime();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueTrack();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueClusterPosition();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRelativePosition();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueDuration();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueBlockNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueCodecState();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefTime();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefCluster();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefCodecState();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueReference();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueTime(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueTrack(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueClusterPosition(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRelativePosition(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueDuration(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueBlockNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueCodecState(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefTime(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefCluster(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueRefCodecState(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueReference(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCueTrackPositions();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCueTrackPositions(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCuePoint();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCuePoint(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextCues();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextCues(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileDescription();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileName();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileMediaType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileData();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileReferral();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUsedStartTime();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUsedEndTime();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAttachedFile();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileDescription(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileName(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileMediaType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileData(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileReferral(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUsedStartTime(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextFileUsedEndTime(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAttachedFile(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextAttachments();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextAttachments(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagHidden();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagDefault();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagOrdered();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionString();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionLanguageIETF();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionDisplay();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagHidden(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagDefault(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionFlagOrdered(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionString(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionLanguageIETF(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionDisplay(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterStringUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeStart();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeEnd();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagHidden();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagEnabled();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentUUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSkipType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterPhysicalEquiv();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrackNumber();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrack();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterStringUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeStart(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTimeEnd(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagHidden(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterFlagEnabled(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentUUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSkipType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterSegmentEditionUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterPhysicalEquiv(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrackNumber(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterTrack(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapString();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguage();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguageBCP47();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapCountry();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterDisplay();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapString(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguage(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapLanguageBCP47(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapCountry(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterDisplay(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessCodecID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessPrivate();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessTime();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessData();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessCommand();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessCodecID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessPrivate(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessTime(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessData(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcessCommand(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcess();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapProcess(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterAtom();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapterAtom(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionEntry();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextEditionEntry(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextChapters();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextChapters(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTargetTypeValue();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTargetType();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagTrackUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagEditionUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagChapterUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagAttachmentUID();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTargets();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTargetTypeValue(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTargetType(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagTrackUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagEditionUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagChapterUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagAttachmentUID(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTargets(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagName();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguage();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguageBCP47();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefault();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefaultBogus();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagString();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTagBinary();
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSimpleTag();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagName(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguage(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagLanguageBCP47(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefault(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagDefaultBogus(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagString(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTagBinary(void);
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSimpleTag(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTag();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTag(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextTags();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextTags(void);
 
-MATROSKA_DLL const ebml_context *MATROSKA_getContextSegment();
+MATROSKA_DLL const ebml_context *MATROSKA_getContextSegment(void);
 
 /**
  *The `TrackType` defines the type of each frame found in the `Track`.
@@ -644,7 +644,7 @@ typedef enum {
  *Indicates what type of content the `ChapterAtom` contains and might be skipped. It can be used to automatically skip content based on the type.
 If a `ChapterAtom` is inside a `ChapterAtom` that has a `ChapterSkipType` set, it **MUST NOT** have a `ChapterSkipType` or have a `ChapterSkipType` with the same value as it's parent `ChapterAtom`.
 If the `ChapterAtom` doesn't contain a `ChapterTimeEnd`, the value of the `ChapterSkipType` is only valid until the next `ChapterAtom` with a `ChapterSkipType` value or the end of the file.
-    
+
  */
 typedef enum {
   MATROSKA_CHAPTERSKIPTYPE_NO_SKIPPING      = 0, // Content which should not be skipped.

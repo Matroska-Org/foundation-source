@@ -33,523 +33,523 @@
 #include "matroska2/matroska_classes.h"
 
 ebml_context MATROSKA_ContextSeekID;
-const ebml_context *MATROSKA_getContextSeekID() { return &MATROSKA_ContextSeekID; }
+const ebml_context *MATROSKA_getContextSeekID(void) { return &MATROSKA_ContextSeekID; }
 ebml_context MATROSKA_ContextSeekPosition;
-const ebml_context *MATROSKA_getContextSeekPosition() { return &MATROSKA_ContextSeekPosition; }
+const ebml_context *MATROSKA_getContextSeekPosition(void) { return &MATROSKA_ContextSeekPosition; }
 ebml_context MATROSKA_ContextSeek;
-const ebml_context *MATROSKA_getContextSeek() { return &MATROSKA_ContextSeek; }
+const ebml_context *MATROSKA_getContextSeek(void) { return &MATROSKA_ContextSeek; }
 ebml_context MATROSKA_ContextSeekHead;
-const ebml_context *MATROSKA_getContextSeekHead() { return &MATROSKA_ContextSeekHead; }
+const ebml_context *MATROSKA_getContextSeekHead(void) { return &MATROSKA_ContextSeekHead; }
 ebml_context MATROSKA_ContextSegmentUUID;
-const ebml_context *MATROSKA_getContextSegmentUUID() { return &MATROSKA_ContextSegmentUUID; }
+const ebml_context *MATROSKA_getContextSegmentUUID(void) { return &MATROSKA_ContextSegmentUUID; }
 ebml_context MATROSKA_ContextSegmentFilename;
-const ebml_context *MATROSKA_getContextSegmentFilename() { return &MATROSKA_ContextSegmentFilename; }
+const ebml_context *MATROSKA_getContextSegmentFilename(void) { return &MATROSKA_ContextSegmentFilename; }
 ebml_context MATROSKA_ContextPrevUUID;
-const ebml_context *MATROSKA_getContextPrevUUID() { return &MATROSKA_ContextPrevUUID; }
+const ebml_context *MATROSKA_getContextPrevUUID(void) { return &MATROSKA_ContextPrevUUID; }
 ebml_context MATROSKA_ContextPrevFilename;
-const ebml_context *MATROSKA_getContextPrevFilename() { return &MATROSKA_ContextPrevFilename; }
+const ebml_context *MATROSKA_getContextPrevFilename(void) { return &MATROSKA_ContextPrevFilename; }
 ebml_context MATROSKA_ContextNextUUID;
-const ebml_context *MATROSKA_getContextNextUUID() { return &MATROSKA_ContextNextUUID; }
+const ebml_context *MATROSKA_getContextNextUUID(void) { return &MATROSKA_ContextNextUUID; }
 ebml_context MATROSKA_ContextNextFilename;
-const ebml_context *MATROSKA_getContextNextFilename() { return &MATROSKA_ContextNextFilename; }
+const ebml_context *MATROSKA_getContextNextFilename(void) { return &MATROSKA_ContextNextFilename; }
 ebml_context MATROSKA_ContextSegmentFamily;
-const ebml_context *MATROSKA_getContextSegmentFamily() { return &MATROSKA_ContextSegmentFamily; }
+const ebml_context *MATROSKA_getContextSegmentFamily(void) { return &MATROSKA_ContextSegmentFamily; }
 ebml_context MATROSKA_ContextChapterTranslateID;
-const ebml_context *MATROSKA_getContextChapterTranslateID() { return &MATROSKA_ContextChapterTranslateID; }
+const ebml_context *MATROSKA_getContextChapterTranslateID(void) { return &MATROSKA_ContextChapterTranslateID; }
 ebml_context MATROSKA_ContextChapterTranslateCodec;
-const ebml_context *MATROSKA_getContextChapterTranslateCodec() { return &MATROSKA_ContextChapterTranslateCodec; }
+const ebml_context *MATROSKA_getContextChapterTranslateCodec(void) { return &MATROSKA_ContextChapterTranslateCodec; }
 ebml_context MATROSKA_ContextChapterTranslateEditionUID;
-const ebml_context *MATROSKA_getContextChapterTranslateEditionUID() { return &MATROSKA_ContextChapterTranslateEditionUID; }
+const ebml_context *MATROSKA_getContextChapterTranslateEditionUID(void) { return &MATROSKA_ContextChapterTranslateEditionUID; }
 ebml_context MATROSKA_ContextChapterTranslate;
-const ebml_context *MATROSKA_getContextChapterTranslate() { return &MATROSKA_ContextChapterTranslate; }
+const ebml_context *MATROSKA_getContextChapterTranslate(void) { return &MATROSKA_ContextChapterTranslate; }
 ebml_context MATROSKA_ContextTimestampScale;
-const ebml_context *MATROSKA_getContextTimestampScale() { return &MATROSKA_ContextTimestampScale; }
+const ebml_context *MATROSKA_getContextTimestampScale(void) { return &MATROSKA_ContextTimestampScale; }
 ebml_context MATROSKA_ContextDuration;
-const ebml_context *MATROSKA_getContextDuration() { return &MATROSKA_ContextDuration; }
+const ebml_context *MATROSKA_getContextDuration(void) { return &MATROSKA_ContextDuration; }
 ebml_context MATROSKA_ContextDateUTC;
-const ebml_context *MATROSKA_getContextDateUTC() { return &MATROSKA_ContextDateUTC; }
+const ebml_context *MATROSKA_getContextDateUTC(void) { return &MATROSKA_ContextDateUTC; }
 ebml_context MATROSKA_ContextTitle;
-const ebml_context *MATROSKA_getContextTitle() { return &MATROSKA_ContextTitle; }
+const ebml_context *MATROSKA_getContextTitle(void) { return &MATROSKA_ContextTitle; }
 ebml_context MATROSKA_ContextMuxingApp;
-const ebml_context *MATROSKA_getContextMuxingApp() { return &MATROSKA_ContextMuxingApp; }
+const ebml_context *MATROSKA_getContextMuxingApp(void) { return &MATROSKA_ContextMuxingApp; }
 ebml_context MATROSKA_ContextWritingApp;
-const ebml_context *MATROSKA_getContextWritingApp() { return &MATROSKA_ContextWritingApp; }
+const ebml_context *MATROSKA_getContextWritingApp(void) { return &MATROSKA_ContextWritingApp; }
 ebml_context MATROSKA_ContextInfo;
-const ebml_context *MATROSKA_getContextInfo() { return &MATROSKA_ContextInfo; }
+const ebml_context *MATROSKA_getContextInfo(void) { return &MATROSKA_ContextInfo; }
 ebml_context MATROSKA_ContextTimestamp;
-const ebml_context *MATROSKA_getContextTimestamp() { return &MATROSKA_ContextTimestamp; }
+const ebml_context *MATROSKA_getContextTimestamp(void) { return &MATROSKA_ContextTimestamp; }
 ebml_context MATROSKA_ContextSilentTrackNumber;
-const ebml_context *MATROSKA_getContextSilentTrackNumber() { return &MATROSKA_ContextSilentTrackNumber; }
+const ebml_context *MATROSKA_getContextSilentTrackNumber(void) { return &MATROSKA_ContextSilentTrackNumber; }
 ebml_context MATROSKA_ContextSilentTracks;
-const ebml_context *MATROSKA_getContextSilentTracks() { return &MATROSKA_ContextSilentTracks; }
+const ebml_context *MATROSKA_getContextSilentTracks(void) { return &MATROSKA_ContextSilentTracks; }
 ebml_context MATROSKA_ContextPosition;
-const ebml_context *MATROSKA_getContextPosition() { return &MATROSKA_ContextPosition; }
+const ebml_context *MATROSKA_getContextPosition(void) { return &MATROSKA_ContextPosition; }
 ebml_context MATROSKA_ContextPrevSize;
-const ebml_context *MATROSKA_getContextPrevSize() { return &MATROSKA_ContextPrevSize; }
+const ebml_context *MATROSKA_getContextPrevSize(void) { return &MATROSKA_ContextPrevSize; }
 ebml_context MATROSKA_ContextSimpleBlock;
-const ebml_context *MATROSKA_getContextSimpleBlock() { return &MATROSKA_ContextSimpleBlock; }
+const ebml_context *MATROSKA_getContextSimpleBlock(void) { return &MATROSKA_ContextSimpleBlock; }
 ebml_context MATROSKA_ContextBlock;
-const ebml_context *MATROSKA_getContextBlock() { return &MATROSKA_ContextBlock; }
+const ebml_context *MATROSKA_getContextBlock(void) { return &MATROSKA_ContextBlock; }
 ebml_context MATROSKA_ContextBlockVirtual;
-const ebml_context *MATROSKA_getContextBlockVirtual() { return &MATROSKA_ContextBlockVirtual; }
+const ebml_context *MATROSKA_getContextBlockVirtual(void) { return &MATROSKA_ContextBlockVirtual; }
 ebml_context MATROSKA_ContextBlockAdditional;
-const ebml_context *MATROSKA_getContextBlockAdditional() { return &MATROSKA_ContextBlockAdditional; }
+const ebml_context *MATROSKA_getContextBlockAdditional(void) { return &MATROSKA_ContextBlockAdditional; }
 ebml_context MATROSKA_ContextBlockAddID;
-const ebml_context *MATROSKA_getContextBlockAddID() { return &MATROSKA_ContextBlockAddID; }
+const ebml_context *MATROSKA_getContextBlockAddID(void) { return &MATROSKA_ContextBlockAddID; }
 ebml_context MATROSKA_ContextBlockMore;
-const ebml_context *MATROSKA_getContextBlockMore() { return &MATROSKA_ContextBlockMore; }
+const ebml_context *MATROSKA_getContextBlockMore(void) { return &MATROSKA_ContextBlockMore; }
 ebml_context MATROSKA_ContextBlockAdditions;
-const ebml_context *MATROSKA_getContextBlockAdditions() { return &MATROSKA_ContextBlockAdditions; }
+const ebml_context *MATROSKA_getContextBlockAdditions(void) { return &MATROSKA_ContextBlockAdditions; }
 ebml_context MATROSKA_ContextBlockDuration;
-const ebml_context *MATROSKA_getContextBlockDuration() { return &MATROSKA_ContextBlockDuration; }
+const ebml_context *MATROSKA_getContextBlockDuration(void) { return &MATROSKA_ContextBlockDuration; }
 ebml_context MATROSKA_ContextReferencePriority;
-const ebml_context *MATROSKA_getContextReferencePriority() { return &MATROSKA_ContextReferencePriority; }
+const ebml_context *MATROSKA_getContextReferencePriority(void) { return &MATROSKA_ContextReferencePriority; }
 ebml_context MATROSKA_ContextReferenceBlock;
-const ebml_context *MATROSKA_getContextReferenceBlock() { return &MATROSKA_ContextReferenceBlock; }
+const ebml_context *MATROSKA_getContextReferenceBlock(void) { return &MATROSKA_ContextReferenceBlock; }
 ebml_context MATROSKA_ContextReferenceVirtual;
-const ebml_context *MATROSKA_getContextReferenceVirtual() { return &MATROSKA_ContextReferenceVirtual; }
+const ebml_context *MATROSKA_getContextReferenceVirtual(void) { return &MATROSKA_ContextReferenceVirtual; }
 ebml_context MATROSKA_ContextCodecState;
-const ebml_context *MATROSKA_getContextCodecState() { return &MATROSKA_ContextCodecState; }
+const ebml_context *MATROSKA_getContextCodecState(void) { return &MATROSKA_ContextCodecState; }
 ebml_context MATROSKA_ContextDiscardPadding;
-const ebml_context *MATROSKA_getContextDiscardPadding() { return &MATROSKA_ContextDiscardPadding; }
+const ebml_context *MATROSKA_getContextDiscardPadding(void) { return &MATROSKA_ContextDiscardPadding; }
 ebml_context MATROSKA_ContextLaceNumber;
-const ebml_context *MATROSKA_getContextLaceNumber() { return &MATROSKA_ContextLaceNumber; }
+const ebml_context *MATROSKA_getContextLaceNumber(void) { return &MATROSKA_ContextLaceNumber; }
 ebml_context MATROSKA_ContextFrameNumber;
-const ebml_context *MATROSKA_getContextFrameNumber() { return &MATROSKA_ContextFrameNumber; }
+const ebml_context *MATROSKA_getContextFrameNumber(void) { return &MATROSKA_ContextFrameNumber; }
 ebml_context MATROSKA_ContextBlockAdditionID;
-const ebml_context *MATROSKA_getContextBlockAdditionID() { return &MATROSKA_ContextBlockAdditionID; }
+const ebml_context *MATROSKA_getContextBlockAdditionID(void) { return &MATROSKA_ContextBlockAdditionID; }
 ebml_context MATROSKA_ContextDelay;
-const ebml_context *MATROSKA_getContextDelay() { return &MATROSKA_ContextDelay; }
+const ebml_context *MATROSKA_getContextDelay(void) { return &MATROSKA_ContextDelay; }
 ebml_context MATROSKA_ContextSliceDuration;
-const ebml_context *MATROSKA_getContextSliceDuration() { return &MATROSKA_ContextSliceDuration; }
+const ebml_context *MATROSKA_getContextSliceDuration(void) { return &MATROSKA_ContextSliceDuration; }
 ebml_context MATROSKA_ContextTimeSlice;
-const ebml_context *MATROSKA_getContextTimeSlice() { return &MATROSKA_ContextTimeSlice; }
+const ebml_context *MATROSKA_getContextTimeSlice(void) { return &MATROSKA_ContextTimeSlice; }
 ebml_context MATROSKA_ContextSlices;
-const ebml_context *MATROSKA_getContextSlices() { return &MATROSKA_ContextSlices; }
+const ebml_context *MATROSKA_getContextSlices(void) { return &MATROSKA_ContextSlices; }
 ebml_context MATROSKA_ContextReferenceOffset;
-const ebml_context *MATROSKA_getContextReferenceOffset() { return &MATROSKA_ContextReferenceOffset; }
+const ebml_context *MATROSKA_getContextReferenceOffset(void) { return &MATROSKA_ContextReferenceOffset; }
 ebml_context MATROSKA_ContextReferenceTimestamp;
-const ebml_context *MATROSKA_getContextReferenceTimestamp() { return &MATROSKA_ContextReferenceTimestamp; }
+const ebml_context *MATROSKA_getContextReferenceTimestamp(void) { return &MATROSKA_ContextReferenceTimestamp; }
 ebml_context MATROSKA_ContextReferenceFrame;
-const ebml_context *MATROSKA_getContextReferenceFrame() { return &MATROSKA_ContextReferenceFrame; }
+const ebml_context *MATROSKA_getContextReferenceFrame(void) { return &MATROSKA_ContextReferenceFrame; }
 ebml_context MATROSKA_ContextBlockGroup;
-const ebml_context *MATROSKA_getContextBlockGroup() { return &MATROSKA_ContextBlockGroup; }
+const ebml_context *MATROSKA_getContextBlockGroup(void) { return &MATROSKA_ContextBlockGroup; }
 ebml_context MATROSKA_ContextEncryptedBlock;
-const ebml_context *MATROSKA_getContextEncryptedBlock() { return &MATROSKA_ContextEncryptedBlock; }
+const ebml_context *MATROSKA_getContextEncryptedBlock(void) { return &MATROSKA_ContextEncryptedBlock; }
 ebml_context MATROSKA_ContextCluster;
-const ebml_context *MATROSKA_getContextCluster() { return &MATROSKA_ContextCluster; }
+const ebml_context *MATROSKA_getContextCluster(void) { return &MATROSKA_ContextCluster; }
 ebml_context MATROSKA_ContextTrackNumber;
-const ebml_context *MATROSKA_getContextTrackNumber() { return &MATROSKA_ContextTrackNumber; }
+const ebml_context *MATROSKA_getContextTrackNumber(void) { return &MATROSKA_ContextTrackNumber; }
 ebml_context MATROSKA_ContextTrackUID;
-const ebml_context *MATROSKA_getContextTrackUID() { return &MATROSKA_ContextTrackUID; }
+const ebml_context *MATROSKA_getContextTrackUID(void) { return &MATROSKA_ContextTrackUID; }
 ebml_context MATROSKA_ContextTrackType;
-const ebml_context *MATROSKA_getContextTrackType() { return &MATROSKA_ContextTrackType; }
+const ebml_context *MATROSKA_getContextTrackType(void) { return &MATROSKA_ContextTrackType; }
 ebml_context MATROSKA_ContextFlagEnabled;
-const ebml_context *MATROSKA_getContextFlagEnabled() { return &MATROSKA_ContextFlagEnabled; }
+const ebml_context *MATROSKA_getContextFlagEnabled(void) { return &MATROSKA_ContextFlagEnabled; }
 ebml_context MATROSKA_ContextFlagDefault;
-const ebml_context *MATROSKA_getContextFlagDefault() { return &MATROSKA_ContextFlagDefault; }
+const ebml_context *MATROSKA_getContextFlagDefault(void) { return &MATROSKA_ContextFlagDefault; }
 ebml_context MATROSKA_ContextFlagForced;
-const ebml_context *MATROSKA_getContextFlagForced() { return &MATROSKA_ContextFlagForced; }
+const ebml_context *MATROSKA_getContextFlagForced(void) { return &MATROSKA_ContextFlagForced; }
 ebml_context MATROSKA_ContextFlagHearingImpaired;
-const ebml_context *MATROSKA_getContextFlagHearingImpaired() { return &MATROSKA_ContextFlagHearingImpaired; }
+const ebml_context *MATROSKA_getContextFlagHearingImpaired(void) { return &MATROSKA_ContextFlagHearingImpaired; }
 ebml_context MATROSKA_ContextFlagVisualImpaired;
-const ebml_context *MATROSKA_getContextFlagVisualImpaired() { return &MATROSKA_ContextFlagVisualImpaired; }
+const ebml_context *MATROSKA_getContextFlagVisualImpaired(void) { return &MATROSKA_ContextFlagVisualImpaired; }
 ebml_context MATROSKA_ContextFlagTextDescriptions;
-const ebml_context *MATROSKA_getContextFlagTextDescriptions() { return &MATROSKA_ContextFlagTextDescriptions; }
+const ebml_context *MATROSKA_getContextFlagTextDescriptions(void) { return &MATROSKA_ContextFlagTextDescriptions; }
 ebml_context MATROSKA_ContextFlagOriginal;
-const ebml_context *MATROSKA_getContextFlagOriginal() { return &MATROSKA_ContextFlagOriginal; }
+const ebml_context *MATROSKA_getContextFlagOriginal(void) { return &MATROSKA_ContextFlagOriginal; }
 ebml_context MATROSKA_ContextFlagCommentary;
-const ebml_context *MATROSKA_getContextFlagCommentary() { return &MATROSKA_ContextFlagCommentary; }
+const ebml_context *MATROSKA_getContextFlagCommentary(void) { return &MATROSKA_ContextFlagCommentary; }
 ebml_context MATROSKA_ContextFlagLacing;
-const ebml_context *MATROSKA_getContextFlagLacing() { return &MATROSKA_ContextFlagLacing; }
+const ebml_context *MATROSKA_getContextFlagLacing(void) { return &MATROSKA_ContextFlagLacing; }
 ebml_context MATROSKA_ContextMinCache;
-const ebml_context *MATROSKA_getContextMinCache() { return &MATROSKA_ContextMinCache; }
+const ebml_context *MATROSKA_getContextMinCache(void) { return &MATROSKA_ContextMinCache; }
 ebml_context MATROSKA_ContextMaxCache;
-const ebml_context *MATROSKA_getContextMaxCache() { return &MATROSKA_ContextMaxCache; }
+const ebml_context *MATROSKA_getContextMaxCache(void) { return &MATROSKA_ContextMaxCache; }
 ebml_context MATROSKA_ContextDefaultDuration;
-const ebml_context *MATROSKA_getContextDefaultDuration() { return &MATROSKA_ContextDefaultDuration; }
+const ebml_context *MATROSKA_getContextDefaultDuration(void) { return &MATROSKA_ContextDefaultDuration; }
 ebml_context MATROSKA_ContextDefaultDecodedFieldDuration;
-const ebml_context *MATROSKA_getContextDefaultDecodedFieldDuration() { return &MATROSKA_ContextDefaultDecodedFieldDuration; }
+const ebml_context *MATROSKA_getContextDefaultDecodedFieldDuration(void) { return &MATROSKA_ContextDefaultDecodedFieldDuration; }
 ebml_context MATROSKA_ContextTrackTimestampScale;
-const ebml_context *MATROSKA_getContextTrackTimestampScale() { return &MATROSKA_ContextTrackTimestampScale; }
+const ebml_context *MATROSKA_getContextTrackTimestampScale(void) { return &MATROSKA_ContextTrackTimestampScale; }
 ebml_context MATROSKA_ContextTrackOffset;
-const ebml_context *MATROSKA_getContextTrackOffset() { return &MATROSKA_ContextTrackOffset; }
+const ebml_context *MATROSKA_getContextTrackOffset(void) { return &MATROSKA_ContextTrackOffset; }
 ebml_context MATROSKA_ContextMaxBlockAdditionID;
-const ebml_context *MATROSKA_getContextMaxBlockAdditionID() { return &MATROSKA_ContextMaxBlockAdditionID; }
+const ebml_context *MATROSKA_getContextMaxBlockAdditionID(void) { return &MATROSKA_ContextMaxBlockAdditionID; }
 ebml_context MATROSKA_ContextBlockAddIDValue;
-const ebml_context *MATROSKA_getContextBlockAddIDValue() { return &MATROSKA_ContextBlockAddIDValue; }
+const ebml_context *MATROSKA_getContextBlockAddIDValue(void) { return &MATROSKA_ContextBlockAddIDValue; }
 ebml_context MATROSKA_ContextBlockAddIDName;
-const ebml_context *MATROSKA_getContextBlockAddIDName() { return &MATROSKA_ContextBlockAddIDName; }
+const ebml_context *MATROSKA_getContextBlockAddIDName(void) { return &MATROSKA_ContextBlockAddIDName; }
 ebml_context MATROSKA_ContextBlockAddIDType;
-const ebml_context *MATROSKA_getContextBlockAddIDType() { return &MATROSKA_ContextBlockAddIDType; }
+const ebml_context *MATROSKA_getContextBlockAddIDType(void) { return &MATROSKA_ContextBlockAddIDType; }
 ebml_context MATROSKA_ContextBlockAddIDExtraData;
-const ebml_context *MATROSKA_getContextBlockAddIDExtraData() { return &MATROSKA_ContextBlockAddIDExtraData; }
+const ebml_context *MATROSKA_getContextBlockAddIDExtraData(void) { return &MATROSKA_ContextBlockAddIDExtraData; }
 ebml_context MATROSKA_ContextBlockAdditionMapping;
-const ebml_context *MATROSKA_getContextBlockAdditionMapping() { return &MATROSKA_ContextBlockAdditionMapping; }
+const ebml_context *MATROSKA_getContextBlockAdditionMapping(void) { return &MATROSKA_ContextBlockAdditionMapping; }
 ebml_context MATROSKA_ContextName;
-const ebml_context *MATROSKA_getContextName() { return &MATROSKA_ContextName; }
+const ebml_context *MATROSKA_getContextName(void) { return &MATROSKA_ContextName; }
 ebml_context MATROSKA_ContextLanguage;
-const ebml_context *MATROSKA_getContextLanguage() { return &MATROSKA_ContextLanguage; }
+const ebml_context *MATROSKA_getContextLanguage(void) { return &MATROSKA_ContextLanguage; }
 ebml_context MATROSKA_ContextLanguageBCP47;
-const ebml_context *MATROSKA_getContextLanguageBCP47() { return &MATROSKA_ContextLanguageBCP47; }
+const ebml_context *MATROSKA_getContextLanguageBCP47(void) { return &MATROSKA_ContextLanguageBCP47; }
 ebml_context MATROSKA_ContextCodecID;
-const ebml_context *MATROSKA_getContextCodecID() { return &MATROSKA_ContextCodecID; }
+const ebml_context *MATROSKA_getContextCodecID(void) { return &MATROSKA_ContextCodecID; }
 ebml_context MATROSKA_ContextCodecPrivate;
-const ebml_context *MATROSKA_getContextCodecPrivate() { return &MATROSKA_ContextCodecPrivate; }
+const ebml_context *MATROSKA_getContextCodecPrivate(void) { return &MATROSKA_ContextCodecPrivate; }
 ebml_context MATROSKA_ContextCodecName;
-const ebml_context *MATROSKA_getContextCodecName() { return &MATROSKA_ContextCodecName; }
+const ebml_context *MATROSKA_getContextCodecName(void) { return &MATROSKA_ContextCodecName; }
 ebml_context MATROSKA_ContextAttachmentLink;
-const ebml_context *MATROSKA_getContextAttachmentLink() { return &MATROSKA_ContextAttachmentLink; }
+const ebml_context *MATROSKA_getContextAttachmentLink(void) { return &MATROSKA_ContextAttachmentLink; }
 ebml_context MATROSKA_ContextCodecSettings;
-const ebml_context *MATROSKA_getContextCodecSettings() { return &MATROSKA_ContextCodecSettings; }
+const ebml_context *MATROSKA_getContextCodecSettings(void) { return &MATROSKA_ContextCodecSettings; }
 ebml_context MATROSKA_ContextCodecInfoURL;
-const ebml_context *MATROSKA_getContextCodecInfoURL() { return &MATROSKA_ContextCodecInfoURL; }
+const ebml_context *MATROSKA_getContextCodecInfoURL(void) { return &MATROSKA_ContextCodecInfoURL; }
 ebml_context MATROSKA_ContextCodecDownloadURL;
-const ebml_context *MATROSKA_getContextCodecDownloadURL() { return &MATROSKA_ContextCodecDownloadURL; }
+const ebml_context *MATROSKA_getContextCodecDownloadURL(void) { return &MATROSKA_ContextCodecDownloadURL; }
 ebml_context MATROSKA_ContextCodecDecodeAll;
-const ebml_context *MATROSKA_getContextCodecDecodeAll() { return &MATROSKA_ContextCodecDecodeAll; }
+const ebml_context *MATROSKA_getContextCodecDecodeAll(void) { return &MATROSKA_ContextCodecDecodeAll; }
 ebml_context MATROSKA_ContextTrackOverlay;
-const ebml_context *MATROSKA_getContextTrackOverlay() { return &MATROSKA_ContextTrackOverlay; }
+const ebml_context *MATROSKA_getContextTrackOverlay(void) { return &MATROSKA_ContextTrackOverlay; }
 ebml_context MATROSKA_ContextCodecDelay;
-const ebml_context *MATROSKA_getContextCodecDelay() { return &MATROSKA_ContextCodecDelay; }
+const ebml_context *MATROSKA_getContextCodecDelay(void) { return &MATROSKA_ContextCodecDelay; }
 ebml_context MATROSKA_ContextSeekPreRoll;
-const ebml_context *MATROSKA_getContextSeekPreRoll() { return &MATROSKA_ContextSeekPreRoll; }
+const ebml_context *MATROSKA_getContextSeekPreRoll(void) { return &MATROSKA_ContextSeekPreRoll; }
 ebml_context MATROSKA_ContextTrackTranslateTrackID;
-const ebml_context *MATROSKA_getContextTrackTranslateTrackID() { return &MATROSKA_ContextTrackTranslateTrackID; }
+const ebml_context *MATROSKA_getContextTrackTranslateTrackID(void) { return &MATROSKA_ContextTrackTranslateTrackID; }
 ebml_context MATROSKA_ContextTrackTranslateCodec;
-const ebml_context *MATROSKA_getContextTrackTranslateCodec() { return &MATROSKA_ContextTrackTranslateCodec; }
+const ebml_context *MATROSKA_getContextTrackTranslateCodec(void) { return &MATROSKA_ContextTrackTranslateCodec; }
 ebml_context MATROSKA_ContextTrackTranslateEditionUID;
-const ebml_context *MATROSKA_getContextTrackTranslateEditionUID() { return &MATROSKA_ContextTrackTranslateEditionUID; }
+const ebml_context *MATROSKA_getContextTrackTranslateEditionUID(void) { return &MATROSKA_ContextTrackTranslateEditionUID; }
 ebml_context MATROSKA_ContextTrackTranslate;
-const ebml_context *MATROSKA_getContextTrackTranslate() { return &MATROSKA_ContextTrackTranslate; }
+const ebml_context *MATROSKA_getContextTrackTranslate(void) { return &MATROSKA_ContextTrackTranslate; }
 ebml_context MATROSKA_ContextFlagInterlaced;
-const ebml_context *MATROSKA_getContextFlagInterlaced() { return &MATROSKA_ContextFlagInterlaced; }
+const ebml_context *MATROSKA_getContextFlagInterlaced(void) { return &MATROSKA_ContextFlagInterlaced; }
 ebml_context MATROSKA_ContextFieldOrder;
-const ebml_context *MATROSKA_getContextFieldOrder() { return &MATROSKA_ContextFieldOrder; }
+const ebml_context *MATROSKA_getContextFieldOrder(void) { return &MATROSKA_ContextFieldOrder; }
 ebml_context MATROSKA_ContextStereoMode;
-const ebml_context *MATROSKA_getContextStereoMode() { return &MATROSKA_ContextStereoMode; }
+const ebml_context *MATROSKA_getContextStereoMode(void) { return &MATROSKA_ContextStereoMode; }
 ebml_context MATROSKA_ContextAlphaMode;
-const ebml_context *MATROSKA_getContextAlphaMode() { return &MATROSKA_ContextAlphaMode; }
+const ebml_context *MATROSKA_getContextAlphaMode(void) { return &MATROSKA_ContextAlphaMode; }
 ebml_context MATROSKA_ContextOldStereoMode;
-const ebml_context *MATROSKA_getContextOldStereoMode() { return &MATROSKA_ContextOldStereoMode; }
+const ebml_context *MATROSKA_getContextOldStereoMode(void) { return &MATROSKA_ContextOldStereoMode; }
 ebml_context MATROSKA_ContextPixelWidth;
-const ebml_context *MATROSKA_getContextPixelWidth() { return &MATROSKA_ContextPixelWidth; }
+const ebml_context *MATROSKA_getContextPixelWidth(void) { return &MATROSKA_ContextPixelWidth; }
 ebml_context MATROSKA_ContextPixelHeight;
-const ebml_context *MATROSKA_getContextPixelHeight() { return &MATROSKA_ContextPixelHeight; }
+const ebml_context *MATROSKA_getContextPixelHeight(void) { return &MATROSKA_ContextPixelHeight; }
 ebml_context MATROSKA_ContextPixelCropBottom;
-const ebml_context *MATROSKA_getContextPixelCropBottom() { return &MATROSKA_ContextPixelCropBottom; }
+const ebml_context *MATROSKA_getContextPixelCropBottom(void) { return &MATROSKA_ContextPixelCropBottom; }
 ebml_context MATROSKA_ContextPixelCropTop;
-const ebml_context *MATROSKA_getContextPixelCropTop() { return &MATROSKA_ContextPixelCropTop; }
+const ebml_context *MATROSKA_getContextPixelCropTop(void) { return &MATROSKA_ContextPixelCropTop; }
 ebml_context MATROSKA_ContextPixelCropLeft;
-const ebml_context *MATROSKA_getContextPixelCropLeft() { return &MATROSKA_ContextPixelCropLeft; }
+const ebml_context *MATROSKA_getContextPixelCropLeft(void) { return &MATROSKA_ContextPixelCropLeft; }
 ebml_context MATROSKA_ContextPixelCropRight;
-const ebml_context *MATROSKA_getContextPixelCropRight() { return &MATROSKA_ContextPixelCropRight; }
+const ebml_context *MATROSKA_getContextPixelCropRight(void) { return &MATROSKA_ContextPixelCropRight; }
 ebml_context MATROSKA_ContextDisplayWidth;
-const ebml_context *MATROSKA_getContextDisplayWidth() { return &MATROSKA_ContextDisplayWidth; }
+const ebml_context *MATROSKA_getContextDisplayWidth(void) { return &MATROSKA_ContextDisplayWidth; }
 ebml_context MATROSKA_ContextDisplayHeight;
-const ebml_context *MATROSKA_getContextDisplayHeight() { return &MATROSKA_ContextDisplayHeight; }
+const ebml_context *MATROSKA_getContextDisplayHeight(void) { return &MATROSKA_ContextDisplayHeight; }
 ebml_context MATROSKA_ContextDisplayUnit;
-const ebml_context *MATROSKA_getContextDisplayUnit() { return &MATROSKA_ContextDisplayUnit; }
+const ebml_context *MATROSKA_getContextDisplayUnit(void) { return &MATROSKA_ContextDisplayUnit; }
 ebml_context MATROSKA_ContextAspectRatioType;
-const ebml_context *MATROSKA_getContextAspectRatioType() { return &MATROSKA_ContextAspectRatioType; }
+const ebml_context *MATROSKA_getContextAspectRatioType(void) { return &MATROSKA_ContextAspectRatioType; }
 ebml_context MATROSKA_ContextUncompressedFourCC;
-const ebml_context *MATROSKA_getContextUncompressedFourCC() { return &MATROSKA_ContextUncompressedFourCC; }
+const ebml_context *MATROSKA_getContextUncompressedFourCC(void) { return &MATROSKA_ContextUncompressedFourCC; }
 ebml_context MATROSKA_ContextGammaValue;
-const ebml_context *MATROSKA_getContextGammaValue() { return &MATROSKA_ContextGammaValue; }
+const ebml_context *MATROSKA_getContextGammaValue(void) { return &MATROSKA_ContextGammaValue; }
 ebml_context MATROSKA_ContextFrameRate;
-const ebml_context *MATROSKA_getContextFrameRate() { return &MATROSKA_ContextFrameRate; }
+const ebml_context *MATROSKA_getContextFrameRate(void) { return &MATROSKA_ContextFrameRate; }
 ebml_context MATROSKA_ContextMatrixCoefficients;
-const ebml_context *MATROSKA_getContextMatrixCoefficients() { return &MATROSKA_ContextMatrixCoefficients; }
+const ebml_context *MATROSKA_getContextMatrixCoefficients(void) { return &MATROSKA_ContextMatrixCoefficients; }
 ebml_context MATROSKA_ContextBitsPerChannel;
-const ebml_context *MATROSKA_getContextBitsPerChannel() { return &MATROSKA_ContextBitsPerChannel; }
+const ebml_context *MATROSKA_getContextBitsPerChannel(void) { return &MATROSKA_ContextBitsPerChannel; }
 ebml_context MATROSKA_ContextChromaSubsamplingHorz;
-const ebml_context *MATROSKA_getContextChromaSubsamplingHorz() { return &MATROSKA_ContextChromaSubsamplingHorz; }
+const ebml_context *MATROSKA_getContextChromaSubsamplingHorz(void) { return &MATROSKA_ContextChromaSubsamplingHorz; }
 ebml_context MATROSKA_ContextChromaSubsamplingVert;
-const ebml_context *MATROSKA_getContextChromaSubsamplingVert() { return &MATROSKA_ContextChromaSubsamplingVert; }
+const ebml_context *MATROSKA_getContextChromaSubsamplingVert(void) { return &MATROSKA_ContextChromaSubsamplingVert; }
 ebml_context MATROSKA_ContextCbSubsamplingHorz;
-const ebml_context *MATROSKA_getContextCbSubsamplingHorz() { return &MATROSKA_ContextCbSubsamplingHorz; }
+const ebml_context *MATROSKA_getContextCbSubsamplingHorz(void) { return &MATROSKA_ContextCbSubsamplingHorz; }
 ebml_context MATROSKA_ContextCbSubsamplingVert;
-const ebml_context *MATROSKA_getContextCbSubsamplingVert() { return &MATROSKA_ContextCbSubsamplingVert; }
+const ebml_context *MATROSKA_getContextCbSubsamplingVert(void) { return &MATROSKA_ContextCbSubsamplingVert; }
 ebml_context MATROSKA_ContextChromaSitingHorz;
-const ebml_context *MATROSKA_getContextChromaSitingHorz() { return &MATROSKA_ContextChromaSitingHorz; }
+const ebml_context *MATROSKA_getContextChromaSitingHorz(void) { return &MATROSKA_ContextChromaSitingHorz; }
 ebml_context MATROSKA_ContextChromaSitingVert;
-const ebml_context *MATROSKA_getContextChromaSitingVert() { return &MATROSKA_ContextChromaSitingVert; }
+const ebml_context *MATROSKA_getContextChromaSitingVert(void) { return &MATROSKA_ContextChromaSitingVert; }
 ebml_context MATROSKA_ContextRange;
-const ebml_context *MATROSKA_getContextRange() { return &MATROSKA_ContextRange; }
+const ebml_context *MATROSKA_getContextRange(void) { return &MATROSKA_ContextRange; }
 ebml_context MATROSKA_ContextTransferCharacteristics;
-const ebml_context *MATROSKA_getContextTransferCharacteristics() { return &MATROSKA_ContextTransferCharacteristics; }
+const ebml_context *MATROSKA_getContextTransferCharacteristics(void) { return &MATROSKA_ContextTransferCharacteristics; }
 ebml_context MATROSKA_ContextPrimaries;
-const ebml_context *MATROSKA_getContextPrimaries() { return &MATROSKA_ContextPrimaries; }
+const ebml_context *MATROSKA_getContextPrimaries(void) { return &MATROSKA_ContextPrimaries; }
 ebml_context MATROSKA_ContextMaxCLL;
-const ebml_context *MATROSKA_getContextMaxCLL() { return &MATROSKA_ContextMaxCLL; }
+const ebml_context *MATROSKA_getContextMaxCLL(void) { return &MATROSKA_ContextMaxCLL; }
 ebml_context MATROSKA_ContextMaxFALL;
-const ebml_context *MATROSKA_getContextMaxFALL() { return &MATROSKA_ContextMaxFALL; }
+const ebml_context *MATROSKA_getContextMaxFALL(void) { return &MATROSKA_ContextMaxFALL; }
 ebml_context MATROSKA_ContextPrimaryRChromaticityX;
-const ebml_context *MATROSKA_getContextPrimaryRChromaticityX() { return &MATROSKA_ContextPrimaryRChromaticityX; }
+const ebml_context *MATROSKA_getContextPrimaryRChromaticityX(void) { return &MATROSKA_ContextPrimaryRChromaticityX; }
 ebml_context MATROSKA_ContextPrimaryRChromaticityY;
-const ebml_context *MATROSKA_getContextPrimaryRChromaticityY() { return &MATROSKA_ContextPrimaryRChromaticityY; }
+const ebml_context *MATROSKA_getContextPrimaryRChromaticityY(void) { return &MATROSKA_ContextPrimaryRChromaticityY; }
 ebml_context MATROSKA_ContextPrimaryGChromaticityX;
-const ebml_context *MATROSKA_getContextPrimaryGChromaticityX() { return &MATROSKA_ContextPrimaryGChromaticityX; }
+const ebml_context *MATROSKA_getContextPrimaryGChromaticityX(void) { return &MATROSKA_ContextPrimaryGChromaticityX; }
 ebml_context MATROSKA_ContextPrimaryGChromaticityY;
-const ebml_context *MATROSKA_getContextPrimaryGChromaticityY() { return &MATROSKA_ContextPrimaryGChromaticityY; }
+const ebml_context *MATROSKA_getContextPrimaryGChromaticityY(void) { return &MATROSKA_ContextPrimaryGChromaticityY; }
 ebml_context MATROSKA_ContextPrimaryBChromaticityX;
-const ebml_context *MATROSKA_getContextPrimaryBChromaticityX() { return &MATROSKA_ContextPrimaryBChromaticityX; }
+const ebml_context *MATROSKA_getContextPrimaryBChromaticityX(void) { return &MATROSKA_ContextPrimaryBChromaticityX; }
 ebml_context MATROSKA_ContextPrimaryBChromaticityY;
-const ebml_context *MATROSKA_getContextPrimaryBChromaticityY() { return &MATROSKA_ContextPrimaryBChromaticityY; }
+const ebml_context *MATROSKA_getContextPrimaryBChromaticityY(void) { return &MATROSKA_ContextPrimaryBChromaticityY; }
 ebml_context MATROSKA_ContextWhitePointChromaticityX;
-const ebml_context *MATROSKA_getContextWhitePointChromaticityX() { return &MATROSKA_ContextWhitePointChromaticityX; }
+const ebml_context *MATROSKA_getContextWhitePointChromaticityX(void) { return &MATROSKA_ContextWhitePointChromaticityX; }
 ebml_context MATROSKA_ContextWhitePointChromaticityY;
-const ebml_context *MATROSKA_getContextWhitePointChromaticityY() { return &MATROSKA_ContextWhitePointChromaticityY; }
+const ebml_context *MATROSKA_getContextWhitePointChromaticityY(void) { return &MATROSKA_ContextWhitePointChromaticityY; }
 ebml_context MATROSKA_ContextLuminanceMax;
-const ebml_context *MATROSKA_getContextLuminanceMax() { return &MATROSKA_ContextLuminanceMax; }
+const ebml_context *MATROSKA_getContextLuminanceMax(void) { return &MATROSKA_ContextLuminanceMax; }
 ebml_context MATROSKA_ContextLuminanceMin;
-const ebml_context *MATROSKA_getContextLuminanceMin() { return &MATROSKA_ContextLuminanceMin; }
+const ebml_context *MATROSKA_getContextLuminanceMin(void) { return &MATROSKA_ContextLuminanceMin; }
 ebml_context MATROSKA_ContextMasteringMetadata;
-const ebml_context *MATROSKA_getContextMasteringMetadata() { return &MATROSKA_ContextMasteringMetadata; }
+const ebml_context *MATROSKA_getContextMasteringMetadata(void) { return &MATROSKA_ContextMasteringMetadata; }
 ebml_context MATROSKA_ContextColour;
-const ebml_context *MATROSKA_getContextColour() { return &MATROSKA_ContextColour; }
+const ebml_context *MATROSKA_getContextColour(void) { return &MATROSKA_ContextColour; }
 ebml_context MATROSKA_ContextProjectionType;
-const ebml_context *MATROSKA_getContextProjectionType() { return &MATROSKA_ContextProjectionType; }
+const ebml_context *MATROSKA_getContextProjectionType(void) { return &MATROSKA_ContextProjectionType; }
 ebml_context MATROSKA_ContextProjectionPrivate;
-const ebml_context *MATROSKA_getContextProjectionPrivate() { return &MATROSKA_ContextProjectionPrivate; }
+const ebml_context *MATROSKA_getContextProjectionPrivate(void) { return &MATROSKA_ContextProjectionPrivate; }
 ebml_context MATROSKA_ContextProjectionPoseYaw;
-const ebml_context *MATROSKA_getContextProjectionPoseYaw() { return &MATROSKA_ContextProjectionPoseYaw; }
+const ebml_context *MATROSKA_getContextProjectionPoseYaw(void) { return &MATROSKA_ContextProjectionPoseYaw; }
 ebml_context MATROSKA_ContextProjectionPosePitch;
-const ebml_context *MATROSKA_getContextProjectionPosePitch() { return &MATROSKA_ContextProjectionPosePitch; }
+const ebml_context *MATROSKA_getContextProjectionPosePitch(void) { return &MATROSKA_ContextProjectionPosePitch; }
 ebml_context MATROSKA_ContextProjectionPoseRoll;
-const ebml_context *MATROSKA_getContextProjectionPoseRoll() { return &MATROSKA_ContextProjectionPoseRoll; }
+const ebml_context *MATROSKA_getContextProjectionPoseRoll(void) { return &MATROSKA_ContextProjectionPoseRoll; }
 ebml_context MATROSKA_ContextProjection;
-const ebml_context *MATROSKA_getContextProjection() { return &MATROSKA_ContextProjection; }
+const ebml_context *MATROSKA_getContextProjection(void) { return &MATROSKA_ContextProjection; }
 ebml_context MATROSKA_ContextVideo;
-const ebml_context *MATROSKA_getContextVideo() { return &MATROSKA_ContextVideo; }
+const ebml_context *MATROSKA_getContextVideo(void) { return &MATROSKA_ContextVideo; }
 ebml_context MATROSKA_ContextSamplingFrequency;
-const ebml_context *MATROSKA_getContextSamplingFrequency() { return &MATROSKA_ContextSamplingFrequency; }
+const ebml_context *MATROSKA_getContextSamplingFrequency(void) { return &MATROSKA_ContextSamplingFrequency; }
 ebml_context MATROSKA_ContextOutputSamplingFrequency;
-const ebml_context *MATROSKA_getContextOutputSamplingFrequency() { return &MATROSKA_ContextOutputSamplingFrequency; }
+const ebml_context *MATROSKA_getContextOutputSamplingFrequency(void) { return &MATROSKA_ContextOutputSamplingFrequency; }
 ebml_context MATROSKA_ContextChannels;
-const ebml_context *MATROSKA_getContextChannels() { return &MATROSKA_ContextChannels; }
+const ebml_context *MATROSKA_getContextChannels(void) { return &MATROSKA_ContextChannels; }
 ebml_context MATROSKA_ContextChannelPositions;
-const ebml_context *MATROSKA_getContextChannelPositions() { return &MATROSKA_ContextChannelPositions; }
+const ebml_context *MATROSKA_getContextChannelPositions(void) { return &MATROSKA_ContextChannelPositions; }
 ebml_context MATROSKA_ContextBitDepth;
-const ebml_context *MATROSKA_getContextBitDepth() { return &MATROSKA_ContextBitDepth; }
+const ebml_context *MATROSKA_getContextBitDepth(void) { return &MATROSKA_ContextBitDepth; }
 ebml_context MATROSKA_ContextEmphasis;
-const ebml_context *MATROSKA_getContextEmphasis() { return &MATROSKA_ContextEmphasis; }
+const ebml_context *MATROSKA_getContextEmphasis(void) { return &MATROSKA_ContextEmphasis; }
 ebml_context MATROSKA_ContextAudio;
-const ebml_context *MATROSKA_getContextAudio() { return &MATROSKA_ContextAudio; }
+const ebml_context *MATROSKA_getContextAudio(void) { return &MATROSKA_ContextAudio; }
 ebml_context MATROSKA_ContextTrackPlaneUID;
-const ebml_context *MATROSKA_getContextTrackPlaneUID() { return &MATROSKA_ContextTrackPlaneUID; }
+const ebml_context *MATROSKA_getContextTrackPlaneUID(void) { return &MATROSKA_ContextTrackPlaneUID; }
 ebml_context MATROSKA_ContextTrackPlaneType;
-const ebml_context *MATROSKA_getContextTrackPlaneType() { return &MATROSKA_ContextTrackPlaneType; }
+const ebml_context *MATROSKA_getContextTrackPlaneType(void) { return &MATROSKA_ContextTrackPlaneType; }
 ebml_context MATROSKA_ContextTrackPlane;
-const ebml_context *MATROSKA_getContextTrackPlane() { return &MATROSKA_ContextTrackPlane; }
+const ebml_context *MATROSKA_getContextTrackPlane(void) { return &MATROSKA_ContextTrackPlane; }
 ebml_context MATROSKA_ContextTrackCombinePlanes;
-const ebml_context *MATROSKA_getContextTrackCombinePlanes() { return &MATROSKA_ContextTrackCombinePlanes; }
+const ebml_context *MATROSKA_getContextTrackCombinePlanes(void) { return &MATROSKA_ContextTrackCombinePlanes; }
 ebml_context MATROSKA_ContextTrackJoinUID;
-const ebml_context *MATROSKA_getContextTrackJoinUID() { return &MATROSKA_ContextTrackJoinUID; }
+const ebml_context *MATROSKA_getContextTrackJoinUID(void) { return &MATROSKA_ContextTrackJoinUID; }
 ebml_context MATROSKA_ContextTrackJoinBlocks;
-const ebml_context *MATROSKA_getContextTrackJoinBlocks() { return &MATROSKA_ContextTrackJoinBlocks; }
+const ebml_context *MATROSKA_getContextTrackJoinBlocks(void) { return &MATROSKA_ContextTrackJoinBlocks; }
 ebml_context MATROSKA_ContextTrackOperation;
-const ebml_context *MATROSKA_getContextTrackOperation() { return &MATROSKA_ContextTrackOperation; }
+const ebml_context *MATROSKA_getContextTrackOperation(void) { return &MATROSKA_ContextTrackOperation; }
 ebml_context MATROSKA_ContextTrickTrackUID;
-const ebml_context *MATROSKA_getContextTrickTrackUID() { return &MATROSKA_ContextTrickTrackUID; }
+const ebml_context *MATROSKA_getContextTrickTrackUID(void) { return &MATROSKA_ContextTrickTrackUID; }
 ebml_context MATROSKA_ContextTrickTrackSegmentUID;
-const ebml_context *MATROSKA_getContextTrickTrackSegmentUID() { return &MATROSKA_ContextTrickTrackSegmentUID; }
+const ebml_context *MATROSKA_getContextTrickTrackSegmentUID(void) { return &MATROSKA_ContextTrickTrackSegmentUID; }
 ebml_context MATROSKA_ContextTrickTrackFlag;
-const ebml_context *MATROSKA_getContextTrickTrackFlag() { return &MATROSKA_ContextTrickTrackFlag; }
+const ebml_context *MATROSKA_getContextTrickTrackFlag(void) { return &MATROSKA_ContextTrickTrackFlag; }
 ebml_context MATROSKA_ContextTrickMasterTrackUID;
-const ebml_context *MATROSKA_getContextTrickMasterTrackUID() { return &MATROSKA_ContextTrickMasterTrackUID; }
+const ebml_context *MATROSKA_getContextTrickMasterTrackUID(void) { return &MATROSKA_ContextTrickMasterTrackUID; }
 ebml_context MATROSKA_ContextTrickMasterTrackSegmentUID;
-const ebml_context *MATROSKA_getContextTrickMasterTrackSegmentUID() { return &MATROSKA_ContextTrickMasterTrackSegmentUID; }
+const ebml_context *MATROSKA_getContextTrickMasterTrackSegmentUID(void) { return &MATROSKA_ContextTrickMasterTrackSegmentUID; }
 ebml_context MATROSKA_ContextContentEncodingOrder;
-const ebml_context *MATROSKA_getContextContentEncodingOrder() { return &MATROSKA_ContextContentEncodingOrder; }
+const ebml_context *MATROSKA_getContextContentEncodingOrder(void) { return &MATROSKA_ContextContentEncodingOrder; }
 ebml_context MATROSKA_ContextContentEncodingScope;
-const ebml_context *MATROSKA_getContextContentEncodingScope() { return &MATROSKA_ContextContentEncodingScope; }
+const ebml_context *MATROSKA_getContextContentEncodingScope(void) { return &MATROSKA_ContextContentEncodingScope; }
 ebml_context MATROSKA_ContextContentEncodingType;
-const ebml_context *MATROSKA_getContextContentEncodingType() { return &MATROSKA_ContextContentEncodingType; }
+const ebml_context *MATROSKA_getContextContentEncodingType(void) { return &MATROSKA_ContextContentEncodingType; }
 ebml_context MATROSKA_ContextContentCompAlgo;
-const ebml_context *MATROSKA_getContextContentCompAlgo() { return &MATROSKA_ContextContentCompAlgo; }
+const ebml_context *MATROSKA_getContextContentCompAlgo(void) { return &MATROSKA_ContextContentCompAlgo; }
 ebml_context MATROSKA_ContextContentCompSettings;
-const ebml_context *MATROSKA_getContextContentCompSettings() { return &MATROSKA_ContextContentCompSettings; }
+const ebml_context *MATROSKA_getContextContentCompSettings(void) { return &MATROSKA_ContextContentCompSettings; }
 ebml_context MATROSKA_ContextContentCompression;
-const ebml_context *MATROSKA_getContextContentCompression() { return &MATROSKA_ContextContentCompression; }
+const ebml_context *MATROSKA_getContextContentCompression(void) { return &MATROSKA_ContextContentCompression; }
 ebml_context MATROSKA_ContextContentEncAlgo;
-const ebml_context *MATROSKA_getContextContentEncAlgo() { return &MATROSKA_ContextContentEncAlgo; }
+const ebml_context *MATROSKA_getContextContentEncAlgo(void) { return &MATROSKA_ContextContentEncAlgo; }
 ebml_context MATROSKA_ContextContentEncKeyID;
-const ebml_context *MATROSKA_getContextContentEncKeyID() { return &MATROSKA_ContextContentEncKeyID; }
+const ebml_context *MATROSKA_getContextContentEncKeyID(void) { return &MATROSKA_ContextContentEncKeyID; }
 ebml_context MATROSKA_ContextAESSettingsCipherMode;
-const ebml_context *MATROSKA_getContextAESSettingsCipherMode() { return &MATROSKA_ContextAESSettingsCipherMode; }
+const ebml_context *MATROSKA_getContextAESSettingsCipherMode(void) { return &MATROSKA_ContextAESSettingsCipherMode; }
 ebml_context MATROSKA_ContextContentEncAESSettings;
-const ebml_context *MATROSKA_getContextContentEncAESSettings() { return &MATROSKA_ContextContentEncAESSettings; }
+const ebml_context *MATROSKA_getContextContentEncAESSettings(void) { return &MATROSKA_ContextContentEncAESSettings; }
 ebml_context MATROSKA_ContextContentSignature;
-const ebml_context *MATROSKA_getContextContentSignature() { return &MATROSKA_ContextContentSignature; }
+const ebml_context *MATROSKA_getContextContentSignature(void) { return &MATROSKA_ContextContentSignature; }
 ebml_context MATROSKA_ContextContentSigKeyID;
-const ebml_context *MATROSKA_getContextContentSigKeyID() { return &MATROSKA_ContextContentSigKeyID; }
+const ebml_context *MATROSKA_getContextContentSigKeyID(void) { return &MATROSKA_ContextContentSigKeyID; }
 ebml_context MATROSKA_ContextContentSigAlgo;
-const ebml_context *MATROSKA_getContextContentSigAlgo() { return &MATROSKA_ContextContentSigAlgo; }
+const ebml_context *MATROSKA_getContextContentSigAlgo(void) { return &MATROSKA_ContextContentSigAlgo; }
 ebml_context MATROSKA_ContextContentSigHashAlgo;
-const ebml_context *MATROSKA_getContextContentSigHashAlgo() { return &MATROSKA_ContextContentSigHashAlgo; }
+const ebml_context *MATROSKA_getContextContentSigHashAlgo(void) { return &MATROSKA_ContextContentSigHashAlgo; }
 ebml_context MATROSKA_ContextContentEncryption;
-const ebml_context *MATROSKA_getContextContentEncryption() { return &MATROSKA_ContextContentEncryption; }
+const ebml_context *MATROSKA_getContextContentEncryption(void) { return &MATROSKA_ContextContentEncryption; }
 ebml_context MATROSKA_ContextContentEncoding;
-const ebml_context *MATROSKA_getContextContentEncoding() { return &MATROSKA_ContextContentEncoding; }
+const ebml_context *MATROSKA_getContextContentEncoding(void) { return &MATROSKA_ContextContentEncoding; }
 ebml_context MATROSKA_ContextContentEncodings;
-const ebml_context *MATROSKA_getContextContentEncodings() { return &MATROSKA_ContextContentEncodings; }
+const ebml_context *MATROSKA_getContextContentEncodings(void) { return &MATROSKA_ContextContentEncodings; }
 ebml_context MATROSKA_ContextTrackEntry;
-const ebml_context *MATROSKA_getContextTrackEntry() { return &MATROSKA_ContextTrackEntry; }
+const ebml_context *MATROSKA_getContextTrackEntry(void) { return &MATROSKA_ContextTrackEntry; }
 ebml_context MATROSKA_ContextTracks;
-const ebml_context *MATROSKA_getContextTracks() { return &MATROSKA_ContextTracks; }
+const ebml_context *MATROSKA_getContextTracks(void) { return &MATROSKA_ContextTracks; }
 ebml_context MATROSKA_ContextCueTime;
-const ebml_context *MATROSKA_getContextCueTime() { return &MATROSKA_ContextCueTime; }
+const ebml_context *MATROSKA_getContextCueTime(void) { return &MATROSKA_ContextCueTime; }
 ebml_context MATROSKA_ContextCueTrack;
-const ebml_context *MATROSKA_getContextCueTrack() { return &MATROSKA_ContextCueTrack; }
+const ebml_context *MATROSKA_getContextCueTrack(void) { return &MATROSKA_ContextCueTrack; }
 ebml_context MATROSKA_ContextCueClusterPosition;
-const ebml_context *MATROSKA_getContextCueClusterPosition() { return &MATROSKA_ContextCueClusterPosition; }
+const ebml_context *MATROSKA_getContextCueClusterPosition(void) { return &MATROSKA_ContextCueClusterPosition; }
 ebml_context MATROSKA_ContextCueRelativePosition;
-const ebml_context *MATROSKA_getContextCueRelativePosition() { return &MATROSKA_ContextCueRelativePosition; }
+const ebml_context *MATROSKA_getContextCueRelativePosition(void) { return &MATROSKA_ContextCueRelativePosition; }
 ebml_context MATROSKA_ContextCueDuration;
-const ebml_context *MATROSKA_getContextCueDuration() { return &MATROSKA_ContextCueDuration; }
+const ebml_context *MATROSKA_getContextCueDuration(void) { return &MATROSKA_ContextCueDuration; }
 ebml_context MATROSKA_ContextCueBlockNumber;
-const ebml_context *MATROSKA_getContextCueBlockNumber() { return &MATROSKA_ContextCueBlockNumber; }
+const ebml_context *MATROSKA_getContextCueBlockNumber(void) { return &MATROSKA_ContextCueBlockNumber; }
 ebml_context MATROSKA_ContextCueCodecState;
-const ebml_context *MATROSKA_getContextCueCodecState() { return &MATROSKA_ContextCueCodecState; }
+const ebml_context *MATROSKA_getContextCueCodecState(void) { return &MATROSKA_ContextCueCodecState; }
 ebml_context MATROSKA_ContextCueRefTime;
-const ebml_context *MATROSKA_getContextCueRefTime() { return &MATROSKA_ContextCueRefTime; }
+const ebml_context *MATROSKA_getContextCueRefTime(void) { return &MATROSKA_ContextCueRefTime; }
 ebml_context MATROSKA_ContextCueRefCluster;
-const ebml_context *MATROSKA_getContextCueRefCluster() { return &MATROSKA_ContextCueRefCluster; }
+const ebml_context *MATROSKA_getContextCueRefCluster(void) { return &MATROSKA_ContextCueRefCluster; }
 ebml_context MATROSKA_ContextCueRefNumber;
-const ebml_context *MATROSKA_getContextCueRefNumber() { return &MATROSKA_ContextCueRefNumber; }
+const ebml_context *MATROSKA_getContextCueRefNumber(void) { return &MATROSKA_ContextCueRefNumber; }
 ebml_context MATROSKA_ContextCueRefCodecState;
-const ebml_context *MATROSKA_getContextCueRefCodecState() { return &MATROSKA_ContextCueRefCodecState; }
+const ebml_context *MATROSKA_getContextCueRefCodecState(void) { return &MATROSKA_ContextCueRefCodecState; }
 ebml_context MATROSKA_ContextCueReference;
-const ebml_context *MATROSKA_getContextCueReference() { return &MATROSKA_ContextCueReference; }
+const ebml_context *MATROSKA_getContextCueReference(void) { return &MATROSKA_ContextCueReference; }
 ebml_context MATROSKA_ContextCueTrackPositions;
-const ebml_context *MATROSKA_getContextCueTrackPositions() { return &MATROSKA_ContextCueTrackPositions; }
+const ebml_context *MATROSKA_getContextCueTrackPositions(void) { return &MATROSKA_ContextCueTrackPositions; }
 ebml_context MATROSKA_ContextCuePoint;
-const ebml_context *MATROSKA_getContextCuePoint() { return &MATROSKA_ContextCuePoint; }
+const ebml_context *MATROSKA_getContextCuePoint(void) { return &MATROSKA_ContextCuePoint; }
 ebml_context MATROSKA_ContextCues;
-const ebml_context *MATROSKA_getContextCues() { return &MATROSKA_ContextCues; }
+const ebml_context *MATROSKA_getContextCues(void) { return &MATROSKA_ContextCues; }
 ebml_context MATROSKA_ContextFileDescription;
-const ebml_context *MATROSKA_getContextFileDescription() { return &MATROSKA_ContextFileDescription; }
+const ebml_context *MATROSKA_getContextFileDescription(void) { return &MATROSKA_ContextFileDescription; }
 ebml_context MATROSKA_ContextFileName;
-const ebml_context *MATROSKA_getContextFileName() { return &MATROSKA_ContextFileName; }
+const ebml_context *MATROSKA_getContextFileName(void) { return &MATROSKA_ContextFileName; }
 ebml_context MATROSKA_ContextFileMediaType;
-const ebml_context *MATROSKA_getContextFileMediaType() { return &MATROSKA_ContextFileMediaType; }
+const ebml_context *MATROSKA_getContextFileMediaType(void) { return &MATROSKA_ContextFileMediaType; }
 ebml_context MATROSKA_ContextFileData;
-const ebml_context *MATROSKA_getContextFileData() { return &MATROSKA_ContextFileData; }
+const ebml_context *MATROSKA_getContextFileData(void) { return &MATROSKA_ContextFileData; }
 ebml_context MATROSKA_ContextFileUID;
-const ebml_context *MATROSKA_getContextFileUID() { return &MATROSKA_ContextFileUID; }
+const ebml_context *MATROSKA_getContextFileUID(void) { return &MATROSKA_ContextFileUID; }
 ebml_context MATROSKA_ContextFileReferral;
-const ebml_context *MATROSKA_getContextFileReferral() { return &MATROSKA_ContextFileReferral; }
+const ebml_context *MATROSKA_getContextFileReferral(void) { return &MATROSKA_ContextFileReferral; }
 ebml_context MATROSKA_ContextFileUsedStartTime;
-const ebml_context *MATROSKA_getContextFileUsedStartTime() { return &MATROSKA_ContextFileUsedStartTime; }
+const ebml_context *MATROSKA_getContextFileUsedStartTime(void) { return &MATROSKA_ContextFileUsedStartTime; }
 ebml_context MATROSKA_ContextFileUsedEndTime;
-const ebml_context *MATROSKA_getContextFileUsedEndTime() { return &MATROSKA_ContextFileUsedEndTime; }
+const ebml_context *MATROSKA_getContextFileUsedEndTime(void) { return &MATROSKA_ContextFileUsedEndTime; }
 ebml_context MATROSKA_ContextAttachedFile;
-const ebml_context *MATROSKA_getContextAttachedFile() { return &MATROSKA_ContextAttachedFile; }
+const ebml_context *MATROSKA_getContextAttachedFile(void) { return &MATROSKA_ContextAttachedFile; }
 ebml_context MATROSKA_ContextAttachments;
-const ebml_context *MATROSKA_getContextAttachments() { return &MATROSKA_ContextAttachments; }
+const ebml_context *MATROSKA_getContextAttachments(void) { return &MATROSKA_ContextAttachments; }
 ebml_context MATROSKA_ContextEditionUID;
-const ebml_context *MATROSKA_getContextEditionUID() { return &MATROSKA_ContextEditionUID; }
+const ebml_context *MATROSKA_getContextEditionUID(void) { return &MATROSKA_ContextEditionUID; }
 ebml_context MATROSKA_ContextEditionFlagHidden;
-const ebml_context *MATROSKA_getContextEditionFlagHidden() { return &MATROSKA_ContextEditionFlagHidden; }
+const ebml_context *MATROSKA_getContextEditionFlagHidden(void) { return &MATROSKA_ContextEditionFlagHidden; }
 ebml_context MATROSKA_ContextEditionFlagDefault;
-const ebml_context *MATROSKA_getContextEditionFlagDefault() { return &MATROSKA_ContextEditionFlagDefault; }
+const ebml_context *MATROSKA_getContextEditionFlagDefault(void) { return &MATROSKA_ContextEditionFlagDefault; }
 ebml_context MATROSKA_ContextEditionFlagOrdered;
-const ebml_context *MATROSKA_getContextEditionFlagOrdered() { return &MATROSKA_ContextEditionFlagOrdered; }
+const ebml_context *MATROSKA_getContextEditionFlagOrdered(void) { return &MATROSKA_ContextEditionFlagOrdered; }
 ebml_context MATROSKA_ContextEditionString;
-const ebml_context *MATROSKA_getContextEditionString() { return &MATROSKA_ContextEditionString; }
+const ebml_context *MATROSKA_getContextEditionString(void) { return &MATROSKA_ContextEditionString; }
 ebml_context MATROSKA_ContextEditionLanguageIETF;
-const ebml_context *MATROSKA_getContextEditionLanguageIETF() { return &MATROSKA_ContextEditionLanguageIETF; }
+const ebml_context *MATROSKA_getContextEditionLanguageIETF(void) { return &MATROSKA_ContextEditionLanguageIETF; }
 ebml_context MATROSKA_ContextEditionDisplay;
-const ebml_context *MATROSKA_getContextEditionDisplay() { return &MATROSKA_ContextEditionDisplay; }
+const ebml_context *MATROSKA_getContextEditionDisplay(void) { return &MATROSKA_ContextEditionDisplay; }
 ebml_context MATROSKA_ContextChapterUID;
-const ebml_context *MATROSKA_getContextChapterUID() { return &MATROSKA_ContextChapterUID; }
+const ebml_context *MATROSKA_getContextChapterUID(void) { return &MATROSKA_ContextChapterUID; }
 ebml_context MATROSKA_ContextChapterStringUID;
-const ebml_context *MATROSKA_getContextChapterStringUID() { return &MATROSKA_ContextChapterStringUID; }
+const ebml_context *MATROSKA_getContextChapterStringUID(void) { return &MATROSKA_ContextChapterStringUID; }
 ebml_context MATROSKA_ContextChapterTimeStart;
-const ebml_context *MATROSKA_getContextChapterTimeStart() { return &MATROSKA_ContextChapterTimeStart; }
+const ebml_context *MATROSKA_getContextChapterTimeStart(void) { return &MATROSKA_ContextChapterTimeStart; }
 ebml_context MATROSKA_ContextChapterTimeEnd;
-const ebml_context *MATROSKA_getContextChapterTimeEnd() { return &MATROSKA_ContextChapterTimeEnd; }
+const ebml_context *MATROSKA_getContextChapterTimeEnd(void) { return &MATROSKA_ContextChapterTimeEnd; }
 ebml_context MATROSKA_ContextChapterFlagHidden;
-const ebml_context *MATROSKA_getContextChapterFlagHidden() { return &MATROSKA_ContextChapterFlagHidden; }
+const ebml_context *MATROSKA_getContextChapterFlagHidden(void) { return &MATROSKA_ContextChapterFlagHidden; }
 ebml_context MATROSKA_ContextChapterFlagEnabled;
-const ebml_context *MATROSKA_getContextChapterFlagEnabled() { return &MATROSKA_ContextChapterFlagEnabled; }
+const ebml_context *MATROSKA_getContextChapterFlagEnabled(void) { return &MATROSKA_ContextChapterFlagEnabled; }
 ebml_context MATROSKA_ContextChapterSegmentUUID;
-const ebml_context *MATROSKA_getContextChapterSegmentUUID() { return &MATROSKA_ContextChapterSegmentUUID; }
+const ebml_context *MATROSKA_getContextChapterSegmentUUID(void) { return &MATROSKA_ContextChapterSegmentUUID; }
 ebml_context MATROSKA_ContextChapterSkipType;
-const ebml_context *MATROSKA_getContextChapterSkipType() { return &MATROSKA_ContextChapterSkipType; }
+const ebml_context *MATROSKA_getContextChapterSkipType(void) { return &MATROSKA_ContextChapterSkipType; }
 ebml_context MATROSKA_ContextChapterSegmentEditionUID;
-const ebml_context *MATROSKA_getContextChapterSegmentEditionUID() { return &MATROSKA_ContextChapterSegmentEditionUID; }
+const ebml_context *MATROSKA_getContextChapterSegmentEditionUID(void) { return &MATROSKA_ContextChapterSegmentEditionUID; }
 ebml_context MATROSKA_ContextChapterPhysicalEquiv;
-const ebml_context *MATROSKA_getContextChapterPhysicalEquiv() { return &MATROSKA_ContextChapterPhysicalEquiv; }
+const ebml_context *MATROSKA_getContextChapterPhysicalEquiv(void) { return &MATROSKA_ContextChapterPhysicalEquiv; }
 ebml_context MATROSKA_ContextChapterTrackNumber;
-const ebml_context *MATROSKA_getContextChapterTrackNumber() { return &MATROSKA_ContextChapterTrackNumber; }
+const ebml_context *MATROSKA_getContextChapterTrackNumber(void) { return &MATROSKA_ContextChapterTrackNumber; }
 ebml_context MATROSKA_ContextChapterTrack;
-const ebml_context *MATROSKA_getContextChapterTrack() { return &MATROSKA_ContextChapterTrack; }
+const ebml_context *MATROSKA_getContextChapterTrack(void) { return &MATROSKA_ContextChapterTrack; }
 ebml_context MATROSKA_ContextChapString;
-const ebml_context *MATROSKA_getContextChapString() { return &MATROSKA_ContextChapString; }
+const ebml_context *MATROSKA_getContextChapString(void) { return &MATROSKA_ContextChapString; }
 ebml_context MATROSKA_ContextChapLanguage;
-const ebml_context *MATROSKA_getContextChapLanguage() { return &MATROSKA_ContextChapLanguage; }
+const ebml_context *MATROSKA_getContextChapLanguage(void) { return &MATROSKA_ContextChapLanguage; }
 ebml_context MATROSKA_ContextChapLanguageBCP47;
-const ebml_context *MATROSKA_getContextChapLanguageBCP47() { return &MATROSKA_ContextChapLanguageBCP47; }
+const ebml_context *MATROSKA_getContextChapLanguageBCP47(void) { return &MATROSKA_ContextChapLanguageBCP47; }
 ebml_context MATROSKA_ContextChapCountry;
-const ebml_context *MATROSKA_getContextChapCountry() { return &MATROSKA_ContextChapCountry; }
+const ebml_context *MATROSKA_getContextChapCountry(void) { return &MATROSKA_ContextChapCountry; }
 ebml_context MATROSKA_ContextChapterDisplay;
-const ebml_context *MATROSKA_getContextChapterDisplay() { return &MATROSKA_ContextChapterDisplay; }
+const ebml_context *MATROSKA_getContextChapterDisplay(void) { return &MATROSKA_ContextChapterDisplay; }
 ebml_context MATROSKA_ContextChapProcessCodecID;
-const ebml_context *MATROSKA_getContextChapProcessCodecID() { return &MATROSKA_ContextChapProcessCodecID; }
+const ebml_context *MATROSKA_getContextChapProcessCodecID(void) { return &MATROSKA_ContextChapProcessCodecID; }
 ebml_context MATROSKA_ContextChapProcessPrivate;
-const ebml_context *MATROSKA_getContextChapProcessPrivate() { return &MATROSKA_ContextChapProcessPrivate; }
+const ebml_context *MATROSKA_getContextChapProcessPrivate(void) { return &MATROSKA_ContextChapProcessPrivate; }
 ebml_context MATROSKA_ContextChapProcessTime;
-const ebml_context *MATROSKA_getContextChapProcessTime() { return &MATROSKA_ContextChapProcessTime; }
+const ebml_context *MATROSKA_getContextChapProcessTime(void) { return &MATROSKA_ContextChapProcessTime; }
 ebml_context MATROSKA_ContextChapProcessData;
-const ebml_context *MATROSKA_getContextChapProcessData() { return &MATROSKA_ContextChapProcessData; }
+const ebml_context *MATROSKA_getContextChapProcessData(void) { return &MATROSKA_ContextChapProcessData; }
 ebml_context MATROSKA_ContextChapProcessCommand;
-const ebml_context *MATROSKA_getContextChapProcessCommand() { return &MATROSKA_ContextChapProcessCommand; }
+const ebml_context *MATROSKA_getContextChapProcessCommand(void) { return &MATROSKA_ContextChapProcessCommand; }
 ebml_context MATROSKA_ContextChapProcess;
-const ebml_context *MATROSKA_getContextChapProcess() { return &MATROSKA_ContextChapProcess; }
+const ebml_context *MATROSKA_getContextChapProcess(void) { return &MATROSKA_ContextChapProcess; }
 ebml_context MATROSKA_ContextChapterAtom;
-const ebml_context *MATROSKA_getContextChapterAtom() { return &MATROSKA_ContextChapterAtom; }
+const ebml_context *MATROSKA_getContextChapterAtom(void) { return &MATROSKA_ContextChapterAtom; }
 ebml_context MATROSKA_ContextEditionEntry;
-const ebml_context *MATROSKA_getContextEditionEntry() { return &MATROSKA_ContextEditionEntry; }
+const ebml_context *MATROSKA_getContextEditionEntry(void) { return &MATROSKA_ContextEditionEntry; }
 ebml_context MATROSKA_ContextChapters;
-const ebml_context *MATROSKA_getContextChapters() { return &MATROSKA_ContextChapters; }
+const ebml_context *MATROSKA_getContextChapters(void) { return &MATROSKA_ContextChapters; }
 ebml_context MATROSKA_ContextTargetTypeValue;
-const ebml_context *MATROSKA_getContextTargetTypeValue() { return &MATROSKA_ContextTargetTypeValue; }
+const ebml_context *MATROSKA_getContextTargetTypeValue(void) { return &MATROSKA_ContextTargetTypeValue; }
 ebml_context MATROSKA_ContextTargetType;
-const ebml_context *MATROSKA_getContextTargetType() { return &MATROSKA_ContextTargetType; }
+const ebml_context *MATROSKA_getContextTargetType(void) { return &MATROSKA_ContextTargetType; }
 ebml_context MATROSKA_ContextTagTrackUID;
-const ebml_context *MATROSKA_getContextTagTrackUID() { return &MATROSKA_ContextTagTrackUID; }
+const ebml_context *MATROSKA_getContextTagTrackUID(void) { return &MATROSKA_ContextTagTrackUID; }
 ebml_context MATROSKA_ContextTagEditionUID;
-const ebml_context *MATROSKA_getContextTagEditionUID() { return &MATROSKA_ContextTagEditionUID; }
+const ebml_context *MATROSKA_getContextTagEditionUID(void) { return &MATROSKA_ContextTagEditionUID; }
 ebml_context MATROSKA_ContextTagChapterUID;
-const ebml_context *MATROSKA_getContextTagChapterUID() { return &MATROSKA_ContextTagChapterUID; }
+const ebml_context *MATROSKA_getContextTagChapterUID(void) { return &MATROSKA_ContextTagChapterUID; }
 ebml_context MATROSKA_ContextTagAttachmentUID;
-const ebml_context *MATROSKA_getContextTagAttachmentUID() { return &MATROSKA_ContextTagAttachmentUID; }
+const ebml_context *MATROSKA_getContextTagAttachmentUID(void) { return &MATROSKA_ContextTagAttachmentUID; }
 ebml_context MATROSKA_ContextTargets;
-const ebml_context *MATROSKA_getContextTargets() { return &MATROSKA_ContextTargets; }
+const ebml_context *MATROSKA_getContextTargets(void) { return &MATROSKA_ContextTargets; }
 ebml_context MATROSKA_ContextTagName;
-const ebml_context *MATROSKA_getContextTagName() { return &MATROSKA_ContextTagName; }
+const ebml_context *MATROSKA_getContextTagName(void) { return &MATROSKA_ContextTagName; }
 ebml_context MATROSKA_ContextTagLanguage;
-const ebml_context *MATROSKA_getContextTagLanguage() { return &MATROSKA_ContextTagLanguage; }
+const ebml_context *MATROSKA_getContextTagLanguage(void) { return &MATROSKA_ContextTagLanguage; }
 ebml_context MATROSKA_ContextTagLanguageBCP47;
-const ebml_context *MATROSKA_getContextTagLanguageBCP47() { return &MATROSKA_ContextTagLanguageBCP47; }
+const ebml_context *MATROSKA_getContextTagLanguageBCP47(void) { return &MATROSKA_ContextTagLanguageBCP47; }
 ebml_context MATROSKA_ContextTagDefault;
-const ebml_context *MATROSKA_getContextTagDefault() { return &MATROSKA_ContextTagDefault; }
+const ebml_context *MATROSKA_getContextTagDefault(void) { return &MATROSKA_ContextTagDefault; }
 ebml_context MATROSKA_ContextTagDefaultBogus;
-const ebml_context *MATROSKA_getContextTagDefaultBogus() { return &MATROSKA_ContextTagDefaultBogus; }
+const ebml_context *MATROSKA_getContextTagDefaultBogus(void) { return &MATROSKA_ContextTagDefaultBogus; }
 ebml_context MATROSKA_ContextTagString;
-const ebml_context *MATROSKA_getContextTagString() { return &MATROSKA_ContextTagString; }
+const ebml_context *MATROSKA_getContextTagString(void) { return &MATROSKA_ContextTagString; }
 ebml_context MATROSKA_ContextTagBinary;
-const ebml_context *MATROSKA_getContextTagBinary() { return &MATROSKA_ContextTagBinary; }
+const ebml_context *MATROSKA_getContextTagBinary(void) { return &MATROSKA_ContextTagBinary; }
 ebml_context MATROSKA_ContextSimpleTag;
-const ebml_context *MATROSKA_getContextSimpleTag() { return &MATROSKA_ContextSimpleTag; }
+const ebml_context *MATROSKA_getContextSimpleTag(void) { return &MATROSKA_ContextSimpleTag; }
 ebml_context MATROSKA_ContextTag;
-const ebml_context *MATROSKA_getContextTag() { return &MATROSKA_ContextTag; }
+const ebml_context *MATROSKA_getContextTag(void) { return &MATROSKA_ContextTag; }
 ebml_context MATROSKA_ContextTags;
-const ebml_context *MATROSKA_getContextTags() { return &MATROSKA_ContextTags; }
+const ebml_context *MATROSKA_getContextTags(void) { return &MATROSKA_ContextTags; }
 ebml_context MATROSKA_ContextSegment;
-const ebml_context *MATROSKA_getContextSegment() { return &MATROSKA_ContextSegment; }
+const ebml_context *MATROSKA_getContextSegment(void) { return &MATROSKA_ContextSegment; }
 
 const ebml_semantic EBML_SemanticSeek[] = {
     {1, 1, &MATROSKA_ContextSeekID, 0},
@@ -1007,7 +1007,7 @@ const ebml_semantic EBML_SemanticSegment[] = {
     {0, 0, NULL ,0} // end of the table
 };
 
-void MATROSKA_InitSemantic()
+void MATROSKA_InitSemantic(void)
 {
     MATROSKA_ContextSeekID = (ebml_context) {0x53AB, EBML_BINARY_CLASS, 0, 0, "SeekID", NULL, EBML_getSemanticGlobals(), NULL};
     MATROSKA_ContextSeekPosition = (ebml_context) {0x53AC, EBML_INTEGER_CLASS, 0, 0, "SeekPosition", NULL, EBML_getSemanticGlobals(), NULL};
