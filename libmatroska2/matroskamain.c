@@ -2325,7 +2325,6 @@ static err_t ReadTrackEntry(matroska_trackentry *Element, stream *Input, const e
 
 static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
-#if defined(CONFIG_ZLIB)
     MatroskaTrackEncodingCompAlgo CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_NONE;
     ebml_integer *Scope = NULL;
     ebml_element *Encodings = EBML_MasterFindChild(Element,MATROSKA_getContextContentEncodings());
@@ -2357,11 +2356,14 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
             {
                 size_t CompressedSize = ARRAYCOUNT(CodecPrivate->Data,uint8_t);
                 uint8_t *Compressed = malloc(CompressedSize);
-                if (CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE)
+#if defined(CONFIG_ZLIB)
+                if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB &&
+                    CompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize)==ERR_NONE)
                 {
                     if (EBML_BinarySetData(CodecPrivate, Compressed, CompressedSize)==ERR_NONE)
                         Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
                 }
+#endif
                 free(Compressed);
             }
             if (Element->CodecPrivateCompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_NONE)
@@ -2376,11 +2378,14 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
                 array Compressed;
 
                 ArrayInit(&Compressed);
-                if (UnCompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize, &Offset)==ERR_NONE)
+#if defined(CONFIG_ZLIB)
+                if (Element->CodecPrivateCompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB &&
+                    UnCompressFrameZLib(ARRAYBEGIN(CodecPrivate->Data,uint8_t), (size_t)CodecPrivate->Base.DataSize, &Compressed, &CompressedSize, &Offset)==ERR_NONE)
                 {
                     if (EBML_BinarySetData(CodecPrivate, ARRAYBEGIN(Compressed,uint8_t), CompressedSize)==ERR_NONE)
                         Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_NONE;
                 }
+#endif
                 ArrayClear(&Compressed);
             }
             else
@@ -2391,7 +2396,6 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
             }
         }
     }
-#endif
     return INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
