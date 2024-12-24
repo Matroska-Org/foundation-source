@@ -397,7 +397,7 @@ static void ShowProgress(const ebml_element *RCluster, filepos_t TotalSize)
         TextPrintf(StdErr,T("Progress %d/%d: %3d%%\r"), CurrentPhase, TotalPhases,Scale32(100,EBML_ElementPosition(RCluster),TotalSize)+1);
 }
 
-static void EndProgress()
+static void EndProgress(void)
 {
     if (!Quiet)
         TextPrintf(StdErr,T("Progress %d/%d: 100%%\r\n"), CurrentPhase, TotalPhases);
