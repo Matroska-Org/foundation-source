@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -514,22 +514,6 @@ void * __alloca(size_t size);
 
 #ifndef alloca
 #define alloca(size) __builtin_alloca(size)
-#endif
-
-#if defined(ARM)
-//fixed size stack:
-//  symbian
-//  palm os
-#define SWAPSP
-static INLINE void* SwapSP(void* in)
-{
-	void* out;
-	asm volatile(
-		"mov %0, sp\n\t"
-		"mov sp, %1\n\t"
-		: "=&r"(out) : "r"(in) : "cc");
-	return out;
-}
 #endif
 
 #endif /* __GNUC__ */
