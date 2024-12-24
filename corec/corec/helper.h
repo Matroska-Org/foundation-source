@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -80,70 +80,18 @@
 #endif
 
 #define LOAD8(ptr,ofs)		(((uint8_t*)(ptr))[ofs])
-#if defined(CONFIG_UNALIGNED_ACCESS)
-#define LOAD16LE(ptr)		INT16LE(*(uint16_t*)(ptr))
-#define LOAD16BE(ptr)		INT16BE(*(uint16_t*)(ptr))
-#define LOAD32LE(ptr)		INT32LE(*(uint32_t*)(ptr))
-#define LOAD32BE(ptr)		INT32BE(*(uint32_t*)(ptr))
-#define LOAD64LE(ptr)		INT64LE(*(uint64_t*)(ptr))
-#define LOAD64BE(ptr)		INT64BE(*(uint64_t*)(ptr))
-#else
-#define LOAD16LE(ptr)		((uint16_t)((LOAD8(ptr,1)<<8)|LOAD8(ptr,0)))
 #define LOAD16BE(ptr)		((uint16_t)((LOAD8(ptr,0)<<8)|LOAD8(ptr,1)))
 #define LOAD32LE(ptr)		((LOAD8(ptr,3)<<24)|(LOAD8(ptr,2)<<16)|(LOAD8(ptr,1)<<8)|LOAD8(ptr,0))
 #define LOAD32BE(ptr)		((LOAD8(ptr,0)<<24)|(LOAD8(ptr,1)<<16)|(LOAD8(ptr,2)<<8)|LOAD8(ptr,3))
-#define LOAD64LE(ptr)		((((uint64_t)LOAD8(ptr,0))    )|(((uint64_t)LOAD8(ptr,1))<< 8)|(((uint64_t)LOAD8(ptr,2))<<16)|(((uint64_t)LOAD8(ptr,3))<<24)| \
-							 (((uint64_t)LOAD8(ptr,4))<<32)|(((uint64_t)LOAD8(ptr,5))<<40)|(((uint64_t)LOAD8(ptr,6))<<48)|(((uint64_t)LOAD8(ptr,0))<<56))
 #define LOAD64BE(ptr)		((((uint64_t)LOAD8(ptr,0))<<56)|(((uint64_t)LOAD8(ptr,1))<<48)|(((uint64_t)LOAD8(ptr,2))<<40)|(((uint64_t)LOAD8(ptr,3))<<32)| \
 							 (((uint64_t)LOAD8(ptr,4))<<24)|(((uint64_t)LOAD8(ptr,5))<<16)|(((uint64_t)LOAD8(ptr,6))<< 8)|(((uint64_t)LOAD8(ptr,0))    ))
-#endif
 
 
 #define STORE8(p, o, i)      ((uint8_t *) (p))[o] = (uint8_t) ((i) & 0xFF)
 
-#if defined(CONFIG_UNALIGNED_ACCESS) && defined(IS_BIG_ENDIAN)
-
-#define STORE16BE(p, i)      *((uint16_t*)(p))=i
-#define STORE32BE(p, i)      *((uint32_t*)(p))=i
-#define STORE64BE(p, i)      *((uint64_t*)(p))=i
-#else
 #define STORE16BE(p, i)      STORE8(p, 1, i), STORE8(p, 0, ((uint16_t)i) >> 8)
-#define STORE32BE(p, i)      STORE8(p, 3, i), STORE8(p, 2, ((uint32_t)i) >> 8), STORE8(p, 1, ((uint32_t) i) >> 16), STORE8(p, 0, ((uint32_t) i) >> 24)
-#define STORE64BE(p, i)      STORE8(p, 7, i), STORE8(p, 6, ((uint64_t)i) >> 8), STORE8(p, 5, ((uint64_t)i) >> 16), STORE8(p, 4, ((uint64_t)i) >> 24), \
-                                 STORE8(p, 3, ((uint64_t)i) >> 32), STORE8(p, 2, ((uint64_t)i) >> 40), STORE8(p, 1, ((uint64_t)i) >> 48), STORE8(p, 0, ((uint64_t)i) >> 56)
-#endif
 
-#if defined(CONFIG_UNALIGNED_ACCESS) && defined(IS_LITTLE_ENDIAN)
-#define STORE16LE(p, i)      *((uint16_t*)(p))=i
-#define STORE32LE(p, i)      *((uint32_t*)(p))=i
-#define STORE64LE(p, i)      *((uint64_t*)(p))=i
-#else
-#define STORE16LE(p, i)      STORE8(p, 0, i), STORE8(p, 1, ((uint16_t)i) >> 8)
 #define STORE32LE(p, i)      STORE8(p, 0, i), STORE8(p, 1, ((uint32_t)i) >> 8), STORE8(p, 2, ((uint32_t)i) >> 16), STORE8(p, 3, ((uint32_t)i) >> 24)
-#define STORE64LE(p, i)      STORE8(p, 0, i), STORE8(p, 1, ((uint64_t)i) >> 8), STORE8(p, 2, ((uint64_t)i) >> 16), STORE8(p, 3, ((uint64_t)i) >> 24), \
-                                 STORE8(p, 4, ((uint64_t)i) >> 32), STORE8(p, 5, ((uint64_t)i) >> 40), STORE8(p, 6, ((uint64_t)i) >> 48), STORE8(p, 7, ((uint64_t)i) >> 56)
-#endif
-
-#ifdef IS_BIG_ENDIAN
-#define LOAD16(ptr) LOAD16BE(ptr)
-#define LOAD32(ptr) LOAD32BE(ptr)
-#define LOAD64(ptr) LOAD64BE(ptr)
-#define LOAD16SW(ptr) LOAD16LE(ptr)
-#define LOAD32SW(ptr) LOAD32LE(ptr)
-#define LOAD64SW(ptr) LOAD64LE(ptr)
-#else
-#define LOAD16(ptr) LOAD16LE(ptr)
-#define LOAD32(ptr) LOAD32LE(ptr)
-#define LOAD64(ptr) LOAD64LE(ptr)
-#define LOAD16SW(ptr) LOAD16BE(ptr)
-#define LOAD32SW(ptr) LOAD32BE(ptr)
-#define LOAD64SW(ptr) LOAD64BE(ptr)
-#endif
-
-#if defined(__GNUC__) && defined(MIPS)
-#undef LOAD32
-static INLINE uint32_t LOAD32(const void* ptr) { uint32_t v; asm ("ulw %0,0(%1)\n" : "=&r" (v) : "r" (ptr)); return v; }
-#endif
 
 // a=(a+c+1)/2
 // b=(b+d+1)/2
@@ -155,7 +103,7 @@ static INLINE uint32_t LOAD32(const void* ptr) { uint32_t v; asm ("ulw %0,0(%1)\
 	c &= 0xFEFEFEFE; \
 	d &= 0xFEFEFEFE; \
 	a-=c>>1; \
-	b-=d>>1; 
+	b-=d>>1;
 
 #define AVG64R(a,b,c,d) \
 	c^=a; \
@@ -165,7 +113,7 @@ static INLINE uint32_t LOAD32(const void* ptr) { uint32_t v; asm ("ulw %0,0(%1)\
 	c &= 0xFEFEFEFEFEFEFEFE; \
 	d &= 0xFEFEFEFEFEFEFEFE; \
 	a-=c>>1; \
-	b-=d>>1; 
+	b-=d>>1;
 
 // a=(a+c)/2
 // b=(b+d)/2
@@ -178,7 +126,7 @@ static INLINE uint32_t LOAD32(const void* ptr) { uint32_t v; asm ("ulw %0,0(%1)\
 	c &= 0xFEFEFEFE; \
 	d &= 0xFEFEFEFE; \
 	a+=c>>1; \
-	b+=d>>1; 
+	b+=d>>1;
 #else
 #define AVG32NR(a,b,c,d) \
 	c^=a; \
@@ -190,7 +138,7 @@ static INLINE uint32_t LOAD32(const void* ptr) { uint32_t v; asm ("ulw %0,0(%1)\
 	c &= 0xFEFEFEFE; \
 	d &= 0xFEFEFEFE; \
 	a-=c>>1; \
-	b-=d>>1; 
+	b-=d>>1;
 #endif
 
 #define AVG64NR(a,b,c,d) \
@@ -203,7 +151,7 @@ static INLINE uint32_t LOAD32(const void* ptr) { uint32_t v; asm ("ulw %0,0(%1)\
 	c &= 0xFEFEFEFEFEFEFEFE; \
 	d &= 0xFEFEFEFEFEFEFEFE; \
 	a-=c>>1; \
-	b-=d>>1; 
+	b-=d>>1;
 
 #define _abs(a) (((a)>=0)?(a):-(a))
 
@@ -237,7 +185,7 @@ static INLINE size_t _log2(uint32_t data)
 
 static INLINE int64_t Scale64(int64_t v,int64_t Num,int64_t Den)
 {
-	if (Den) 
+	if (Den)
 		return (v * Num) / Den;
 	return 0;
 }
