@@ -188,20 +188,23 @@ static err_t CheckCompression(matroska_block *Block, int ForProfile)
                 return ERR_INVALID_DATA; // TODO: support encryption
 
             Header = (ebml_master*)EBML_MasterGetChild(Elt, MATROSKA_getContextContentCompAlgo(), ForProfile);
-#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
+            MatroskaTrackEncodingCompAlgo CompressionAlgo = Header ? EBML_IntegerValue((ebml_integer*)Header) : MATROSKA_TRACK_ENCODING_COMP_NONE;
+            bool_t CanDecompress = 0;
+            if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
+                CanDecompress = 1;
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+            else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                CanDecompress = 1;
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_LZO1X)
+            else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_LZO1X)
+                CanDecompress = 1;
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_BZLIB)
+            else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_BZLIB)
+                CanDecompress = 1;
 #endif
-#else
-            if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
-#endif
+            if (!CanDecompress)
                 return ERR_INVALID_DATA;
 
             if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
@@ -947,20 +950,23 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                     return ERR_NOT_SUPPORTED; // TODO: support encryption
 
                 Header = EBML_MasterGetChild((ebml_master*)Elt, MATROSKA_getContextContentCompAlgo(),ForProfile);
-#if defined(CONFIG_ZLIB) || defined(CONFIG_LZO1X) || defined(CONFIG_BZLIB)
-                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
+                MatroskaTrackEncodingCompAlgo CompressionAlgo = Header ? EBML_IntegerValue((ebml_integer*)Header) : MATROSKA_TRACK_ENCODING_COMP_NONE;
+                bool_t CanDecompress = 0;
+                if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
+                    CanDecompress = 1;
 #if defined(CONFIG_ZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                    CanDecompress = 1;
 #endif
 #if defined(CONFIG_LZO1X)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_LZO1X)
+                else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_LZO1X)
+                    CanDecompress = 1;
 #endif
 #if defined(CONFIG_BZLIB)
-                    if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_BZLIB)
+                else if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_BZLIB)
+                    CanDecompress = 1;
 #endif
-#else
-                if (EBML_IntegerValue((ebml_integer*)Header)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
-#endif
+                if (!CanDecompress)
                     return ERR_INVALID_DATA;
 
                 if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP)
