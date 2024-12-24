@@ -46,11 +46,6 @@ extern "C" {
 #endif
 
 #define Data_Var(type,name,len)  struct { size_t n; type p[len]; } __##name; type* name = (__##name.n = sizeof(__##name.p),__##name.p)
-ARRAY_DLL bool_t Data_ReAlloc(uint8_t** a,size_t n);
-ARRAY_DLL size_t Data_Size(const uint8_t* a);
-ARRAY_DLL void Data_Release(uint8_t** a);
-ARRAY_DLL void Data_Clear(uint8_t** a); // release memory, but keep heap reference
-ARRAY_DLL bool_t Data_Set(uint8_t** a,const uint8_t* b,size_t pos,size_t len);
 
 typedef struct array
 {
