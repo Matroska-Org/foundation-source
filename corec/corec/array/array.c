@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -41,13 +41,13 @@ typedef struct datahead
 #define Data_IsMemHeap(Name)    (Data_Head(Name)->Size & DATA_FLAG_MEMHEAP)
 #define Data_GetSize(Name)      (Data_Head(Name)->Size & ~(DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP))
 
-size_t Data_Size(const uint8_t* a)
+static size_t Data_Size(const unsigned char* a)
 {
     if (!a) return 0;
     return Data_GetSize(a);
 }
 
-NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
+static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
 {
     uint8_t* p = *a;
     size_t oldsize;
@@ -101,7 +101,7 @@ NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
     return 1;
 }
 
-NOINLINE void Data_Release(uint8_t** a)
+static NOINLINE void Data_Release(uint8_t** a)
 {
     uint8_t* p = *a;
     if (p)
@@ -120,7 +120,7 @@ NOINLINE void Data_Release(uint8_t** a)
     }
 }
 
-NOINLINE void Data_Clear(uint8_t** a)
+static NOINLINE void Data_Clear(uint8_t** a)
 {
     uint8_t* p = *a;
     if (p && Data_IsMemHeap(p))
@@ -133,7 +133,7 @@ NOINLINE void Data_Clear(uint8_t** a)
         Data_Release(a);
 }
 
-bool_t Data_Set(uint8_t** a,const uint8_t* b,size_t pos,size_t len)
+static bool_t Data_Set(uint8_t** a,const uint8_t* b,size_t pos,size_t len)
 {
     if (!Data_ReAlloc(a,pos+len))
         return 0;
@@ -271,22 +271,22 @@ static INLINE void InQSortSwap(uint_fast32_t* a, uint_fast32_t* b)
 static NOINLINE void InQSort(uint_fast32_t* First, uint_fast32_t* Last, arraycmp Cmp, const void* CmpParam)
 {
 	while (Last > First + QSORTMINLEN)
-	{	
+	{
         uint_fast32_t* Mid = First + ((Last - First)>>1);
         uint_fast32_t* Ref = First;
         uint_fast32_t* Left;
         uint_fast32_t* Right;
 
-		if (Cmp(CmpParam,First,Last) < 0) 
+		if (Cmp(CmpParam,First,Last) < 0)
 		{
 			if (Cmp(CmpParam,Last,Mid) < 0)
 				Ref = Last;
-			else 
+			else
 			if (Cmp(CmpParam,First,Mid) < 0)
 				Ref = Mid;
 		}
-		else 
-		if (Cmp(CmpParam,First,Mid) >= 0) 
+		else
+		if (Cmp(CmpParam,First,Mid) >= 0)
 		{
 			if (Cmp(CmpParam,Last,Mid) < 0)
 				Ref = Mid;
@@ -301,7 +301,7 @@ static NOINLINE void InQSort(uint_fast32_t* First, uint_fast32_t* Last, arraycmp
 		Right = Last+1;
 
 		for (;;)
-		{ 
+		{
 			while (++Left < Last && Cmp(CmpParam,First,Left) > 0) {}
 
 			while (Cmp(CmpParam,First,--Right) < 0) {}
@@ -316,19 +316,19 @@ static NOINLINE void InQSort(uint_fast32_t* First, uint_fast32_t* Last, arraycmp
         {
 			++First;
         }
-		else 
+		else
 		{
 			InQSortSwap(First,Right);
 
 			--Right;
 
-			if (Right - First < Last - Left) 
+			if (Right - First < Last - Left)
 			{
 				if (Right > QSORTMINLEN + First)
 					InQSort(First,Right,Cmp,CmpParam);
 				First = Left;
 			}
-			else 
+			else
             {
 				if (Last > QSORTMINLEN + Left)
 					InQSort(Left,Last,Cmp,CmpParam);
@@ -452,17 +452,17 @@ intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Dat
 		intptr_t Lower = 0;
 		intptr_t Upper = Count-1;
 
-		while (Upper >= Lower) 
+		while (Upper >= Lower)
 		{
 			Mid = (Upper + Lower) >> 1;
 
 			i = Cmp(CmpParam,p->_Begin+Width*Mid,Data);
 			if (i>0)
-				Upper = Mid-1;	
-			else if (i<0)  		
-				Lower = Mid+1;	
-			else 
-			{			        
+				Upper = Mid-1;
+			else if (i<0)
+				Lower = Mid+1;
+			else
+			{
 				*Found = 1;
 				return Mid;
 			}
@@ -471,9 +471,9 @@ intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Dat
 		*Found = 0;
 
 		if (Upper == Mid - 1)
-			return Mid;		
-		else                 
-			return Lower;    
+			return Mid;
+		else
+			return Lower;
 	}
 	else
 	{
@@ -518,7 +518,7 @@ bool_t ArrayRemoveEx(array* p, size_t Count, size_t Width, const void* Data, arr
 }
 
 static INLINE uint32_t Rand(uint32_t RndSeed)
-{ 
+{
 	return RndSeed*0x8088405U + 0x251001U;
 }
 
