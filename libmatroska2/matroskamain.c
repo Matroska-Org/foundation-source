@@ -1652,7 +1652,8 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
 #endif // CONFIG_EBML_WRITING
 #endif // CONFIG_ZLIB
 
-static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header, MatroskaContentEncodingScope CompScope)
+static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, const ebml_element *Header,
+                                   MatroskaTrackEncodingCompAlgo CompAlgo, MatroskaContentEncodingScope CompScope)
 {
     if (Frame >= ARRAYCOUNT(Element->SizeList,int32_t))
         return 0;
@@ -1673,12 +1674,14 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
         }
         OutSize = *Size;
         assert(Element->Base.Base.bValueIsSet);
-#if defined(CONFIG_EBML_WRITING) && defined(CONFIG_ZLIB)
-        if (!Element->Base.Base.bValueIsSet || CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
-#else
         if (!Element->Base.Base.bValueIsSet)
-#endif
             return *Size; // we can't tell the final size without decoding the data
+#if defined(CONFIG_EBML_WRITING)
+#if defined(CONFIG_ZLIB)
+        if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB && CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
+            return *Size; // we can't tell the final size without decoding the data
+#endif
+#endif
         return OutSize;
     }
     return ARRAYBEGIN(Element->SizeList,int32_t)[Frame] - EBML_ElementDataSize(Header, 1); // header stripping
@@ -1746,7 +1749,7 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
     XiphLacingSize = 0;
     for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
     {
-        DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionScope);
+        DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionAlgo, CompressionScope);
         while (DataSize >= 0xFF)
         {
             XiphLacingSize++;
@@ -1755,10 +1758,10 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
         XiphLacingSize++;
     }
 
-    EbmlLacingSize = EBML_CodedSizeLength(GetBlockFrameSize(Element, 0, Header, CompressionScope),0,1);
+    EbmlLacingSize = EBML_CodedSizeLength(GetBlockFrameSize(Element, 0, Header, CompressionAlgo, CompressionScope),0,1);
     for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
     {
-        DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionScope) - DataSize;
+        DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionAlgo, CompressionScope) - DataSize;
         EbmlLacingSize += EBML_CodedSizeLengthSigned(DataSize,0);
     }
 
@@ -1881,12 +1884,12 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         LaceHead[0] = (ARRAYCOUNT(Element->SizeList,int32_t)-1) & 0xFF; // number of elements in the lace
         if (Element->Lacing == LACING_EBML)
         {
-            DataSize = (int32_t)GetBlockFrameSize(Element, 0, Header, CompressionScope);
+            DataSize = (int32_t)GetBlockFrameSize(Element, 0, Header, CompressionAlgo, CompressionScope);
             LaceSize += EBML_CodedValueLength(DataSize,EBML_CodedSizeLength(DataSize,0,1),LaceHead+LaceSize, 1);
             for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
                 PrevSize = DataSize;
-                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionScope);
+                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionAlgo, CompressionScope);
                 LaceSize += EBML_CodedValueLengthSigned(DataSize-PrevSize,EBML_CodedSizeLengthSigned(DataSize-PrevSize,0),LaceHead+LaceSize);
             }
         }
@@ -1894,7 +1897,7 @@ static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bFo
         {
             for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
-                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionScope);
+                DataSize = (int32_t)GetBlockFrameSize(Element, i, Header, CompressionAlgo, CompressionScope);
                 while (DataSize >= 0xFF)
                 {
                     LaceHead[LaceSize++] = 0xFF;
@@ -2072,22 +2075,22 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
         if (Element->Lacing == LACING_NONE)
         {
             assert(ARRAYCOUNT(Element->SizeList,int32_t) == 1);
-            Element->Base.Base.DataSize = GetBlockHeadSize(Element) + GetBlockFrameSize(Element,0,Header, CompressionScope);
+            Element->Base.Base.DataSize = GetBlockHeadSize(Element) + GetBlockFrameSize(Element,0,Header, CompressionAlgo, CompressionScope);
         }
         else if (Element->Lacing == LACING_EBML)
         {
             size_t i;
             filepos_t PrevSize, Size;
             filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
-            Size = GetBlockFrameSize(Element,0,Header, CompressionScope);
+            Size = GetBlockFrameSize(Element,0,Header, CompressionAlgo, CompressionScope);
             Result += EBML_CodedSizeLength(Size,0,1) + Size;
             for (i=1;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
                 PrevSize = Size;
-                Size = GetBlockFrameSize(Element,i,Header, CompressionScope);
+                Size = GetBlockFrameSize(Element,i,Header, CompressionAlgo, CompressionScope);
                 Result += Size + EBML_CodedSizeLengthSigned(Size - PrevSize,0);
             }
-            Result += GetBlockFrameSize(Element,i,Header, CompressionScope);
+            Result += GetBlockFrameSize(Element,i,Header, CompressionAlgo, CompressionScope);
             Element->Base.Base.DataSize = Result;
         }
         else if (Element->Lacing == LACING_XIPH)
@@ -2097,10 +2100,10 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
             filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
             for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t)-1;++i)
             {
-                Size = GetBlockFrameSize(Element,i,Header, CompressionScope);
+                Size = GetBlockFrameSize(Element,i,Header, CompressionAlgo, CompressionScope);
                 Result += (Size / 0xFF + 1) + Size;
             }
-            Result += GetBlockFrameSize(Element,i,Header, CompressionScope);
+            Result += GetBlockFrameSize(Element,i,Header, CompressionAlgo, CompressionScope);
             Element->Base.Base.DataSize = Result;
         }
         else if (Element->Lacing == LACING_FIXED)
@@ -2108,7 +2111,7 @@ static filepos_t UpdateBlockSize(matroska_block *Element, bool_t bWithDefault, b
             size_t i;
             filepos_t Result = GetBlockHeadSize(Element) + 1; // 1 for the number of frames
             for (i=0;i<ARRAYCOUNT(Element->SizeList,int32_t);++i)
-                Result += GetBlockFrameSize(Element,i,Header, CompressionScope);
+                Result += GetBlockFrameSize(Element,i,Header, CompressionAlgo, CompressionScope);
             Element->Base.Base.DataSize = Result;
         }
 #ifdef TODO
