@@ -482,13 +482,6 @@ typedef uint16_t utf16_t;
 #define MAXPATHFULL MAXPATH
 #endif
 
-#define MAXPLANES 4
-typedef void* planes[MAXPLANES];
-typedef const void* constplanes[MAXPLANES];
-#define CONST_CONSTPLANES(name) const void* const (name)[MAXPLANES]
-#define CONSTPLANES(name) const void* (name)[MAXPLANES]
-#define CONST_PLANES(name) void* const (name)[MAXPLANES]
-
 #define FOURCCBE(a,b,c,d) \
 	(((uint8_t)(a) << 24) | ((uint8_t)(b) << 16) | \
 	((uint8_t)(c) << 8) | ((uint8_t)(d) << 0))
