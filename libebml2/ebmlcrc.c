@@ -187,9 +187,9 @@ static err_t RenderData(ebml_crc *Element, stream *Output, bool_t bForceWithoutM
 }
 #endif
 
-static ebml_crc *Copy(const ebml_crc *Element, const void *Cookie)
+static ebml_crc *Copy(const ebml_crc *Element)
 {
-    ebml_crc *Result = (ebml_crc*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_crc *Result = (ebml_crc*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         Result->CRC = Element->CRC;

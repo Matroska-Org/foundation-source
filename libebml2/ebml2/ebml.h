@@ -121,7 +121,7 @@ typedef struct ebml_element_vmt
     filepos_t (*UpdateDataSize)(void*, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile);
     bool_t (*NeedsDataSizeUpdate)(const void*, bool_t bWithDefault);
     int (*Cmp)(const void*, const void*);
-    ebml_element *(*Copy)(const void*, const void *Cookie);
+    ebml_element *(*Copy)(const void*);
 
     // internal call only
     void (*PostCreate)(void*, bool_t SetDefault, int ForProfile);
@@ -135,11 +135,11 @@ typedef struct ebml_element_vmt
 #define EBML_ElementUpdateSize(p,k,f,i)      VMT_FUNC(p,ebml_element_vmt)->UpdateDataSize(p,k,f,i)
 #define EBML_ElementNeedsDataSizeUpdate(p,d) VMT_FUNC(p,ebml_element_vmt)->NeedsDataSizeUpdate(p,d)
 #define EBML_ElementCmp(p,e)                 VMT_FUNC(p,ebml_element_vmt)->Cmp(p,e)
-#define EBML_ElementCopy(p,c)                VMT_FUNC(p,ebml_element_vmt)->Copy(p,c)
+#define EBML_ElementCopy(p)                  VMT_FUNC(p,ebml_element_vmt)->Copy(p)
 
 EBML_DLL err_t EBML_Init(parsercontext *p);
 
-EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile, const void *Cookie);
+EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile);
 
 EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize);
 EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);

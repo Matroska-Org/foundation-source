@@ -116,13 +116,13 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
 	size_t i;
 	int64_t TempValue = Element->Value;
     err_t Err;
-	
+
 	if (Element->Base.SizeLength > EBML_MAX_SIZE)
 		return 0; // integers larger than 64 bits are not supported
 
     if (Element->Base.DataSize == 0)
         return 0; // nothing to write
-	
+
 	TempValue = Element->Value;
     if (Element->Base.DefaultSize > Element->Base.DataSize)
     {
@@ -136,7 +136,7 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
 		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
 		TempValue >>= 8;
 	}
-	
+
     if (Element->Base.DefaultSize > Element->Base.DataSize)
         Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
     else
@@ -158,7 +158,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceW
 
     if (Element->Base.DataSize == 0)
         return 0; // nothing to write
-	
+
 	TempValue = Element->Value;
     if (Element->Base.DefaultSize > Element->Base.DataSize)
     {
@@ -172,7 +172,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceW
 		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
 		TempValue >>= 8;
 	}
-	
+
     if (Element->Base.DefaultSize > Element->Base.DataSize)
         Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
     else
@@ -250,7 +250,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
     Result = Stream_Read(Input,Value,min((size_t)Element->Base.DataSize,sizeof(Value)),NULL); // min is for code safety
     if (Result != ERR_NONE)
         goto failed;
-	
+
 	if (Element->Base.DataSize == 4) {
         union {
             float f;
@@ -357,9 +357,9 @@ static void PostCreateFloat(ebml_element *Element, bool_t SetDefault, int ForPro
         EBML_FloatSetValue((ebml_float*)Element, Element->Context->DefaultValue);
 }
 
-static ebml_integer *CopyInt(const ebml_integer *Element, const void *Cookie)
+static ebml_integer *CopyInt(const ebml_integer *Element)
 {
-    ebml_integer *Result = (ebml_integer*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_integer *Result = (ebml_integer*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         Result->Value = Element->Value;
@@ -374,9 +374,9 @@ static ebml_integer *CopyInt(const ebml_integer *Element, const void *Cookie)
     return Result;
 }
 
-static ebml_float *CopyFloat(const ebml_float *Element, const void *Cookie)
+static ebml_float *CopyFloat(const ebml_float *Element)
 {
-    ebml_float *Result = (ebml_float*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_float *Result = (ebml_float*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         Result->Value = Element->Value;

@@ -61,7 +61,7 @@ static CONTEXT_CONST ebml_context EBML_ContextMaxIdLength        = {0x42F2, EBML
 static CONTEXT_CONST ebml_context EBML_ContextMaxSizeLength      = {0x42F3, EBML_INTEGER_CLASS, 1, EBML_MAX_SIZE, "EBMLMaxSizeLength", NULL, EBML_SemanticGlobals};
 static CONTEXT_CONST ebml_context EBML_ContextDocType            = {0x4282, EBML_STRING_CLASS,  1, (intptr_t)"matroska", "EBMLDocType", NULL, EBML_SemanticGlobals};
 static CONTEXT_CONST ebml_context EBML_ContextDocTypeVersion     = {0x4287, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeVersion", NULL, EBML_SemanticGlobals};
-static CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {0x4285, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals}; 
+static CONTEXT_CONST ebml_context EBML_ContextDocTypeReadVersion = {0x4285, EBML_INTEGER_CLASS, 1, 1, "EBMLDocTypeReadVersion", NULL, EBML_SemanticGlobals};
 
 static CONTEXT_CONST ebml_semantic EBML_SemanticHead[] = {
     {1, 1, &EBML_ContextVersion, 0},
@@ -209,7 +209,7 @@ static bool_t EBML_IdMatch(const uint8_t *PossibleId, int8_t IdLength, fourcc_t 
     return ContextId == EBML_IdFromBuffer(PossibleId,IdLength);
 }
 
-ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile, const void *Cookie)
+ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile)
 {
     ebml_element *Result;
     Result = (ebml_element*)NodeCreate(Any,Context->Class);
@@ -230,11 +230,11 @@ static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8
     assert(Context!=NULL);
     if (EBML_IdMatch(PossibleId, IdLength, Context->Id))
     {
-        Result = EBML_ElementCreate(Any,Context,0, ForProfile,NULL);
+        Result = EBML_ElementCreate(Any,Context,0, ForProfile);
     }
     else
     {
-        Result = EBML_ElementCreate(Any,&EBML_ContextDummy,0, ForProfile,NULL);
+        Result = EBML_ElementCreate(Any,&EBML_ContextDummy,0, ForProfile);
         if (Result!=NULL)
         {
             // Fill a temp context
@@ -268,7 +268,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
     {
         if (EBML_IdMatch(PossibleId, IdLength, Semantic->eClass->Id)) // && (bAllowDummy || bAllowOutOfProfile || !(Context->Profile & Semantic->DisabledProfile)))
         {
-            Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0, Context->Profile, NULL);
+            Result = EBML_ElementCreate(AnyNode,Semantic->eClass,0, Context->Profile);
 			return Result;
 		}
 	}

@@ -198,9 +198,9 @@ static void PostCreateUniString(ebml_element *Element, bool_t SetDefault, int Fo
         EBML_StringSetValue((ebml_string*)Element, (const char *)Element->Context->DefaultValue);
 }
 
-static ebml_string *Copy(const ebml_string *Element, const void *Cookie)
+static ebml_string *Copy(const ebml_string *Element)
 {
-    ebml_string *Result = (ebml_string*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_string *Result = (ebml_string*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         Result->Buffer = strdup(Element->Buffer);

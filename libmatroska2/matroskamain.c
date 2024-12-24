@@ -1942,9 +1942,9 @@ failed:
 }
 #endif
 
-static matroska_block *CopyBlockInfo(const matroska_block *Element, const void *Cookie)
+static matroska_block *CopyBlockInfo(const matroska_block *Element)
 {
-    matroska_block *Result = (matroska_block*)INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->Copy(Element,Cookie);
+    matroska_block *Result = (matroska_block*)INHERITED(Element,ebml_element_vmt,Node_ClassId(Element))->Copy(Element);
     if (Result)
     {
         Result->TrackNumber = Element->TrackNumber;
@@ -2355,9 +2355,9 @@ static filepos_t UpdateDataSizeTrackEntry(matroska_trackentry *Element, bool_t b
     return INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
-static matroska_trackentry *CopyTrackEntry(const matroska_trackentry *Element, const void *Cookie)
+static matroska_trackentry *CopyTrackEntry(const matroska_trackentry *Element)
 {
-    matroska_trackentry *Result = (matroska_trackentry*)INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->Copy(Element, Cookie);
+    matroska_trackentry *Result = (matroska_trackentry*)INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->Copy(Element);
     if (Result)
         Result->CodecPrivateCompressionAlgo = Element->CodecPrivateCompressionAlgo;
     return Result;

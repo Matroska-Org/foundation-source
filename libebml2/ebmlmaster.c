@@ -59,7 +59,7 @@ ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Contex
     if (!IsLegal)
         return NULL;
 #endif
-    i = EBML_ElementCreate(Element,Context,SetDefault, ForProfile,NULL);
+    i = EBML_ElementCreate(Element,Context,SetDefault, ForProfile);
     if (i && EBML_MasterAppend(Element,i)!=ERR_NONE)
     {
         NodeDelete((node*)i);
@@ -400,8 +400,8 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 				if (UpperEltFound > 0 || (EBML_ElementIsFiniteSize((ebml_element*)Element) && MaxSizeToRead <= 0))
 					goto processCrc;
 				continue;
-			} 
-			
+			}
+
 			if (UpperEltFound < 0) {
 				UpperEltFound++;
 				if (UpperEltFound < 0)
@@ -411,7 +411,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
 			if (EBML_ElementIsFiniteSize((ebml_element*)Element) && MaxSizeToRead <= 0) {
 				goto processCrc;// this level is finished
 			}
-			
+
 			SubElement = EBML_FindNextElement(ReadStream,&Context,&UpperEltFound,AllowDummyElt);
 		}
 	}
@@ -501,7 +501,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
             Err = ERR_OUT_OF_MEMORY;
         else
         {
-            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, EBML_getContextEbmlCrc32(), 0, ForProfile, NULL);
+            ebml_crc *CrcElt = (ebml_crc*)EBML_ElementCreate(Element, EBML_getContextEbmlCrc32(), 0, ForProfile);
             if (!CrcElt)
                 Err = ERR_OUT_OF_MEMORY;
             else
@@ -563,10 +563,10 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
 }
 #endif
 
-static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
+static ebml_element *Copy(const ebml_master *Element)
 {
     ebml_element *i, *Elt;
-    ebml_master *Result = (ebml_master*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE,Cookie);
+    ebml_master *Result = (ebml_master*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
         EBML_MasterErase(Result); // delete the children elements created by default
@@ -580,7 +580,7 @@ static ebml_element *Copy(const ebml_master *Element, const void *Cookie)
         Result->CheckSumStatus = Element->CheckSumStatus;
         for (i=EBML_MasterChildren(Element);i;i=EBML_MasterNext(i))
         {
-            Elt = EBML_ElementCopy(i,Cookie);
+            Elt = EBML_ElementCopy(i);
             if (!Elt || EBML_MasterAppend(Result, Elt)!=ERR_NONE)
             {
                 NodeDelete((node*)Result);
