@@ -122,7 +122,7 @@ typedef struct ebml_element_vmt
     bool_t (*NeedsDataSizeUpdate)(const void*, bool_t bWithDefault);
     int (*Cmp)(const void*, const void*);
     ebml_element *(*Copy)(const void*, const void *Cookie);
-    
+
     // internal call only
     void (*PostCreate)(void*, bool_t SetDefault, int ForProfile);
 
@@ -245,20 +245,20 @@ EBML_DLL void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, Con
 #endif
 
 // EBML contexts
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextHead();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDummy();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextVersion();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextReadVersion();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextMaxIdLength();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextMaxSizeLength();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocType();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocTypeVersion();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocTypeReadVersion();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextHead(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDummy(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextVersion(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextReadVersion(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextMaxIdLength(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextMaxSizeLength(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocType(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocTypeVersion(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextDocTypeReadVersion(void);
 
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextEbmlVoid();
-EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextEbmlCrc32();
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextEbmlVoid(void);
+EBML_DLL CONTEXT_CONST ebml_context *EBML_getContextEbmlCrc32(void);
 
-EBML_DLL const ebml_semantic * EBML_getSemanticGlobals();
+EBML_DLL const ebml_semantic * EBML_getSemanticGlobals(void);
 
 #ifdef __cplusplus
 }
