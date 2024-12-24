@@ -22,7 +22,6 @@ if (CONFIG_ZLIB)
         inffast.c
         inflate.c
         inftrees.c
-        uncompr.c
         zutil.c
         compress.c
         deflate.c
@@ -68,14 +67,14 @@ if (CONFIG_ZLIB)
         endif()
     endif()
     endif()
-    
-    target_compile_definitions("zlib" PRIVATE FASTEST NO_ERRNO_H)
+
+    target_compile_definitions("zlib" PRIVATE FASTEST NO_ERRNO_H NO_GZIP)
     # if(WIN32 && DYNAMIC BUILD)
     #     target_compile_definitions("zlib" ZLIB_DLL)
     # endif(WIN32)
     target_sources("zlib" PRIVATE ${zlib_group_SOURCES} ${ZLIB_ASM_SOURCES} ${zlib_group_PUBLIC_HEADERS})
     target_include_directories("zlib" PUBLIC ".")
-    set_target_properties("zlib" PROPERTIES 
+    set_target_properties("zlib" PROPERTIES
         PUBLIC_HEADER "${zlib_group_PUBLIC_HEADERS}"
     )
 endif(CONFIG_ZLIB)
