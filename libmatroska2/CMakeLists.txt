@@ -1,8 +1,25 @@
 project("matroska2" VERSION 0.22.3 LANGUAGES C)
 
+option(CONFIG_ZLIB "Enable zlib (de)compression" ON)
 option(CONFIG_BZLIB "Enable bzlib (de)compression in libmatroska2" ON)
 option(CONFIG_LZO1X "Enable lzo (de)compression in libmatroska2" ON)
 option(CONFIG_NOCODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
+
+if (CONFIG_ZLIB)
+  include(FetchContent)
+
+  set(ZLIB_BUILD_EXAMPLES OFF)
+
+  FetchContent_Declare(
+      zlib
+      URL      "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz"
+      URL_HASH SHA512=580677aad97093829090d4b605ac81c50327e74a6c2de0b85dd2e8525553f3ddde17556ea46f8f007f89e435493c9a20bc997d1ef1c1c2c23274528e3c46b94f
+      DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+
+  FetchContent_MakeAvailable(zlib)
+  target_compile_definitions("zlib" PRIVATE NO_GZIP)
+endif()
 
 set(matroska2_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/matroskamain.c
@@ -45,7 +62,7 @@ if (NOT CONFIG_NOCODEC_HELPER)
   target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:tremor>)
 endif(NOT CONFIG_NOCODEC_HELPER)
 
-set_target_properties("matroska2" PROPERTIES 
+set_target_properties("matroska2" PROPERTIES
   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
   C_STANDARD 11
 )
@@ -59,7 +76,7 @@ endif (BUILD_SHARED_LIBS)
 
 include(GNUInstallDirs)
 
-install(TARGETS "matroska2" 
+install(TARGETS "matroska2"
   EXPORT Matroska2
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/matroska2
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

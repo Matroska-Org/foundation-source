@@ -3,7 +3,6 @@
 #cmakedefine CONFIG_STDIO
 #cmakedefine CONFIG_MULTITHREAD
 #cmakedefine CONFIG_SAFE_C
-#cmakedefine CONFIG_ZLIB
 
 #define @CONFIG_UNICODE_MODE@
 
