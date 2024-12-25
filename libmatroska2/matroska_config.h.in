@@ -1,4 +1,5 @@
 // for libmatroska2
+#cmakedefine CONFIG_ZLIB
 #cmakedefine CONFIG_LZO1X
 #cmakedefine CONFIG_BZLIB
 #cmakedefine CONFIG_NOCODEC_HELPER
