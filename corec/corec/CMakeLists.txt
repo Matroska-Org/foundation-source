@@ -107,7 +107,6 @@ target_include_directories("corec" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINA
 set(corec_INTERNAL_LIBS
   $<BUILD_INTERFACE:corec_node>
   $<BUILD_INTERFACE:corec_parser>
-  $<BUILD_INTERFACE:corec_md5>
 )
 
 if (BUILD_SHARED_LIBS)
