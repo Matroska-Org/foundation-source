@@ -65,26 +65,6 @@ if (CYGWIN)
 endif (CYGWIN)
 target_include_directories("corec_parser" INTERFACE ".")
 
-# System call API
-add_library("corec_system" INTERFACE)
-set(corec_system_WIN32_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/system/ccsystem_win32.c
-)
-set(corec_system_UNIX_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/system/ccsystem_posix.c
-)
-set(corec_system_PUBLIC_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/system/ccsystem.h
-  PARENT_SCOPE
-)
-if (WIN32)
-  target_sources("corec_system" INTERFACE ${corec_system_WIN32_SOURCES})
-elseif(UNIX)
-  target_sources("corec_system" INTERFACE ${corec_system_UNIX_SOURCES})
-endif(WIN32)
-target_sources("corec_system" INTERFACE ${corec_system_PUBLIC_HEADERS})
-target_link_libraries("corec_system" INTERFACE "corec_bare" "corec_node")
-
 # MD5 API
 set(corec_md5_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/md5/md5.c
