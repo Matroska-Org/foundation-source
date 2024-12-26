@@ -88,6 +88,4 @@ typedef char tchar_t;
 #define T(a) a
 #endif /* UNICODE */
 
-#define T__(x) T(x)
-
 #endif /* __CONFIG_HELPER_H */
