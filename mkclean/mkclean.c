@@ -1447,9 +1447,6 @@ int main(int argc, const char *argv[])
     Node_FromStr(&p,Path,TSIZEOF(Path),argv[0]);
 #endif
     SplitPath(Path,NULL,0,String,TSIZEOF(String),NULL,0);
-    UnOptimize = tcsisame_ascii(String,T("mkWDclean"));
-    if (UnOptimize)
-        TextPrintf(StdErr,T("Running special mkWDclean mode, please fix your player instead of valid Matroska files\r\n"));
     Path[0] = 0;
 
     for (i=1;i<argc;++i)
