@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -61,51 +61,51 @@ static stream* DummyDuplicate(void* p,int Flags)
 {
     tchar_t URL[MAXPATHFULL];
 
-	if (Node_Get(p,STREAM_URL,URL,sizeof(URL)) != ERR_NONE)
-		return NULL;
-	
+    if (Node_Get(p,STREAM_URL,URL,sizeof(URL)) != ERR_NONE)
+        return NULL;
+
     return StreamOpen(p,URL,Flags);
 }
 
 static err_t DummyBlocking(void* UNUSED_PARAM(p),bool_t State)
-{ 
+{
     if (!State)
         return ERR_NOT_SUPPORTED;
     return ERR_NONE;
 }
 
 static err_t DummyRead(void* UNUSED_PARAM(p),void* UNUSED_PARAM(Data),size_t UNUSED_PARAM(Size),size_t* Readed)
-{ 
+{
     if (Readed)
         *Readed = 0;
-    return ERR_NOT_SUPPORTED; 
+    return ERR_NOT_SUPPORTED;
 }
 
 static err_t DummyReadOneOrMore(void* p,void* Data,size_t Size,size_t* Readed)
-{ 
-	return Stream_Read(p,Data,Size,Readed);
+{
+    return Stream_Read(p,Data,Size,Readed);
 }
 
-static filepos_t DummySeek(void* UNUSED_PARAM(p),filepos_t UNUSED_PARAM(Pos),int UNUSED_PARAM(SeekMode)) 
-{ 
+static filepos_t DummySeek(void* UNUSED_PARAM(p),filepos_t UNUSED_PARAM(Pos),int UNUSED_PARAM(SeekMode))
+{
     return INVALID_FILEPOS_T;
 }
 
 static err_t DummyWrite(void* UNUSED_PARAM(This),const void* UNUSED_PARAM(Data),size_t UNUSED_PARAM(Size), size_t* Written)
-{ 
+{
     if (Written)
         *Written = 0;
-    return ERR_NOT_SUPPORTED; 
+    return ERR_NOT_SUPPORTED;
 }
 
-static err_t DummyOpenDir(void* UNUSED_PARAM(p),const tchar_t* UNUSED_PARAM(URL), int UNUSED_PARAM(Flags)) 
-{ 
-    return ERR_NOT_DIRECTORY; 
+static err_t DummyOpenDir(void* UNUSED_PARAM(p),const tchar_t* UNUSED_PARAM(URL), int UNUSED_PARAM(Flags))
+{
+    return ERR_NOT_DIRECTORY;
 }
 
 static err_t DummyEnumDir(void* UNUSED_PARAM(p),const tchar_t* UNUSED_PARAM(Exts), bool_t UNUSED_PARAM(ExtFilter),streamdir* UNUSED_PARAM(Item))
-{ 
-    return ERR_END_OF_FILE; 
+{
+    return ERR_END_OF_FILE;
 }
 
 static err_t DummyReadBlock(stream* p,block* Block,size_t Ofs,size_t Size,size_t* Readed)
@@ -121,27 +121,27 @@ static err_t DummyReadBlock(stream* p,block* Block,size_t Ofs,size_t Size,size_t
         if (Left > sizeof(Buf))
             Left = sizeof(Buf);
 
-		Err = Stream_Read(p,Buf,Left,&Left);
-		if (!Left)
+        Err = Stream_Read(p,Buf,Left,&Left);
+        if (!Left)
             break;
 
-		WriteBlock(Block,Ofs+Pos,Buf,Left);
-		Pos += Left;
+        WriteBlock(Block,Ofs+Pos,Buf,Left);
+        Pos += Left;
 
         if (Left < sizeof(Buf))
             break;
-	}
+    }
 
     if (Readed)
         *Readed = Pos;
-	return Err;
+    return Err;
 #else
-	return Stream_Read(p,(uint8_t*)Block->Ptr+Ofs,Size,Readed);
+    return Stream_Read(p,(uint8_t*)Block->Ptr+Ofs,Size,Readed);
 #endif
 }
 
 static err_t DummyWait(void* UNUSED_PARAM(p),bool_t UNUSED_PARAM(Read),streamselect* UNUSED_PARAM(Select))
-{ 
+{
     return ERR_NOT_SUPPORTED;
 }
 
@@ -156,7 +156,7 @@ static err_t DummyResetReadTimeout(void* UNUSED_PARAM(p))
 }
 
 static err_t ProcessBlocking(void* p,bool_t State)
-{ 
+{
     stream* Input;
     if (Node_GET(p,STREAMPROCESS_INPUT,&Input) == ERR_NONE && Input)
         return Stream_Blocking(Input,State);
@@ -164,7 +164,7 @@ static err_t ProcessBlocking(void* p,bool_t State)
 }
 
 static err_t ProcessWait(void* p,bool_t Read,streamselect* Select)
-{ 
+{
     stream* Input;
     if (Node_GET(p,STREAMPROCESS_INPUT,&Input) == ERR_NONE && Input)
         return Stream_Wait(Input,Read,Select);
@@ -239,19 +239,19 @@ META_PARAM(TYPE,STREAMPROCESS_INPUT,TYPE_NODE)
 META_PARAM(CLASS,STREAMPROCESS_INPUT,STREAM_CLASS)
 META_VMT(TYPE_FUNC,stream_vmt,Blocking,ProcessBlocking)
 META_VMT(TYPE_FUNC,stream_vmt,Wait,ProcessWait)
-META_END(STREAM_CLASS) 
+META_END(STREAM_CLASS)
 
 stream* StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
 {
-	stream* File = GetStream(AnyNode,Path,Flags);
-	if (File)
-	{
-		err_t Err = Stream_Open(File,Path,Flags);
+    stream* File = GetStream(AnyNode,Path,Flags);
+    if (File)
+    {
+        err_t Err = Stream_Open(File,Path,Flags);
         if (Err != ERR_NONE && Err != ERR_NEED_MORE_DATA)
-		{
-			NodeDelete((node*)File);
-			File = NULL;
-		}
+        {
+            NodeDelete((node*)File);
+            File = NULL;
+        }
         else
         {
             stream* Buf;
@@ -261,30 +261,30 @@ stream* StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
                 File = Buf;
             }
         }
-	}
-	return File;
+    }
+    return File;
 }
 
 void StreamClose(stream* File)
 {
-	NodeDelete((node*)File);
+    NodeDelete((node*)File);
 }
 
 bool_t StreamGenExts(anynode* AnyNode,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter)
 {
-	fourcc_t* i;
-	array List;
+    fourcc_t* i;
+    array List;
     ArrayInit(Exts);
 
     if (TypeFilter && !TypeFilter[0])
         TypeFilter = NULL;
 
-	NodeEnumClass(AnyNode,&List,ClassFilter);
-	for (i=ARRAYBEGIN(List,fourcc_t);i!=ARRAYEND(List,fourcc_t);++i)
-	{
-		const tchar_t* s = NodeStr2(AnyNode,*i,NODE_EXTS);
-		while (s && s[0])
-		{
+    NodeEnumClass(AnyNode,&List,ClassFilter);
+    for (i=ARRAYBEGIN(List,fourcc_t);i!=ARRAYEND(List,fourcc_t);++i)
+    {
+        const tchar_t* s = NodeStr2(AnyNode,*i,NODE_EXTS);
+        while (s && s[0])
+        {
             size_t n;
             for (n=0;s[n] && s[n]!=';' && s[n]!=':';++n) {}
 
@@ -303,9 +303,9 @@ bool_t StreamGenExts(anynode* AnyNode,array* Exts, fourcc_t ClassFilter, const t
 
             s = tcschr(s,';');
             if (s) ++s;
-		}
-	}
-	ArrayClear(&List);
+        }
+    }
+    ArrayClear(&List);
 
     if (!ARRAYEMPTY(*Exts) && !ArrayAppend(Exts,T("\0"),sizeof(tchar_t),64))
         ArrayClear(Exts);
@@ -341,8 +341,8 @@ char StreamExtType(anynode* AnyNode, fourcc_t ClassFilter, const tchar_t *Ext)
 
 stream* GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
 {
-	tchar_t Protocol[MAXPROTOCOL];
-	stream* Stream = NULL;
+    tchar_t Protocol[MAXPROTOCOL];
+    stream* Stream = NULL;
     fourcc_t FourCC;
 
     GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
@@ -362,19 +362,19 @@ stream* GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
 
     if (!Stream && !(Flags & SFLAG_SILENT))
     {
-	    tcsupr(Protocol);
-	    NodeReportError(AnyNode,NULL,ERR_ID,ERR_PROTO_NOT_FOUND,Protocol);
+        tcsupr(Protocol);
+        NodeReportError(AnyNode,NULL,ERR_ID,ERR_PROTO_NOT_FOUND,Protocol);
     }
 #if defined(CONFIG_DEBUGCHECKS)
     if (Stream)
         tcscpy_s(Stream->URL,TSIZEOF(Stream->URL),URL);
 #endif
-	return Stream;
+    return Stream;
 }
 
 int StreamProtocolPriority(anynode *AnyNode, const tchar_t* URL)
 {
-	tchar_t Protocol[MAXPROTOCOL];
+    tchar_t Protocol[MAXPROTOCOL];
     GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
     if (tcsicmp(Protocol,T("file"))==0) // override for local files
         return PRI_MAXIMUM;

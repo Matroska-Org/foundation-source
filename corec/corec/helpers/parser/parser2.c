@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -42,30 +42,30 @@ void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memhea
     NodeContext_Init(&p->Base,Custom,Heap,ConstHeap);
     p->Base.ExternalStr = ExternalStr;
     StrTab_Init(&p->StrTab,p->Base.NodeConstHeap,5120);
-	p->ToUTF8    = CharConvOpen(NULL,CHARSET_UTF8);
-	p->FromUTF8  = CharConvOpen(CHARSET_UTF8,NULL);
+    p->ToUTF8    = CharConvOpen(NULL,CHARSET_UTF8);
+    p->FromUTF8  = CharConvOpen(CHARSET_UTF8,NULL);
     p->ToStr     = CharConvOpen(NULL,CHARSET_DEFAULT);
     p->FromStr   = CharConvOpen(CHARSET_DEFAULT,NULL);
-	p->ToWcs     = CharConvOpen(NULL,CHARSET_WCHAR);
-	p->FromWcs   = CharConvOpen(CHARSET_WCHAR,NULL);
-	p->ToUtf16   = CharConvOpen(NULL,CHARSET_UTF16);
-	p->FromUtf16 = CharConvOpen(CHARSET_UTF16,NULL);
+    p->ToWcs     = CharConvOpen(NULL,CHARSET_WCHAR);
+    p->FromWcs   = CharConvOpen(CHARSET_WCHAR,NULL);
+    p->ToUtf16   = CharConvOpen(NULL,CHARSET_UTF16);
+    p->FromUtf16 = CharConvOpen(CHARSET_UTF16,NULL);
 
-	NodeRegisterClassEx(&p->Base.Base,LangStr_Class);
-	NodeRegisterClassEx(&p->Base.Base,UrlPart_Class);
-	CoreC_FileInit(&p->Base.Base);
+    NodeRegisterClassEx(&p->Base.Base,LangStr_Class);
+    NodeRegisterClassEx(&p->Base.Base,UrlPart_Class);
+    CoreC_FileInit(&p->Base.Base);
 }
 
 void ParserContext_Done(parsercontext* p)
 {
-	CharConvClose(p->ToUTF8);
-	CharConvClose(p->FromUTF8);
-	CharConvClose(p->ToStr);
-	CharConvClose(p->FromStr);
-	CharConvClose(p->ToWcs);
-	CharConvClose(p->FromWcs);
-	CharConvClose(p->ToUtf16);
-	CharConvClose(p->FromUtf16);
+    CharConvClose(p->ToUTF8);
+    CharConvClose(p->FromUTF8);
+    CharConvClose(p->ToStr);
+    CharConvClose(p->FromStr);
+    CharConvClose(p->ToWcs);
+    CharConvClose(p->FromWcs);
+    CharConvClose(p->ToUtf16);
+    CharConvClose(p->FromUtf16);
     p->ToUTF8 = NULL;
     p->FromUTF8 = NULL;
     p->ToStr = NULL;
@@ -120,7 +120,7 @@ void Node_FromUTF16(anynode* p, tchar_t* Out,size_t OutLen, const utf16_t* In)
 
 void ParserDataFeed(parser* p,const void* Ptr,size_t Len)
 {
-	BufferWrite(&p->Buffer,Ptr,Len,4096);
+    BufferWrite(&p->Buffer,Ptr,Len,4096);
 }
 
 NOINLINE err_t ParserFill(parser* p,size_t Needed)
@@ -128,23 +128,23 @@ NOINLINE err_t ParserFill(parser* p,size_t Needed)
     // Needed may be zero (see http.c EnumDir())
 
     // pack buffer if more then half is done
-	if (p->Buffer.Read > p->Buffer.Begin + (p->Buffer.End - p->Buffer.Begin)/2)
-		BufferPack(&p->Buffer,0);
+    if (p->Buffer.Read > p->Buffer.Begin + (p->Buffer.End - p->Buffer.Begin)/2)
+        BufferPack(&p->Buffer,0);
 
-	for (;;)
+    for (;;)
     {
         size_t Readed,n;
         err_t Err;
 
         n = p->Buffer.End - p->Buffer.Write;
-	    if (n==0 || !p->Stream)
+        if (n==0 || !p->Stream)
             return (Needed>0)?ERR_NEED_MORE_DATA:ERR_NONE;
 
         Err = Stream_ReadOneOrMore(p->Stream,p->Buffer.Write,n,&Readed);
         if (!Readed)
             return Err;
 
-		p->Buffer.Write += Readed;
+        p->Buffer.Write += Readed;
 
         if (Readed >= Needed)
             break;
@@ -200,21 +200,21 @@ err_t ParserStream(parser* p, stream* Stream, parsercontext* Context)
 {
     ParserCC(p,Context ? Context->FromStr:NULL, 0);
 
-	p->Stream = Stream;
+    p->Stream = Stream;
     p->Element = 0;
     p->ElementEof = 0;
     p->Error = 0;
     p->URL = 0;
     p->Context = Context;
 
-	if (Stream)
-	{
-		if (!p->Buffer.Begin)
-			if (!BufferAlloc(&p->Buffer,4096,1))
+    if (Stream)
+    {
+        if (!p->Buffer.Begin)
+            if (!BufferAlloc(&p->Buffer,4096,1))
                 return ERR_OUT_OF_MEMORY;
-	}
+    }
     else {
-		BufferClear(&p->Buffer);
+        BufferClear(&p->Buffer);
         if (p->BigLine) {
             free(p->BigLine);
             p->BigLine = NULL;
@@ -277,30 +277,30 @@ err_t ParserRead(parser* p, void* Data, size_t Size, size_t* Readed)
 
 const uint8_t* ParserPeek(parser* p, size_t Len)
 {
-	if (p->Buffer.Write < p->Buffer.Read+Len)
-	{
-		ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
-		if (p->Buffer.Write < p->Buffer.Read+Len)
-			return NULL;
-	}
-	return p->Buffer.Read;
+    if (p->Buffer.Write < p->Buffer.Read+Len)
+    {
+        ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
+        if (p->Buffer.Write < p->Buffer.Read+Len)
+            return NULL;
+    }
+    return p->Buffer.Read;
 }
 
 const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
 {
-	if (p->Buffer.Write < p->Buffer.Read+Len)
-	{
+    if (p->Buffer.Write < p->Buffer.Read+Len)
+    {
         if (!Fill)
         {
             *Err = ERR_NEED_MORE_DATA;
             return NULL;
         }
-		*Err = ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
-		if (p->Buffer.Write < p->Buffer.Read+Len)
-			return NULL;
-	}
+        *Err = ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
+        if (p->Buffer.Write < p->Buffer.Read+Len)
+            return NULL;
+    }
     *Err = ERR_NONE;
-	return p->Buffer.Read;
+    return p->Buffer.Read;
 }
 
 #define PARSER_BEGIN(p) \
@@ -312,7 +312,7 @@ const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
     Write = p->Buffer.Write; \
 
 #define PARSER_SAVE(p) \
-    p->Buffer.Read = Read; 
+    p->Buffer.Read = Read;
 
 #define PARSER_FILL(p) \
     PARSER_SAVE(p) \
@@ -439,127 +439,127 @@ static bool_t IsToken(parser* p, const tchar_t* Token)
 
 typedef struct htmlchar
 {
-	uint8_t ch;
-	tchar_t sym[6+1];
+    uint8_t ch;
+    tchar_t sym[6+1];
 
 } htmlchar;
 
 static const htmlchar HTMLChar[] =
 {
-	{34,T("quot")},
-	{38,T("amp")},	
+    {34,T("quot")},
+    {38,T("amp")},
     {39,T("apos")},
-	{60,T("lt")},
-	{62,T("gt")},
-	{160,T("nbsp")},
-	{161,T("iexcl")},
-	{162,T("cent")},
-	{163,T("pound")},
-	{164,T("curren")},
-	{165,T("yen")},
-	{166,T("brvbar")},
-	{167,T("sect")},
-	{168,T("uml")},
-	{169,T("copy")},
-	{170,T("ordf")},
-	{171,T("laquo")},
-	{172,T("not")},
-	{173,T("shy")},
-	{174,T("reg")},
-	{175,T("hibar")},
-	{176,T("deg")},
-	{177,T("plusmn")},
-	{185,T("sup1")},
-	{178,T("sup2")},
-	{179,T("sup3")},
-	{180,T("acute")},
-	{181,T("micro")},
-	{182,T("para")},
-	{183,T("middot")},
-	{184,T("cedil")},
-	{186,T("ordm")},
-	{187,T("raquo")},
-	{188,T("frac14")},
-	{189,T("frac12")},
-	{190,T("frac34")},
-	{191,T("iquest")},
-	{192,T("Agrave")},
-	{193,T("Aacute")},
-	{194,T("Acirc")},
-	{195,T("Atilde")},
-	{196,T("Auml")},
-	{197,T("Aring")},
-	{198,T("AElig")},
-	{199,T("Ccedil")},
-	{200,T("Egrave")},
-	{201,T("Eacute")},
-	{202,T("Ecirc")},
-	{203,T("Euml")},
-	{204,T("Igrave")},
-	{205,T("Iacute")},
-	{206,T("Icirc")},
-	{207,T("Iuml")},
-	{208,T("ETH")},
-	{209,T("Ntilde")},
-	{210,T("Ograve")},
-	{211,T("Oacute")},
-	{212,T("Ocirc")},
-	{213,T("Otilde")},
-	{214,T("Ouml")},
-	{215,T("times")},
-	{216,T("Oslash")},
-	{217,T("Ugrave")},
-	{218,T("Uacute")},
-	{219,T("Ucirc")},
-	{220,T("Uuml")},
-	{221,T("Yacute")},
-	{222,T("THORN")},
-	{223,T("szlig")},
-	{224,T("agrave")},
-	{225,T("aacute")},
-	{226,T("acirc")},
-	{227,T("atilde")},
-	{228,T("auml")},
-	{229,T("aring")},
-	{230,T("aelig")},
-	{231,T("ccedil")},
-	{232,T("egrave")},
-	{233,T("eacute")},
-	{234,T("ecirc")},
-	{235,T("euml")},
-	{236,T("igrave")},
-	{237,T("iacute")},
-	{238,T("icirc")},
-	{239,T("iuml")},
-	{240,T("eth")},
-	{241,T("ntilde")},
-	{242,T("ograve")},
-	{243,T("oacute")},
-	{244,T("ocirc")},
-	{245,T("otilde")},
-	{246,T("ouml")},
-	{247,T("divide")},
-	{248,T("oslash")},
-	{249,T("ugrave")},
-	{250,T("uacute")},
-	{251,T("ucirc")},
-	{252,T("uuml")},
-	{253,T("yacute")},
-	{254,T("thorn")},
-	{255,T("yuml")},
-	{0,T("")}
+    {60,T("lt")},
+    {62,T("gt")},
+    {160,T("nbsp")},
+    {161,T("iexcl")},
+    {162,T("cent")},
+    {163,T("pound")},
+    {164,T("curren")},
+    {165,T("yen")},
+    {166,T("brvbar")},
+    {167,T("sect")},
+    {168,T("uml")},
+    {169,T("copy")},
+    {170,T("ordf")},
+    {171,T("laquo")},
+    {172,T("not")},
+    {173,T("shy")},
+    {174,T("reg")},
+    {175,T("hibar")},
+    {176,T("deg")},
+    {177,T("plusmn")},
+    {185,T("sup1")},
+    {178,T("sup2")},
+    {179,T("sup3")},
+    {180,T("acute")},
+    {181,T("micro")},
+    {182,T("para")},
+    {183,T("middot")},
+    {184,T("cedil")},
+    {186,T("ordm")},
+    {187,T("raquo")},
+    {188,T("frac14")},
+    {189,T("frac12")},
+    {190,T("frac34")},
+    {191,T("iquest")},
+    {192,T("Agrave")},
+    {193,T("Aacute")},
+    {194,T("Acirc")},
+    {195,T("Atilde")},
+    {196,T("Auml")},
+    {197,T("Aring")},
+    {198,T("AElig")},
+    {199,T("Ccedil")},
+    {200,T("Egrave")},
+    {201,T("Eacute")},
+    {202,T("Ecirc")},
+    {203,T("Euml")},
+    {204,T("Igrave")},
+    {205,T("Iacute")},
+    {206,T("Icirc")},
+    {207,T("Iuml")},
+    {208,T("ETH")},
+    {209,T("Ntilde")},
+    {210,T("Ograve")},
+    {211,T("Oacute")},
+    {212,T("Ocirc")},
+    {213,T("Otilde")},
+    {214,T("Ouml")},
+    {215,T("times")},
+    {216,T("Oslash")},
+    {217,T("Ugrave")},
+    {218,T("Uacute")},
+    {219,T("Ucirc")},
+    {220,T("Uuml")},
+    {221,T("Yacute")},
+    {222,T("THORN")},
+    {223,T("szlig")},
+    {224,T("agrave")},
+    {225,T("aacute")},
+    {226,T("acirc")},
+    {227,T("atilde")},
+    {228,T("auml")},
+    {229,T("aring")},
+    {230,T("aelig")},
+    {231,T("ccedil")},
+    {232,T("egrave")},
+    {233,T("eacute")},
+    {234,T("ecirc")},
+    {235,T("euml")},
+    {236,T("igrave")},
+    {237,T("iacute")},
+    {238,T("icirc")},
+    {239,T("iuml")},
+    {240,T("eth")},
+    {241,T("ntilde")},
+    {242,T("ograve")},
+    {243,T("oacute")},
+    {244,T("ocirc")},
+    {245,T("otilde")},
+    {246,T("ouml")},
+    {247,T("divide")},
+    {248,T("oslash")},
+    {249,T("ugrave")},
+    {250,T("uacute")},
+    {251,T("ucirc")},
+    {252,T("uuml")},
+    {253,T("yacute")},
+    {254,T("thorn")},
+    {255,T("yuml")},
+    {0,T("")}
 };
 
 void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
 {
-	const tchar_t* i;
+    const tchar_t* i;
     utf16_t ch;
     utf16_t UChar[2];
     UChar[1] = 0;
-	for (;*Out;++Out,--OutLen)
+    for (;*Out;++Out,--OutLen)
     {
-		if (*Out==T('&') && (i=tcschr(Out,T(';')))!=NULL)
-		{
+        if (*Out==T('&') && (i=tcschr(Out,T(';')))!=NULL)
+        {
             ch = 0;
             if (Out[1]=='#')
             {
@@ -578,14 +578,14 @@ void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
             }
             else
             {
-			    const htmlchar* c;
-			    size_t n = i-Out-1;
-			    for (c=HTMLChar;c->ch;++c)
-				    if (tcsnicmp(c->sym,Out+1,n)==0 && c->sym[n]==0)
-				    {
+                const htmlchar* c;
+                size_t n = i-Out-1;
+                for (c=HTMLChar;c->ch;++c)
+                    if (tcsnicmp(c->sym,Out+1,n)==0 && c->sym[n]==0)
+                    {
                         ch = c->ch;
-					    break;
-				    }
+                        break;
+                    }
             }
 
             if (ch)
@@ -594,37 +594,37 @@ void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
                 UChar[0] = ch;
                 Node_FromUTF16(p->Context,Out,OutLen,UChar);
                 for (Index=0;Index<OutLen && Out[Index];++Index) {}
-			    memmove(Out+Index,i+1,sizeof(tchar_t)*tcslen(i));
+                memmove(Out+Index,i+1,sizeof(tchar_t)*tcslen(i));
                 Out += Index - 1; // -1 for the ++ of the loop
                 OutLen -= Index - 1;
             }
-		}
+        }
     }
 }
 
 void ParserHTMLToURL(tchar_t* URL, size_t OutLen)
 {
-	for (;*URL && OutLen>0;++URL,--OutLen)
-		if (URL[0]=='%' && Hex(URL[1])>=0 && Hex(URL[2])>=0)
-		{
-			*URL = (tchar_t)((Hex(URL[1])<<4)+Hex(URL[2]));
-			memmove(URL+1,URL+3,sizeof(tchar_t)*(tcslen(URL+3)+1));
-		}
+    for (;*URL && OutLen>0;++URL,--OutLen)
+        if (URL[0]=='%' && Hex(URL[1])>=0 && Hex(URL[2])>=0)
+        {
+            *URL = (tchar_t)((Hex(URL[1])<<4)+Hex(URL[2]));
+            memmove(URL+1,URL+3,sizeof(tchar_t)*(tcslen(URL+3)+1));
+        }
 }
 
 void ParserURLToHTML(tchar_t* p,size_t n)
 {
-	for (;*p && n>0;++p,--n)
-		if (*p == ' ' && n>=4)
-		{
+    for (;*p && n>0;++p,--n)
+        if (*p == ' ' && n>=4)
+        {
             size_t i = min(n-4,tcslen(p+1));
-			memmove(p+3,p+1,i*sizeof(tchar_t));
+            memmove(p+3,p+1,i*sizeof(tchar_t));
             p[3+i] = 0;
 
-			p[0] = '%';
+            p[0] = '%';
             p[1] = '2';
             p[2] = '0';
-		}
+        }
 }
 
 void ParserSkipAfter(parser* p, int Delimiter)
@@ -717,7 +717,7 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
 
             if (Delimiter != '\n') // not ParserLine
                 ParserHTMLChars(p,Out,OutLen);
-            
+
             if (p->URL)
                 ParserHTMLToURL(Out,OutLen);
         }
@@ -727,7 +727,7 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
 
 bool_t ParserLine(parser* p, tchar_t* Out, size_t OutLen)
 {
-	return ParserReadUntil(p,Out,OutLen,'\n')>=0;
+    return ParserReadUntil(p,Out,OutLen,'\n')>=0;
 }
 
 bool_t ParserBigLine(parser* p)
@@ -743,7 +743,7 @@ bool_t ParserBigLine(parser* p)
 NOINLINE void ParserElementSkip(parser* p)
 {
     while (ParserIsAttrib(p,NULL,0))
-   		ParserAttribSkip(p);
+           ParserAttribSkip(p);
 }
 
 NOINLINE void ParserElementSkipNested(parser* p)
@@ -807,17 +807,17 @@ bool_t ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
 {
     ParserElementSkip(p);
 
-	if (!ElementStart(p))
+    if (!ElementStart(p))
     {
         p->Element = 0;
     }
     else
     {
-	    if (IsToken(p,T("/")) && NameLen>0)
-	    {
-		    *(Name++) = '/';
-		    --NameLen;
-	    }
+        if (IsToken(p,T("/")) && NameLen>0)
+        {
+            *(Name++) = '/';
+            --NameLen;
+        }
 
         p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'>')>0);
     }
@@ -827,11 +827,11 @@ bool_t ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
 
 bool_t ParserElementContent(parser* p, tchar_t* Out, size_t OutLen)
 {
-	ParserElementSkip(p);
+    ParserElementSkip(p);
     if (ParserReadUntil(p,Out,OutLen,'<')<0)
         return 0;
     if (ParserIsToken(p,T("![CDATA[")))
-    	return ParserReadUntil(p,Out,OutLen,']')>=0;
+        return ParserReadUntil(p,Out,OutLen,']')>=0;
     return 1;
 }
 
@@ -842,77 +842,77 @@ bool_t ParserIsAttrib(parser* p, tchar_t* Name, size_t NameLen)
 
     // skip spaces by ParserIsToken
     p->ElementEof = (boolmem_t)ParserIsToken(p,T("/>"));
-	if (p->ElementEof || IsToken(p,T(">")) || IsToken(p,T("?>")))
+    if (p->ElementEof || IsToken(p,T(">")) || IsToken(p,T("?>")))
         p->Element = 0;
-	else
+    else
         p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'=')>0);
     return p->Element;
 }
 
 bool_t ParserAttribLangStr(parser* p, parsercontext* Context, fourcc_t Class, dataid Id)
 {
-	tchar_t Value[MAXDATA/sizeof(tchar_t)+64];
-	if (!ParserAttribString(p,Value,TSIZEOF(Value)))
-		return 0;
-	StrTab_Add(&Context->StrTab,1,Class,(int32_t)Id,Value);
-	return 1;
+    tchar_t Value[MAXDATA/sizeof(tchar_t)+64];
+    if (!ParserAttribString(p,Value,TSIZEOF(Value)))
+        return 0;
+    StrTab_Add(&Context->StrTab,1,Class,(int32_t)Id,Value);
+    return 1;
 }
 
 bool_t ParserAttribString(parser* p, tchar_t* Out, size_t OutLen)
 {
-	int Delimiter;
+    int Delimiter;
 
     // skip spaces by ParserIsToken
-	if (!ParserIsToken(p,T("=")))
-		return 0;
+    if (!ParserIsToken(p,T("=")))
+        return 0;
 
     // skip spaces by ParserIsToken
-	if (ParserIsToken(p,T("\"")))
-		Delimiter = '\"';
-	else if (IsToken(p,T("'")))
-		Delimiter = '\'';
-	else
-		Delimiter = '>';
+    if (ParserIsToken(p,T("\"")))
+        Delimiter = '\"';
+    else if (IsToken(p,T("'")))
+        Delimiter = '\'';
+    else
+        Delimiter = '>';
 
-	return ParserReadUntil(p,Out,OutLen,Delimiter)>=0;
+    return ParserReadUntil(p,Out,OutLen,Delimiter)>=0;
 }
 
 void ParserAttribSkip(parser* p)
 {
-	ParserAttribString(p,NULL,0);
+    ParserAttribString(p,NULL,0);
 }
 
 bool_t ParserIsRootElement(parser *p, tchar_t* Root, size_t RootLen)
 {
-	tchar_t Token[MAXTOKEN];
+    tchar_t Token[MAXTOKEN];
 
-	while (ParserIsElement(p,Token,TSIZEOF(Token)))
-	{
-		if (tcsisame_ascii(Token,T("?xml")))
-		{
-			while (ParserIsAttrib(p,Token,TSIZEOF(Token)))
-			{
-				if (tcsisame_ascii(Token,T("encoding")))
-				{
-					ParserAttribString(p,Token,TSIZEOF(Token));
+    while (ParserIsElement(p,Token,TSIZEOF(Token)))
+    {
+        if (tcsisame_ascii(Token,T("?xml")))
+        {
+            while (ParserIsAttrib(p,Token,TSIZEOF(Token)))
+            {
+                if (tcsisame_ascii(Token,T("encoding")))
+                {
+                    ParserAttribString(p,Token,TSIZEOF(Token));
                     ParserCC(p,CharConvOpen(Token,NULL),1);
-				}
-				else
-					ParserAttribSkip(p);
-			}
-		}
-		else
+                }
+                else
+                    ParserAttribSkip(p);
+            }
+        }
+        else
         if (tcsisame_ascii(Token,T("!DOCTYPE")) || Token[0]==T('?'))
         {
             ParserElementSkip(p);
         }
-		else 
+        else
         {
             tcscpy_s(Root,RootLen,Token);
             return 1;
         }
-	}
-	return 0;
+    }
+    return 0;
 }
 
 err_t ParserStreamXML(parser* p, stream* s, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs)
@@ -1202,7 +1202,7 @@ bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* UNUSED_PA
     if (Node)
     {
         if (NodeClassFlags(Node) & CFLAG_SINGLETON)
-    		FourCCToString(Value,ValueLen,Node_ClassId(Node));
+            FourCCToString(Value,ValueLen,Node_ClassId(Node));
         else
         {
             //TODO: use Base... (maybe NULL)
@@ -1249,8 +1249,8 @@ NOINLINE bool_t ExprToData(void* Data, size_t* Size, dataflags Flags, exprstate*
 {
     cc_point v;
 
-	switch (Flags & TYPE_MASK)
-	{
+    switch (Flags & TYPE_MASK)
+    {
     case TYPE_POINT:
         if (State && ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point))
         {
@@ -1287,14 +1287,14 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
     size_t i;
     int a,b;
 
-	switch (Flags & TYPE_MASK)
-	{
+    switch (Flags & TYPE_MASK)
+    {
     case TYPE_STRING:
         tcscpy_s(Data,Size/sizeof(tchar_t),Value);
         break;
 
     case TYPE_BINARY:
-       	for (i=0;i<Size && (a=Hex(Value[i*2]))>=0 && (b=Hex(Value[i*2+1]))>=0;++i)
+           for (i=0;i<Size && (a=Hex(Value[i*2]))>=0 && (b=Hex(Value[i*2+1]))>=0;++i)
             ((uint8_t*)Data)[i] = (uint8_t)(a*16+b);
         break;
 
@@ -1302,15 +1302,15 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
         *(rgbval_t*)Data = StringToRGB(Value);
         break;
 
-	case TYPE_TICK:
-		*(tick_t*)Data = StringToTick(Value);
-		break;
+    case TYPE_TICK:
+        *(tick_t*)Data = StringToTick(Value);
+        break;
 
-	case TYPE_SIZE:
+    case TYPE_SIZE:
         *(size_t*)Data = StringToIntEx(Value,Flags,State);
         break;
 
-	case TYPE_INT:
+    case TYPE_INT:
         if ((Flags & TUNIT_MASK)==TUNIT_PERCENT)
         {
             StringToFraction(Value,&f,1);
@@ -1320,57 +1320,57 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
         if ((Flags & TUNIT_MASK)==TUNIT_HOTKEY)
             *(int*)Data = StringToHotKey(Value);
         else
-    		*(int*)Data = StringToIntEx(Value,Flags,State);
-		break;
+            *(int*)Data = StringToIntEx(Value,Flags,State);
+        break;
 
-	case TYPE_INT8:
-		*(uint8_t*)Data = (uint8_t)StringToIntEx(Value,Flags,State);
-		break;
+    case TYPE_INT8:
+        *(uint8_t*)Data = (uint8_t)StringToIntEx(Value,Flags,State);
+        break;
 
-	case TYPE_INT16:
-		*(uint16_t*)Data = (uint16_t)StringToIntEx(Value,Flags,State);
-		break;
+    case TYPE_INT16:
+        *(uint16_t*)Data = (uint16_t)StringToIntEx(Value,Flags,State);
+        break;
 
     case TYPE_GUID:
         StringToGUID(Value,(cc_guid*)Data);
         break;
 
-	case TYPE_DBNO: //TODO: support for 64 bits
-	case TYPE_DATETIME:
-	case TYPE_INT32:
-		*(int32_t*)Data = (int32_t)StringToIntEx(Value,Flags,State);
-		break;
+    case TYPE_DBNO: //TODO: support for 64 bits
+    case TYPE_DATETIME:
+    case TYPE_INT32:
+        *(int32_t*)Data = (int32_t)StringToIntEx(Value,Flags,State);
+        break;
 
-	case TYPE_INT64:
-		*(int64_t*)Data = StringToInt64(Value);
-		break;
+    case TYPE_INT64:
+        *(int64_t*)Data = StringToInt64(Value);
+        break;
 
     case TYPE_BOOL_BIT:
-	case TYPE_BOOLEAN:
-		*(bool_t*)Data = StringToInt(Value,-1);
-		break;
-		
-	case TYPE_FOURCC:
-		*(fourcc_t*)Data = StringToFourCC(Value,(Flags & TUNIT_MASK)==TUNIT_UPPER);
-		break;
+    case TYPE_BOOLEAN:
+        *(bool_t*)Data = StringToInt(Value,-1);
+        break;
+
+    case TYPE_FOURCC:
+        *(fourcc_t*)Data = StringToFourCC(Value,(Flags & TUNIT_MASK)==TUNIT_UPPER);
+        break;
 
     case TYPE_FIX16:
         StringToFraction(Value,&f,0);
         *(int*)Data = Scale32(FIX16_UNIT,f.Num,f.Den);
         break;
 
-	case TYPE_FRACTION:
-		((cc_fraction*)Data)->Num = 0;
-		((cc_fraction*)Data)->Den = 0;
+    case TYPE_FRACTION:
+        ((cc_fraction*)Data)->Num = 0;
+        ((cc_fraction*)Data)->Den = 0;
         if (tcschr(Value,':'))
         {
-    		stscanf(Value,T("%d:%d"),&a,&b);
+            stscanf(Value,T("%d:%d"),&a,&b);
             ((cc_fraction*)Data)->Num = a;
             ((cc_fraction*)Data)->Den = b;
         }
         else
             StringToFraction(Value,(cc_fraction*)Data,(Flags & TUNIT_MASK)==TUNIT_PERCENT);
-		break;
+        break;
 
     case TYPE_NODE:
         if (!State)
@@ -1385,18 +1385,18 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
     case TYPE_POINT:
     case TYPE_POINT16:
         return ExprToData(Data,&Size,Flags,State,&Value);
-        
-	default:
-		return 0;
-	}
-	return 1;
+
+    default:
+        return 0;
+    }
+    return 1;
 }
 
 NOINLINE bool_t ParserAttrib(parser* p, void* Data, size_t Size, dataflags Flags, exprstate* State)
 {
-	tchar_t Value[MAXDATA+64];
-	if (!ParserAttribString(p,Value,TSIZEOF(Value)))
-		return 0;
+    tchar_t Value[MAXDATA+64];
+    if (!ParserAttribString(p,Value,TSIZEOF(Value)))
+        return 0;
 
     return StringToData(Data,Size,Flags,State,Value);
 }
@@ -1436,7 +1436,7 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
 
             if (!ExprToData(Data,&Size,Flags,State,&Expr))
                 break;
-            
+
             if (!ArrayAppend(&Array,Data,Size,0))
                 break;
 
@@ -1494,61 +1494,61 @@ bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef,
 
 bool_t ParserAttribData(parser* p, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
 {
-	tchar_t Value[MAXDATA+64];
+    tchar_t Value[MAXDATA+64];
 
     if (!ParserAttribString(p,Value,TSIZEOF(Value)))
-		return 0;
+        return 0;
 
     return ParserValueData(Value,Node,DataDef,State,ExprAdd,ExprSave);
 }
 
 err_t TextPrintf(textwriter* p, const tchar_t* Msg,...)
 {
-	tchar_t s[MAXLINE];
-	va_list Arg;
-	va_start(Arg,Msg);
-	vstprintf_s(s,TSIZEOF(s),Msg,Arg);
-	va_end(Arg);
-	return TextWrite(p,s);
+    tchar_t s[MAXLINE];
+    va_list Arg;
+    va_start(Arg,Msg);
+    vstprintf_s(s,TSIZEOF(s),Msg,Arg);
+    va_end(Arg);
+    return TextWrite(p,s);
 }
 
 err_t Stream_Printf(stream* Stream, const tchar_t* Msg,...)
 {
     tchar_t s[MAXLINE];
-	va_list Arg;
+    va_list Arg;
     textwriter p;
     if (!Stream)
         return ERR_INVALID_PARAM;
     p.Stream = Stream;
     p.CC = Parser_Context(Stream)->ToUTF8;
-	va_start(Arg,Msg);
-	vstprintf_s(s,TSIZEOF(s),Msg,Arg);
-	va_end(Arg);
+    va_start(Arg,Msg);
+    vstprintf_s(s,TSIZEOF(s),Msg,Arg);
+    va_end(Arg);
     return TextWrite(&p,s);
 }
 
 err_t TextWrite(textwriter* p, const tchar_t* Msg)
 {
-	size_t i;
-	char s[MAXLINE];
-	CharConvST(p->CC,s,sizeof(s),Msg);
-		
-	i = strlen(s);
-	
+    size_t i;
+    char s[MAXLINE];
+    CharConvST(p->CC,s,sizeof(s),Msg);
+
+    i = strlen(s);
+
 #if defined(TARGET_WIN)
-	{
-		char* nl = s;
-		while (i+1<sizeof(s) && (nl = strchr(nl,10))!=NULL)
-		{
-			memmove(nl+1,nl,i+1-(nl-s));
-			*nl = 13;
-			nl += 2;
-			++i;
-		}
-	}
+    {
+        char* nl = s;
+        while (i+1<sizeof(s) && (nl = strchr(nl,10))!=NULL)
+        {
+            memmove(nl+1,nl,i+1-(nl-s));
+            *nl = 13;
+            nl += 2;
+            ++i;
+        }
+    }
 #endif
 
-	return Stream_Write(p->Stream,s,i,NULL);
+    return Stream_Write(p->Stream,s,i,NULL);
 }
 
 static NOINLINE void DumpPtr(textwriter* Text, const tchar_t* Name, node* Node, dataid Id, tchar_t* Value, size_t ValueLen)
@@ -1575,45 +1575,45 @@ static NOINLINE void DumpPtr(textwriter* Text, const tchar_t* Name, node* Node, 
 NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, size_t Size, dataflags Type)
 {
     cc_fraction f;
-	size_t i;
+    size_t i;
     bool_t Display = (Type & TFLAG_DISPLAY)!=0;
 
     if (!Size)
         Size = NodeTypeSize(Type);
 
-	if (Type & TFLAG_DEFAULT)
-	{
-		if ((Type & TYPE_MASK) == TYPE_STRING)
-		{
-			if (((const tchar_t*)Data)[0]==0)
-				return 0;
-		}
-		else
-		{
-			for (i=0;i<Size;++i)
-				if (((const uint8_t*)Data)[i])
-					break;
-			if (i==Size)
-				return 0;
-		}
-	}
+    if (Type & TFLAG_DEFAULT)
+    {
+        if ((Type & TYPE_MASK) == TYPE_STRING)
+        {
+            if (((const tchar_t*)Data)[0]==0)
+                return 0;
+        }
+        else
+        {
+            for (i=0;i<Size;++i)
+                if (((const uint8_t*)Data)[i])
+                    break;
+            if (i==Size)
+                return 0;
+        }
+    }
 
-	Value[0] = 0;
+    Value[0] = 0;
 
-	switch (Type & TYPE_MASK)
-	{
+    switch (Type & TYPE_MASK)
+    {
     case TYPE_BINARY:
-       	for (i=0;i<Size;++i)
-    		stcatprintf_s(Value,ValueLen,T("%02X"),((uint8_t*)Data)[i]);
+           for (i=0;i<Size;++i)
+            stcatprintf_s(Value,ValueLen,T("%02X"),((uint8_t*)Data)[i]);
         break;
 
     case TYPE_RGB:
         RGBToString(Value,ValueLen,*(rgbval_t*)Data);
         break;
 
-	case TYPE_TICK:
-		TickToString(Value,ValueLen,*(tick_t*)Data,0,1,Display);
-		break;
+    case TYPE_TICK:
+        TickToString(Value,ValueLen,*(tick_t*)Data,0,1,Display);
+        break;
 
     case TYPE_SIZE:
 #if defined(SIZE_MAX) && SIZE_MAX > 0xFFFFFFFF
@@ -1623,7 +1623,7 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
 #endif
         break;
 
-	case TYPE_INT:
+    case TYPE_INT:
         if ((Type & TUNIT_MASK)==TUNIT_PERCENT)
         {
             f.Num = *(int*)Data;
@@ -1638,50 +1638,50 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
             ByteRateToString(Value,ValueLen,*(int*)Data);
         else
         {
-		    IntToString(Value,ValueLen,*(int*)Data,0);
+            IntToString(Value,ValueLen,*(int*)Data,0);
             if (Display && (Type & TUNIT_MASK)==TUNIT_KBYTE)
-		        tcscat_s(Value,ValueLen,T(" KB"));
+                tcscat_s(Value,ValueLen,T(" KB"));
         }
-		break;
+        break;
 
-	case TYPE_INT8:
-		IntToString(Value,ValueLen,*(uint8_t*)Data,0);
-		break;
+    case TYPE_INT8:
+        IntToString(Value,ValueLen,*(uint8_t*)Data,0);
+        break;
 
-	case TYPE_INT16:
-		IntToString(Value,ValueLen,*(int16_t*)Data,0);
-		break;
+    case TYPE_INT16:
+        IntToString(Value,ValueLen,*(int16_t*)Data,0);
+        break;
 
     case TYPE_GUID:
         GUIDToString(Value,ValueLen,(const cc_guid*)Data);
         break;
 
-	case TYPE_DBNO: //TODO: support for 64 bits
-	case TYPE_DATETIME:
-	case TYPE_INT32:
-		IntToString(Value,ValueLen,*(int32_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
-		break;
+    case TYPE_DBNO: //TODO: support for 64 bits
+    case TYPE_DATETIME:
+    case TYPE_INT32:
+        IntToString(Value,ValueLen,*(int32_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
+        break;
 
-	case TYPE_INT64:
-		Int64ToString(Value,ValueLen,*(int64_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
-		break;
+    case TYPE_INT64:
+        Int64ToString(Value,ValueLen,*(int64_t*)Data,(Type & TUNIT_MASK)==TUNIT_HEX);
+        break;
 
     case TYPE_BOOL_BIT:
-	case TYPE_BOOLEAN:
-		IntToString(Value,ValueLen,(int32_t)*(bool_t*)Data,0);
-		break;
-		
-	case TYPE_FOURCC:
-		FourCCToString(Value,ValueLen,*(fourcc_t*)Data);
-		break;
+    case TYPE_BOOLEAN:
+        IntToString(Value,ValueLen,(int32_t)*(bool_t*)Data,0);
+        break;
 
-	case TYPE_POINT:
-		stprintf_s(Value,ValueLen,T("%d,%d"),((cc_point*)Data)->x,((cc_point*)Data)->y);
-		break;
+    case TYPE_FOURCC:
+        FourCCToString(Value,ValueLen,*(fourcc_t*)Data);
+        break;
 
-	case TYPE_RECT:
-		stprintf_s(Value,ValueLen,T("%d,%d,%d,%d"),((cc_rect*)Data)->x,((cc_rect*)Data)->y,((cc_rect*)Data)->Width,((cc_rect*)Data)->Height);
-		break;
+    case TYPE_POINT:
+        stprintf_s(Value,ValueLen,T("%d,%d"),((cc_point*)Data)->x,((cc_point*)Data)->y);
+        break;
+
+    case TYPE_RECT:
+        stprintf_s(Value,ValueLen,T("%d,%d,%d,%d"),((cc_rect*)Data)->x,((cc_rect*)Data)->y,((cc_rect*)Data)->Width,((cc_rect*)Data)->Height);
+        break;
 
     case TYPE_FIX16:
         f.Num = *(int*)Data;
@@ -1689,15 +1689,15 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         FractionToString(Value,ValueLen,&f,0,3);
         break;
 
-	case TYPE_FRACTION:
+    case TYPE_FRACTION:
         if ((Type & TUNIT_MASK)==TUNIT_PERCENT)
             FractionToString(Value,ValueLen,(cc_fraction*)Data,Display?1:-1,2);
         else
         if (Display)
             FractionToString(Value,ValueLen,(cc_fraction*)Data,0,3); //fps needs 3 decimal
         else
-		    stprintf_s(Value,ValueLen,T("%d:%d"),((cc_fraction*)Data)->Num,((cc_fraction*)Data)->Den);
-		break;
+            stprintf_s(Value,ValueLen,T("%d:%d"),((cc_fraction*)Data)->Num,((cc_fraction*)Data)->Den);
+        break;
 
     case TYPE_PIN:
         PinToString(Value,ValueLen,(pin*)Data,NULL);
@@ -1710,16 +1710,16 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
     case TYPE_STRING:
         tcscpy_s(Value,ValueLen,(tchar_t*)Data);
         break;
-	}
+    }
 
     return 1;
 }
 
 void TextAttribEx(textwriter* Text, const tchar_t* Name, const void* Data, size_t Size, dataflags Type)
 {
-	tchar_t Value[MAXDATA+64];
-	tchar_t *c;
-	size_t i;
+    tchar_t Value[MAXDATA+64];
+    tchar_t *c;
+    size_t i;
 
     if (DataToString(Value,TSIZEOF(Value),Data,Size,Type))
     {
@@ -1729,44 +1729,44 @@ void TextAttribEx(textwriter* Text, const tchar_t* Name, const void* Data, size_
         case TYPE_PACKET:
             DumpPtr(Text,Name,((pin*)Data)->Node,((pin*)Data)->Id,Value,TSIZEOF(Value));
             return;
-	    
+
         case TYPE_NODE:
             DumpPtr(Text,Name,*(node**)Data,0,Value,TSIZEOF(Value));
             return;
 
-	    case TYPE_STRING:
-		    for (i=0,c=(tchar_t*)Data;*c && i<TSIZEOF(Value)-1;++c)
-		    {
-			    const tchar_t* s;
-			    switch (*c)
-			    {
+        case TYPE_STRING:
+            for (i=0,c=(tchar_t*)Data;*c && i<TSIZEOF(Value)-1;++c)
+            {
+                const tchar_t* s;
+                switch (*c)
+                {
                 // don't use &apos; to be compatible with html
-			    case '&': s = T("&amp;"); break;
-			    case '"': s = T("&quot;"); break;
-			    case '<': s = T("&lt;"); break;
-			    case '>': s = T("&gt;"); break;
-			    default: s = NULL; break;
-			    }
-			    if (s)
-			    {
-				    tcscpy_s(Value+i,TSIZEOF(Value)-i,s);
-				    i += tcslen(Value+i);
-			    }
-			    else
-				    Value[i++] = *c;
-		    }
-		    assert(i<TSIZEOF(Value)-1);
+                case '&': s = T("&amp;"); break;
+                case '"': s = T("&quot;"); break;
+                case '<': s = T("&lt;"); break;
+                case '>': s = T("&gt;"); break;
+                default: s = NULL; break;
+                }
+                if (s)
+                {
+                    tcscpy_s(Value+i,TSIZEOF(Value)-i,s);
+                    i += tcslen(Value+i);
+                }
+                else
+                    Value[i++] = *c;
+            }
+            assert(i<TSIZEOF(Value)-1);
             if (i>TSIZEOF(Value)-1)
                 i=TSIZEOF(Value)-1;
-		    Value[i] = 0;
-		    break;
+            Value[i] = 0;
+            break;
 
-	    case TYPE_PTR:
-		    stprintf_s(Value,TSIZEOF(Value),T("%08x"),*(uint32_t*)Data);
+        case TYPE_PTR:
+            stprintf_s(Value,TSIZEOF(Value),T("%08x"),*(uint32_t*)Data);
             break;
         }
 
-       	TextPrintf(Text,T(" %s=\"%s\""),Name,Value);
+           TextPrintf(Text,T(" %s=\"%s\""),Name,Value);
     }
 }
 
@@ -1777,60 +1777,60 @@ void TextAttrib(textwriter* Text, const tchar_t* Name, const void* Data, datafla
 
 void TextElementBegin(textwriter* Out, textwriter* In, const tchar_t* Element)
 {
-	if (!In->HasChild)
-	{
-		In->HasChild = 1;
+    if (!In->HasChild)
+    {
+        In->HasChild = 1;
         if (In->InsideContent)
             TextWrite(In,T(">"));
         else
-		    TextWrite(In,T(">\n"));
-	}
+            TextWrite(In,T(">\n"));
+    }
     Out->CC = In->CC;
-	Out->Stream = In->Stream;
-	Out->HasChild = 0;
-	Out->SafeFormat = In->SafeFormat;
+    Out->Stream = In->Stream;
+    Out->HasChild = 0;
+    Out->SafeFormat = In->SafeFormat;
     Out->InsideContent = In->Deep==0;
     Out->Deep = In->InsideContent ? 0 : In->Deep+2;
-	Out->Element = Element;
+    Out->Element = Element;
     TextPrintf(Out,T("%*c%s"),In->Deep?Out->Deep:0, '<',Element);
 }
 
 void TextElementEnd(textwriter* Text)
 {
     if (Text->HasChild)
-	{
+    {
         if (Text->InsideContent)
             TextPrintf(Text,T("</%s> "),Text->Element);
         else
             TextPrintf(Text,T("%*c/%s>\n"),Text->Deep,'<',Text->Element);
     }
-	else
-	{
-		if (Text->SafeFormat)
-			TextPrintf(Text,T("></%s>"),Text->Element);
-		else
-			TextWrite(Text,T("/>"));
-		if (!Text->InsideContent)
-			TextWrite(Text,T("\n"));
-	}
+    else
+    {
+        if (Text->SafeFormat)
+            TextPrintf(Text,T("></%s>"),Text->Element);
+        else
+            TextWrite(Text,T("/>"));
+        if (!Text->InsideContent)
+            TextWrite(Text,T("\n"));
+    }
 }
 
 void TextElementEndData(textwriter* Text, const tchar_t *Value)
 {
-	if (Text->HasChild)
-		TextPrintf(Text,T("%s%*c/%s>\n"),Value, Text->Deep,'<',Text->Element);
-	else
-		TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
+    if (Text->HasChild)
+        TextPrintf(Text,T("%s%*c/%s>\n"),Value, Text->Deep,'<',Text->Element);
+    else
+        TextPrintf(Text,T(">%s</%s>\n"), Value, Text->Element);
 }
 
 void TextElementAppendData(textwriter* Text, const tchar_t *Value)
 {
     if (Text->Deep==1 && tcsisame_ascii(Value,T(" ")))
         return; // root element
-    if (Text->HasChild) 
-		TextWrite(Text,Value);
+    if (Text->HasChild)
+        TextWrite(Text,Value);
     else {
-		TextPrintf(Text,T(">%s"), Value);
+        TextPrintf(Text,T(">%s"), Value);
         Text->HasChild = 1;
         Text->Deep = 0;
     }
@@ -1838,14 +1838,14 @@ void TextElementAppendData(textwriter* Text, const tchar_t *Value)
 
 void TextElementXML(parsercontext *Context, textwriter* Text, const tchar_t* Root)
 {
-	assert(Text->Stream);
-	Text->CC = Context->ToUTF8;
-	Text->Element = Root;
-	Text->Deep = 1;
-	Text->HasChild = 0;
+    assert(Text->Stream);
+    Text->CC = Context->ToUTF8;
+    Text->Element = Root;
+    Text->Deep = 1;
+    Text->HasChild = 0;
     Text->InsideContent = 0;
-	Text->SafeFormat = 0;
-	TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);
+    Text->SafeFormat = 0;
+    TextPrintf(Text,T("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<%s"),Root);
 }
 
 NOINLINE bool_t ExprSkipAfter(const tchar_t** p,int ch)
@@ -1926,13 +1926,13 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
 {
     const tchar_t* s = *p;
     bool_t Long = 0;
-	va_list Arg;
-	va_start(Arg, Name);
+    va_list Arg;
+    va_start(Arg, Name);
 
     if (!*Name)
         return 0;
 
-	ExprSkipSpace(&s);
+    ExprSkipSpace(&s);
 
     while (*Name && *s)
     {
@@ -1954,12 +1954,12 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
             while (*Name == 'l')
             {
                 Long=1;
-				++Name; // long
+                ++Name; // long
             }
             if (*Name=='I' && *(Name+1)=='6' && *(Name+2)=='4')
             {
                 Long=1;
-				Name += 3;
+                Name += 3;
             }
             if (*Name == 'd')
             {
@@ -1995,18 +1995,18 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
             }
             else if (*Name == '%')
             {
-				if (*s == '%') {
-					++s;
-					++Name;
-				}
-			}
+                if (*s == '%') {
+                    ++s;
+                    ++Name;
+                }
+            }
         }
         else
         {
             size_t n;
             for (n=1;Name[n] && Name[n]!=' ' && Name[n]!='%';++n) {}
 
-	        if (tcsnicmp_ascii(s,Name,n)!=0)
+            if (tcsnicmp_ascii(s,Name,n)!=0)
                 break;
 
             Name += n;
@@ -2014,7 +2014,7 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
         }
     }
 
-	va_end(Arg);
+    va_end(Arg);
 
     if (*Name==0 && (!IsAlpha(Name[-1]) || !IsAlpha(*s)))
     {
@@ -2116,7 +2116,7 @@ NOINLINE size_t ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize)
     size_t v=0;
     uint8_t* Out0 = Out;
 
-	ExprSkipSpace(p);
+    ExprSkipSpace(p);
     for (n=0;**p;++n,++(*p))
     {
         if (**p == '=')
@@ -2144,7 +2144,7 @@ NOINLINE bool_t ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const t
 {
     bool_t Found = 0;
 
-	ExprSkipSpace(p);
+    ExprSkipSpace(p);
     for (;**p && !IsSpace(**p) && tcschr(Delimiter,**p)==NULL;++(*p))
         if (OutLen>1)
         {
@@ -2163,38 +2163,38 @@ NOINLINE bool_t ExprIsSymbol(const tchar_t** p,int ch)
 {
     if (**p)
     {
-	    ExprSkipSpace(p);
-	    if (**p == ch)
-	    {
-		    ++(*p);
-		    return 1;
-	    }
+        ExprSkipSpace(p);
+        if (**p == ch)
+        {
+            ++(*p);
+            return 1;
+        }
     }
-	return 0;
+    return 0;
 }
 
 NOINLINE bool_t ExprIsSymbol2(const tchar_t** p,int ch, int ch2)
 {
-	ExprSkipSpace(p);
-	if ((*p)[0] == ch && (*p)[1]==ch2)
-	{
-		(*p)+=2;
-		return 1;
-	}
-	return 0;
+    ExprSkipSpace(p);
+    if ((*p)[0] == ch && (*p)[1]==ch2)
+    {
+        (*p)+=2;
+        return 1;
+    }
+    return 0;
 }
 
 NOINLINE void ExprParamEnd(const tchar_t** p)
 {
-	ExprIsSymbol(p,')');
+    ExprIsSymbol(p,')');
 }
 
 NOINLINE bool_t ExprParamNext(const tchar_t** p)
 {
-	if (ExprIsSymbol(p,','))
-		return 1;
-	ExprParamEnd(p);
-	return 0;
+    if (ExprIsSymbol(p,','))
+        return 1;
+    ExprParamEnd(p);
+    return 0;
 }
 
 static NOINLINE bool_t ReadHex(const tchar_t** p,intptr_t* Out,bool_t RGB, bool_t Neg)
@@ -2236,7 +2236,7 @@ NOINLINE bool_t ExprIsHex(const tchar_t** p,intptr_t* Out)
     bool_t Neg = *s == '-';
     if (Neg || Pos) ++s;
 
-	if (s[0]=='0' && s[1]=='x')
+    if (s[0]=='0' && s[1]=='x')
     {
         s += 2;
         if (ReadHex(&s,Out,0,Neg))
@@ -2282,20 +2282,20 @@ NOINLINE bool_t ExprIsIntEx(const tchar_t** p,int Size,intptr_t* Out)
     bool_t Neg = *s == '-';
     if (Neg || Pos) ++s;
 
-	if (!IsDigit(*s))
+    if (!IsDigit(*s))
         return 0;
 
-	do
+    do
     {
-		v = v*10 + (*s-'0');
+        v = v*10 + (*s-'0');
     }
     while (--Size && IsDigit(*(++s)));
 
     if (Size!=0)
         return 0;
 
-	if (Neg)
-		v = -v;
+    if (Neg)
+        v = -v;
 
     *Out = v;
     *p = s+1;
@@ -2311,20 +2311,20 @@ NOINLINE bool_t ExprIsInt64Ex(const tchar_t** p,int Size,int64_t* Out)
     bool_t Neg = *s == '-';
     if (Neg || Pos) ++s;
 
-	if (!IsDigit(*s))
+    if (!IsDigit(*s))
         return 0;
 
-	do
+    do
     {
-		v = v*10 + (*s-'0');
+        v = v*10 + (*s-'0');
     }
     while (--Size && IsDigit(*(++s)));
 
     if (Size!=0)
         return 0;
 
-	if (Neg)
-		v = -v;
+    if (Neg)
+        v = -v;
 
     *Out = v;
     *p = s+1;
@@ -2340,17 +2340,17 @@ NOINLINE bool_t ExprIsInt(const tchar_t** p,intptr_t* Out)
     bool_t Neg = *s == '-';
     if (Neg || Pos) ++s;
 
-	if (!IsDigit(*s))
+    if (!IsDigit(*s))
         return 0;
 
-	do
+    do
     {
-		v = v*10 + (*s-'0');
+        v = v*10 + (*s-'0');
     }
     while (IsDigit(*(++s)));
 
-	if (Neg)
-		v = -v;
+    if (Neg)
+        v = -v;
 
     *Out = v;
     *p = s;
@@ -2366,17 +2366,17 @@ NOINLINE bool_t ExprIsInt64(const tchar_t** p,int64_t* Out)
     bool_t Neg = *s == '-';
     if (Neg || Pos) ++s;
 
-	if (!IsDigit(*s))
+    if (!IsDigit(*s))
         return 0;
 
-	do
+    do
     {
-		v = v*10 + (*s-'0');
+        v = v*10 + (*s-'0');
     }
     while (IsDigit(*(++s)));
 
-	if (Neg)
-		v = -v;
+    if (Neg)
+        v = -v;
 
     *Out = v;
     *p = s;
@@ -2394,15 +2394,15 @@ NOINLINE bool_t ExprIsFrac(const tchar_t** p,cc_fraction* Out)
     Num = v;
     Den = 1;
 
-	if (**p == '.' || **p == ',')
-	{
-		++(*p);
+    if (**p == '.' || **p == ',')
+    {
+        ++(*p);
         for (;IsDigit(**p);++(*p))
         {
-		    Num = Num*10 + (**p-'0');
+            Num = Num*10 + (**p-'0');
             Den *= 10;
         }
-	}
+    }
 
     SimplifyFrac(Out,Num,Den);
     return 1;
@@ -2454,7 +2454,7 @@ void SimplifyFrac(cc_fraction* f, int64_t Num, int64_t Den)
             Den >>= 1;
         }
     }
-    
+
     f->Num = (int)(Sign?-Num:Num);
     f->Den = (int)Den;
 }
@@ -2477,15 +2477,15 @@ void DoubleToFrac(cc_fraction* f,int64_t v)
 
 void NodeParamName(node* p, dataid Id, tchar_t* Name, size_t NameLen)
 {
-	const tchar_t* ShortName = (const tchar_t*)Node_Meta(p,Id,META_PARAM_NAME);
-	if (ShortName)
-		tcscpy_s(Name,NameLen,ShortName);
-	else
-	if (Id>(1<<24))
-		FourCCToString(Name,NameLen,(fourcc_t)Id);
-	else
+    const tchar_t* ShortName = (const tchar_t*)Node_Meta(p,Id,META_PARAM_NAME);
+    if (ShortName)
+        tcscpy_s(Name,NameLen,ShortName);
+    else
+    if (Id>(1<<24))
+        FourCCToString(Name,NameLen,(fourcc_t)Id);
+    else
     if (Node_Get(p,Id|DATA_DYNNAME,Name,NameLen*sizeof(tchar_t))!=ERR_NONE)
-		stprintf_s(Name,NameLen,T("_%04x"),Id);
+        stprintf_s(Name,NameLen,T("_%04x"),Id);
 }
 
 static bool_t CheckHex(const tchar_t* s)
@@ -2499,7 +2499,7 @@ static bool_t CheckHex(const tchar_t* s)
 bool_t NodeFindDef(node* p,const tchar_t* Token,datadef* DataDef)
 {
     dataid Id;
-	if (Token[0]=='_' && CheckHex(Token+1))
+    if (Token[0]=='_' && CheckHex(Token+1))
         Id = StringToInt(Token+1,1);
     else
     {
@@ -2513,56 +2513,56 @@ bool_t NodeFindDef(node* p,const tchar_t* Token,datadef* DataDef)
 void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter)
 {
     array List;
-	datadef* i;
+    datadef* i;
 
     NodeEnumDef(p,&List);
 
-	for (i=ARRAYBEGIN(List,datadef);i!=ARRAYEND(List,datadef);++i)
-		if ((i->Flags & Mask)==Filter)
-	    {
-		    tchar_t Name[32];
-		    uint8_t Data[MAXDATA];
+    for (i=ARRAYBEGIN(List,datadef);i!=ARRAYEND(List,datadef);++i)
+        if ((i->Flags & Mask)==Filter)
+        {
+            tchar_t Name[32];
+            uint8_t Data[MAXDATA];
             size_t Size = Node_MaxDataSize(p,i->Id,i->Flags,META_PARAM_GET);
             assert((i->Id & ~DATA_ENUM)==i->Id);
             assert(Size <= sizeof(Data));
             if (Size)
             {
-		        err_t Result = Node_Get(p,i->Id,Data,Size);
+                err_t Result = Node_Get(p,i->Id,Data,Size);
 
-		        if (Result == ERR_NONE || Result == ERR_NOT_SUPPORTED) // ERR_NOT_SUPPORTED for subclasses that don't support a param of the main class
-		        {
+                if (Result == ERR_NONE || Result == ERR_NOT_SUPPORTED) // ERR_NOT_SUPPORTED for subclasses that don't support a param of the main class
+                {
                     NodeParamName(p,i->Id,Name,TSIZEOF(Name));
 
-			        TextAttribEx(Text,Name,Data,Size,i->Flags);
+                    TextAttribEx(Text,Name,Data,Size,i->Flags);
 
                     /* TODO: support dumping packetformat information (example for crash.txt)
                     if ((i->Flags & TYPE_MASK) == TYPE_PACKET && Node_Get(p,i->Id|PIN_FORMAT,Data,sizeof(packetformat)) == ERR_NONE)
                     {
                         tcscat_s(Name,TSIZEOF(Name),T("_Format"));
-				        TextAttrib(Text,Name,Data,TYPE_PACKETFORMAT);
+                        TextAttrib(Text,Name,Data,TYPE_PACKETFORMAT);
                     }
                     */
-		        }
+                }
             }
-	    }
+        }
 
     ArrayClear(&List);
 }
 
 void ParserImport(parser* Parser,node* Node)
 {
-	tchar_t Token[MAXTOKEN];
+    tchar_t Token[MAXTOKEN];
     exprstate State;
     memset(&State,0,sizeof(State));
 
-	while (ParserIsAttrib(Parser,Token,MAXTOKEN))
-	{
+    while (ParserIsAttrib(Parser,Token,MAXTOKEN))
+    {
         datadef DataDef;
         if (NodeFindDef(Node,Token,&DataDef))
             ParserAttribData(Parser,Node,&DataDef,&State,NULL,0);
         else
             ParserAttribSkip(Parser);
-	}
+    }
 }
 
 void ParserImportNested(parser* Parser,node* Node)
@@ -2572,8 +2572,8 @@ void ParserImportNested(parser* Parser,node* Node)
 
     if (Node && Node_IsPartOf(Node,NODETREE_CLASS))
     {
-		tchar_t Token[MAXTOKEN];
-		while (ParserIsElementNested(Parser,Token,MAXTOKEN))
+        tchar_t Token[MAXTOKEN];
+        while (ParserIsElementNested(Parser,Token,MAXTOKEN))
         {
             node* Child = NodeCreate(Node,StringToFourCC(Token,0));
             ParserImportNested(Parser,Child);
@@ -2581,7 +2581,7 @@ void ParserImportNested(parser* Parser,node* Node)
                 NodeTree_SetParent(Child,Node,NULL);
         }
     }
-	else
+    else
         ParserElementSkipNested(Parser);
 }
 
@@ -2634,18 +2634,18 @@ static void EnumStr(node *p,array* List)
 
 static void NodeDumpObject(node* p,textwriter* Text)
 {
-	textwriter Level;
+    textwriter Level;
     array Children;
-	tchar_t Element[8];
+    tchar_t Element[8];
     node** i;
 
-	TRY_BEGIN 
+    TRY_BEGIN
     if (!(NodeClassFlags(p) & CFLAG_LOCAL)) // example skin UI stuff
     {
         FourCCToString(Element,TSIZEOF(Element),Node_ClassId(p));
         TextElementBegin(&Level,Text,Element);
         TextAttrib(&Level,T("Addr"),&p,TYPE_PTR);
-		TextSerializeNode(&Level,p,TFLAG_NODUMP,0);
+        TextSerializeNode(&Level,p,TFLAG_NODUMP,0);
         ArrayInit(&Children);
         if (Node_GET(p,NODE_CHILDREN,&Children)==ERR_NONE)
             for (i=ARRAYBEGIN(Children,node*);i!=ARRAYEND(Children,node*);++i)
@@ -2658,10 +2658,10 @@ static void NodeDumpObject(node* p,textwriter* Text)
 
 void NodeDump(nodecontext* p,textwriter* Text)
 {
-	//no NodeLock, because may be stayed locked when dumping after crash 
-	node **i;
-	for (i=ARRAYBEGIN(p->NodeSingleton,node*);i!=ARRAYEND(p->NodeSingleton,node*);++i)
-		if (*i)
+    //no NodeLock, because may be stayed locked when dumping after crash
+    node **i;
+    for (i=ARRAYBEGIN(p->NodeSingleton,node*);i!=ARRAYEND(p->NodeSingleton,node*);++i)
+        if (*i)
             NodeDumpObject(*i,Text);
 }
 

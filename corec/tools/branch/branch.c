@@ -2,27 +2,27 @@
   Copyright (c) 2006-2010, CoreCodec, Inc.
   All rights reserved.
 
-  Redistribution and use in source and binary forms, with or without 
+  Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are met:
-  * Redistributions of source code must retain the above copyright notice, 
+  * Redistributions of source code must retain the above copyright notice,
     this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright notice, 
+  * Redistributions in binary form must reproduce the above copyright notice,
     this list of conditions and the following disclaimer in the documentation
     and/or other materials provided with the distribution.
-  * Neither the name of the CoreCodec, Inc. nor the names of its contributors 
-    may be used to endorse or promote products derived from this software 
+  * Neither the name of the CoreCodec, Inc. nor the names of its contributors
+    may be used to endorse or promote products derived from this software
     without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
   THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -59,10 +59,10 @@
 #else
 static const char *tmpnam_safe(char *str)
 {
-	char *res = tmpnam(str);
-	if (res && res[0] == '\\')
-		++res;
-	return res;
+    char *res = tmpnam(str);
+    if (res && res[0] == '\\')
+        ++res;
+    return res;
 }
 # define make_dir(x) mkdir(x)
 #endif
@@ -80,49 +80,49 @@ typedef signed int intptr_t;
 
 struct dirent
 {
-	char d_name[MAX_PATH];
+    char d_name[MAX_PATH];
 };
 typedef struct DIR
 {
-	intptr_t h;
-	int first;
-	struct _finddata_t file;
-	struct dirent entry;
+    intptr_t h;
+    int first;
+    struct _finddata_t file;
+    struct dirent entry;
 
 } DIR;
 
 DIR* opendir(const char* name)
 {
-	DIR* p = malloc(sizeof(DIR));
-	if (p)
-	{
-		sprintf(p->entry.d_name,"%s\\*",name);
-		p->h = _findfirst(p->entry.d_name,&p->file);
-		p->first = 1;
-		if (p->h == -1)
-		{
-			free(p);
-			p = NULL;
-		}
-	}
-	return p;
+    DIR* p = malloc(sizeof(DIR));
+    if (p)
+    {
+        sprintf(p->entry.d_name,"%s\\*",name);
+        p->h = _findfirst(p->entry.d_name,&p->file);
+        p->first = 1;
+        if (p->h == -1)
+        {
+            free(p);
+            p = NULL;
+        }
+    }
+    return p;
 }
 
 struct dirent* readdir(DIR* p)
 {
-	if (p->first || _findnext(p->h,&p->file)==0)
-	{
-		p->first = 0;
-		strcpy(p->entry.d_name,p->file.name);
-		return &p->entry;
-	}
-	return NULL;
+    if (p->first || _findnext(p->h,&p->file)==0)
+    {
+        p->first = 0;
+        strcpy(p->entry.d_name,p->file.name);
+        return &p->entry;
+    }
+    return NULL;
 }
 
 void closedir(DIR* p)
 {
-	_findclose(p->h);
-	free(p);
+    _findclose(p->h);
+    free(p);
 }
 
 #else
@@ -139,56 +139,56 @@ void trim(char* s)
 
 void addendpath(char* path)
 {
-	if (path[0] && path[strlen(path)-1]!='/') 
-		strcat(path,"/");
+    if (path[0] && path[strlen(path)-1]!='/')
+        strcat(path,"/");
 }
 
 void delendpath(char* path)
 {
-	if (path[0] && path[strlen(path)-1]=='/')
-		path[strlen(path)-1] = 0;
+    if (path[0] && path[strlen(path)-1]=='/')
+        path[strlen(path)-1] = 0;
 }
 
 void create_missing_dirs(const char *path)
 {
-	size_t strpos = 0, strpos_i;
-	char new_path[MAX_PATH];
-	char orig_path[MAX_PATH];
-	int ret;
-	struct stat dir_stats;
+    size_t strpos = 0, strpos_i;
+    char new_path[MAX_PATH];
+    char orig_path[MAX_PATH];
+    int ret;
+    struct stat dir_stats;
 
-	getcwd(orig_path, sizeof(new_path));
+    getcwd(orig_path, sizeof(new_path));
 
-	for (;;)
-	{
-		strpos_i = strcspn(&path[strpos], "/\\");
-		if (strpos_i == strlen(&path[strpos]))
-			break;
-		strpos += strpos_i+1;
+    for (;;)
+    {
+        strpos_i = strcspn(&path[strpos], "/\\");
+        if (strpos_i == strlen(&path[strpos]))
+            break;
+        strpos += strpos_i+1;
 
-		strcpy(new_path,orig_path);
-		strcat(new_path,"/");
-		strncat(new_path, path, strpos-1);
+        strcpy(new_path,orig_path);
+        strcat(new_path,"/");
+        strncat(new_path, path, strpos-1);
 
-		if (stat(new_path, &dir_stats) == 0)
-		{
-			if ((dir_stats.st_mode & S_IFDIR) != S_IFDIR)
-			{
-				printf("%s is not a directory\n",new_path);
-				exit(1);
-			}
-		}
-		else
-		{
-			ret = make_dir(new_path);
-			
-			if (ret != 0 && ret != EEXIST)
-			{
-				printf("can't create directory %s\n",new_path);
-				exit(1);
-			}
-		}
-	}
+        if (stat(new_path, &dir_stats) == 0)
+        {
+            if ((dir_stats.st_mode & S_IFDIR) != S_IFDIR)
+            {
+                printf("%s is not a directory\n",new_path);
+                exit(1);
+            }
+        }
+        else
+        {
+            ret = make_dir(new_path);
+
+            if (ret != 0 && ret != EEXIST)
+            {
+                printf("can't create directory %s\n",new_path);
+                exit(1);
+            }
+        }
+    }
 }
 
 static char header[3][MAX_HEADER];
@@ -289,35 +289,35 @@ int preprocess(const char* srcname, const char* dstname, const char* process)
 
     for (;;)
     {
-		const char* i1;
-		const char* i2;
-		const char* i3;
-		char* j;
+        const char* i1;
+        const char* i2;
+        const char* i3;
+        char* j;
 
-		for (i1=process;(i1=strchr(i1,'{'))!=NULL && (i2=strchr(i1,'|'))!=NULL && (i3=strchr(i2,'}'))!=NULL;i1=i3)
-		{
-			size_t n=i2-(++i1);
-			for (j=line;*j;)
-				if (strncmp(j,i1,n)==0)
-				{
+        for (i1=process;(i1=strchr(i1,'{'))!=NULL && (i2=strchr(i1,'|'))!=NULL && (i3=strchr(i2,'}'))!=NULL;i1=i3)
+        {
+            size_t n=i2-(++i1);
+            for (j=line;*j;)
+                if (strncmp(j,i1,n)==0)
+                {
                     char* k;
-					memmove(j,j+n,strlen(j+n)+1);
-					n=i3-(++i2);
-					memmove(j+n,j,strlen(j)+1);
-					memcpy(j,i2,n);
+                    memmove(j,j+n,strlen(j+n)+1);
+                    n=i3-(++i2);
+                    memmove(j+n,j,strlen(j)+1);
+                    memcpy(j,i2,n);
                     for (k=j;k<j+n;++k)
                         if (k[0]=='\\' && k[1]=='n')
                         {
-        					memmove(k,k+1,strlen(k+1)+1);
+                            memmove(k,k+1,strlen(k+1)+1);
                             k[0] = '\n';
                             --n;
                         }
-					if (strcmp(line,"\n")==0 || strcmp(line,"\r\n")==0)
-						line[0]=0;
-				}
-				else
-					++j;
-		}
+                    if (strcmp(line,"\n")==0 || strcmp(line,"\r\n")==0)
+                        line[0]=0;
+                }
+                else
+                    ++j;
+        }
 
         fputs(line,dst);
         if (!fgets(line,sizeof(line),src))
@@ -482,32 +482,32 @@ void refresh(const char* src, const char* dst, int force, const char* process)
             if (match(src,redirect_src[i]))
                 return;
 
-	dir = opendir(src);
-	if (dir)
-	{
-		struct dirent* entry;
+    dir = opendir(src);
+    if (dir)
+    {
+        struct dirent* entry;
         make_dir(dst);
         if (!force || dst[strlen(dst)-1]!='.')
         {
-		    while ((entry = readdir(dir)) != NULL)
-		    {
-			    if (entry->d_name[0]!='.')
-			    {
+            while ((entry = readdir(dir)) != NULL)
+            {
+                if (entry->d_name[0]!='.')
+                {
                     char src2[MAX_PATH];
                     char dst2[MAX_PATH];
 
                     strcpy(dst2,dst);
                     strcpy(src2,src);
-        		    addendpath(dst2);
+                    addendpath(dst2);
                     addendpath(src2);
-        		    strcat(src2,entry->d_name);
+                    strcat(src2,entry->d_name);
                     strcat(dst2,entry->d_name);
                     refresh(src2,dst2,0,"");
-			    }
-		    }
+                }
+            }
         }
-		closedir(dir);
-	}
+        closedir(dir);
+    }
     else
     {
         if (compare(src,dst,process))
@@ -624,7 +624,7 @@ int main(int argc, char** argv)
                     while (*s && isspace(*s))
                         *(s++)=0;
 
-				    if (*s)
+                    if (*s)
                         strcpy(redirect_process[redirect_count],s);
                 }
 
@@ -638,5 +638,5 @@ int main(int argc, char** argv)
     for (i=0;i<redirect_count;++i)
         refresh(redirect_src[i],redirect_dst[i],1,redirect_process[i]);
 
-	return 0;
+    return 0;
 }
