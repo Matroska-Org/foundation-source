@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -37,7 +37,6 @@ extern "C" {
 #endif
 
 #include "corec/array/array.h"
-#include "corec/multithread/multithread.h"
 #include "corec/str/str.h"
 #include "corec/memheap.h"
 

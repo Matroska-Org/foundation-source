@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -35,7 +35,6 @@ typedef struct dataheap_free dataheap_free;
 typedef struct dataheap
 {
     cc_memheap Base;
-    void *Lock;
     const cc_memheap *Heap;
 	array Buffer;
     dataheap_free* Free3; // optimize the most common sized chunk (sizeof(nodenotif) and sizeof(nodedata)+4)

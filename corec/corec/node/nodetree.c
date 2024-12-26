@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -66,7 +66,6 @@ void NodeTree_Clear(nodetree* p)
 static err_t AddChild(nodetree* p,nodetree* Child, nodetree* Before)
 {
     nodetree** i;
-	LockEnter(Node_Context(p)->NodeLock);
 
     for (i=&p->Children;*i;i=&(*i)->Next)
         if (*i == Before)
@@ -76,14 +75,12 @@ static err_t AddChild(nodetree* p,nodetree* Child, nodetree* Before)
     Child->Next = Before;
     *i = Child;
 
-    LockLeave(Node_Context(p)->NodeLock);
     return ERR_NONE;
 }
 
 static void RemoveChild(nodetree* p,nodetree* Child)
 {
 	nodetree** i;
-	LockEnter(Node_Context(p)->NodeLock);
 
 	for (i=&p->Children;*i;i=&(*i)->Next)
 		if (*i==Child)
@@ -94,8 +91,6 @@ static void RemoveChild(nodetree* p,nodetree* Child)
 
 	Child->Next = NULL;
     Child->Parent = NULL;
-
-    LockLeave(Node_Context(p)->NodeLock);
 }
 
 void NodeTree_MoveBefore(void* p, void* Before)
@@ -103,11 +98,9 @@ void NodeTree_MoveBefore(void* p, void* Before)
     if (p != Before)
     {
         nodetree* Parent;
-	    LockEnter(Node_Context(p)->NodeLock);
         Parent = NodeTree_Parent(p);
         RemoveChild(Parent,p);
         AddChild(Parent,p,Before);
-        LockLeave(Node_Context(p)->NodeLock);
     }
 }
 

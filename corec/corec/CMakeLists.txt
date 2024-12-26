@@ -3,7 +3,6 @@ project("corec" VERSION 1.0.0)
 include(CheckIncludeFile)
 
 option(CONFIG_STDIO "Build Core-C file API with stdio support" ON)
-option(CONFIG_MULTITHREAD "Enable multithread support in Core-C" OFF)
 option(CONFIG_DEBUGCHECKS "Add extra checks in Core-C objects/helpers in debug builds" ON)
 option(CONFIG_DEBUG_LEAKS "Debug leaks in Core-C objects in debug builds" OFF)
 
@@ -52,9 +51,6 @@ add_library("corec_node" INTERFACE)
 target_sources("corec_node" INTERFACE ${corec_node_SOURCES} ${corec_node_PUBLIC_HEADERS})
 target_include_directories("corec_node" INTERFACE ".")
 target_link_libraries("corec_node" INTERFACE "corec_array" "corec_str" "corec_file")
-if(CONFIG_MULTITHREAD)
-  target_link_libraries("corec_node" INTERFACE "corec_multithread")
-endif(CONFIG_MULTITHREAD)
 
 # Array API
 set(corec_array_SOURCES
@@ -91,23 +87,6 @@ elseif(APPLE)
     target_sources("corec_str" INTERFACE ${corec_str_OSX_SOURCES})
 elseif(UNIX)
     target_sources("corec_str" INTERFACE ${corec_str_LINUX_SOURCES})
-endif(WIN32)
-
-set(corec_multithread_WIN32_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/multithread/multithread_win32.c
-)
-set(corec_multithread_UNIX_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/multithread/multithread_pthread.c
-)
-set(corec_multithread_PUBLIC_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/multithread/multithread.h
-)
-add_library("corec_multithread" INTERFACE)
-if (WIN32)
-  target_sources("corec_multithread" INTERFACE ${corec_multithread_WIN32_SOURCES})
-elseif(UNIX)
-  target_sources("corec_multithread" INTERFACE ${corec_multithread_UNIX_SOURCES})
-  target_link_libraries("corec_multithread" INTERFACE pthread)
 endif(WIN32)
 
 add_subdirectory("helpers")

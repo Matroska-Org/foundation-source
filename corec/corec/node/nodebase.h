@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -45,8 +45,8 @@
 #define TYPE_FOURCC			8		// fourcc_t
 #define TYPE_FILEPOS		9		// filepos_t
 #define TYPE_NODE			10		// node* (format1: node class)
-#define TYPE_META		    11		// metanotify 
-#define TYPE_PACKET			12		// flow packet pin 
+#define TYPE_META		    11		// metanotify
+#define TYPE_PACKET			12		// flow packet pin
 #define TYPE_TICK			13		// tick_t
 #define TYPE_NODENOTIFY     14      // nodenotify (private)
 #define TYPE_PTR			15		// void*
@@ -61,7 +61,7 @@
 #define TYPE_BOOL_BIT       24      // bool_t
 #define TYPE_PIN            25      // pin
 #define TYPE_EVENT          26      // void
-#define TYPE_EXPR           27      
+#define TYPE_EXPR           27
 #define TYPE_POINT16        28      // cc_point16
 #define TYPE_RECT16         29      // int16_t[4]
 #define TYPE_ARRAY          30
@@ -215,7 +215,7 @@ typedef struct nodemeta
 #else
 #define META_START(name,id) const nodemeta name[] = { META_START_CONTINUE(id)
 #endif
-#define META_START_CONTINUE(id) META_CLASS(CLASS_ID,id) 
+#define META_START_CONTINUE(id) META_CLASS(CLASS_ID,id)
 #define META_CLASS(meta,data) { META_CLASS_##meta,0,(uintptr_t)(data) },
 #define META_PARAM(meta,no,data) { META_PARAM_##meta,no,(uintptr_t)(data) },
 #define META_DATA(type,no,name,param) { META_MODE_DATA|(type),no,(uintptr_t)(OFS(name,param)) },
@@ -417,7 +417,7 @@ typedef struct node_vmt
 
 typedef struct pin
 {
-	node* Node;			
+	node* Node;
 	dataid Id;
 
 } pin;
@@ -486,7 +486,6 @@ struct nodemodule
 	datetime_t Stamp;
 #if defined(CONFIG_DEBUG_LEAKS)
     array ClassRefs;
-    void *LockRefs;
 #endif
 	uint8_t Found;
     uint8_t Config;
@@ -496,19 +495,13 @@ struct nodemodule
 struct nodecontext
 {
     nodemodule Base;
-	void* NodeLock;
     const void* NodeCache;
-	array NodeSingleton; 
+	array NodeSingleton;
 	array NodeClass; // ordered by id
     const cc_memheap* NodeHeap;
     const cc_memheap* NodeConstHeap;
     bool_t (*LoadModule)(nodecontext*,nodemodule*);
     void (*FreeModule)(nodecontext*,nodemodule*);
-#if defined(CONFIG_MULTITHREAD)
-    uintptr_t ThreadId;
-    void* PostNotifyParam;
-    bool_t (*PostNotify)(nodecontext*,node*,dataid); // returns if the message has been queued
-#endif
     const tchar_t* (*ExternalStr)(nodecontext*,fourcc_t,int);
     //TODO: runtime datatype meta information handling...
     void (*ExprRelease)(nodeexpr*);
@@ -587,11 +580,7 @@ NODE_DLL err_t Node_Constructor(anynode*,node* Node,size_t Size, fourcc_t ClassI
 NODE_DLL void Node_Destructor(node* Node);
 
 NODE_DLL bool_t Node_Notify(node* Node, dataid Id); /// returns wether there were some receivers
-#if defined(CONFIG_MULTITHREAD)
-NODE_DLL bool_t Node_PostNotify(node* Node, dataid Id); // supports threading
-#else
 #define Node_PostNotify(x,y) Node_Notify(x,y)
-#endif
 NODE_DLL void Node_AddNotify(node*, dataid Id, notifyproc Func, void* Refered);
 NODE_DLL void Node_AddNotify_Update(node*, dataid Id, notifyproc Func, void* Refered);
 NODE_DLL void Node_RemoveNotify(node*, dataid Id, notifyproc Func, void* Refered);
