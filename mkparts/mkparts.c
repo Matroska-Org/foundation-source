@@ -291,10 +291,10 @@ int main(int argc, const char *argv[])
         tchar_t Original[MAXLINE], String[MAXLINE], Ext[MAXDATA];
 
         // TODO: copy each segment in a separate file
-        for (i=0; i<ARRAYCOUNT(SegmentStarts, SegmentStart); ++i)
+        for (size_t j=0; j<ARRAYCOUNT(SegmentStarts, SegmentStart); ++j)
         {
-            SegmentStart *seg = ARRAYBEGIN(SegmentStarts, SegmentStart)+i;
-            if (!Quiet) TextPrintf(StdErr,T("write segment %d from %s %") TPRId64 T(" size %") TPRId64 T(" in %s\r\n"), i, Path, seg->EbmlHeadPos, seg->EbmlSize+seg->SegmentSize, Path);
+            SegmentStart *seg = ARRAYBEGIN(SegmentStarts, SegmentStart)+j;
+            if (!Quiet) TextPrintf(StdErr,T("write segment %zu from %s %") TPRId64 T(" size %") TPRId64 T(" in %s\r\n"), j, Path, seg->EbmlHeadPos, seg->EbmlSize+seg->SegmentSize, Path);
 
             SplitPath(Path,Original,TSIZEOF(Original),String,TSIZEOF(String),Ext,TSIZEOF(Ext));
             if (!Original[0])
@@ -305,9 +305,9 @@ int main(int argc, const char *argv[])
                 AddPathDelimiter(OutPath,TSIZEOF(OutPath));
             }
             if (Ext[0])
-                stcatprintf_s(OutPath,TSIZEOF(OutPath),T("%s.%d.%s"),String,i,Ext);
+                stcatprintf_s(OutPath,TSIZEOF(OutPath),T("%s.%zu.%s"),String,j,Ext);
             else
-                stcatprintf_s(OutPath,TSIZEOF(OutPath),T("%d.%s"),i,String);
+                stcatprintf_s(OutPath,TSIZEOF(OutPath),T("%zu.%s"),j,String);
 
             Output = StreamOpen(&p,OutPath,SFLAG_WRONLY|SFLAG_CREATE);
             if (!Output)
