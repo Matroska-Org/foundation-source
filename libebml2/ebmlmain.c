@@ -255,7 +255,6 @@ static ebml_element *CreateElement(anynode *Any, const uint8_t *PossibleId, int8
 static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t *PossibleId, int8_t IdLength, const ebml_parser_context *Context,
                                                     int *LowLevel, bool_t IsGlobalContext, bool_t bAllowDummy)
 {
-    int MaxLowerLevel=1; //TODO: remove ?
 //	unsigned int ContextIndex;
     ebml_element *Result = NULL;
     const ebml_semantic *Semantic;
@@ -290,13 +289,11 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
         GlobalContext.EndPosition = INVALID_FILEPOS_T;
         GlobalContext.Profile = Context->Profile;
         (*LowLevel)--;
-        MaxLowerLevel--;
         // recursive is good, but be carefull...
         Result = EBML_ElementCreateUsingContext(AnyNode,PossibleId,IdLength,&GlobalContext,LowLevel,1,bAllowDummy);
         if (Result)
             return Result;
         (*LowLevel)++;
-        MaxLowerLevel++;
     }
 
 #ifdef TODO
@@ -310,7 +307,6 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
     // check wether it's not part of an upper context
     if (Context->UpContext != NULL) {
         (*LowLevel)++;
-        MaxLowerLevel++;
         return EBML_ElementCreateUsingContext(AnyNode, PossibleId, IdLength, Context->UpContext, LowLevel, IsGlobalContext, bAllowDummy);
     }
 
