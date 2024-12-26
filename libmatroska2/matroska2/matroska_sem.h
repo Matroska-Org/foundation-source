@@ -412,8 +412,10 @@ typedef enum {
 } MatroskaVideoStereoMode;
 
 /**
- *Indicates whether the `BlockAdditional` element with `BlockAddID` of "1" contains Alpha data as defined by the Codec Mapping for the `CodecID`.
- Undefined values (i.e., values other than 0 or 1) **SHOULD NOT** be used, as the behavior of known implementations is different.
+ *Indicates whether the `BlockAdditional` element with `BlockAddID` of "1"
+    contains Alpha data as defined by the Codec Mapping for the `CodecID`.
+ Undefined values (i.e., values other than 0 or 1) **SHOULD NOT** be used, as the
+ behavior of known implementations is different.
  */
 typedef enum {
   MATROSKA_VIDEO_ALPHAMODE_NONE             = 0, // The `BlockAdditional` element with `BlockAddID` of "1" does not exist or **SHOULD NOT** be considered as containing such data.
@@ -586,8 +588,7 @@ typedef enum {
 } MatroskaTrackPlaneType;
 
 /**
- *A bit field that describes which elements have been modified in this way.
-Values (big-endian) can be OR'ed.
+ *A bit field that describes which elements have been modified in this way. Values (big-endian) can be OR'ed.
  */
 typedef enum {
   MATROSKA_CONTENTENCODINGSCOPE_BLOCK            = 0x1, // All frame contents, excluding lacing data.
@@ -641,10 +642,12 @@ typedef enum {
 } MatroskaContentSigHashAlgo;
 
 /**
- *Indicates what type of content the `ChapterAtom` contains and might be skipped. It can be used to automatically skip content based on the type.
-If a `ChapterAtom` is inside a `ChapterAtom` that has a `ChapterSkipType` set, it **MUST NOT** have a `ChapterSkipType` or have a `ChapterSkipType` with the same value as it's parent `ChapterAtom`.
+ *Indicates what type of content the `ChapterAtom` contains and might be skipped.
+    It can be used to automatically skip content based on the type.
+    If a `ChapterAtom` is inside a `ChapterAtom` that has a `ChapterSkipType` set, it
+    **MUST NOT** have a `ChapterSkipType` or have a `ChapterSkipType` with the same value as it's parent `ChapterAtom`.
 If the `ChapterAtom` doesn't contain a `ChapterTimeEnd`, the value of the `ChapterSkipType` is only valid until the next `ChapterAtom` with a `ChapterSkipType` value or the end of the file.
-
+    
  */
 typedef enum {
   MATROSKA_CHAPTERSKIPTYPE_NO_SKIPPING      = 0, // Content which should not be skipped.
