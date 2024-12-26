@@ -3028,7 +3028,7 @@ int main(int argc, const char *argv[])
     // update the WSegment size
     if (!Live)
     {
-        if (EBML_ElementDataSize((ebml_element*)WSegment,0)!=INVALID_FILEPOS_T && SegmentSize - ExtraSizeDiff - ExtraVoidSize > EBML_ElementDataSize((ebml_element*)WSegment,0))
+        if (EBML_ElementDataSize((ebml_element*)WSegment,0)!=INVALID_FILEPOS_T && (filepos_t)(SegmentSize - ExtraSizeDiff - ExtraVoidSize) > EBML_ElementDataSize((ebml_element*)WSegment,0))
         {
             if (EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength((ebml_element*)WSegment),0) != EBML_CodedSizeLength(SegmentSize,EBML_ElementSizeLength((ebml_element*)WSegment),0))
             {
