@@ -729,8 +729,10 @@ filepos_t EbmlMaster::WriteHead(IOCallback & output, size_t SizeLength, bool bWi
     return Rendered;
 }
 
-static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebml_element** b)
+static int EbmlCmp(const ebml_element* UNUSED_PARAM(Element), const void* va,const void* vb)
 {
+    const ebml_element** a = va;
+    const ebml_element** b = vb;
     EbmlElement *A=NULL;
     EbmlElement *B=NULL;
     if (Node_Get((node*)*a,EBML_ELEMENT_OBJECT,&A,sizeof(A))!=ERR_NONE)
@@ -749,7 +751,7 @@ static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebm
 
 void EbmlMaster::Sort()
 {
-    EBML_MasterSort(Node, (arraycmp)EbmlCmp, this);
+    EBML_MasterSort(Node, EbmlCmp, this);
 }
 
 void EbmlMaster::RemoveAll()

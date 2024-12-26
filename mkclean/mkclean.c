@@ -827,8 +827,10 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
     return 1;
 }
 
-static int TimcodeCmp(const void* Param, const mkv_timestamp_t *a, const mkv_timestamp_t *b)
+static int TimcodeCmp(const void* UNUSED_PARAM(Param), const void *va, const void *vb)
 {
+    const mkv_timestamp_t *a = va;
+    const mkv_timestamp_t *b = vb;
     if (*a == *b)
         return 0;
     if (*a > *b)
@@ -2311,7 +2313,7 @@ int main(int argc, const char *argv[])
 
         // \todo sort Blocks of all tracks (according to the ref frame when available)
         // sort the timestamps, just in case the file wasn't properly muxed
-        //ArraySort(&KeyFrameTimestamps, mkv_timestamp_t, (arraycmp)TimcodeCmp, NULL, 1);
+        //ArraySort(&KeyFrameTimestamps, mkv_timestamp_t, TimcodeCmp, NULL, 1);
 
         // discrimate the timestamps we want to use as cluster boundaries
         //   create a new Cluster no shorter than 1s (unless the next one is too distant like 2s)
@@ -2324,7 +2326,7 @@ int main(int argc, const char *argv[])
                 // too close
                 if (Tst+1 != ARRAYEND(KeyFrameTimestamps, mkv_timestamp_t) && *(Tst+1) < Prev + 2000000000)
                 {
-                    ArrayRemove(&KeyFrameTimestamps, mkv_timestamp_t, Tst, (arraycmp)TimcodeCmp, NULL);
+                    ArrayRemove(&KeyFrameTimestamps, mkv_timestamp_t, Tst, TimcodeCmp, NULL);
                     Deleted = 1;
                 }
             }

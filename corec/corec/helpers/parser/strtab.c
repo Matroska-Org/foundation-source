@@ -59,8 +59,10 @@ void StrTab_Done(strtab* p)
     StrTab_Clear(p);
 }
 
-static int CmpDef(const void* UNUSED_PARAM(p), const stringdef* const* pa, const stringdef* const* pb)
+static int CmpDef(const void* UNUSED_PARAM(p), const void* vpa, const void* vpb)
 {
+    const stringdef* const* pa = vpa;
+    const stringdef* const* pb = vpb;
 	const stringdef* a = *pa;
 	const stringdef* b = *pb;
 	if (a->Class < b->Class || (a->Class == b->Class && a->Id < b->Id))
@@ -84,7 +86,7 @@ void StrTab_Add(strtab* p, bool_t Secondary, fourcc_t Class, int32_t Id, const t
         s = NULL;
 
 	// already the same?
-	Pos = ArrayFind(&p->Table,stringdef*,&Ptr,(arraycmp)CmpDef,NULL,&Found);
+	Pos = ArrayFind(&p->Table,stringdef*,&Ptr,CmpDef,NULL,&Found);
 
     if (Found)
     {
@@ -107,7 +109,7 @@ void StrTab_Add(strtab* p, bool_t Secondary, fourcc_t Class, int32_t Id, const t
         {
             MemHeap_Write(p->Heap,Ptr,&Def,0,sizeof(stringdef));
             MemHeap_Write(p->Heap,Ptr,s,sizeof(stringdef),Size);
-	        ArrayAdd(&p->Table,stringdef*,&Ptr,(arraycmp)CmpDef,NULL,TABLEALIGN);
+	        ArrayAdd(&p->Table,stringdef*,&Ptr,CmpDef,NULL,TABLEALIGN);
         }
     }
 }
@@ -136,7 +138,7 @@ static NOINLINE size_t FindPos(strtab *p, fourcc_t Class, int Id)
 	Def.Class = Class;
 	Def.Id = Id;
 
-	Pos = ArrayFind(&p->Table,stringdef*,&Ptr,(arraycmp)CmpDef,NULL,&Found);
+	Pos = ArrayFind(&p->Table,stringdef*,&Ptr,CmpDef,NULL,&Found);
     if (!Found) Pos = STRTAB_INVALID_POS;
     return Pos;
 }

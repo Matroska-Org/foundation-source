@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -36,8 +36,10 @@ typedef struct nodelookup
 
 } nodelookup;
 
-static intptr_t CmpLookup(const void* UNUSED_PARAM(p), const nodelookup* a, const nodelookup* b)
+static int CmpLookup(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const nodelookup* a = va;
+    const nodelookup* b = vb;
     return tcsicmp_ascii(a->Name,b->Name);
 }
 
@@ -60,7 +62,7 @@ bool_t NodeLookup_Exists(array* p, const tchar_t* Name)
         bool_t Found;
         nodelookup Lookup;
         Lookup.Name = Name;
-        ArrayFind(p,nodelookup,&Lookup,(arraycmp)CmpLookup,NULL,&Found);
+        ArrayFind(p,nodelookup,&Lookup,CmpLookup,NULL,&Found);
         return Found;
     }
     return 0;
@@ -75,7 +77,7 @@ node* NodeLookup_FindUnique(array* p, const tchar_t* Name)
         size_t Pos;
         nodelookup Lookup;
         Lookup.Name = Name;
-        Pos = ArrayFind(p,nodelookup,&Lookup,(arraycmp)CmpLookup,NULL,&Found);
+        Pos = ArrayFind(p,nodelookup,&Lookup,CmpLookup,NULL,&Found);
         if (Found)
             return ARRAYBEGIN(*p,nodelookup)[Pos].Node;
     }
@@ -93,10 +95,10 @@ bool_t NodeLookup_Add(array* p, node* Node, const tchar_t* Name)
         Lookup.Name = Name;
         Lookup.Node = Node;
 
-        Pos = ArrayFind(p,nodelookup,&Lookup,(arraycmp)CmpLookup,NULL,&Found);
+        Pos = ArrayFind(p,nodelookup,&Lookup,CmpLookup,NULL,&Found);
         if (!Found)
 		{
-            ArrayAdd(p,nodelookup,&Lookup,(arraycmp)CmpLookup,NULL,0);
+            ArrayAdd(p,nodelookup,&Lookup,CmpLookup,NULL,0);
 			return 1;
 		}
         else
@@ -116,7 +118,7 @@ void NodeLookup_Remove(array* p, node* Node, const tchar_t* Name)
         Lookup.Name = Name;
         Lookup.Node = Node;
 
-        Pos = ArrayFind(p,nodelookup,&Lookup,(arraycmp)CmpLookup,NULL,&Found);
+        Pos = ArrayFind(p,nodelookup,&Lookup,CmpLookup,NULL,&Found);
         if (Found)
             ArrayDelete(p,Pos*sizeof(Lookup),sizeof(Lookup));
     }
