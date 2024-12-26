@@ -2260,7 +2260,7 @@ int main(int argc, const char *argv[])
                     if (!Quiet) TextPrintf(StdErr,T("Track %d has no blocks! Deleting...\r\n"),(int)*pTrackOrder);
                     for (Elt = EBML_MasterFindChild(WTrackInfo,MATROSKA_getContextTrackEntry()); Elt; Elt=EBML_MasterNextChild(WTrackInfo,Elt))
                     {
-                        if (EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber()))==*pTrackOrder)
+                        if (EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber()))==(int64_t)*pTrackOrder)
                         {
                             NodeDelete((node*)Elt);
                             --Frame;
