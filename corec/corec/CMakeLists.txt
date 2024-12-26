@@ -6,7 +6,6 @@ option(CONFIG_STDIO "Build Core-C file API with stdio support" ON)
 option(CONFIG_MULTITHREAD "Enable multithread support in Core-C" OFF)
 option(CONFIG_DEBUGCHECKS "Add extra checks in Core-C objects/helpers in debug builds" ON)
 option(CONFIG_DEBUG_LEAKS "Debug leaks in Core-C objects in debug builds" OFF)
-option(CONFIG_SAFE_C "Notify unsafe C legacy calls" OFF)
 
 set(CONFIG_UNICODE "best" CACHE STRING "Select the type of tchar_t (best, wchar, utf8)")
 set_property(CACHE CONFIG_UNICODE PROPERTY STRINGS "best;utf8;wchar")
@@ -29,7 +28,6 @@ set(corec_base_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/memalloc.h
   ${CMAKE_CURRENT_SOURCE_DIR}/portab.h
   ${CMAKE_CURRENT_SOURCE_DIR}/confhelper.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/banned.h
   ${CMAKE_CURRENT_BINARY_DIR}/corec_config.h
 )
 target_sources("corec_bare" INTERFACE ${corec_base_PUBLIC_HEADERS})
@@ -128,7 +126,7 @@ target_include_directories("corec"
 target_include_directories("corec" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 set(corec_INTERNAL_LIBS
-  $<BUILD_INTERFACE:corec_node> 
+  $<BUILD_INTERFACE:corec_node>
   $<BUILD_INTERFACE:corec_parser>
   $<BUILD_INTERFACE:corec_system>
   $<BUILD_INTERFACE:corec_md5>
