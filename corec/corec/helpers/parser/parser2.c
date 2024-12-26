@@ -1258,6 +1258,7 @@ NOINLINE bool_t ExprToData(void* Data, size_t* Size, dataflags Flags, exprstate*
             *Size = sizeof(cc_point);
             return 1;
         }
+        break;
     case TYPE_POINT16:
         if (State && ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point16))
         {
