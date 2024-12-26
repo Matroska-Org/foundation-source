@@ -353,7 +353,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                                 // read the rest of the element in memory to avoid reading it a second time later
                                 ArrayInit(&CrcBuffer);
                                 filepos_t element_size = EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement);
-                                if (element_size < SIZE_MAX && ArrayResize(&CrcBuffer, (size_t)element_size, 0))
+                                if (element_size < (filepos_t)SIZE_MAX && ArrayResize(&CrcBuffer, (size_t)element_size, 0))
                                 {
                                     CRCData = ARRAYBEGIN(CrcBuffer,uint8_t);
                                     CRCDataSize = ARRAYCOUNT(CrcBuffer,uint8_t);
@@ -497,7 +497,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
         array TmpBuf;
         bool_t IsMemory = Node_IsPartOf(Output,MEMSTREAM_CLASS);
         ArrayInit(&TmpBuf);
-        if (!IsMemory && ((Element->Base.DataSize - CRC_EBML_SIZE) > SIZE_MAX || !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - CRC_EBML_SIZE, 0)))
+        if (!IsMemory && ((Element->Base.DataSize - CRC_EBML_SIZE) > (filepos_t)SIZE_MAX || !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - CRC_EBML_SIZE, 0)))
             Err = ERR_OUT_OF_MEMORY;
         else
         {
@@ -517,7 +517,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                         Node_Set(VOutput, MEMSTREAM_DATA, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t));
                         Node_SET(VOutput, MEMSTREAM_OFFSET, &Offset);
                         Err = InternalRender(Element, VOutput, bForceWithoutMandatory, bWithDefault, ForProfile, Rendered);
-                        assert(Err!=ERR_NONE || *Rendered == ARRAYCOUNT(TmpBuf,uint8_t));
+                        assert(Err!=ERR_NONE || *Rendered == (filepos_t)ARRAYCOUNT(TmpBuf,uint8_t));
                         if (Err==ERR_NONE)
                         {
                             filepos_t CrcSize;
@@ -528,7 +528,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
                             {
                                 size_t Written;
                                 Err = Stream_Write(Output, ARRAYBEGIN(TmpBuf,uint8_t), ARRAYCOUNT(TmpBuf,uint8_t), &Written);
-                                assert(Err!=ERR_NONE || Written == *Rendered);
+                                assert(Err!=ERR_NONE || (filepos_t)Written == *Rendered);
                                 *Rendered = Written + CrcSize;
                             }
                         }
