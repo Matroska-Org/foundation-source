@@ -581,8 +581,10 @@ static int MATROSKA_BlockCmp(const matroska_block *BlockA, const matroska_block 
     return MATROSKA_BlockTrackNum(BlockB) - MATROSKA_BlockTrackNum(BlockA); // usually the first track is video, so put audio/subs first
 }
 
-static int ClusterEltCmp(const matroska_cluster* Cluster, const ebml_element** a,const ebml_element** b)
+static int ClusterEltCmp(const void* UNUSED_PARAM(Cluster), const void* va,const void* vb)
 {
+    const ebml_element* const * a = va;
+    const ebml_element* const * b = vb;
     const matroska_block *BlockA = NULL,*BlockB = NULL;
     if (EBML_ElementIsType(*a, MATROSKA_getContextTimestamp()))
         return -1;
@@ -606,7 +608,7 @@ static int ClusterEltCmp(const matroska_cluster* Cluster, const ebml_element** a
 
 void MATROSKA_ClusterSort(matroska_cluster *Cluster)
 {
-    EBML_MasterSort((ebml_master*)Cluster,(arraycmp)ClusterEltCmp,Cluster);
+    EBML_MasterSort((ebml_master*)Cluster,ClusterEltCmp,Cluster);
 }
 
 void MATROSKA_ClusterSetTimestamp(matroska_cluster *Cluster, mkv_timestamp_t Timestamp)

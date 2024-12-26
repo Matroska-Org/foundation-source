@@ -176,8 +176,10 @@ static INLINE bool_t CheckLoadModule(nodecontext* p,nodemodule* Module)
     return 0;
 }
 
-static NOINLINE int CmpClass(const void* UNUSED_PARAM(p), const nodeclass* const* a, const nodeclass* const* b)
+static NOINLINE int CmpClass(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const nodeclass* const* a = va;
+    const nodeclass* const* b = vb;
     fourcc_t AClass = NodeClass_ClassId(*a);
     fourcc_t BClass = NodeClass_ClassId(*b);
     if (AClass > BClass) return 1;
@@ -187,8 +189,10 @@ static NOINLINE int CmpClass(const void* UNUSED_PARAM(p), const nodeclass* const
     return 0;
 }
 
-static NOINLINE int CmpClassNoModule(const void* UNUSED_PARAM(p), const nodeclass* const* a, const nodeclass* const* b)
+static NOINLINE int CmpClassNoModule(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const nodeclass* const* a = va;
+    const nodeclass* const* b = vb;
     fourcc_t AClass = NodeClass_ClassId(*a);
     fourcc_t BClass = NodeClass_ClassId(*b);
     if (AClass > BClass) return 1;
@@ -196,8 +200,10 @@ static NOINLINE int CmpClassNoModule(const void* UNUSED_PARAM(p), const nodeclas
     return 0;
 }
 
-static NOINLINE int CmpClassPri(const void* UNUSED_PARAM(p), const nodeclass* const* a, const nodeclass* const* b)
+static NOINLINE int CmpClassPri(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const nodeclass* const* a = va;
+    const nodeclass* const* b = vb;
     int APriority = (*a)->Priority;
     int BPriority = (*b)->Priority;
     if (APriority > BPriority) return -1;
@@ -210,22 +216,28 @@ typedef struct nodeclassrated {
     int Rating;
 } nodeclassrated;
 
-static NOINLINE int CmpRatedClassPri(const void* UNUSED_PARAM(p), const nodeclassrated* a, const nodeclassrated* b)
+static NOINLINE int CmpRatedClassPri(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const nodeclassrated* a = va;
+    const nodeclassrated* b = vb;
     if (a->Rating > b->Rating) return -1;
     if (a->Rating < b->Rating) return 1;
     return CmpClassPri(NULL,&a->Class,&b->Class);
 }
 
-static NOINLINE int CmpNode(const void* p, const node* const* a, const node* const* b)
+static NOINLINE int CmpNode(const void* p, const void* va, const void* vb)
 {
+    const node* const* a = va;
+    const node* const* b = vb;
     const nodeclass* ca = NodeGetClass(*a);
     const nodeclass* cb = NodeGetClass(*b);
     return CmpClass(p,&ca,&cb);
 }
 
-static NOINLINE int CmpNodeClass(void* UNUSED_PARAM(p), const node* const* a, const fourcc_t* b)
+static NOINLINE int CmpNodeClass(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const node* const* a = va;
+    const fourcc_t* b = vb;
     fourcc_t AClass = NodeClass_ClassId(NodeGetClass(*a));
     if (AClass > *b) return 1;
     if (AClass < *b) return -1;
@@ -249,7 +261,7 @@ NOINLINE const nodeclass* NodeContext_FindClass(anynode* Any,fourcc_t ClassId)
 
     Item.VMT.ClassId = ClassId;
     Ptr = &Item.Class;
-    Pos = ArrayFind(&p->NodeClass,nodeclass*,&Ptr,(arraycmp)CmpClassNoModule, NULL, &Found);
+    Pos = ArrayFind(&p->NodeClass,nodeclass*,&Ptr,CmpClassNoModule, NULL, &Found);
     if (Found)
     {
         if (ARRAYBEGIN(p->NodeClass,const nodeclass*)[Pos]->State<CLASS_REGISTERED)
@@ -316,8 +328,10 @@ typedef struct class_ref_t
 
 } class_ref_t;
 
-static int CmpClassRef(void* UNUSED_PARAM(p), const class_ref_t *a, const class_ref_t *b)
+static int CmpClassRef(void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const class_ref_t *a = va;
+    const class_ref_t *b = vb;
     return (a->Class->FourCC - b->Class->FourCC);
 }
 
@@ -330,12 +344,12 @@ static void AddClassRef(const nodeclass* Class)
 
     Item.Class = Class;
     Item.Count = 1;
-    Pos = ArrayFind(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL,&Found);
+    Pos = ArrayFind(Refs,class_ref_t,&Item,CmpClassRef,NULL,&Found);
     if (Found)
     {
         ARRAYBEGIN(*Refs,class_ref_t)[Pos].Count++;
     }
-    else if (ArrayAdd(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL,0)==-1)
+    else if (ArrayAdd(Refs,class_ref_t,&Item,CmpClassRef,NULL,0)==-1)
     {
         DebugMessage(T("AddClassRef %p class %r/%p could not be added !"),Refs,Class->FourCC,Class);
     }
@@ -349,13 +363,13 @@ static void DelClassRef(const nodeclass* Class)
     class_ref_t Item;
 
     Item.Class = Class;
-    Pos = ArrayFind(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL,&Found);
+    Pos = ArrayFind(Refs,class_ref_t,&Item,CmpClassRef,NULL,&Found);
     if (Found)
     {
         if (--ARRAYBEGIN(*Refs,class_ref_t)[Pos].Count==0)
         {
             //DebugMessage(T("class %r No more used !"),Class->FourCC);
-            ArrayRemove(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL);
+            ArrayRemove(Refs,class_ref_t,&Item,CmpClassRef,NULL);
         }
     }
     else
@@ -366,7 +380,7 @@ static void DelClassRef(const nodeclass* Class)
         {
             DebugMessage(T("%r/%p=%d"),r->Class->FourCC,r->Class,r->Count);
         }
-        Pos = ArrayFind(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL,&Found);
+        Pos = ArrayFind(Refs,class_ref_t,&Item,CmpClassRef,NULL,&Found);
     }
 }
 #else
@@ -873,7 +887,7 @@ void Node_Destructor(node* Node)
 
 static bool_t AddSingleton(nodecontext* p, node* Node)
 {
-    return ArrayAdd(&p->NodeSingleton,node*,&Node,(arraycmp)CmpNode,NULL,64)>=0;
+    return ArrayAdd(&p->NodeSingleton,node*,&Node,CmpNode,NULL,64)>=0;
 }
 
 err_t Node_Constructor(anynode* AnyNode, node* Node, size_t Size, fourcc_t ClassId)
@@ -1034,8 +1048,10 @@ static const nodemeta* BitLookup(const nodeclass* Class,dataid Id)
     return NULL;
 }
 
-static NOINLINE int CmpLookup(const nodemetalookup* p, const nodemetalookup* a, const nodemetalookup* b)
+static NOINLINE int CmpLookup(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
+    const nodemetalookup* a = va;
+    const nodemetalookup* b = vb;
     // sort by Id
     if (a->Id > b->Id) return 1;
     if (a->Id < b->Id) return -1;
@@ -1054,7 +1070,7 @@ static NOINLINE void AddLookup(nodeclass* Class, const nodemeta* m, array* List)
     nodemetalookup Lookup;
     Lookup.Id = m->Id;
     Lookup.Meta = NULL;
-    ArrayFind(List,nodemetalookup,&Lookup,(arraycmp)CmpLookup,NULL,&Found);
+    ArrayFind(List,nodemetalookup,&Lookup,CmpLookup,NULL,&Found);
     if (!Found || m->Meta == META_PARAM_EVENT)
     {
         if ((m->Meta & META_MODE_MASK)==META_MODE_DATA && (m->Meta & TYPE_MASK)==TYPE_BOOL_BIT)
@@ -1063,10 +1079,10 @@ static NOINLINE void AddLookup(nodeclass* Class, const nodemeta* m, array* List)
             assert(Lookup.Meta);
             if (!Lookup.Meta)
                 return;
-            ArrayAdd(List,nodemetalookup,&Lookup,(arraycmp)CmpLookup,NULL,0);
+            ArrayAdd(List,nodemetalookup,&Lookup,CmpLookup,NULL,0);
         }
         Lookup.Meta = m;
-        ArrayAdd(List,nodemetalookup,&Lookup,(arraycmp)CmpLookup,&Lookup,0);
+        ArrayAdd(List,nodemetalookup,&Lookup,CmpLookup,&Lookup,0);
     }
 }
 
@@ -1340,7 +1356,7 @@ nodeclass* NodeContext_CreateClass(nodecontext* p, fourcc_t ClassId, size_t VMTS
         NodeClass_ClassId(Class) = ClassId;
         Class->Module = Module;
 
-        if (ArrayAdd(&p->NodeClass,nodeclass*,&Class,(arraycmp)CmpClass,NULL,128)<0)
+        if (ArrayAdd(&p->NodeClass,nodeclass*,&Class,CmpClass,NULL,128)<0)
         {
             MemHeap_Free(p->NodeHeap,Class,Size);
             return NULL;
@@ -1509,7 +1525,7 @@ node* NodeSingleton(anynode* Any, fourcc_t Class)
         size_t Pos;
         bool_t Found;
 
-        Pos = ArrayFind(&p->NodeSingleton,node*,&Class,(arraycmp)CmpNodeClass,NULL,&Found);
+        Pos = ArrayFind(&p->NodeSingleton,node*,&Class,CmpNodeClass,NULL,&Found);
         if (Found)
             Node = ARRAYBEGIN(p->NodeSingleton,node*)[Pos];
     }
@@ -1713,7 +1729,7 @@ fourcc_t NodeEnumClassFilterRated(anynode* AnyContext, array* ListId, fourcc_t C
         fourcc_t* a;
         nodeclassrated* b;
         size_t Count = ARRAYCOUNT(List,nodeclassrated);
-        ArraySort(&List,nodeclassrated,(arraycmp)CmpRatedClassPri, NULL, 0);
+        ArraySort(&List,nodeclassrated,CmpRatedClassPri, NULL, 0);
 
         ArrayInit(ListId);
         if (ArrayAppend(ListId,NULL,Count*sizeof(fourcc_t),64))
