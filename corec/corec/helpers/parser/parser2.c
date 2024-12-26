@@ -2125,7 +2125,7 @@ NOINLINE size_t ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize)
             break;
         }
 
-        if (**p < 43 || **p >= 43+sizeof(Base64) || Base64[**p-43] == 0x80)
+        if (**p < 43 || **p >= (tchar_t)(43+sizeof(Base64)) || Base64[**p-43] == 0x80)
             break;
 
         v = (v<<6) + Base64[**p-43];
