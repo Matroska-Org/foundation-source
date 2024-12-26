@@ -56,28 +56,28 @@
 
 typedef struct filestream
 {
-	stream Stream;
-	int fd;
-	tchar_t URL[MAXPATH]; // TODO: turn into a dynamic data
-	filepos_t Length;
-	int Flags;
+    stream Stream;
+    int fd;
+    tchar_t URL[MAXPATH]; // TODO: turn into a dynamic data
+    filepos_t Length;
+    int Flags;
 
-	tchar_t DirPath[MAXPATH]; // TODO: turn into a dynamic data
-	DIR *FindDir;
+    tchar_t DirPath[MAXPATH]; // TODO: turn into a dynamic data
+    DIR *FindDir;
 
 } filestream;
 
 static err_t Open(filestream* p, const tchar_t* URL, int Flags)
 {
-	if (p->fd != -1)
-		close(p->fd);
+    if (p->fd != -1)
+        close(p->fd);
 
     p->Length = INVALID_FILEPOS_T;
-	p->fd = -1;
+    p->fd = -1;
 
-	if (URL && URL[0])
-	{
-		struct stat file_stats;
+    if (URL && URL[0])
+    {
+        struct stat file_stats;
         int mode = 0;
 
         if (Flags & SFLAG_WRONLY && !(Flags & SFLAG_RDONLY))
@@ -90,22 +90,22 @@ static err_t Open(filestream* p, const tchar_t* URL, int Flags)
         if (Flags & SFLAG_CREATE)
             mode |= O_CREAT|O_TRUNC;
 
-		//TODO: verify it works with Unicode files too
-		p->fd = open(URL, mode, _RW_ACCESS_FILE);
-		if (p->fd == -1)
-		{
-			if ((Flags & (SFLAG_REOPEN|SFLAG_SILENT))==0)
-				NodeReportError(p,NULL,ERR_ID,ERR_FILE_NOT_FOUND,URL);
-			return ERR_FILE_NOT_FOUND;
-		}
+        //TODO: verify it works with Unicode files too
+        p->fd = open(URL, mode, _RW_ACCESS_FILE);
+        if (p->fd == -1)
+        {
+            if ((Flags & (SFLAG_REOPEN|SFLAG_SILENT))==0)
+                NodeReportError(p,NULL,ERR_ID,ERR_FILE_NOT_FOUND,URL);
+            return ERR_FILE_NOT_FOUND;
+        }
 
-		tcscpy_s(p->URL,TSIZEOF(p->URL),URL);
+        tcscpy_s(p->URL,TSIZEOF(p->URL),URL);
 
         if (stat(URL, &file_stats) == 0)
-			p->Length = file_stats.st_size;
+            p->Length = file_stats.st_size;
 
-	}
-	return ERR_NONE;
+    }
+    return ERR_NONE;
 }
 
 static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
@@ -129,7 +129,7 @@ static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
 
 static err_t ReadBlock(filestream* p,block* Block,size_t Ofs,size_t Size,size_t* Readed)
 {
-	return Read(p,(void*)(Block->Ptr+Ofs),Size,Readed);
+    return Read(p,(void*)(Block->Ptr+Ofs),Size,Readed);
 }
 
 static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
@@ -137,7 +137,7 @@ static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
     if (Size > SSIZE_MAX)
         return ERR_WRITE;
     err_t Err;
-	ssize_t n = write(p->fd, Data, Size);
+    ssize_t n = write(p->fd, Data, Size);
 
     if (n<0)
     {
@@ -154,7 +154,7 @@ static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
 
 static filepos_t Seek(filestream* p,filepos_t Pos,int SeekMode)
 {
-	off_t NewPos = lseek(p->fd, Pos, SeekMode);
+    off_t NewPos = lseek(p->fd, Pos, SeekMode);
     if (NewPos<0)
         return INVALID_FILEPOS_T;
     return NewPos;
@@ -165,31 +165,31 @@ static err_t SetLength(filestream* p,dataid Id,const filepos_t* Data,size_t Size
     if (Size != sizeof(filepos_t))
         return ERR_INVALID_DATA;
 
-	if (ftruncate(p->fd, *Data)!=0)
-		return ERR_BUFFER_FULL;
+    if (ftruncate(p->fd, *Data)!=0)
+        return ERR_BUFFER_FULL;
 
-	return ERR_NONE;
+    return ERR_NONE;
 }
 
 static err_t OpenDir(filestream* p,const tchar_t* Path,int UNUSED_PARAM(Flags))
 {
-	if (p->FindDir)
-		closedir(p->FindDir);
+    if (p->FindDir)
+        closedir(p->FindDir);
 
     if (Path[0]==0)
         Path = T("/");
 
-	p->FindDir = opendir(Path);
-	if (!p->FindDir)
-	{
-		if (errno == ENOTDIR)
-			return ERR_NOT_DIRECTORY;
-		else
-			return ERR_FILE_NOT_FOUND;
-	}
+    p->FindDir = opendir(Path);
+    if (!p->FindDir)
+    {
+        if (errno == ENOTDIR)
+            return ERR_NOT_DIRECTORY;
+        else
+            return ERR_FILE_NOT_FOUND;
+    }
 
-	tcscpy_s(p->DirPath,TSIZEOF(p->DirPath),Path);
-	AddPathDelimiter(p->DirPath,TSIZEOF(p->DirPath));
+    tcscpy_s(p->DirPath,TSIZEOF(p->DirPath),Path);
+    AddPathDelimiter(p->DirPath,TSIZEOF(p->DirPath));
     return ERR_NONE;
 }
 
@@ -197,63 +197,63 @@ extern datetime_t LinuxToDateTime(time_t);
 
 static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdir* Item)
 {
-	struct dirent *Dirent;
+    struct dirent *Dirent;
 
-	if (!p->FindDir)
-		return ERR_END_OF_FILE;
+    if (!p->FindDir)
+        return ERR_END_OF_FILE;
 
-	Item->FileName[0] = 0;
+    Item->FileName[0] = 0;
     Item->Size = INVALID_FILEPOS_T;
 
-	while (!Item->FileName[0] && (Dirent = readdir(p->FindDir)) != NULL)
-	{
-	    tchar_t FilePath[MAXPATH];
-	    struct stat file_stats;
+    while (!Item->FileName[0] && (Dirent = readdir(p->FindDir)) != NULL)
+    {
+        tchar_t FilePath[MAXPATH];
+        struct stat file_stats;
 
         if (Dirent->d_name[0]=='.') // skip hidden files and current directory
             continue;
 
-	    tcscpy_s(FilePath, TSIZEOF(FilePath), p->DirPath);
-	    tcscat_s(FilePath, TSIZEOF(FilePath), Dirent->d_name);
-	    tcscpy_s(Item->FileName,TSIZEOF(Item->FileName), Dirent->d_name);
+        tcscpy_s(FilePath, TSIZEOF(FilePath), p->DirPath);
+        tcscat_s(FilePath, TSIZEOF(FilePath), Dirent->d_name);
+        tcscpy_s(Item->FileName,TSIZEOF(Item->FileName), Dirent->d_name);
 
-	    stat(FilePath, &file_stats);
+        stat(FilePath, &file_stats);
 
-	    Item->ModifiedDate = LinuxToDateTime(file_stats.st_mtime);
-	    if (S_ISDIR(file_stats.st_mode))
+        Item->ModifiedDate = LinuxToDateTime(file_stats.st_mtime);
+        if (S_ISDIR(file_stats.st_mode))
         {
             Item->Type = FTYPE_DIR;
-		    Item->Size = INVALID_FILEPOS_T;
+            Item->Size = INVALID_FILEPOS_T;
         }
-	    else
-	    {
-		    Item->Size = file_stats.st_size;
-		    Item->Type = CheckExts(Item->FileName,Exts);
+        else
+        {
+            Item->Size = file_stats.st_size;
+            Item->Type = CheckExts(Item->FileName,Exts);
 
-			if (!Item->Type && ExtFilter)
-				Item->FileName[0] = 0; // skip
-	    }
-	}
+            if (!Item->Type && ExtFilter)
+                Item->FileName[0] = 0; // skip
+        }
+    }
 
-	if (!Item->FileName[0])
-	{
-		closedir(p->FindDir);
-		p->FindDir = NULL;
-		return ERR_END_OF_FILE;
-	}
+    if (!Item->FileName[0])
+    {
+        closedir(p->FindDir);
+        p->FindDir = NULL;
+        return ERR_END_OF_FILE;
+    }
 
-	return ERR_NONE;
+    return ERR_NONE;
 }
 
 static void Delete(filestream* p)
 {
-	if (p->fd != -1)
+    if (p->fd != -1)
     {
-		close(p->fd);
-	    p->fd = -1;
+        close(p->fd);
+        p->fd = -1;
     }
-	if (p->FindDir)
-		closedir(p->FindDir);
+    if (p->FindDir)
+        closedir(p->FindDir);
 }
 
 META_START(File_Class,FILE_CLASS)
@@ -278,8 +278,8 @@ META_END(STREAM_CLASS)
 
 bool_t FileExists(nodecontext *p,const tchar_t* Path)
 {
-	struct stat file_stats;
-	return stat(Path, &file_stats) == 0;
+    struct stat file_stats;
+    return stat(Path, &file_stats) == 0;
 }
 
 bool_t FileErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
@@ -296,7 +296,7 @@ bool_t FileErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
             }
         }
     }
-	return unlink(Path) == 0;
+    return unlink(Path) == 0;
 }
 
 bool_t FolderErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
@@ -313,26 +313,26 @@ bool_t FolderErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe
             }
         }
     }
-	return rmdir(Path) == 0;
+    return rmdir(Path) == 0;
 }
 
 bool_t PathIsFolder(nodecontext *p,const tchar_t* Path)
 {
-	struct stat file_stats;
-	if (stat(Path, &file_stats) == 0)
-	{
-		return (file_stats.st_mode & S_IFDIR) == S_IFDIR;
-	}
-	return 0;
+    struct stat file_stats;
+    if (stat(Path, &file_stats) == 0)
+    {
+        return (file_stats.st_mode & S_IFDIR) == S_IFDIR;
+    }
+    return 0;
 }
 
 datetime_t FileDateTime(nodecontext *p,const tchar_t* Path)
 {
-	datetime_t Date = INVALID_DATETIME_T;
-	struct stat file_stats;
-	if (stat(Path, &file_stats) == 0)
-		Date = LinuxToDateTime(file_stats.st_mtime);
-	return Date;
+    datetime_t Date = INVALID_DATETIME_T;
+    struct stat file_stats;
+    if (stat(Path, &file_stats) == 0)
+        Date = LinuxToDateTime(file_stats.st_mtime);
+    return Date;
 }
 
 bool_t FileMove(nodecontext *p,const tchar_t* In,const tchar_t* Out)
@@ -342,7 +342,7 @@ bool_t FileMove(nodecontext *p,const tchar_t* In,const tchar_t* Out)
 
 bool_t FolderCreate(nodecontext *p,const tchar_t* Path)
 {
-	return mkdir(Path,_RW_ACCESS_DIR) == 0;
+    return mkdir(Path,_RW_ACCESS_DIR) == 0;
 }
 
 void FindFiles(nodecontext *p,const tchar_t* Path, const tchar_t* Mask,void(*Process)(const tchar_t*,void*),void* Param)
@@ -396,7 +396,7 @@ int64_t GetPathFreeSpace(nodecontext* UNUSED_PARAM(p), const tchar_t* Path)
     // need to an include (see at includes)
     struct statfs st;
     if (statfs(Path, &st) < 0)
-    	return -1;
+        return -1;
     return (int64_t)st.f_bsize * (int64_t)st.f_bavail;
 #else
     return -1;

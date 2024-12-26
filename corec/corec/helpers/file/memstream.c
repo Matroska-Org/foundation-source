@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -32,7 +32,7 @@
 static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
 {
     err_t Err = ERR_NONE;
-	size_t Pos = p->Pos;
+    size_t Pos = p->Pos;
     assert(Pos <= p->Size);
 
     if (Size > p->Size - Pos)
@@ -41,13 +41,13 @@ static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
         Err = ERR_END_OF_FILE;
     }
 
-	memcpy(Data,p->Ptr+Pos,Size);
-	p->Pos = Pos+Size;
+    memcpy(Data,p->Ptr+Pos,Size);
+    p->Pos = Pos+Size;
 
     if (Readed)
         *Readed = Size;
 
-	return Err;
+    return Err;
 }
 
 static err_t MemWrite(memstream* p, const void* Data, size_t Size, size_t* Written)
@@ -56,7 +56,7 @@ static err_t MemWrite(memstream* p, const void* Data, size_t Size, size_t* Writt
     if (Size + p->Pos > p->Size)
         return ERR_INVALID_PARAM;
     assert(p->Ptr!=NULL);
-	memcpy((uint8_t*)p->Ptr + p->Pos, Data, Size);
+    memcpy((uint8_t*)p->Ptr + p->Pos, Data, Size);
     p->Pos += Size;
     *Written = Size;
     return ERR_NONE;
@@ -64,19 +64,19 @@ static err_t MemWrite(memstream* p, const void* Data, size_t Size, size_t* Writt
 
 static filepos_t MemSeek(memstream* p,filepos_t VirtualPos,int SeekMode)
 {
-	switch (SeekMode)
-	{
-	default:
-	case SEEK_SET: break;
-	case SEEK_CUR: VirtualPos += p->Pos + p->VirtualOffset; break;
-	case SEEK_END: VirtualPos += p->Size + p->VirtualOffset; break;
-	}
+    switch (SeekMode)
+    {
+    default:
+    case SEEK_SET: break;
+    case SEEK_CUR: VirtualPos += p->Pos + p->VirtualOffset; break;
+    case SEEK_END: VirtualPos += p->Size + p->VirtualOffset; break;
+    }
 
     // TODO: these safety checks should return an error
-	if (VirtualPos<0)
+    if (VirtualPos<0)
     {
         assert(VirtualPos>=0);
-		VirtualPos=0;
+        VirtualPos=0;
     }
 
     if (VirtualPos>(filepos_t)p->Size + p->VirtualOffset)
@@ -86,7 +86,7 @@ static filepos_t MemSeek(memstream* p,filepos_t VirtualPos,int SeekMode)
     }
 
     p->Pos = (size_t)(VirtualPos - p->VirtualOffset);
-	return VirtualPos;
+    return VirtualPos;
 }
 
 static err_t MemLength(memstream* p, dataid UNUSED_PARAM(Id), filepos_t* Data, size_t UNUSED_PARAM(Size))
@@ -98,10 +98,10 @@ static err_t MemLength(memstream* p, dataid UNUSED_PARAM(Id), filepos_t* Data, s
 static err_t MemData(memstream* p, dataid UNUSED_PARAM(Id), const void* Data, size_t Size)
 {
     assert(Size==0 || Data!=NULL);
-	p->Ptr = (const uint8_t*)Data;
-	p->Size = Size;
+    p->Ptr = (const uint8_t*)Data;
+    p->Size = Size;
     p->Pos = 0;
-	return ERR_NONE;
+    return ERR_NONE;
 }
 
 META_START(MemStream_Class,MEMSTREAM_CLASS)

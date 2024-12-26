@@ -57,11 +57,11 @@ static err_t ReadDataInt(ebml_integer *Element, stream *Input, const ebml_parser
         return Result;
 
     Element->Value = 0;
-	for (i=0; i<(int)Element->Base.DataSize; i++)
-	{
-		Element->Value <<= 8;
-		Element->Value |= (uint8_t)Buffer[i];
-	}
+    for (i=0; i<(int)Element->Base.DataSize; i++)
+    {
+        Element->Value <<= 8;
+        Element->Value |= (uint8_t)Buffer[i];
+    }
     Element->Base.bValueIsSet = 1;
 failed:
     return Result;
@@ -99,11 +99,11 @@ static err_t ReadDataSignedInt(ebml_integer *Element, stream *Input, const ebml_
         Element->Value = -1;
     else
         Element->Value = 0;
-	for (i=0; i<(int)Element->Base.DataSize; i++)
-	{
-		Element->Value <<= 8;
-		Element->Value |= Buffer[i];
-	}
+    for (i=0; i<(int)Element->Base.DataSize; i++)
+    {
+        Element->Value <<= 8;
+        Element->Value |= Buffer[i];
+    }
     Element->Base.bValueIsSet = 1;
 failed:
     return Result;
@@ -112,18 +112,18 @@ failed:
 #if defined(CONFIG_EBML_WRITING)
 static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
-	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
-	size_t i;
-	int64_t TempValue = Element->Value;
+    uint8_t FinalData[8]; // we don't handle more than 64 bits integers
+    size_t i;
+    int64_t TempValue = Element->Value;
     err_t Err;
 
-	if (Element->Base.SizeLength > EBML_MAX_SIZE)
-		return 0; // integers larger than 64 bits are not supported
+    if (Element->Base.SizeLength > EBML_MAX_SIZE)
+        return 0; // integers larger than 64 bits are not supported
 
     if (Element->Base.DataSize == 0)
         return 0; // nothing to write
 
-	TempValue = Element->Value;
+    TempValue = Element->Value;
     if (Element->Base.DefaultSize > Element->Base.DataSize)
     {
         for (i=Element->Base.DefaultSize - (int)Element->Base.DataSize - 1;i;--i)
@@ -132,10 +132,10 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
     }
     else
         i=(size_t)Element->Base.DataSize;
-	for (;i;--i) {
-		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
-		TempValue >>= 8;
-	}
+    for (;i;--i) {
+        FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
+        TempValue >>= 8;
+    }
 
     if (Element->Base.DefaultSize > Element->Base.DataSize)
         Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
@@ -148,18 +148,18 @@ static err_t RenderDataSignedInt(ebml_integer *Element, stream *Output, bool_t b
 
 static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
-	uint8_t FinalData[8]; // we don't handle more than 64 bits integers
-	size_t i;
-	uint64_t TempValue = Element->Value;
+    uint8_t FinalData[8]; // we don't handle more than 64 bits integers
+    size_t i;
+    uint64_t TempValue = Element->Value;
     err_t Err;
 
-	if (Element->Base.SizeLength > EBML_MAX_SIZE)
-		return 0; // integers larger than 64 bits are not supported
+    if (Element->Base.SizeLength > EBML_MAX_SIZE)
+        return 0; // integers larger than 64 bits are not supported
 
     if (Element->Base.DataSize == 0)
         return 0; // nothing to write
 
-	TempValue = Element->Value;
+    TempValue = Element->Value;
     if (Element->Base.DefaultSize > Element->Base.DataSize)
     {
         for (i=Element->Base.DefaultSize - (int)Element->Base.DataSize - 1;i;--i)
@@ -168,10 +168,10 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceW
     }
     else
         i=(size_t)Element->Base.DataSize;
-	for (;i;--i) {
-		FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
-		TempValue >>= 8;
-	}
+    for (;i;--i) {
+        FinalData[i-1] = (uint8_t)(TempValue & 0xFF);
+        TempValue >>= 8;
+    }
 
     if (Element->Base.DefaultSize > Element->Base.DataSize)
         Err = Stream_Write(Output,FinalData,(size_t)Element->Base.DefaultSize,&i);
@@ -185,7 +185,7 @@ static err_t RenderDataInt(ebml_integer *Element, stream *Output, bool_t bForceW
 static err_t RenderDataFloat(ebml_float *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     err_t Err;
-	size_t i = 0;
+    size_t i = 0;
     if (Element->Base.DataSize == 8)
     {
         union {
@@ -229,7 +229,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
     uint8_t Value[8];
     err_t Result;
 
-	assert(Element->Base.DataSize == 8 || Element->Base.DataSize == 4);
+    assert(Element->Base.DataSize == 8 || Element->Base.DataSize == 4);
 
     Element->Base.bValueIsSet = 0;
 
@@ -251,7 +251,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
     if (Result != ERR_NONE)
         goto failed;
 
-	if (Element->Base.DataSize == 4) {
+    if (Element->Base.DataSize == 4) {
         union {
             float f;
             uint32_t i;
@@ -259,7 +259,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
         data.i = LOAD32BE(Value);
         Element->Value = data.f;
         Element->Base.bValueIsSet = 1;
-	} else if (Element->Base.DataSize == 8) {
+    } else if (Element->Base.DataSize == 8) {
         union {
             double f;
             uint64_t i;
@@ -267,7 +267,7 @@ static err_t ReadDataFloat(ebml_float *Element, stream *Input, const ebml_parser
         data.i = LOAD64BE(Value);
         Element->Value = data.f;
         Element->Base.bValueIsSet = 1;
-	} else
+    } else
         Result = ERR_INVALID_PARAM;
 failed:
     return Result;
@@ -287,50 +287,50 @@ static filepos_t UpdateSizeSignedInt(ebml_integer *Element, bool_t bWithDefault,
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
-	    if (Element->Value <= 0x7F && Element->Value >= (-0x80)) {
-		    Element->Base.DataSize = 1;
-	    } else if (Element->Value <= 0x7FFF && Element->Value >= (-0x8000)) {
-		    Element->Base.DataSize = 2;
-	    } else if (Element->Value <= 0x7FFFFF && Element->Value >= (-0x800000)) {
-		    Element->Base.DataSize = 3;
-	    } else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= -(int64_t)(0x80000000)) {
-		    Element->Base.DataSize = 4;
-	    } else if (Element->Value <= 0x7FFFFFFFFF && Element->Value >= (-0x8000000000)) {
-		    Element->Base.DataSize = 5;
-	    } else if (Element->Value <= 0x7FFFFFFFFFFF && Element->Value >= (-0x800000000000)) {
-		    Element->Base.DataSize = 6;
-	    } else if (Element->Value <= 0x7FFFFFFFFFFFFF && Element->Value >= (-0x80000000000000)) {
-		    Element->Base.DataSize = 7;
-	    } else
-		    Element->Base.DataSize = 8;
+        if (Element->Value <= 0x7F && Element->Value >= (-0x80)) {
+            Element->Base.DataSize = 1;
+        } else if (Element->Value <= 0x7FFF && Element->Value >= (-0x8000)) {
+            Element->Base.DataSize = 2;
+        } else if (Element->Value <= 0x7FFFFF && Element->Value >= (-0x800000)) {
+            Element->Base.DataSize = 3;
+        } else if (Element->Value <= (int64_t)(0x7FFFFFFF) && Element->Value >= -(int64_t)(0x80000000)) {
+            Element->Base.DataSize = 4;
+        } else if (Element->Value <= 0x7FFFFFFFFF && Element->Value >= (-0x8000000000)) {
+            Element->Base.DataSize = 5;
+        } else if (Element->Value <= 0x7FFFFFFFFFFF && Element->Value >= (-0x800000000000)) {
+            Element->Base.DataSize = 6;
+        } else if (Element->Value <= 0x7FFFFFFFFFFFFF && Element->Value >= (-0x80000000000000)) {
+            Element->Base.DataSize = 7;
+        } else
+            Element->Base.DataSize = 8;
     }
 
-	return INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
+    return INHERITED(Element,ebml_element_vmt,EBML_SINTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
 static filepos_t UpdateSizeInt(ebml_integer *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
 {
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
     {
-	    if ((uint64_t)Element->Value <= 0xFF) {
-		    Element->Base.DataSize = 1;
-	    } else if ((uint64_t)Element->Value <= 0xFFFF) {
-		    Element->Base.DataSize = 2;
-	    } else if ((uint64_t)Element->Value <= 0xFFFFFF) {
-		    Element->Base.DataSize = 3;
-	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFF) {
-		    Element->Base.DataSize = 4;
-	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFF) {
-		    Element->Base.DataSize = 5;
-	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFF) {
-		    Element->Base.DataSize = 6;
-	    } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFFFF) {
-		    Element->Base.DataSize = 7;
-	    } else
-		    Element->Base.DataSize = 8;
+        if ((uint64_t)Element->Value <= 0xFF) {
+            Element->Base.DataSize = 1;
+        } else if ((uint64_t)Element->Value <= 0xFFFF) {
+            Element->Base.DataSize = 2;
+        } else if ((uint64_t)Element->Value <= 0xFFFFFF) {
+            Element->Base.DataSize = 3;
+        } else if ((uint64_t)Element->Value <= 0xFFFFFFFF) {
+            Element->Base.DataSize = 4;
+        } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFF) {
+            Element->Base.DataSize = 5;
+        } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFF) {
+            Element->Base.DataSize = 6;
+        } else if ((uint64_t)Element->Value <= 0xFFFFFFFFFFFFFF) {
+            Element->Base.DataSize = 7;
+        } else
+            Element->Base.DataSize = 8;
     }
 
-	return INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
+    return INHERITED(Element,ebml_element_vmt,EBML_INTEGER_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
 static void PostCreateInt(ebml_element *Element, bool_t SetDefault, int ForProfile)

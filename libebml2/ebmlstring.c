@@ -51,18 +51,18 @@ err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
 
 void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
 {
-	if (!Element->Buffer)
-	{
-		if (OutLen)
-			*Out = 0;
-	}
-	else
-	{
-		if (Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
-			Node_FromUTF8(Element,Out,OutLen,Element->Buffer);
-		else
-			Node_FromStr(Element,Out,OutLen,Element->Buffer);
-	}
+    if (!Element->Buffer)
+    {
+        if (OutLen)
+            *Out = 0;
+    }
+    else
+    {
+        if (Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
+            Node_FromUTF8(Element,Out,OutLen,Element->Buffer);
+        else
+            Node_FromStr(Element,Out,OutLen,Element->Buffer);
+    }
 }
 
 static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
@@ -168,7 +168,7 @@ static filepos_t UpdateDataSize(ebml_string *Element, bool_t bWithDefault, bool_
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
         Element->Base.DataSize = strlen(Element->Buffer);
 
-	return INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
+    return INHERITED(Element,ebml_element_vmt,EBML_STRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
 static filepos_t UpdateDataSizeUni(ebml_string *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
@@ -176,7 +176,7 @@ static filepos_t UpdateDataSizeUni(ebml_string *Element, bool_t bWithDefault, bo
     if (EBML_ElementNeedsDataSizeUpdate(Element, bWithDefault))
         Element->Base.DataSize = strlen(Element->Buffer);
 
-	return INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
+    return INHERITED(Element,ebml_element_vmt,EBML_UNISTRING_CLASS)->UpdateDataSize(Element, bWithDefault, bForceWithoutMandatory, ForProfile);
 }
 
 static bool_t IsDefaultValue(const ebml_string *Element)

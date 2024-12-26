@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -33,12 +33,12 @@
 
 typedef struct bufstream
 {
-	stream Base;
-	stream* Stream;
+    stream Base;
+    stream* Stream;
     size_t ReadPos;
     size_t ReadSize;
     size_t WritePos;
-	uint8_t Buffer[BUFSTREAM_SIZE];
+    uint8_t Buffer[BUFSTREAM_SIZE];
 
 } bufstream;
 
@@ -68,7 +68,7 @@ static void BufDelete(bufstream* p)
 {
     BufFlush(p);
     if (p->Stream)
-    	NodeDelete((node*)p->Stream);
+        NodeDelete((node*)p->Stream);
 }
 
 static err_t BufRead(bufstream* p,uint8_t* Data,size_t Size,size_t* Readed)
@@ -108,7 +108,7 @@ static err_t BufRead(bufstream* p,uint8_t* Data,size_t Size,size_t* Readed)
 
     if (Pos >= Size)
         Err = ERR_NONE; //override possible end of file in later of the buffer
-	return Err;
+    return Err;
 }
 
 static err_t BufWrite(bufstream* p,const uint8_t* Data,size_t Size,size_t* Written)
@@ -139,7 +139,7 @@ static err_t BufWrite(bufstream* p,const uint8_t* Data,size_t Size,size_t* Writt
 
     if (Written)
         *Written = Pos;
-	return Err;
+    return Err;
 }
 
 META_START(BufStream_Class,BUFSTREAM_CLASS)

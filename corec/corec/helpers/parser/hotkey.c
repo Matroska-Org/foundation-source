@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -117,16 +117,16 @@ void HotKeyToString(tchar_t* Out, size_t OutLen, uint32_t HotKey, hotkeygetname 
             return;
         }
 
-	if ((HotKey >= '0' && HotKey <= '9') || (HotKey >= 'A' && HotKey <= 'Z'))
-		stcatprintf_s(Out,OutLen,T("%c"),HotKey);
+    if ((HotKey >= '0' && HotKey <= '9') || (HotKey >= 'A' && HotKey <= 'Z'))
+        stcatprintf_s(Out,OutLen,T("%c"),HotKey);
     else
     if (HotKey >= HOTKEY_FUNC_FIRST && HotKey <= HOTKEY_FUNC_LAST)
-		stcatprintf_s(Out,OutLen,T("F%d"),HotKey-HOTKEY_FUNC_FIRST+1);
+        stcatprintf_s(Out,OutLen,T("F%d"),HotKey-HOTKEY_FUNC_FIRST+1);
     else
     if (HotKey >= HOTKEY_APP_FIRST && HotKey <= HOTKEY_APP_LAST)
         stcatprintf_s(Out,OutLen,GetHotKeyName(i+1,GetName,GetNameParam),HotKey-HOTKEY_APP_FIRST+1);
     else
-		stcatprintf_s(Out,OutLen,T("#%02X"),HotKey);
+        stcatprintf_s(Out,OutLen,T("#%02X"),HotKey);
 }
 
 uint32_t StringToHotKey(const tchar_t* In)
@@ -175,5 +175,5 @@ uint32_t StringToHotKey(const tchar_t* In)
         return HotKey | (HOTKEY_APP_FIRST + StringToInt(In+n,0) - 1);
     }
 
-	return HotKey | In[0];
+    return HotKey | In[0];
 }

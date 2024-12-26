@@ -145,13 +145,13 @@ void ArrayInitEx(array* p,const cc_memheap* Heap)
 
 NOINLINE void ArrayClear(array* p)
 {
-	Data_Clear(&p->_Begin);
-	p->_End = p->_Begin;
+    Data_Clear(&p->_Begin);
+    p->_End = p->_Begin;
 }
 
 void ArrayDrop(array* p)
 {
-	p->_End = p->_Begin;
+    p->_End = p->_Begin;
 }
 
 static size_t SizeAlign(size_t Total, size_t Align)
@@ -163,7 +163,7 @@ static size_t SizeAlign(size_t Total, size_t Align)
                 break;
     }
     --Align;
-	return (Total + Align) & ~Align;
+    return (Total + Align) & ~Align;
 }
 
 bool_t ArrayAlloc(array* p,size_t Total,size_t Align)
@@ -171,8 +171,8 @@ bool_t ArrayAlloc(array* p,size_t Total,size_t Align)
     size_t Size = ArraySize(p);
     if (!Data_ReAlloc(&p->_Begin,SizeAlign(Total,Align)))
         return 0;
-	p->_End = p->_Begin + Size;
-	return 1;
+    p->_End = p->_Begin + Size;
+    return 1;
 }
 
 void ArrayShrink(array* p, size_t Length)
@@ -184,9 +184,9 @@ void ArrayShrink(array* p, size_t Length)
 
 bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Width, size_t Align)
 {
-	if (!ArrayAppend(p,NULL,Width,Align))
-		return 0;
-	memmove(p->_Begin+Ofs+Width,p->_Begin+Ofs,(p->_End-p->_Begin)-Width-Ofs);
+    if (!ArrayAppend(p,NULL,Width,Align))
+        return 0;
+    memmove(p->_Begin+Ofs+Width,p->_Begin+Ofs,(p->_End-p->_Begin)-Width-Ofs);
     if (Ptr)
         memcpy(p->_Begin+Ofs,Ptr,Width);
     return 1;
@@ -194,8 +194,8 @@ bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Width, size_t A
 
 void ArrayDelete(array* p, size_t Ofs, size_t Width)
 {
-	memmove(p->_Begin+Ofs,p->_Begin+Ofs+Width,(p->_End-p->_Begin)-Width-Ofs);
-	p->_End -= Width;
+    memmove(p->_Begin+Ofs,p->_Begin+Ofs+Width,(p->_End-p->_Begin)-Width-Ofs);
+    p->_End -= Width;
 }
 
 bool_t ArrayAppendStr(array* p, const tchar_t* Ptr, bool_t Merge, size_t Align)
@@ -212,13 +212,13 @@ bool_t ArrayAppendStr(array* p, const tchar_t* Ptr, bool_t Merge, size_t Align)
 
 bool_t ArrayAppend(array* p, const void* Ptr, size_t Length, size_t Align)
 {
-	size_t Total = p->_End - p->_Begin + Length;
-	if (Total > Data_Size(p->_Begin) && !ArrayAlloc(p,Total,Align))
-		return 0;
-	if (Ptr)
-		memcpy(p->_End,Ptr,Length);
-	p->_End += Length;
-	return 1;
+    size_t Total = p->_End - p->_Begin + Length;
+    if (Total > Data_Size(p->_Begin) && !ArrayAlloc(p,Total,Align))
+        return 0;
+    if (Ptr)
+        memcpy(p->_End,Ptr,Length);
+    p->_End += Length;
+    return 1;
 }
 
 bool_t ArrayEq(const array* a, const array* b)
@@ -261,72 +261,72 @@ static INLINE void InQSortSwap(uint_fast32_t* a, uint_fast32_t* b)
 
 static NOINLINE void InQSort(uint_fast32_t* First, uint_fast32_t* Last, arraycmp Cmp, const void* CmpParam)
 {
-	while (Last > First + QSORTMINLEN)
-	{
+    while (Last > First + QSORTMINLEN)
+    {
         uint_fast32_t* Mid = First + ((Last - First)>>1);
         uint_fast32_t* Ref = First;
         uint_fast32_t* Left;
         uint_fast32_t* Right;
 
-		if (Cmp(CmpParam,First,Last) < 0)
-		{
-			if (Cmp(CmpParam,Last,Mid) < 0)
-				Ref = Last;
-			else
-			if (Cmp(CmpParam,First,Mid) < 0)
-				Ref = Mid;
-		}
-		else
-		if (Cmp(CmpParam,First,Mid) >= 0)
-		{
-			if (Cmp(CmpParam,Last,Mid) < 0)
-				Ref = Mid;
-			else
-				Ref = Last;
-		}
+        if (Cmp(CmpParam,First,Last) < 0)
+        {
+            if (Cmp(CmpParam,Last,Mid) < 0)
+                Ref = Last;
+            else
+            if (Cmp(CmpParam,First,Mid) < 0)
+                Ref = Mid;
+        }
+        else
+        if (Cmp(CmpParam,First,Mid) >= 0)
+        {
+            if (Cmp(CmpParam,Last,Mid) < 0)
+                Ref = Mid;
+            else
+                Ref = Last;
+        }
 
-		if (Ref != First)
+        if (Ref != First)
             InQSortSwap(First,Ref);
 
-		Left = First;
-		Right = Last+1;
+        Left = First;
+        Right = Last+1;
 
-		for (;;)
-		{
-			while (++Left < Last && Cmp(CmpParam,First,Left) > 0) {}
-
-			while (Cmp(CmpParam,First,--Right) < 0) {}
-
-			if (Left >= Right)
-				break;
-
-			InQSortSwap(Left,Right);
-		}
-
-		if (Right == First)
+        for (;;)
         {
-			++First;
+            while (++Left < Last && Cmp(CmpParam,First,Left) > 0) {}
+
+            while (Cmp(CmpParam,First,--Right) < 0) {}
+
+            if (Left >= Right)
+                break;
+
+            InQSortSwap(Left,Right);
         }
-		else
-		{
-			InQSortSwap(First,Right);
 
-			--Right;
+        if (Right == First)
+        {
+            ++First;
+        }
+        else
+        {
+            InQSortSwap(First,Right);
 
-			if (Right - First < Last - Left)
-			{
-				if (Right > QSORTMINLEN + First)
-					InQSort(First,Right,Cmp,CmpParam);
-				First = Left;
-			}
-			else
+            --Right;
+
+            if (Right - First < Last - Left)
             {
-				if (Last > QSORTMINLEN + Left)
-					InQSort(Left,Last,Cmp,CmpParam);
-				Last = Right;
-			}
-		}
-	}
+                if (Right > QSORTMINLEN + First)
+                    InQSort(First,Right,Cmp,CmpParam);
+                First = Left;
+            }
+            else
+            {
+                if (Last > QSORTMINLEN + Left)
+                    InQSort(Left,Last,Cmp,CmpParam);
+                Last = Right;
+            }
+        }
+    }
 }
 
 void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void* CmpParam, bool_t Unique)
@@ -342,11 +342,11 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
             uint_fast32_t* i;
             uint_fast32_t* j;
 
-		    InQSort(ARRAYBEGIN(*p,uint_fast32_t), End-1, Cmp, CmpParam);
+            InQSort(ARRAYBEGIN(*p,uint_fast32_t), End-1, Cmp, CmpParam);
 
             j = ARRAYBEGIN(*p,uint_fast32_t);
-		    for (i=j+1; i!=End; ++i)
-		    {
+            for (i=j+1; i!=End; ++i)
+            {
                 if (Cmp(CmpParam,i,j) < 0)
                 {
                     uint_fast32_t Tmp = *i;
@@ -360,18 +360,18 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
                     j[1] = Tmp;
                 }
                 j = i;
-		    }
+            }
 
             if (Unique)
             {
-		        j = ARRAYBEGIN(*p,uint_fast32_t);
-		        for (i=j+1; i!=End; ++i)
-		        {
-			        if (Cmp(CmpParam,i,j) != 0)
+                j = ARRAYBEGIN(*p,uint_fast32_t);
+                for (i=j+1; i!=End; ++i)
+                {
+                    if (Cmp(CmpParam,i,j) != 0)
                         *(++j) = *i;
-		        }
-		        p->_End = (uint8_t*)(j+1);
-	        }
+                }
+                p->_End = (uint8_t*)(j+1);
+            }
         }
         else
         {
@@ -383,8 +383,8 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
             uint8_t* j;
 
             j = p->_Begin;
-		    for (i=j+Width; i!=End; i+=Width)
-		    {
+            for (i=j+Width; i!=End; i+=Width)
+            {
                 if (Cmp(CmpParam,i,j) < 0)
                 {
                     memcpy(Tmp,i,Width);
@@ -402,24 +402,24 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
                     memcpy(j+Width,Tmp,Width);
                 }
                 j = i;
-		    }
+            }
 
             if (Unique)
             {
-		        j = p->_Begin;
-		        for (i=j+Width; i!=End; i+=Width)
-		        {
-			        if (Cmp(CmpParam,i,j) != 0)
+                j = p->_Begin;
+                for (i=j+Width; i!=End; i+=Width)
+                {
+                    if (Cmp(CmpParam,i,j) != 0)
                     {
                         j += Width;
                         memcpy(j,i,Width);
                     }
-		        }
-		        p->_End = j+Width;
-	        }
+                }
+                p->_End = j+Width;
+            }
         }
 
-	}
+    }
 }
 
 intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Data, arraycmp Cmp, const void* CmpParam, bool_t* Found)
@@ -436,81 +436,81 @@ intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Dat
         assert(Count*Width == ArraySize(p));
     }
 
-	if (Cmp)
-	{
-		int i;
-		intptr_t Mid = 0;
-		intptr_t Lower = 0;
-		intptr_t Upper = Count-1;
+    if (Cmp)
+    {
+        int i;
+        intptr_t Mid = 0;
+        intptr_t Lower = 0;
+        intptr_t Upper = Count-1;
 
-		while (Upper >= Lower)
-		{
-			Mid = (Upper + Lower) >> 1;
+        while (Upper >= Lower)
+        {
+            Mid = (Upper + Lower) >> 1;
 
-			i = Cmp(CmpParam,p->_Begin+Width*Mid,Data);
-			if (i>0)
-				Upper = Mid-1;
-			else if (i<0)
-				Lower = Mid+1;
-			else
-			{
-				*Found = 1;
-				return Mid;
-			}
-		}
+            i = Cmp(CmpParam,p->_Begin+Width*Mid,Data);
+            if (i>0)
+                Upper = Mid-1;
+            else if (i<0)
+                Lower = Mid+1;
+            else
+            {
+                *Found = 1;
+                return Mid;
+            }
+        }
 
-		*Found = 0;
+        *Found = 0;
 
-		if (Upper == Mid - 1)
-			return Mid;
-		else
-			return Lower;
-	}
-	else
-	{
-		intptr_t No = 0;
-		const uint8_t* i;
-		for (i=p->_Begin;Count--;i+=Width,++No)
-			if (memcmp(i,Data,Width)==0)
-			{
-				*Found = 1;
-				return No;
-			}
+        if (Upper == Mid - 1)
+            return Mid;
+        else
+            return Lower;
+    }
+    else
+    {
+        intptr_t No = 0;
+        const uint8_t* i;
+        for (i=p->_Begin;Count--;i+=Width,++No)
+            if (memcmp(i,Data,Width)==0)
+            {
+                *Found = 1;
+                return No;
+            }
 
-		*Found = 0;
-		return No;
-	}
+        *Found = 0;
+        return No;
+    }
 }
 
 intptr_t ArrayAddEx(array* p,size_t Count, size_t Width, const void* Data, arraycmp Cmp, const void* CmpParam, size_t Align)
 {
-	intptr_t Pos;
-	bool_t Found;
+    intptr_t Pos;
+    bool_t Found;
 
-	Pos = ArrayFindEx(p,Count,Width,Data,Cmp,CmpParam,&Found);
-	if (!Found)
+    Pos = ArrayFindEx(p,Count,Width,Data,Cmp,CmpParam,&Found);
+    if (!Found)
     {
         if (!ArrayInsert(p,Width*Pos,Data,Width,Align))
             return -1;
     }
     else
-    	memcpy(p->_Begin+Width*Pos,Data,Width);
+        memcpy(p->_Begin+Width*Pos,Data,Width);
 
-	return Pos;
+    return Pos;
 }
 
 bool_t ArrayRemoveEx(array* p, size_t Count, size_t Width, const void* Data, arraycmp Cmp, const void* CmpParam)
 {
-	bool_t Found;
-	size_t Pos = ArrayFindEx(p,Count,Width,Data,Cmp,CmpParam,&Found);
-	if (Found)
+    bool_t Found;
+    size_t Pos = ArrayFindEx(p,Count,Width,Data,Cmp,CmpParam,&Found);
+    if (Found)
         ArrayDelete(p,Pos*Width,Width);
-	return Found;
+    return Found;
 }
 
 static INLINE uint32_t Rand(uint32_t RndSeed)
 {
-	return RndSeed*0x8088405U + 0x251001U;
+    return RndSeed*0x8088405U + 0x251001U;
 }
 
 void ArrayRandomize(array* Array,size_t Width,uint32_t RndSeed)
@@ -529,7 +529,7 @@ void ArrayRandomize(array* Array,size_t Width,uint32_t RndSeed)
 
 void Fifo_Clear(cc_fifo* p)
 {
-	ArrayClear(&p->_Base);
+    ArrayClear(&p->_Base);
     p->_Read = NULL;
 }
 
@@ -544,8 +544,8 @@ bool_t Fifo_Alloc(cc_fifo* p, size_t Total, size_t Align)
 
 void Fifo_Drop(cc_fifo* p)
 {
-	ArrayDrop(&p->_Base);
-	p->_Read = p->_Base._Begin;
+    ArrayDrop(&p->_Base);
+    p->_Read = p->_Base._Begin;
 }
 
 uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
