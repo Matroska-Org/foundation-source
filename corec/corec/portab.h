@@ -552,9 +552,4 @@ typedef int systick_t;
 #endif
 #define INVALID_SYSTICK_T  ((systick_t)-1)
 
-#if defined(CONFIG_SAFE_C)
-// change the low level APIs to be safer on windows and other OSes
-#include "banned.h"
-#endif /* CONFIG_SAFE_C */
-
 #endif

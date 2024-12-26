@@ -2,7 +2,6 @@
 #cmakedefine CONFIG_DEBUG_LEAKS
 #cmakedefine CONFIG_STDIO
 #cmakedefine CONFIG_MULTITHREAD
-#cmakedefine CONFIG_SAFE_C
 
 #define @CONFIG_UNICODE_MODE@
 
