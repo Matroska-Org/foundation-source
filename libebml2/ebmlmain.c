@@ -611,7 +611,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
                     assert(_SizeLength <= 8);
                     Result->SizeLength = (int8_t)_SizeLength;
                     Result->DataSize = SizeFound;
-                    Result->EndPosition = (SizeFound == SizeUnknown) ? Context->EndPosition : CurrentPos - SizeIdx + PossibleID_Length + _SizeLength + SizeFound;
+                    Result->EndPosition = (SizeFound == SizeUnknown) ? Context->EndPosition : (filepos_t)(CurrentPos - SizeIdx + PossibleID_Length + _SizeLength + SizeFound);
                     EBML_ElementSetInfiniteSize(Result, SizeFound == SizeUnknown);
 
                     if (AllowDummyElt && !EBML_ElementValidateSize(Result) && !EBML_ElementIsDummy(Result))
@@ -621,7 +621,7 @@ ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pCo
                         Result = CreateElement(Input, PossibleIdNSize, PossibleID_Length, &EBML_ContextDummy, NULL, EBML_ANY_PROFILE);
                         Result->SizeLength = (int8_t)_SizeLength;
                         Result->DataSize = SizeFound;
-                        Result->EndPosition = (SizeFound == SizeUnknown) ? Context->EndPosition : CurrentPos - SizeIdx + PossibleID_Length + _SizeLength + SizeFound;
+                        Result->EndPosition = (SizeFound == SizeUnknown) ? Context->EndPosition : (filepos_t)(CurrentPos - SizeIdx + PossibleID_Length + _SizeLength + SizeFound);
                         EBML_ElementSetInfiniteSize(Result, SizeFound == SizeUnknown);
                     }
 
