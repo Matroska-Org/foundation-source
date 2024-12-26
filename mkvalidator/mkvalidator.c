@@ -635,7 +635,7 @@ static int CheckVideoStart(int ProfileNum)
     int Result = 0;
     ebml_master **Cluster;
     ebml_element *Block, *GBlock;
-    int16_t BlockNum;
+    uint16_t BlockNum;
     mkv_timestamp_t ClusterTimestamp;
     array TrackKeyframe;
     array TrackFirstKeyframePos;
@@ -815,7 +815,7 @@ static int CheckCueEntries(ebml_master *Cues)
 {
     int Result = 0;
     mkv_timestamp_t TimestampEntry, PrevTimestamp = INVALID_TIMESTAMP_T;
-    int16_t TrackNumEntry;
+    uint16_t TrackNumEntry;
     matroska_cluster **Cluster;
     matroska_block *Block;
     int ClustNum = 0;

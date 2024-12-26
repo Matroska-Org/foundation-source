@@ -709,7 +709,7 @@ mkv_timestamp_t MATROSKA_BlockTimestamp(matroska_block *Block)
     return Block->GlobalTimestamp;
 }
 
-int16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
+uint16_t MATROSKA_BlockTrackNum(const matroska_block *Block)
 {
     assert(Node_IsPartOf(Block,MATROSKA_BLOCK_CLASS));
     assert(Block->LocalTimestampUsed);
@@ -770,7 +770,7 @@ bool_t MATROSKA_BlockLaced(const matroska_block *Block)
     return Block->Lacing != LACING_NONE;
 }
 
-int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
+uint16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
 {
     ebml_master *Position;
     ebml_integer *CueTrack;
@@ -781,7 +781,7 @@ int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue)
     CueTrack = (ebml_integer*)EBML_MasterFindChild(Position,MATROSKA_getContextCueTrack());
     if (!CueTrack)
         return -1;
-    return (int16_t)EBML_IntegerValue(CueTrack);
+    return (uint16_t)EBML_IntegerValue(CueTrack);
 }
 
 void MATROSKA_CuesSort(ebml_master *Cues)

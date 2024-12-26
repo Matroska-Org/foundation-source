@@ -101,13 +101,13 @@ MATROSKA_DLL mkv_timestamp_t MATROSKA_ClusterTimestampScale(matroska_cluster *Cl
 MATROSKA_DLL mkv_timestamp_t MATROSKA_BlockTimestamp(matroska_block *Block);
 MATROSKA_DLL mkv_timestamp_t MATROSKA_CueTimestamp(const matroska_cuepoint *Cue);
 MATROSKA_DLL filepos_t MATROSKA_CuePosInSegment(const matroska_cuepoint *Cue);
-MATROSKA_DLL int16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
+MATROSKA_DLL uint16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockDiscardable(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockLaced(const matroska_block *Block);
 MATROSKA_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input, int ForProfile);
 MATROSKA_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block, bool_t IncludingNotRead);
-MATROSKA_DLL int16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
+MATROSKA_DLL uint16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
 MATROSKA_DLL void MATROSKA_CuesSort(ebml_master *Cues);
 MATROSKA_DLL void MATROSKA_AttachmentSort(ebml_master *Attachments);
 MATROSKA_DLL fourcc_t MATROSKA_MetaSeekID(const matroska_seekpoint *MetaSeek);
