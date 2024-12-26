@@ -166,7 +166,7 @@ static int CurrentPhase = 1;
 static bool_t MasterError(void *cookie, int type, const tchar_t *ClassName, const ebml_element *i)
 {
 	tchar_t IdString[MAXPATH];
-    if (type==MASTER_CHECK_PROFILE_INVALID)
+    if (type==MASTER_CHECK_PROFILE_INVALID && EBML_ElementPosition(i) != INVALID_FILEPOS_T)
     {
     	EBML_ElementGetName(i,IdString,TSIZEOF(IdString));
         if (!Quiet)
