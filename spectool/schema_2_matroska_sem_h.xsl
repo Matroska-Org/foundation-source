@@ -44,7 +44,7 @@
 #ifndef MATROSKA_SEMANTIC_H
 #define MATROSKA_SEMANTIC_H
 
-void MATROSKA_InitSemantic();
+void MATROSKA_InitSemantic(void);
 
 <xsl:call-template name="output-element-definition">
     <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
@@ -82,7 +82,7 @@ void MATROSKA_InitSemantic();
 
         <xsl:text>MATROSKA_DLL const ebml_context *MATROSKA_getContext</xsl:text>
         <xsl:value-of select="$lib2Name" />
-        <xsl:text>();&#10;</xsl:text>
+        <xsl:text>(void);&#10;</xsl:text>
         <xsl:if test="$node/@type='master'"><xsl:text>&#10;</xsl:text></xsl:if>
   </xsl:template>
   <xsl:template match="documentation">

@@ -49,7 +49,7 @@
 <xsl:call-template name="output-element-semantic">
     <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
 </xsl:call-template>
-<xsl:text>&#10;void MATROSKA_InitSemantic()&#10;</xsl:text>
+<xsl:text>&#10;void MATROSKA_InitSemantic(void)&#10;</xsl:text>
 <xsl:text>{&#10;</xsl:text>
 <xsl:call-template name="output-element-definition">
     <xsl:with-param name="node" select="ebml:element[@path='\Segment']"/>
@@ -85,7 +85,7 @@
     <xsl:text>;&#10;</xsl:text>
     <xsl:text>const ebml_context *MATROSKA_getContext</xsl:text>
     <xsl:value-of select="$lib2Name" />
-    <xsl:text>() { return &amp;MATROSKA_Context</xsl:text>
+    <xsl:text>(void) { return &amp;MATROSKA_Context</xsl:text>
     <xsl:value-of select="$lib2Name" />
     <xsl:text>; }&#10;</xsl:text>
   </xsl:template>
@@ -181,8 +181,7 @@
             <xsl:text>EBML_Semantic</xsl:text>
             <xsl:value-of select="$node/@name" />
             <xsl:text>, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
         </xsl:when>
@@ -203,8 +202,7 @@
             <xsl:text>0, </xsl:text>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
         </xsl:when>
         <xsl:when test="$node/@type='uinteger'">
@@ -223,8 +221,7 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
         </xsl:when>
@@ -241,8 +238,7 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
         </xsl:when>
@@ -259,8 +255,7 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
         </xsl:when>
@@ -277,8 +272,7 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
         </xsl:when>
@@ -303,8 +297,7 @@
             </xsl:choose>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
 
         </xsl:when>
@@ -318,8 +311,7 @@
             <xsl:text>0, </xsl:text>
             <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>NULL, </xsl:text>
-            <xsl:text>EBML_getSemanticGlobals(), </xsl:text>
-            <xsl:text>NULL</xsl:text>
+            <xsl:text>EBML_getSemanticGlobals()</xsl:text>
             <xsl:text>};&#10;</xsl:text>
         </xsl:when>
     </xsl:choose>
