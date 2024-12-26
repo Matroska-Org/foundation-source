@@ -107,7 +107,6 @@ target_include_directories("corec" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINA
 set(corec_INTERNAL_LIBS
   $<BUILD_INTERFACE:corec_node>
   $<BUILD_INTERFACE:corec_parser>
-  $<BUILD_INTERFACE:corec_system>
   $<BUILD_INTERFACE:corec_md5>
 )
 
@@ -119,7 +118,7 @@ else(BUILD_SHARED_LIBS)
 endif(BUILD_SHARED_LIBS)
 
 set(corec_PUBLIC_HEADERS
-  ${corec_node_PUBLIC_HEADERS} ${corec_parser_PUBLIC_HEADERS} ${corec_system_PUBLIC_HEADERS} ${core_md5_PUBLIC_HEADERS}
+  ${corec_node_PUBLIC_HEADERS} ${corec_parser_PUBLIC_HEADERS} ${core_md5_PUBLIC_HEADERS}
 )
 
 set_target_properties("corec" PROPERTIES
