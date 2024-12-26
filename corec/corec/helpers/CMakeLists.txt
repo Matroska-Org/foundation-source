@@ -65,17 +65,6 @@ if (CYGWIN)
 endif (CYGWIN)
 target_include_directories("corec_parser" INTERFACE ".")
 
-# MD5 API
-set(corec_md5_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/md5/md5.c
-)
-set(corec_md5_PUBLIC_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/md5/md5.h
-)
-add_library("corec_md5" INTERFACE)
-target_sources("corec_md5" INTERFACE ${corec_md5_SOURCES} ${corec_md5_PUBLIC_HEADERS})
-target_link_libraries("corec_md5" INTERFACE "corec_bare")
-
 # Date API
 add_library("corec_date" INTERFACE)
 set(corec_date_WIN32_SOURCES
