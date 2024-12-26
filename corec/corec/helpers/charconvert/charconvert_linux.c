@@ -56,8 +56,8 @@ void CharConvSS(charconv* CC, char* Out, size_t OutLen, const char* In)
         char* _Out = Out;
         size_t _OutLen = OutLen;
 
-        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == -1 ||
-             iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == -1)
+        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == (size_t)-1 ||
+             iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == (size_t)-1)
         {
             size_t n = min(strlen(In),OutLen-1);
             memcpy(Out,In,n*sizeof(char));
@@ -82,8 +82,8 @@ void CharConvWS(charconv* CC, wchar_t* Out, size_t OutLen, const char* In)
         char* _Out = (char*)Out;
         size_t _OutLen = OutLen*sizeof(wchar_t);
 
-        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == -1 ||
-                iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == -1)
+        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == (size_t)-1 ||
+                iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == (size_t)-1)
         {
             for (;OutLen>1 && *In;++In,--OutLen,++Out)
                 *Out = (wchar_t)*In;
@@ -104,8 +104,8 @@ void CharConvSW(charconv* CC, char* Out, size_t OutLen, const wchar_t* In)
         char* _Out = Out;
         size_t _OutLen = OutLen;
 
-        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == -1 ||
-                    iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == -1)
+        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == (size_t)-1 ||
+                    iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == (size_t)-1)
         {
             for (;OutLen>1 && *In;++In,--OutLen,++Out)
                 *Out = (char)(*In>255?'*':*In);
@@ -126,8 +126,8 @@ void CharConvUS(charconv* CC, utf16_t* Out, size_t OutLen, const char* In)
         char* _Out = (char*)Out;
         size_t _OutLen = OutLen*sizeof(utf16_t);
 
-        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == -1 ||
-                iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == -1)
+        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == (size_t)-1 ||
+                iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == (size_t)-1)
         {
             for (;OutLen>1 && *In;++In,--OutLen,++Out)
                 *Out = (utf16_t)*In;
@@ -148,8 +148,8 @@ void CharConvSU(charconv* CC, char* Out, size_t OutLen, const utf16_t* In)
         char* _Out = Out;
         size_t _OutLen = OutLen;
 
-        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == -1 ||
-                    iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == -1)
+        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == (size_t)-1 ||
+                    iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == (size_t)-1)
         {
             for (;OutLen>1 && *In;++In,--OutLen,++Out)
                 *Out = (char)(*In>255?'*':*In);
@@ -170,8 +170,8 @@ void CharConvWW(charconv* CC, wchar_t* Out, size_t OutLen, const wchar_t* In)
         char* _Out = (char*)Out;
         size_t _OutLen = OutLen*sizeof(wchar_t);
 
-        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == -1 ||
-                iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == -1)
+        if (!CC || !_InLen || iconv((iconv_t)CC, &_In, &_InLen, &_Out, &_OutLen) == (size_t)-1 ||
+                iconv((iconv_t)CC, NULL, NULL, &_Out, &_OutLen) == (size_t)-1)
         {
             size_t n = min(wcslen(In),OutLen-1);
             memcpy(Out,In,n*sizeof(wchar_t));
