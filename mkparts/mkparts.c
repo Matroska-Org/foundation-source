@@ -131,7 +131,7 @@ static void CopyTo(stream *Input, stream *Output, filepos_t StartPos, filepos_t 
     Stream_Seek(Input, StartPos, SEEK_SET);
     while (SizeToCopy)
     {
-        Err = Stream_ReadOneOrMore(Input, Data, min(SizeToCopy, sizeof(Data)), &readSize);
+        Err = Stream_ReadOneOrMore(Input, Data, min(SizeToCopy, (filepos_t)sizeof(Data)), &readSize);
         if (Err==ERR_NONE || Err == ERR_NEED_MORE_DATA)
         {
             if (!Quiet) TextWrite(StdErr,T("."));
