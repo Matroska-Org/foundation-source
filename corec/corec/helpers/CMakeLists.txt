@@ -78,22 +78,22 @@ target_link_libraries("corec_md5" INTERFACE "corec_bare")
 
 # Date API
 add_library("corec_date" INTERFACE)
-set(corec_system_WIN32_SOURCES
+set(corec_date_WIN32_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/date/date_win32.c
 )
-set(corec_system_UNIX_SOURCES
+set(corec_date_UNIX_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/date/date_libc.c
 )
-set(corec_system_PUBLIC_HEADERS
+set(corec_date_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/date/date.h
   PARENT_SCOPE
 )
 if (WIN32)
-  target_sources("corec_date" INTERFACE ${corec_system_WIN32_SOURCES})
+  target_sources("corec_date" INTERFACE ${corec_date_WIN32_SOURCES})
 elseif(UNIX)
-    target_sources("corec_date" INTERFACE ${corec_system_UNIX_SOURCES})
+    target_sources("corec_date" INTERFACE ${corec_date_UNIX_SOURCES})
 endif(WIN32)
-target_sources("corec_date" INTERFACE ${corec_system_PUBLIC_HEADERS})
+target_sources("corec_date" INTERFACE ${corec_date_PUBLIC_HEADERS})
 target_link_libraries("corec_date" INTERFACE "corec_bare")
 
 # Character Conversion API
