@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -100,7 +100,7 @@ static err_t Open(filestream* p, const tchar_t* URL, int Flags)
 		}
 
 		tcscpy_s(p->URL,TSIZEOF(p->URL),URL);
-		
+
         if (stat(URL, &file_stats) == 0)
 			p->Length = file_stats.st_size;
 
@@ -110,15 +110,17 @@ static err_t Open(filestream* p, const tchar_t* URL, int Flags)
 
 static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
 {
+    if (Size > SSIZE_MAX)
+        return ERR_READ;
     err_t Err;
-    int n = read(p->fd, Data, (unsigned int)Size);
+    ssize_t n = read(p->fd, Data, Size);
     if (n<0)
     {
         n=0;
         Err = ERR_READ;
     }
     else
-        Err = ((size_t)n != Size) ? ERR_END_OF_FILE:ERR_NONE;
+        Err = (n != (ssize_t)Size) ? ERR_END_OF_FILE:ERR_NONE;
 
     if (Readed)
         *Readed = n;
@@ -132,8 +134,10 @@ static err_t ReadBlock(filestream* p,block* Block,size_t Ofs,size_t Size,size_t*
 
 static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
 {
+    if (Size > SSIZE_MAX)
+        return ERR_WRITE;
     err_t Err;
-	int n = write(p->fd, Data, (unsigned int)Size);
+	ssize_t n = write(p->fd, Data, Size);
 
     if (n<0)
     {
@@ -141,7 +145,7 @@ static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
         Err = ERR_WRITE;
     }
     else
-        Err = (n != Size) ? ERR_WRITE:ERR_NONE;
+        Err = (n != (ssize_t)Size) ? ERR_WRITE:ERR_NONE;
 
     if (Written)
         *Written = n;
@@ -188,7 +192,7 @@ static err_t OpenDir(filestream* p,const tchar_t* Path,int UNUSED_PARAM(Flags))
 	AddPathDelimiter(p->DirPath,TSIZEOF(p->DirPath));
     return ERR_NONE;
 }
-	
+
 extern datetime_t LinuxToDateTime(time_t);
 
 static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdir* Item)
@@ -205,7 +209,7 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 	{
 	    tchar_t FilePath[MAXPATH];
 	    struct stat file_stats;
-        
+
         if (Dirent->d_name[0]=='.') // skip hidden files and current directory
             continue;
 
@@ -346,7 +350,7 @@ void FindFiles(nodecontext *p,const tchar_t* Path, const tchar_t* Mask,void(*Pro
     DIR* Directory;
     struct dirent* DirectoryInfo;
     tchar_t TPathToFile[MAXPATH];
-    
+
     Directory = opendir(Path);
     if (Directory)
     {
@@ -364,10 +368,10 @@ void FindFiles(nodecontext *p,const tchar_t* Path, const tchar_t* Mask,void(*Pro
                 }
             }
         }
-        
+
         closedir(Directory);
     }
-    
+
 }
 
 stream *FileTemp(anynode *Any)
