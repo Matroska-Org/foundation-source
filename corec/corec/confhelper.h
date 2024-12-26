@@ -47,8 +47,6 @@
 #endif
 #endif // CONFIG_UNICODE_BEST
 
-#ifndef ZLIB_INTERNAL
-
 #undef T
 #define TSIZEOF(name)	(sizeof(name)/sizeof(tchar_t))
 
@@ -91,6 +89,5 @@ typedef char tchar_t;
 #endif /* UNICODE */
 
 #define T__(x) T(x)
-#endif /* ZLIB_INTERNAL */
 
 #endif /* __CONFIG_HELPER_H */
