@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 #define NODE_MAGIC    0xF0DE0A6C
 #define DYNDATA_SHIFT 8
 
-static const uint16_t ParamSize[MAX_PARAMTYPE] = 
+static const uint16_t ParamSize[MAX_PARAMTYPE] =
 {
 	0,					//TYPE_NONE
 	sizeof(bool_t),		//TYPE_BOOLEAN
@@ -79,7 +79,7 @@ static const uint16_t ParamSize[MAX_PARAMTYPE] =
     sizeof(size_t),     //TYPE_SIZE
 };
 
-static const tchar_t* ParamName[MAX_PARAMTYPE] = 
+static const tchar_t* ParamName[MAX_PARAMTYPE] =
 {
 	T("none"),			//TYPE_NONE
 	T("boolean"),		//TYPE_BOOLEAN
@@ -125,9 +125,9 @@ static const tchar_t* ParamName[MAX_PARAMTYPE] =
 	T("size"),          //TYPE_SIZE
 };
 
-static const tchar_t* ParamFormat[(TUNIT_MASK>>TUNIT_SHIFT)+1] = 
+static const tchar_t* ParamFormat[(TUNIT_MASK>>TUNIT_SHIFT)+1] =
 {
-    NULL,               
+    NULL,
     T("kbyte"),         //TUNIT_KBYTE
     T("second"),        //TUNIT_SECOND
     T("mhz"),           //TUNIT_MHZ
@@ -247,7 +247,6 @@ NOINLINE const nodeclass* NodeContext_FindClass(anynode* Any,fourcc_t ClassId)
     if (Ptr && NodeClass_ClassId(Ptr) == ClassId)
         return Ptr;
 
-	LockEnter(p->NodeLock);
 	Item.VMT.ClassId = ClassId;
 	Ptr = &Item.Class;
 	Pos = ArrayFind(&p->NodeClass,nodeclass*,&Ptr,(arraycmp)CmpClassNoModule, NULL, &Found);
@@ -281,7 +280,6 @@ NOINLINE const nodeclass* NodeContext_FindClass(anynode* Any,fourcc_t ClassId)
 		//DebugMessage(T("Class %c%c%c%c (%d) not found"),(ClassId>>0)&0xFF,(ClassId>>8)&0xFF,(ClassId>>16)&0xFF,(ClassId>>24)&0xFF,ClassId);
 	}
 
-	LockLeave(p->NodeLock);
 	return Ptr;
 }
 
@@ -300,13 +298,10 @@ NOINLINE const nodeclass* NodeContext_FindClassEx(anynode* AnyNode,fourcc_t Clas
 	if (ClassId)
 	{
         nodecontext* p = Node_Context(AnyNode);
-		LockEnter(p->NodeLock);
 
 		Class = FindModuleClass(p,ClassId,Module);
 		if (!Class)
 			Class = NodeContext_FindClass(p,ClassId);
-
-		LockLeave(p->NodeLock);
 	}
     return Class;
 }
@@ -332,11 +327,6 @@ static void AddClassRef(const nodeclass* Class)
     intptr_t Pos=-1;
     array *Refs = &Class->Module->ClassRefs;
     class_ref_t Item;
-    
-    if (!Class->Module->LockRefs)
-        Class->Module->LockRefs = LockCreate();
-
-    LockEnter(Class->Module->LockRefs);
 
     Item.Class = Class;
     Item.Count = 1;
@@ -349,8 +339,6 @@ static void AddClassRef(const nodeclass* Class)
     {
         DebugMessage(T("AddClassRef %p class %r/%p could not be added !"),Refs,Class->FourCC,Class);
     }
-
-    LockLeave(Class->Module->LockRefs);
 }
 
 static void DelClassRef(const nodeclass* Class)
@@ -359,11 +347,6 @@ static void DelClassRef(const nodeclass* Class)
     intptr_t Pos;
     array *Refs = &Class->Module->ClassRefs;
     class_ref_t Item;
-
-    if (!Class->Module->LockRefs)
-        Class->Module->LockRefs = LockCreate();
-
-    LockEnter(Class->Module->LockRefs);
 
     Item.Class = Class;
     Pos = ArrayFind(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL,&Found);
@@ -385,7 +368,6 @@ static void DelClassRef(const nodeclass* Class)
         }
         Pos = ArrayFind(Refs,class_ref_t,&Item,(arraycmp)CmpClassRef,NULL,&Found);
 	}
-    LockLeave(Class->Module->LockRefs);
 }
 #else
 #define AddClassRef(c)
@@ -407,7 +389,7 @@ static void UnRegisterModule(nodecontext* p, nodemodule* Module, bool_t Includin
             node* Node = *j;
             ArrayDelete(&p->NodeSingleton,(uint8_t*)j-ARRAYBEGIN(p->NodeSingleton,uint8_t),sizeof(node*));
             Node_Release(Node);
-            j = ARRAYBEGIN(p->NodeSingleton,node*)-1; 
+            j = ARRAYBEGIN(p->NodeSingleton,node*)-1;
         }
     }
 
@@ -432,7 +414,6 @@ NOINLINE bool_t NodeContext_Cleanup(nodecontext* p,bool_t Force)
     if (p->FreeModule)
     {
         nodemodule* i;
-    	LockEnter(p->NodeLock);
 	    for (i=p->Base.Next;i;i=i->Next)
 		    if (i->Module && (Force || (!i->Config && i->Base.RefCount==1)))
 		    {
@@ -442,7 +423,6 @@ NOINLINE bool_t NodeContext_Cleanup(nodecontext* p,bool_t Force)
                 p->FreeModule(p,i);
 			    Found = 1;
 		    }
-    	LockLeave(p->NodeLock);
     }
 	return Found;
 }
@@ -459,9 +439,7 @@ static NOINLINE void UnlockModules(const nodeclass* Class)
 
 static void UnlockModulesWithLock(nodecontext* p,const nodeclass* Class)
 {
-    LockEnter(p->NodeLock);
     UnlockModules(Class);
-    LockLeave(p->NodeLock);
 }
 
 static NOINLINE bool_t DataFree(nodecontext* p, node* Node, nodedata** i, bool_t DeletingNode)
@@ -524,18 +502,13 @@ NOINLINE nodedata** Node_GetDataStart(node* Node, dataid Id, datatype Type)
 {
     uint_fast32_t Code = (Id<<DYNDATA_SHIFT)|Type;
     nodedata** i;
-    nodecontext* p = Node_Context(Node);
-
-    LockEnter(p->NodeLock);
 
     for (i=&Node->Data;*i;i=&(*i)->Next)
         if ((*i)->Code == Code)
         {
-            LockLeave(p->NodeLock);
             return i;
         }
 
-    LockLeave(p->NodeLock);
     return NULL;
 }
 
@@ -545,16 +518,12 @@ NOINLINE void Node_RemoveData(node* Node, dataid Id, datatype Type)
     nodedata** i;
 	nodecontext* p = Node_Context(Node);
 
-	LockEnter(p->NodeLock);
-
     for (i=&Node->Data;*i;i=&(*i)->Next)
         if ((*i)->Code == Code)
         {
             DataFree(p,Node,i,0);
             break;
         }
-
-	LockLeave(p->NodeLock);
 }
 
 NOINLINE void* Node_AddData(node* Node, dataid Id, datatype Type, const void* Data)
@@ -566,12 +535,10 @@ NOINLINE void* Node_AddData(node* Node, dataid Id, datatype Type, const void* Da
         {
             nodedata* Ptr;
     	    nodecontext* p = Node_Context(Node);
-    	    LockEnter(p->NodeLock);
 
             Ptr = (nodedata*)MemHeap_Alloc(p->NodeHeap,sizeof(nodedata)+Size,0);
             if (!Ptr)
             {
-        	    LockLeave(p->NodeLock);
                 return NULL;
             }
 
@@ -590,8 +557,6 @@ NOINLINE void* Node_AddData(node* Node, dataid Id, datatype Type, const void* Da
             if (Type == TYPE_LUA_REF)
                 p->LuaAddRef(p->LuaCookie,(int*)NodeData_Data(Ptr));
 #endif
-
-    	    LockLeave(p->NodeLock);
 
             return NodeData_Data(Ptr);
         }
@@ -817,10 +782,7 @@ static NOINLINE const nodeclass* LockModules(nodecontext* p, const nodeclass* Cl
 
 static const nodeclass* LockModulesWithLock(nodecontext* p, const nodeclass* Class)
 {
-    LockEnter(p->NodeLock);
-    Class = LockModules(p,Class);
-    LockLeave(p->NodeLock);
-    return Class;
+    return LockModules(p,Class);
 }
 
 static void MetaConst(const nodemeta* i,void* Data)
@@ -911,11 +873,7 @@ void Node_Destructor(node* Node)
 
 static bool_t AddSingleton(nodecontext* p, node* Node)
 {
-    bool_t Result;
-    LockEnter(p->NodeLock);
-    Result = ArrayAdd(&p->NodeSingleton,node*,&Node,(arraycmp)CmpNode,NULL,64)>=0;
-    LockLeave(p->NodeLock);
-    return Result;
+    return ArrayAdd(&p->NodeSingleton,node*,&Node,(arraycmp)CmpNode,NULL,64)>=0;
 }
 
 err_t Node_Constructor(anynode* AnyNode, node* Node, size_t Size, fourcc_t ClassId)
@@ -1053,7 +1011,7 @@ static bool_t FilterLookupSet(const nodemeta* m)
 #else
         ((m->Meta & META_MODE_MASK)==META_MODE_DATA && (m[1].Meta != META_PARAM_DATA_FLAGS || !((int)m[1].Data & DFLAG_RDONLY)));
 #endif
-}        
+}
 
 static bool_t FilterLookupUnSet(const nodemeta* m)
 {
@@ -1063,7 +1021,7 @@ static bool_t FilterLookupUnSet(const nodemeta* m)
 #else
         ((m->Meta & META_MODE_MASK)==META_MODE_DATA && (m[1].Meta != META_PARAM_DATA_FLAGS || !((int)m[1].Data & DFLAG_RDONLY)));
 #endif
-}        
+}
 
 static const nodemeta* BitLookup(const nodeclass* Class,dataid Id)
 {
@@ -1265,7 +1223,7 @@ static void InitClass(nodecontext* p,nodeclass* Class)
 			    break;
 		    }
 	    }
- 
+
 	    if (Class->State>=CLASS_INITED && (Class->Flags & (CFLAG_SINGLETON|CFLAG_OWN_MEMORY))==CFLAG_SINGLETON && !NodeCreateFromClass(p,Class,1))
 	    {
             p->NodeCache = NULL;
@@ -1338,11 +1296,9 @@ static node* NodeCreateFromClass(nodecontext* p, const nodeclass* Class, bool_t 
 
 		if (CallCreate(p,Node,Class) != ERR_NONE)
 		{
-        	LockEnter(p->NodeLock);
             if (Singleton)
                 ArrayRemove(&p->NodeSingleton,node*,&Node,NULL,NULL); // can't use CmpNode, because Node->VMT is NULL
 			UnlockModules(Class);
-        	LockLeave(p->NodeLock);
 
             MemHeap_Free(p->NodeHeap,Node,Size);
 			Node = NULL;
@@ -1420,7 +1376,6 @@ void NodeRegisterClassEx(nodemodule* Module,const nodemeta* Meta)
 {
 	nodeclass* Class;
 	nodecontext* p = Node_Context(Module);
-	LockEnter(p->NodeLock);
 
 	while (Meta->Meta == META_CLASS_CLASS_ID)
 	{
@@ -1453,10 +1408,8 @@ void NodeRegisterClassEx(nodemodule* Module,const nodemeta* Meta)
 		}
 
 		if (!(Meta++)->Id) // more classes?
-			break; 
+			break;
 	}
-
-	LockLeave(p->NodeLock);
 }
 
 static void EraseNode(nodecontext* p,node* Node,const nodeclass* Class)
@@ -1491,7 +1444,7 @@ void Node_Release(thisnode p)
     {
     	const nodeclass* Class = NodeGetClass(p);
         Node_Notify((node*)p,NODE_DELETING);
-        
+
         assert(((node*)p)->RefCount == 0); // the RefCount may increase during Node_Notify but it shouldn't
         if (CallDelete(Context,p,Class))
             EraseNode(Context,p,Class);
@@ -1511,9 +1464,7 @@ nodemodule* NodeClassModule(anynode* Any,fourcc_t ClassId)
 	const nodeclass* Class = NULL;
 	if (ClassId)
 	{
-		LockEnter(p->NodeLock);
 		Class = NodeContext_FindClass(p,ClassId);
-		LockLeave(p->NodeLock);
 	}
 	if (Class)
 		Module = Class->Module;
@@ -1558,13 +1509,9 @@ node* NodeSingleton(anynode* Any, fourcc_t Class)
 		size_t Pos;
         bool_t Found;
 
-		LockEnter(p->NodeLock);
-
         Pos = ArrayFind(&p->NodeSingleton,node*,&Class,(arraycmp)CmpNodeClass,NULL,&Found);
     	if (Found)
             Node = ARRAYBEGIN(p->NodeSingleton,node*)[Pos];
-
-		LockLeave(p->NodeLock);
 	}
 	return Node;
 }
@@ -1611,11 +1558,9 @@ static NOINLINE void NodeEnumSingletonsEx(anynode* Any,array* List, nodemodule* 
     node** i;
 	ArrayInit(List);
 
-	LockEnter(p->NodeLock);
 	for (i=ARRAYBEGIN(p->NodeSingleton,node*);i!=ARRAYEND(p->NodeSingleton,node*);++i)
 		if (*i && (!Module || NodeGetClass(*i)->Module == Module))
 			ArrayAppend(List,i,sizeof(*i),64);
-	LockLeave(p->NodeLock);
 }
 
 void NodeEnumSingletons(anynode* Any,array* List)
@@ -1671,7 +1616,7 @@ static uintptr_t NOINLINE NodeParamMeta(const nodeclass* Class, uint_fast32_t Me
 
 NOINLINE uintptr_t NodeClass_Meta(const nodeclass* Class,dataid Id,datameta Meta)
 {
-    return NodeParamMeta(Class,Meta,Id,NULL); 
+    return NodeParamMeta(Class,Meta,Id,NULL);
 }
 
 NOINLINE int NodeClass_Priority(const nodeclass* Class)
@@ -1686,7 +1631,7 @@ NOINLINE fourcc_t NodeClass_Parent(const nodeclass* Class)
 
 NOINLINE const tchar_t* NodeClass_Str(anynode* AnyNode, const nodeclass* Class,int No)
 {
-	const tchar_t* s = (const tchar_t*)NodeParamMeta(Class,META_PARAM_STRING,No,AnyNode); 
+	const tchar_t* s = (const tchar_t*)NodeParamMeta(Class,META_PARAM_STRING,No,AnyNode);
     return s?s:T("");
 }
 
@@ -1731,7 +1676,6 @@ fourcc_t NodeEnumClassFilterRated(anynode* AnyContext, array* ListId, fourcc_t C
 
 	ArrayInit(&List);
 
-	LockEnter(p->NodeLock);
 	for (i=ARRAYBEGIN(p->NodeClass,const nodeclass*);i!=ARRAYEND(p->NodeClass,const nodeclass*);++i)
     {
 		if ((*i)->State>=CLASS_REGISTERED && !((*i)->Flags & CFLAG_ABSTRACT)) // skip abstract
@@ -1770,7 +1714,7 @@ fourcc_t NodeEnumClassFilterRated(anynode* AnyContext, array* ListId, fourcc_t C
 		nodeclassrated* b;
 		size_t Count = ARRAYCOUNT(List,nodeclassrated);
 		ArraySort(&List,nodeclassrated,(arraycmp)CmpRatedClassPri, NULL, 0);
-		
+
 		ArrayInit(ListId);
 		if (ArrayAppend(ListId,NULL,Count*sizeof(fourcc_t),64))
 		{
@@ -1780,7 +1724,6 @@ fourcc_t NodeEnumClassFilterRated(anynode* AnyContext, array* ListId, fourcc_t C
 		ArrayClear(&List);
 	}
 
-	LockLeave(p->NodeLock);
 	return BestId;
 }
 
@@ -1835,17 +1778,13 @@ static INLINE void Node_NotifyInternal(node* Node,dataid Id,nodedata** i,nodecon
 
     if (PostDeleteNode)
     {
-    	LockEnter(Context->NodeLock);
         DataFree(Context,Node,i,1);
         EraseNode(Context,Node,Class);
-    	LockLeave(Context->NodeLock);
     }
     else
     if (Id==NODE_DELETING || Top->Next==NULL || PosDeleteList)
     {
-    	LockEnter(Context->NodeLock);
         DataFree(Context,Node,i,0); // delete the notify data when it's not to be used anymore(NODE_DELETING) or empty
-	    LockLeave(Context->NodeLock);
     }
     Top->Func = NULL;
 }
@@ -1861,28 +1800,6 @@ bool_t Node_Notify(node* Node,dataid Id)
     return 0;
 }
 
-#if defined(CONFIG_MULTITHREAD)
-bool_t Node_PostNotify(node* Node,dataid Id)
-{
-    nodedata** i = Node_GetDataStart(Node,Id,TYPE_NODENOTIFY);
-    if (i && NodeData_Data(*i) && NodeData_Data(*i)->Next) // do not propagate empty events
-    {
-        nodecontext* Context = Node_Context(Node);
-        register uintptr_t CurrentThreadId = ThreadId();
-
-        if (Context->PostNotify && Context->ThreadId != CurrentThreadId) // TODO: what about the other ones in the same thread ?
-        {
-            if (Context->PostNotify(Context->PostNotifyParam,Node,Id))
-                return 0;
-            // fallback to the same thread as we don't want to lose any event sending
-        }
-        Node_NotifyInternal(Node,Id,i,Context);
-        return 1;
-    }
-    return 0;
-}
-#endif
-
 NOINLINE void Node_AddNotify(node* Node, dataid Id, notifyproc Func, void* Referer)
 {
     if (Node)
@@ -1890,8 +1807,7 @@ NOINLINE void Node_AddNotify(node* Node, dataid Id, notifyproc Func, void* Refer
         nodecontext* p = Node_Context(Node);
         nodenotify* n;
         nodenotify* Ptr;
-    	LockEnter(p->NodeLock);
-        
+
         Ptr = Node_GetData(Node,Id,TYPE_NODENOTIFY);
         if (!Ptr)
         {
@@ -1900,7 +1816,6 @@ NOINLINE void Node_AddNotify(node* Node, dataid Id, notifyproc Func, void* Refer
             if (!Ptr)
             {
                 // Something went wrong ! No more memory ?
-        	    LockLeave(p->NodeLock);
                 return;
             }
         }
@@ -1908,7 +1823,6 @@ NOINLINE void Node_AddNotify(node* Node, dataid Id, notifyproc Func, void* Refer
         n = MemHeap_Alloc(p->NodeHeap,sizeof(nodenotify),0);
         if (!n)
         {
-        	LockLeave(p->NodeLock);
             return;
         }
 
@@ -1916,8 +1830,6 @@ NOINLINE void Node_AddNotify(node* Node, dataid Id, notifyproc Func, void* Refer
         n->Referer = Referer;
         n->Next = Ptr->Next;
         Ptr->Next = n;
-
-        LockLeave(p->NodeLock);
     }
 }
 
@@ -1939,7 +1851,6 @@ void Node_RemoveNotify(node* Node, dataid Id, notifyproc Func, void* Referer)
     {
         nodecontext* p = Node_Context(Node);
         nodenotify* n;
-    	LockEnter(p->NodeLock);
 
         n = Node_GetData(Node,Id,TYPE_NODENOTIFY);
         if (n)
@@ -1947,7 +1858,7 @@ void Node_RemoveNotify(node* Node, dataid Id, notifyproc Func, void* Referer)
             nodenotify** Ptr;
             nodenotify* Top = n;
             void *OldReferer = Top->Referer;
-            
+
             n = Top->Next; // skip the first element which is just there to know if an item of the chain is being notified
             Ptr = &n;
             for (;(n=*Ptr)!=NULL;Ptr=&n->Next)
@@ -1971,7 +1882,6 @@ void Node_RemoveNotify(node* Node, dataid Id, notifyproc Func, void* Referer)
             if (Top->Next==NULL && OldReferer==Top->Referer)
                 Node_RemoveData(Node,Id,TYPE_NODENOTIFY); // the notification list is empty and it's not being called
         }
-    	LockLeave(p->NodeLock);
     }
 }
 
@@ -2119,7 +2029,7 @@ NOINLINE size_t Node_DataSize(node* p, dataid Id, datatype Type, const void* Dat
     assert(QueryType==META_PARAM_GET || QueryType==META_PARAM_SET || QueryType==META_PARAM_UNSET);
     if (!Data)
         return 0;
-    
+
     switch (Type)
     {
     case TYPE_EXPR:
@@ -2143,7 +2053,7 @@ static NOINLINE void MetaEnumClass(const nodeclass* Class,array* List)
 {
     if (Class->ParentClass)
         MetaEnumClass(Class->ParentClass,List);
-        
+
     if (Class->Meta)
     {
         const nodemeta* m;
@@ -2157,7 +2067,7 @@ static NOINLINE void MetaEnumClass(const nodeclass* Class,array* List)
 }
 
 static void MetaEnum(node* p,array* List)
-{	
+{
 	const nodeclass* Class;
     ArrayInit(List);
     Class = NodeGetClass(p);
@@ -2170,8 +2080,8 @@ static uintptr_t MetaMeta(node* p,dataid Id,datameta Meta)
     return NodeParamMeta(NodeGetClass(p),Meta,Id,p);
 }
 
-static err_t MetaGet(node* p,dataid Id,void* Data,size_t Size) 
-{ 
+static err_t MetaGet(node* p,dataid Id,void* Data,size_t Size)
+{
 	const nodeclass* Class = NodeGetClass(p);
     nodemetalookuphead* Head = Class->MetaGet;
     if (Head)
@@ -2179,22 +2089,22 @@ static err_t MetaGet(node* p,dataid Id,void* Data,size_t Size)
         nodemetalookup* Lookup = (nodemetalookup*)(Head+1);
 	    intptr_t Mid;
 	    intptr_t Lower = 0;
-	    intptr_t Upper = Head->Upper; 
+	    intptr_t Upper = Head->Upper;
 
-	    while (Upper >= Lower) 
+	    while (Upper >= Lower)
 	    {
 		    Mid = (Upper + Lower) >> 1;
 
 		    if (Lookup[Mid].Id>Id)
-			    Upper = Mid-1;	
-		    else if (Lookup[Mid].Id<Id)  		
-			    Lower = Mid+1;	
-		    else 
-		    {	
+			    Upper = Mid-1;
+		    else if (Lookup[Mid].Id<Id)
+			    Lower = Mid+1;
+		    else
+		    {
                 const nodemeta* m = Lookup[Mid].Meta;
 				const uint8_t* Ptr;
 				datatype Type;
-                
+
                 if (m->Meta == META_PARAM_GET)
 					return ((err_t(*)(node*,dataid,void*,size_t))m->Data)(p,Id,Data,Size);
 
@@ -2252,11 +2162,11 @@ static err_t MetaGet(node* p,dataid Id,void* Data,size_t Size)
 		    }
 	    }
     }
-	return ERR_INVALID_PARAM; 
+	return ERR_INVALID_PARAM;
 }
 
 static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
-{ 
+{
 	const nodeclass* Class = NodeGetClass(p);
     nodemetalookuphead* Head = Class->MetaSet;
     if (Head)
@@ -2264,18 +2174,18 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
         nodemetalookup* Lookup = (nodemetalookup*)(Head+1);
 	    intptr_t Mid;
 	    intptr_t Lower = 0;
-	    intptr_t Upper = Head->Upper; 
+	    intptr_t Upper = Head->Upper;
 
-	    while (Upper >= Lower) 
+	    while (Upper >= Lower)
 	    {
 		    Mid = (Upper + Lower) >> 1;
 
 		    if (Lookup[Mid].Id>Id)
-			    Upper = Mid-1;	
-		    else if (Lookup[Mid].Id<Id)  		
-			    Lower = Mid+1;	
-		    else 
-		    {	
+			    Upper = Mid-1;
+		    else if (Lookup[Mid].Id<Id)
+			    Lower = Mid+1;
+		    else
+		    {
                 err_t Result;
                 int DFlags;
                 dataflags Type;
@@ -2328,7 +2238,7 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
                     // TODO: pointer should not use DFLAG_CMP because it maybe a recreated different object (unless referencing is used)
                     //assert(!(DFlags & DFLAG_CMP) || (Type & TYPE_MASK) != TYPE_NODE);
 
-                    if ((DFlags & DFLAG_VERIFY_CLASS) && ((Type & TYPE_MASK) == TYPE_NODE || (Type & TYPE_MASK) == TYPE_NODE_REF) && 
+                    if ((DFlags & DFLAG_VERIFY_CLASS) && ((Type & TYPE_MASK) == TYPE_NODE || (Type & TYPE_MASK) == TYPE_NODE_REF) &&
                         Data && Size==sizeof(node*) && *(const node**)Data &&
                         !Node_IsPartOf(*(const node**)Data,(fourcc_t)Node_Meta(p,Id,META_PARAM_CLASS)))
                         return ERR_INVALID_DATA;
@@ -2346,9 +2256,9 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
 
                     // we don't support release with dynamic, because object destructor or manually dynamic data manipulation would not trigger it
 #if defined(CONFIG_CORECDOC)
-                    assert(m[2].Meta != META_PARAM_DATA_RELEASE); 
+                    assert(m[2].Meta != META_PARAM_DATA_RELEASE);
 #else
-                    assert(m[1].Meta != META_PARAM_DATA_RELEASE); 
+                    assert(m[1].Meta != META_PARAM_DATA_RELEASE);
 #endif
 
                     Node_SetData(p,Id,Type & TYPE_MASK,Data);
@@ -2401,7 +2311,7 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
                         assert(DataSize);
                         if (!Data)
                             Data = NullString;
-                        tcscpy_s((tchar_t*)Ptr,DataSize/sizeof(tchar_t),(const tchar_t*)Data); 
+                        tcscpy_s((tchar_t*)Ptr,DataSize/sizeof(tchar_t),(const tchar_t*)Data);
 						break;
 
                     case TYPE_BOOL_BIT:
@@ -2462,11 +2372,11 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
             }
 	    }
     }
-	return ERR_INVALID_PARAM; 
+	return ERR_INVALID_PARAM;
 }
 
 static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
-{ 
+{
 	const nodeclass* Class = NodeGetClass(p);
     nodemetalookuphead* Head = Class->MetaUnSet;
     if (Head)
@@ -2474,18 +2384,18 @@ static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
         nodemetalookup* Lookup = (nodemetalookup*)(Head+1);
 	    intptr_t Mid;
 	    intptr_t Lower = 0;
-	    intptr_t Upper = Head->Upper; 
+	    intptr_t Upper = Head->Upper;
 
-	    while (Upper >= Lower) 
+	    while (Upper >= Lower)
 	    {
 		    Mid = (Upper + Lower) >> 1;
 
 		    if (Lookup[Mid].Id>Id)
-			    Upper = Mid-1;	
-		    else if (Lookup[Mid].Id<Id)  		
-			    Lower = Mid+1;	
-		    else 
-		    {	
+			    Upper = Mid-1;
+		    else if (Lookup[Mid].Id<Id)
+			    Lower = Mid+1;
+		    else
+		    {
                 err_t Result;
                 int DFlags;
                 dataflags Type;
@@ -2538,7 +2448,7 @@ static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
                     // TODO: pointer should not use DFLAG_CMP because it maybe a recreated different object (unless referencing is used)
                     //assert(!(DFlags & DFLAG_CMP) || (Type & TYPE_MASK) != TYPE_NODE);
 
-                    if ((DFlags & DFLAG_VERIFY_CLASS) && ((Type & TYPE_MASK) == TYPE_NODE || (Type & TYPE_MASK) == TYPE_NODE_REF) && 
+                    if ((DFlags & DFLAG_VERIFY_CLASS) && ((Type & TYPE_MASK) == TYPE_NODE || (Type & TYPE_MASK) == TYPE_NODE_REF) &&
                         Data && Size==sizeof(node*) && *(const node**)Data &&
                         !Node_IsPartOf(*(const node**)Data,(fourcc_t)Node_Meta(p,Id,META_PARAM_CLASS)))
                         return ERR_INVALID_DATA;
@@ -2610,7 +2520,7 @@ static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
                         assert(DataSize);
                         if (!Data)
                             Data = NullString;
-                        tcscpy_s((tchar_t*)Ptr,DataSize/sizeof(tchar_t),(const tchar_t*)Data); 
+                        tcscpy_s((tchar_t*)Ptr,DataSize/sizeof(tchar_t),(const tchar_t*)Data);
 						break;
 
                     case TYPE_BOOL_BIT:
@@ -2671,7 +2581,7 @@ static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
             }
 	    }
     }
-	return ERR_INVALID_PARAM; 
+	return ERR_INVALID_PARAM;
 }
 
 static dataid MetaFindParam(node* p,const tchar_t* Token)
@@ -2748,10 +2658,6 @@ void NodeContext_Init(nodecontext* p,const nodemeta* Custom, const cc_memheap* H
     if (!ConstHeap)
         ConstHeap=Heap;
 
-#if defined(CONFIG_MULTITHREAD)
-    p->PostNotifyParam = p;
-#endif
-	p->NodeLock = LockCreate();
     p->NodeHeap = Heap;
     p->NodeConstHeap = ConstHeap;
 
@@ -2817,8 +2723,6 @@ void NodeContext_Done(nodecontext* p)
 	ArrayClear(&p->Collect);
 	ArrayClear(&p->NodeSingleton);
 	ArrayClear(&p->NodeClass);
-	LockDelete(p->NodeLock);
-	p->NodeLock = NULL;
 }
 
 void NodeEnumDef(node* p,array* List)
@@ -3005,7 +2909,7 @@ bool_t NodeHibernate(anynode* AnyNode)
         int NextLevel;
         memcollectitem* i;
 		p->InCollect = 1;
-    
+
         for (Level=COLLECT_UNUSED;!Changed;Level=NextLevel)
         {
             NextLevel = INT_MAX;

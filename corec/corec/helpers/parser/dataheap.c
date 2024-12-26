@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -70,7 +70,7 @@ static void DataHeap_Check(dataheap* p)
 
 	for (i=ARRAYBEGIN(p->Buffer,dataheap_block);i!=ARRAYEND(p->Buffer,dataheap_block);++i)
     {
-        dataunit* a = i->Data;  
+        dataunit* a = i->Data;
         dataunit* b = i->Data+BUFFER_SIZE-1;
         size_t Count=0;
 
@@ -120,8 +120,6 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
     if (Size>=DATAHEAP_LIMIT)
         return MemHeap_Alloc(p->Heap,Size*sizeof(dataunit),0);
 
-    LockEnter(p->Lock);
-
     if (Size==DATAALIGN(3*sizeof(void*)))
     {
         dataheap_free* hf;
@@ -132,7 +130,7 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
             Block.Data = MemHeap_Alloc(p->Heap,BUFFER_SIZE*sizeof(dataunit),0);
 	        if (!Block.Data)
                 goto failed;
-            
+
             if (!ArrayInsert(&p->Buffer,0,&Block,sizeof(Block),256))
                 goto failed_array;
 
@@ -149,7 +147,6 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
 
         hf=p->Free3;
         p->Free3 = hf->Next;
-        LockLeave(p->Lock);
         return hf;
     }
 
@@ -188,7 +185,6 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
                         curr[Size] = (n-Size) | ((DataNext(curr)-Size)<<16);
                     }
 
-                    LockLeave(p->Lock);
                     return curr;
                 }
 
@@ -241,13 +237,11 @@ static void* DataHeap_Alloc(dataheap* p, size_t Size, int UNUSED_PARAM(Flags))
         --i;
     }
 
-    LockLeave(p->Lock);
     return curr+1;
 
 failed_array:
     MemHeap_Free(p->Heap,Block.Data,BUFFER_SIZE*sizeof(dataunit));
 failed:
-    LockLeave(p->Lock);
     return NULL;
 }
 
@@ -259,7 +253,7 @@ static void DataHeap_Free(dataheap* p, void* Ptr, size_t Size)
         dataunit *next;
         dataunit *prev;
 	    dataheap_block* i;
-        
+
         Size = DATAALIGN(Size);
 
         if (Size>=DATAHEAP_LIMIT)
@@ -268,13 +262,10 @@ static void DataHeap_Free(dataheap* p, void* Ptr, size_t Size)
             return;
         }
 
-        LockEnter(p->Lock);
-
         if (Size==3)
         {
             ((dataheap_free*)Ptr)->Next = p->Free3;
             p->Free3 = (dataheap_free*)Ptr;
-            LockLeave(p->Lock);
             return;
         }
 
@@ -297,11 +288,11 @@ static void DataHeap_Free(dataheap* p, void* Ptr, size_t Size)
                 *prev = DataSize(prev) + ((curr - prev)<<16);
 
                 // merge with next (avoid delimiter)
-                if (DataSize(next) && DataSize(curr)==DataNext(curr)) 
+                if (DataSize(next) && DataSize(curr)==DataNext(curr))
                     *curr += *next;
 
                 // merge with prev (avoid delimiter)
-                if (DataSize(prev) && DataSize(prev)==DataNext(prev)) 
+                if (DataSize(prev) && DataSize(prev)==DataNext(prev))
                 {
                     *prev += *curr;
                     curr = prev;
@@ -326,8 +317,6 @@ static void DataHeap_Free(dataheap* p, void* Ptr, size_t Size)
                 break;
             }
         }
-
-        LockLeave(p->Lock);
     }
 }
 
@@ -372,7 +361,6 @@ void DataHeap_Init(dataheap* p,const cc_memheap* Heap)
     p->Heap = Heap;
     ArrayInitEx(&p->Buffer,Heap);
     ArrayAlloc(&p->Buffer,512,1);
-    p->Lock = LockCreate();
     p->Free3 = NULL;
 }
 
@@ -383,7 +371,4 @@ void DataHeap_Done(dataheap* p)
 		MemHeap_Free(p->Heap,i->Data,BUFFER_SIZE*sizeof(dataunit));
 	ArrayClear(&p->Buffer);
     p->Free3 = NULL;
-    LockDelete(p->Lock);
-    p->Lock = NULL;
 }
-

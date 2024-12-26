@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -34,7 +34,6 @@ typedef struct strtab
 {
     const cc_memheap* Heap;
     array Table;
-    void* Lock;
 
 } strtab;
 

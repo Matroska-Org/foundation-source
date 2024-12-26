@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -32,7 +32,7 @@
 #define TABLEALIGN	1024
 
 typedef struct stringdef
-{	
+{
 	fourcc_t Class;
 	int32_t Id;
 	// tchar_t s[]
@@ -43,25 +43,20 @@ void StrTab_Init(strtab* p, const cc_memheap* Heap, size_t Alloc)
     assert(STRTAB_ITEMSIZE == sizeof(stringdef));
     p->Heap = Heap;
     ArrayInit(&p->Table); // not using Heap, because we need direct write acess
-	ArrayAlloc(&p->Table,Alloc,TABLEALIGN); 
-	p->Lock = LockCreate();
+	ArrayAlloc(&p->Table,Alloc,TABLEALIGN);
 }
 
 NOINLINE void StrTab_Clear(strtab* p)
 {
 	stringdef **i;
-	LockEnter(p->Lock);
 	for (i=ARRAYBEGIN(p->Table,stringdef*);i!=ARRAYEND(p->Table,stringdef*);++i)
         MemHeap_Free(p->Heap,*i,sizeof(stringdef)+tcsbytes((tchar_t*)(*i+1)));
     ArrayClear(&p->Table);
-	LockLeave(p->Lock);
 }
 
 void StrTab_Done(strtab* p)
 {
     StrTab_Clear(p);
-	LockDelete(p->Lock);
-    p->Lock = NULL;
 }
 
 static int CmpDef(const void* UNUSED_PARAM(p), const stringdef* const* pa, const stringdef* const* pb)
@@ -87,8 +82,6 @@ void StrTab_Add(strtab* p, bool_t Secondary, fourcc_t Class, int32_t Id, const t
 
 	if (s && !*s)
         s = NULL;
-
-	LockEnter(p->Lock);
 
 	// already the same?
 	Pos = ArrayFind(&p->Table,stringdef*,&Ptr,(arraycmp)CmpDef,NULL,&Found);
@@ -117,16 +110,12 @@ void StrTab_Add(strtab* p, bool_t Secondary, fourcc_t Class, int32_t Id, const t
 	        ArrayAdd(&p->Table,stringdef*,&Ptr,(arraycmp)CmpDef,NULL,TABLEALIGN);
         }
     }
-
-	LockLeave(p->Lock);
 }
 
 int StrTab_Enum(strtab* p, fourcc_t Class, size_t Count)
 {
 	int Result = -1;
 	stringdef **i;
-
-	LockEnter(p->Lock);
 
 	for (i=ARRAYBEGIN(p->Table,stringdef*);i!=ARRAYEND(p->Table,stringdef*);++i)
 		if ((*i)->Class==Class && Count--==0)
@@ -135,7 +124,6 @@ int StrTab_Enum(strtab* p, fourcc_t Class, size_t Count)
 			break;
 		}
 
-	LockLeave(p->Lock);
 	return Result;
 }
 
@@ -162,38 +150,24 @@ static NOINLINE const tchar_t *GetPos(strtab *p, size_t Pos)
 
 size_t StrTab_Pos(strtab *p, fourcc_t Class, int Id)
 {
-    size_t Pos;
-	LockEnter(p->Lock);
-    Pos = FindPos(p,Class,Id);
-	LockLeave(p->Lock);
-    return Pos;
+    return FindPos(p,Class,Id);
 }
 
 const tchar_t *StrTab_GetPos(strtab *p, size_t Pos)
 {
-    const tchar_t *s;
-	LockEnter(p->Lock);
-    s = GetPos(p,Pos);
-	LockLeave(p->Lock);
-    return s;
+    return GetPos(p,Pos);
 }
 
 const tchar_t* StrTab_Find(strtab* p, fourcc_t Class, int Id)
 {
-    const tchar_t *s;
-	LockEnter(p->Lock);
-    s = GetPos(p,FindPos(p,Class,Id));
-	LockLeave(p->Lock);
-    return s;
+    return GetPos(p,FindPos(p,Class,Id));
 }
 
 bool_t StrTab_Get(strtab* p, fourcc_t Class, int Id, tchar_t* Out, size_t OutLen)
 {
     size_t Pos;
-	LockEnter(p->Lock);
     Pos = FindPos(p,Class,Id);
     tcscpy_s(Out,OutLen,GetPos(p,Pos));
-	LockLeave(p->Lock);
     return (Pos!=STRTAB_INVALID_POS);
 }
 
