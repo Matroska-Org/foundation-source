@@ -695,7 +695,6 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
 {
     ebml_master *Track;
     ebml_element *Elt;
-    int64_t TrackNum = -1;
     size_t *order;
 
     if (TrackOrder)
@@ -709,7 +708,6 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
         Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
         if (EBML_IntegerValue((ebml_integer*)Elt) == MATROSKA_TRACK_TYPE_VIDEO)
         {
-            TrackNum = EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber()));
             break;
         }
     }
@@ -722,7 +720,6 @@ static ebml_master *GetMainTrack(ebml_master *Tracks, array *TrackOrder)
             Elt = EBML_MasterFindChild(Track,MATROSKA_getContextTrackType());
             if (EBML_IntegerValue((ebml_integer*)Elt) == MATROSKA_TRACK_TYPE_AUDIO)
             {
-                TrackNum = EBML_IntegerValue((ebml_integer*)EBML_MasterFindChild(Track,MATROSKA_getContextTrackNumber()));
                 break;
             }
         }
