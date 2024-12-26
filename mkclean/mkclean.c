@@ -407,7 +407,7 @@ static matroska_cluster **LinkCueCluster(matroska_cuepoint *Cue, array *Clusters
 {
     matroska_cluster **Cluster;
     matroska_block *Block;
-    int16_t CueTrack;
+    uint16_t CueTrack;
     mkv_timestamp_t CueTimestamp;
     size_t StartBoost = 7;
 
