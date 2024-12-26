@@ -2762,13 +2762,13 @@ void NodeEnumDef(node* p,array* List)
 
 bool_t NodeDataDef(node* p, dataid Id, datadef* DataDef)
 {
-    uintptr_t Flags = Node_Meta(p,Id,META_PARAM_TYPE);
+    dataflags Flags = (dataflags)Node_Meta(p,Id,META_PARAM_TYPE);
     if (!Flags)
         return 0;
     //assert((Flags & TYPE_MASK)!=0);
 
     DataDef->Id = Id;
-    DataDef->Flags = (dataflags)Flags;
+    DataDef->Flags = Flags;
     return 1;
 }
 
