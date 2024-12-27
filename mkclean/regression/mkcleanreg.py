@@ -5,13 +5,13 @@
 # Copyright 2022 Matroska (non-profit organisation)
 #
 # Permission to use, copy, modify, and/or distribute this software for any purpose with or without
-# fee is hereby granted, provided that the above copyright notice and this permission notice appear 
+# fee is hereby granted, provided that the above copyright notice and this permission notice appear
 # in all copies.
 #
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS 
-# SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE 
-# AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES 
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, 
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+# SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+# AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 
@@ -53,11 +53,11 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
     mkclean_run.append(src_file)
     mkclean_run.append(outputfile)
     result = subprocess.run(mkclean_run)
-    
+
     if not result.returncode == 0:
         print(f"Fail:3:{line_num}: mkclean returned {result} for {mkclean_options}", file=sys.stderr)
         return
-    
+
     if not os.path.isfile(outputfile):
         print(f"Fail:4:{line_num}: failed to stat file {outputfile}", file=sys.stderr)
         return
@@ -66,7 +66,7 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
     if not cli.generate and not outsize == filesize:
         print(f"Fail:5:{line_num}: wanted {filesize} got {outsize} size in {src_file}", file=sys.stderr)
         return
-    
+
     if not cli.generate:
         # test with mkvalidator
         mkvalidator_exe = cli.mkvalidator
@@ -84,17 +84,17 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
             mkvalidator_run.append("--no-warn")
         mkvalidator_run.append(outputfile)
         result = subprocess.run(mkvalidator_run)
-        
+
         if not result.returncode == 0:
             print(f"Fail:6:{line_num}: mkvalidator returned {result} for {outputfile}", file=sys.stderr)
             return
-    
+
     filemd5 = hashlib.md5(open(outputfile,'rb').read()).hexdigest()
     if cli.generate:
         print(f"\"{src_file}\" \"{mkclean_options}\" {outsize} {filemd5}", file=sys.stderr)
     elif not filemd5 == hash:
         print(f"Fail:8:{line_num}: bad MD5 {filemd5} for {outputfile}", file=sys.stderr)
-        
+
     if not cli.keep:
         os.remove(outputfile)
     if not cli.generate:
