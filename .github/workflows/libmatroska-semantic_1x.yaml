@@ -10,8 +10,8 @@ on:
     # branches: [ master ]
     paths:
       - '!**'
-      - 'spectool/schema_2_matroska_sem_c.xsl'
-      - 'spectool/schema_2_matroska_sem_h.xsl'
+      - 'spectool/schema_2_kaxsemantic_cpp_1x.xsl'
+      - 'spectool/schema_2_kaxsemantic_h_1x.xsl'
   schedule:
     - cron: '44 16 * * 6'
 
