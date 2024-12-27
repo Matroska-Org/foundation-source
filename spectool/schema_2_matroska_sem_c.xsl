@@ -177,7 +177,8 @@
             <xsl:text>_CLASS</xsl:text>
             <xsl:text>, 0, </xsl:text>
             <xsl:text>0, </xsl:text>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" /><xsl:text>", </xsl:text>
             <xsl:text>EBML_Semantic</xsl:text>
             <xsl:value-of select="$node/@name" />
             <xsl:text>, </xsl:text>
@@ -200,7 +201,8 @@
             <xsl:text>_CLASS</xsl:text>
             <xsl:text>, 0, </xsl:text>
             <xsl:text>0, </xsl:text>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
         </xsl:when>
         <xsl:when test="$node/@type='uinteger'">
@@ -217,7 +219,8 @@
                 <xsl:when test="$node/@default and (number($node/@default)=number($node/@default))"><xsl:text>1, (intptr_t)</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>, </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
 
         </xsl:when>
@@ -232,7 +235,8 @@
                 <xsl:when test="$node/@default and (number($node/@default)=number($node/@default))"><xsl:text>1, (intptr_t)</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>, </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
 
         </xsl:when>
@@ -247,7 +251,8 @@
                 <xsl:when test="$node/@default"><xsl:text>1, (intptr_t)"</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>", </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
 
         </xsl:when>
@@ -262,7 +267,8 @@
                 <xsl:when test="$node/@default"><xsl:text>1, (intptr_t)"</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>", </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
 
         </xsl:when>
@@ -285,7 +291,8 @@
                 </xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
 
         </xsl:when>
@@ -297,7 +304,8 @@
             <xsl:text>EBML_DATE_CLASS, </xsl:text>
             <xsl:text>0, </xsl:text>
             <xsl:text>0, </xsl:text>
-            <xsl:text>"</xsl:text><xsl:value-of select="$lib2Name" />
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="$lib2Name" />
             <xsl:text>", NULL, EBML_getSemanticGlobals()};&#10;</xsl:text>
         </xsl:when>
     </xsl:choose>
