@@ -1,7 +1,7 @@
 name: "Build tools"
 on:
-  paths-ignore:
-    paths:
+  pull_request:
+    paths-ignore:
       - 'spectool/**'
 
 jobs:
