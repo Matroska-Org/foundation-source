@@ -293,46 +293,7 @@ typedef uint64_t uint_fast64_t;
 
 #include "corec_config.h"
 
-#if defined(HAVE_STDINT_H)
 #include <stdint.h>
-#elif !defined(_STDINT_H) && !defined(_STDINT_H_) && !defined(_UINT64_T_DECLARED) // could be used elsewhere
-
-typedef signed long int32_t;
-typedef unsigned long uint32_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-
-#if defined(IX86_64) || defined(IA64)
-typedef signed __int64 int_fast32_t;
-typedef unsigned __int64 uint_fast32_t;
-typedef signed __int64 int_fast16_t;
-typedef unsigned __int64 uint_fast16_t;
-typedef signed char int_fast8_t;
-typedef unsigned char uint_fast8_t;
-typedef signed __int64 int_fast64_t;
-typedef unsigned __int64 uint_fast64_t;
-#else /* !IX86_64 && !IA64 */
-#if _MSC_VER >= 1400
-typedef __w64 signed int int_fast32_t;
-typedef __w64 unsigned int uint_fast32_t;
-typedef __w64 signed int int_fast16_t;
-typedef __w64 unsigned int uint_fast16_t;
-#else
-typedef signed int int_fast32_t;
-typedef unsigned int uint_fast32_t;
-typedef signed int int_fast16_t;
-typedef unsigned int uint_fast16_t;
-#endif
-typedef signed char int_fast8_t;
-typedef unsigned char uint_fast8_t;
-typedef signed __int64 int_fast64_t;
-typedef unsigned __int64 uint_fast64_t;
-#endif /* !IX86_64 && !IA64 */
-#endif /* _STDINT_H | _STDINT_H_ | _UINT64_T_DECLARED */
 
 #ifdef _MSC_VER
 #define LL(x)   x##i64

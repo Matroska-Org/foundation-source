@@ -16,8 +16,6 @@ else(${CONFIG_UNICODE} STREQUAL "best")
   set(CONFIG_UNICODE_MODE CONFIG_UNICODE_BEST)
 endif()
 
-check_include_file(stdint.h    HAVE_STDINT_H)
-
 # Base core API
 add_library("corec_bare" INTERFACE)
 set(corec_base_PUBLIC_HEADERS
