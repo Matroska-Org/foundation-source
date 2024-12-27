@@ -355,7 +355,12 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                                 // read the rest of the element in memory to avoid reading it a second time later
                                 ArrayInit(&CrcBuffer);
                                 filepos_t element_size = EBML_ElementPositionEnd((ebml_element*)Element) - EBML_ElementPositionEnd(SubElement);
-                                if (element_size < (filepos_t)SIZE_MAX && ArrayResize(&CrcBuffer, (size_t)element_size, 0))
+#if MAX_FILEPOS >= SIZE_MAX
+                                if ((filepos_t)element_size < (filepos_t)SIZE_MAX
+#else
+                                if ((size_t)element_size < (size_t)SIZE_MAX
+#endif
+                                    && ArrayResize(&CrcBuffer, (size_t)element_size, 0))
                                 {
                                     CRCData = ARRAYBEGIN(CrcBuffer,uint8_t);
                                     CRCDataSize = ARRAYCOUNT(CrcBuffer,uint8_t);
@@ -499,7 +504,13 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
         array TmpBuf;
         bool_t IsMemory = Node_IsPartOf(Output,MEMSTREAM_CLASS);
         ArrayInit(&TmpBuf);
-        if (!IsMemory && ((Element->Base.DataSize - CRC_EBML_SIZE) > (filepos_t)SIZE_MAX || !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - CRC_EBML_SIZE, 0)))
+        if (!IsMemory &&
+#if MAX_FILEPOS >= SIZE_MAX
+            ((filepos_t)(Element->Base.DataSize - CRC_EBML_SIZE) > (filepos_t)SIZE_MAX
+#else
+            ((size_t)(Element->Base.DataSize - CRC_EBML_SIZE) > (size_t)SIZE_MAX
+#endif
+             || !ArrayResize(&TmpBuf, (size_t)Element->Base.DataSize - CRC_EBML_SIZE, 0)))
             Err = ERR_OUT_OF_MEMORY;
         else
         {
