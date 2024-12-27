@@ -1617,7 +1617,7 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         break;
 
     case TYPE_SIZE:
-#if defined(SIZE_MAX) && SIZE_MAX > 0xFFFFFFFF
+#if SIZE_MAX > INT32_MAX
         Int64ToString(Value,ValueLen,*(size_t*)Data,0);
 #else
         IntToString(Value,ValueLen,*(size_t*)Data,0);
