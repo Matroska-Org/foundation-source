@@ -40,10 +40,13 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
-#if defined(TARGET_OSX)
+#if defined(HAVE_SYS_MOUNT_H)
 #include <sys/mount.h>
-#else
+#endif
+#if defined(HAVE_SYS_VFS_H)
 #include <sys/vfs.h>
+#elif defined(HAVE_SYS_STATVFS_H)
+#include <sys/statvfs.h>
 #endif
 
 #if defined(O_ACCMODE)
