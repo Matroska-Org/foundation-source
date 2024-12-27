@@ -1,5 +1,8 @@
 name: "Build tools"
-on: pull_request
+on:
+  paths-ignore:
+    paths:
+      - 'spectool/**'
 
 jobs:
   build_tools_win32:
