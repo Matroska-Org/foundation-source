@@ -3,6 +3,7 @@ on:
   push:
     branches: [ master ]
     paths:
+      - '!**'
       - 'spectool/**'
   pull_request:
     # branches: [ master ]
