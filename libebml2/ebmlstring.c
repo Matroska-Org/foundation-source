@@ -80,7 +80,11 @@ static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_con
         Result = ERR_READ;
         goto failed;
     }
-    if (Element->Base.DataSize > (filepos_t)SIZE_MAX - 1)
+#if MAX_FILEPOS >= SIZE_MAX
+    if ((filepos_t)Element->Base.DataSize > (filepos_t)(SIZE_MAX - 1))
+#else
+    if ((size_t)Element->Base.DataSize > (size_t)(SIZE_MAX - 1))
+#endif
     {
         Result = ERR_OUT_OF_MEMORY;
         goto failed;
