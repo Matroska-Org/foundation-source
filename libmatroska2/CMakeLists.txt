@@ -1,8 +1,8 @@
 project("matroska2" VERSION 0.22.3 LANGUAGES C)
 
 option(CONFIG_ZLIB "Enable zlib (de)compression" ON)
-option(CONFIG_BZLIB "Enable bzlib (de)compression in libmatroska2" ON)
-option(CONFIG_LZO1X "Enable lzo (de)compression in libmatroska2" ON)
+option(CONFIG_BZLIB "Enable bzlib decompression in libmatroska2" ON)
+option(CONFIG_LZO1X "Enable lzo decompression in libmatroska2" ON)
 option(CONFIG_NOCODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
 
 if (CONFIG_ZLIB)
