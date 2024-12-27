@@ -58,7 +58,7 @@
 
 MATROSKA_DLL err_t MATROSKA_Init(parsercontext *p);
 
-#define INVALID_TIMESTAMP_T      MAX_INT64
+#define INVALID_TIMESTAMP_T      INT64_MAX
 typedef int64_t    mkv_timestamp_t; // in nanoseconds
 
 typedef struct matroska_block matroska_block;

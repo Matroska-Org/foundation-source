@@ -330,10 +330,6 @@ typedef uint64_t uint_fast64_t;
 #define TPRIx64  PRIx64
 #endif
 
-#define MAX_INT64 LL(0x7fffffffffffffff)
-
-#define MAX_TICK INT_MAX
-
 typedef int_fast32_t err_t;
 typedef int_fast32_t bool_t;
 typedef int_fast32_t tick_t;
@@ -498,10 +494,10 @@ void * __alloca(size_t size);
 
 #ifdef CONFIG_FILEPOS_64
 typedef int_fast64_t filepos_t;
-#define MAX_FILEPOS MAX_INT64
+#define MAX_FILEPOS INT_FAST64_MAX
 #else
 typedef int_fast32_t filepos_t;
-#define MAX_FILEPOS INT_MAX
+#define MAX_FILEPOS INT_FAST32_MAX
 #endif
 
 #define INVALID_FILEPOS_T  ((filepos_t)-1)

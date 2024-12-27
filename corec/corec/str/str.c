@@ -185,7 +185,7 @@ static int get_integers(int64_t IntValue)
 {
     int Result = 0;
     int64_t TmpVal = 1;
-    while (IntValue >= TmpVal && TmpVal < MAX_INT64/10)
+    while (IntValue >= TmpVal && TmpVal < INT64_MAX/10)
     {
         TmpVal *= 10;
         Result++;
@@ -197,7 +197,7 @@ static int get_decimals(int Decimals, int64_t IntValue)
 {
     int Result = 0;
     int64_t TmpVal = IntValue+1;
-    while (TmpVal < MAX_INT64/10)
+    while (TmpVal < INT64_MAX/10)
     {
         TmpVal *= 10;
         Result++;
