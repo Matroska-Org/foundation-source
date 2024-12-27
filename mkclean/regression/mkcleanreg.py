@@ -55,7 +55,7 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
     result = subprocess.run(mkclean_run)
 
     if not result.returncode == 0:
-        print(f"Fail:3:{line_num}: mkclean returned {result} for {mkclean_options}", file=sys.stderr)
+        print(f"Fail:3:{line_num}: mkclean returned {result.returncode} for {mkclean_options}", file=sys.stderr)
         return
 
     if not os.path.isfile(outputfile):
@@ -117,7 +117,7 @@ def main():
         if not line.startswith('#') and not line.strip() == '':
             regression = line.split('\"')
             src_file = regression[1]
-            mkclean_options = regression[3]
+            mkclean_options = regression[3].strip()
             values = regression[4].strip().split()
             filesize = int(values[0])
             hash = values[1]
