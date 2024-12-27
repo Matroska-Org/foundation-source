@@ -52,7 +52,8 @@ target_include_directories("matroska2" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_
 
 if (CONFIG_ZLIB)
   if(ZLIB_FOUND)
-    target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:z>)
+    target_include_directories("matroska2" PRIVATE ${ZLIB_INCLUDE_DIRS})
+    target_link_libraries("matroska2" PRIVATE ${ZLIB_LIBRARIES})
   else()
     target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:zlib>)
   endif()
