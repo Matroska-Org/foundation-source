@@ -4,7 +4,8 @@ on:
     branches: [ master ]
     paths:
       - '!**'
-      - 'spectool/**'
+      - 'spectool/schema_2_kaxsemantic_cpp.xsl'
+      - 'spectool/schema_2_kaxsemantic_h.xsl'
   pull_request:
     # branches: [ master ]
   schedule:

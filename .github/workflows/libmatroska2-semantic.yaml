@@ -4,7 +4,8 @@ on:
     branches: [ master ]
     paths:
       - '!**'
-      - 'spectool/**'
+      - 'spectool/schema_2_matroska_sem_c.xsl'
+      - 'spectool/schema_2_matroska_sem_h.xsl'
   pull_request:
     # branches: [ master ]
   schedule:
