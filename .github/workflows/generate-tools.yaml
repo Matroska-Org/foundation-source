@@ -17,6 +17,7 @@ jobs:
             triplet: x64-windows
           - os: ubuntu-latest
             triplet: x64-linux
+            CMAKE_CC: CC=gcc-14
           - os: macos-latest
             triplet: x64-osx
     env:
@@ -28,7 +29,7 @@ jobs:
       - uses: lukka/get-cmake@latest
 
       - name: Configure CMake
-        run: cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
+        run: ${{ matrix.CMAKE_CC }} cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
 
       - name: Build with CMake
         run: cmake --build _build --config Debug --parallel
