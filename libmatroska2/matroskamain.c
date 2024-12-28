@@ -209,7 +209,7 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
     int Res;
 
     memset(&stream,0,sizeof(stream));
-    if (deflateInit(&stream, 9)!=Z_OK)
+    if (deflateInit(&stream, Z_BEST_COMPRESSION)!=Z_OK)
         return ERR_INVALID_DATA;
     stream.next_in = (Bytef*)Cursor;
     stream.avail_in = CursorSize;
