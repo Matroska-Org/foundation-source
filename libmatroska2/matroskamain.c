@@ -1224,18 +1224,18 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                     ArrayClear(&TmpBuf);
                     goto failed;
                 }
+                size_t Offset = 0;
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
 #if defined(CONFIG_ZLIB)
                     if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                     {
                         size_t UncompressedSize;
-                        size_t Offset = 0;
                         FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
                         Err = UnCompressFrameZLib(InBuf, FrameSize, &Element->Data, &UncompressedSize, &Offset);
                         if (Err == ERR_NONE)
                         {
-                            ArrayResize(&Element->Data, UncompressedSize, 0);
+                            OutSize += UncompressedSize;
                             ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] = UncompressedSize;
                         }
                     }
@@ -1612,24 +1612,23 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
         return ARRAYBEGIN(Element->SizeList,int32_t)[Frame];
     if (Header->Context==MATROSKA_getContextContentCompAlgo())
     {
-        // handle zlib
-        size_t OutSize;
-        const int32_t *Size = ARRAYBEGIN(Element->SizeList,int32_t);
-        const uint8_t *Data = ARRAYBEGIN(Element->Data,uint8_t);
-        while (Frame)
-        {
-            Data += *Size;
-            ++Size;
-            --Frame;
-        }
-        OutSize = *Size;
         assert(Element->Base.Base.bValueIsSet);
         if (!Element->Base.Base.bValueIsSet)
-            return *Size; // we can't tell the final size without decoding the data
+            return ARRAYBEGIN(Element->SizeList,int32_t)[Frame]; // we can't tell the final size without decoding the data
+
+        // skip previous frames data
+        size_t PrevFramesSize = 0;
+        for (size_t FrameNum=0; FrameNum<Frame; FrameNum++)
+            PrevFramesSize += ARRAYBEGIN(Element->SizeList,int32_t)[FrameNum];
+
+        // handle zlib
+        size_t OutSize = ARRAYBEGIN(Element->SizeList,int32_t)[Frame];
+        assert((PrevFramesSize + OutSize) <= ARRAYCOUNT(Element->Data,uint8_t));
+        const uint8_t *Data = ARRAYBEGIN(Element->Data,uint8_t) + PrevFramesSize;
 #if defined(CONFIG_EBML_WRITING)
 #if defined(CONFIG_ZLIB)
-        if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB && CompressFrameZLib(Data,*Size,NULL,&OutSize)!=ERR_NONE)
-            return *Size; // we can't tell the final size without decoding the data
+        if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB && CompressFrameZLib(Data,ARRAYBEGIN(Element->SizeList,int32_t)[Frame],NULL,&OutSize)!=ERR_NONE)
+            return ARRAYBEGIN(Element->SizeList,int32_t)[Frame]; // we can't tell the final size without decoding the data
 #endif
 #endif
         return OutSize;
