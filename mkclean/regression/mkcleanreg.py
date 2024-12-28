@@ -94,6 +94,7 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
         print(f"\"{src_file}\" \"{mkclean_options}\" {outsize} {filemd5}", file=sys.stderr)
     elif not filemd5 == hash:
         print(f"Fail:8:{line_num}: bad MD5 {filemd5} for {outputfile}", file=sys.stderr)
+        return
 
     if not cli.keep:
         os.remove(outputfile)
