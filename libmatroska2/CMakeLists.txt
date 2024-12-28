@@ -21,7 +21,7 @@ if (CONFIG_ZLIB)
     )
 
     FetchContent_MakeAvailable(zlib)
-    target_compile_definitions("zlib" PRIVATE NO_GZIP)
+    target_compile_definitions("zlibstatic" PRIVATE NO_GZIP)
   endif()
 endif()
 
