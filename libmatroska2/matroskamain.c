@@ -1231,7 +1231,8 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProf
                     {
                         size_t UncompressedSize;
                         size_t Offset = 0;
-                        Err = UnCompressFrameZLib(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame], &Element->Data, &UncompressedSize, &Offset);
+                        FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                        Err = UnCompressFrameZLib(InBuf, FrameSize, &Element->Data, &UncompressedSize, &Offset);
                         if (Err == ERR_NONE)
                         {
                             ArrayResize(&Element->Data, UncompressedSize, 0);
