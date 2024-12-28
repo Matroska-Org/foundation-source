@@ -84,7 +84,7 @@
 #define LOAD32LE(ptr)		((LOAD8(ptr,3)<<24)|(LOAD8(ptr,2)<<16)|(LOAD8(ptr,1)<<8)|LOAD8(ptr,0))
 #define LOAD32BE(ptr)		((LOAD8(ptr,0)<<24)|(LOAD8(ptr,1)<<16)|(LOAD8(ptr,2)<<8)|LOAD8(ptr,3))
 #define LOAD64BE(ptr)		((((uint64_t)LOAD8(ptr,0))<<56)|(((uint64_t)LOAD8(ptr,1))<<48)|(((uint64_t)LOAD8(ptr,2))<<40)|(((uint64_t)LOAD8(ptr,3))<<32)| \
-							 (((uint64_t)LOAD8(ptr,4))<<24)|(((uint64_t)LOAD8(ptr,5))<<16)|(((uint64_t)LOAD8(ptr,6))<< 8)|(((uint64_t)LOAD8(ptr,0))    ))
+							 (((uint64_t)LOAD8(ptr,4))<<24)|(((uint64_t)LOAD8(ptr,5))<<16)|(((uint64_t)LOAD8(ptr,6))<< 8)|(((uint64_t)LOAD8(ptr,7))    ))
 
 
 #define STORE8(p, o, i)      ((uint8_t *) (p))[o] = (uint8_t) ((i) & 0xFF)
