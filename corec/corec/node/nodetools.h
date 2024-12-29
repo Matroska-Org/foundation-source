@@ -41,6 +41,4 @@ static INLINE bool_t EqFrac(const cc_fraction* a, const cc_fraction* b)
 	return (int64_t)b->Den * a->Num == (int64_t)a->Den * b->Num;
 }
 
-NODE_DLL int ScaleRound(int_fast32_t v,int_fast32_t Num,int_fast32_t Den);
-
 #endif
