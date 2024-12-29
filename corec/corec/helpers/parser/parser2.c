@@ -28,8 +28,25 @@
  ****************************************************************************/
 
 #include "parser.h"
+#include "buffer.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/charconvert/charconvert.h>
+
+struct parser
+{
+    parsercontext *Context;
+    struct stream* Stream;
+    buffer Buffer;
+    struct charconv* CC;
+    struct charconv* EscapeCC;
+    tchar_t *BigLine;
+    boolmem_t Element;
+    boolmem_t ElementEof;
+    boolmem_t URL;
+    boolmem_t OwnCC;
+    boolmem_t Error;
+
+};
 
 extern const nodemeta LangStr_Class[];
 
