@@ -31,6 +31,7 @@
 #include "ebml2/ebml.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/date/date.h>
+#include <corec/str/str.h>
 
 void DebugMessage(const tchar_t* Msg,...)
 {

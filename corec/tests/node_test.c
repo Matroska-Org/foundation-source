@@ -1,4 +1,5 @@
-#include "corec/node/node.h"
+#include <corec/node/node.h>
+#include <corec/str/str.h>
 
 #include <stdio.h>
 void DebugMessage(const tchar_t* Msg,...)

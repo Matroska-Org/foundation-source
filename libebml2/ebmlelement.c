@@ -28,6 +28,7 @@
 #include "ebml2/ebml.h"
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/str/str.h>
 
 static bool_t ValidateSize(const ebml_element *p)
 {

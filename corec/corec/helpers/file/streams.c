@@ -29,6 +29,7 @@
 
 #include "file.h"
 #include "streams.h"
+#include <corec/str/str.h>
 
 static err_t DummySkip(void* p, intptr_t* Skip)
 {

@@ -38,6 +38,7 @@
 #include "minilzo.h"
 #endif
 #include <corec/helpers/file/streams.h>
+#include <corec/str/str.h>
 
 extern const nodemeta Matroska_Class[];
 
