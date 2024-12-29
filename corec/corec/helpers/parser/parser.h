@@ -37,7 +37,6 @@
 extern "C" {
 #endif
 
-#include "dataheap.h"
 #include "strtab.h"
 #include "strtypes.h"
 #include "hotkey.h"
