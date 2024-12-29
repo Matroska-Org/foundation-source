@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -43,7 +43,6 @@ extern "C" {
 #include "hotkey.h"
 #include "buffer.h"
 #include "nodelookup.h"
-#include "urlpart.h"
 
 #define LANG_STRINGS_ID  FOURCC('L','N','G','S')
 

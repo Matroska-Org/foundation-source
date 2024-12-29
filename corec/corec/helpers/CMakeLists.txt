@@ -55,7 +55,6 @@ set(corec_parser_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser2.c
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtab.c
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtypes.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/parser/urlpart.c
 )
 set(corec_parser_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/buffer.h
@@ -65,7 +64,6 @@ set(corec_parser_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtab.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtypes.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/parser/urlpart.h
   PARENT_SCOPE
 )
 add_library("corec_parser" ${corec_parser_SOURCES} ${corec_parser_PUBLIC_HEADERS})

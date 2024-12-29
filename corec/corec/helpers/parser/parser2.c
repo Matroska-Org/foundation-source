@@ -30,7 +30,6 @@
 #include "parser.h"
 
 extern const nodemeta LangStr_Class[];
-extern const nodemeta UrlPart_Class[];
 
 static const tchar_t* ExternalStr(nodecontext* p,fourcc_t Class,int Id)
 {
@@ -52,7 +51,6 @@ void ParserContext_Init(parsercontext* p,const nodemeta* Custom, const cc_memhea
     p->FromUtf16 = CharConvOpen(CHARSET_UTF16,NULL);
 
     NodeRegisterClassEx(&p->Base.Base,LangStr_Class);
-    NodeRegisterClassEx(&p->Base.Base,UrlPart_Class);
     CoreC_FileInit(&p->Base.Base);
 }
 
