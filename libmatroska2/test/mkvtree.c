@@ -30,6 +30,7 @@
 
 #include "matroska2/matroska.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/helpers/date/date.h>
 
 static int ShowPos = 0;
 

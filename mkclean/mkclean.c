@@ -30,6 +30,7 @@
 #include "matroska2/matroska_sem.h"
 #include "mkclean_project.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/helpers/date/date.h>
 
 #ifndef CONFIG_EBML_WRITING
 #error libebml2 was not built with writing support!

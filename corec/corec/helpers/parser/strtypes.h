@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -29,6 +29,8 @@
 
 #ifndef __STRTYPES_H
 #define __STRTYPES_H
+
+typedef struct datepack_t datepack_t;
 
 NODE_DLL fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper);
 NODE_DLL void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* Fraction, int Percent, int Decimal);

@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "parser.h"
+#include <corec/helpers/date/date.h>
 
 fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper)
 {
