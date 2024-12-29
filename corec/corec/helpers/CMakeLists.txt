@@ -56,7 +56,6 @@ set(corec_parser_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtypes.c
 )
 set(corec_parser_PUBLIC_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/parser/buffer.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/hotkey.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/nodelookup.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.h

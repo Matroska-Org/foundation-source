@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -39,11 +39,9 @@ typedef struct buffer
 
 } buffer;
 
-NODE_DLL void BufferClear(buffer*);
-NODE_DLL void BufferDrop(buffer*);
-NODE_DLL bool_t BufferAlloc(buffer* p, size_t Size, size_t Align);
-NODE_DLL uint8_t* BufferWrite(buffer*, const void* Ptr, size_t Length, size_t Align);
-NODE_DLL const uint8_t* BufferRead(buffer*, size_t Length);
-NODE_DLL void BufferPack(buffer*, size_t Readed);
+void BufferClear(buffer*);
+bool_t BufferAlloc(buffer* p, size_t Size, size_t Align);
+uint8_t* BufferWrite(buffer*, const void* Ptr, size_t Length, size_t Align);
+void BufferPack(buffer*, size_t Readed);
 
 #endif

@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "parser.h"
+#include "buffer.h"
 
 static size_t SizeAlign(size_t Total, size_t Align)
 {
@@ -68,12 +69,6 @@ bool_t BufferAlloc(buffer* p, size_t Total, size_t Align)
 	return 1;
 }
 
-void BufferDrop(buffer* p)
-{
-	p->Write = p->Begin;
-	p->Read = p->Begin;
-}
-
 uint8_t* BufferWrite(buffer* p, const void* Ptr, size_t Length, size_t Align)
 {
     uint8_t* Write = p->Write + Length;
@@ -88,17 +83,6 @@ uint8_t* BufferWrite(buffer* p, const void* Ptr, size_t Length, size_t Align)
 		memcpy(Write,Ptr,Length);
 
 	return Write;
-}
-
-const uint8_t* BufferRead(buffer* p, size_t Length)
-{
-    uint8_t* Read = p->Read;
-
-	if (p->Write < Read + Length)
-		return NULL;
-
-    p->Read = Read + Length;
-	return Read;
 }
 
 void BufferPack(buffer* p, size_t Length)

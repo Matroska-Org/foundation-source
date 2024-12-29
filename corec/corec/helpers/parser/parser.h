@@ -39,7 +39,6 @@ extern "C" {
 #include "strtab.h"
 #include "strtypes.h"
 #include "hotkey.h"
-#include "buffer.h"
 #include "nodelookup.h"
 
 #define LANG_STRINGS_ID  FOURCC('L','N','G','S')
@@ -97,21 +96,7 @@ NODE_DLL void ExprState(exprstate* State, node*, dataid Id, dataflags Flags);
 
 typedef err_t (*parserexpradd)(node* Node, const datadef* DataDef, exprstate* State, const tchar_t* Expr, bool_t Save);
 
-typedef struct parser
-{
-    parsercontext *Context;
-	struct stream* Stream;
-	buffer Buffer;
-    struct charconv* CC;
-    struct charconv* EscapeCC;
-    tchar_t *BigLine;
-    boolmem_t Element;
-    boolmem_t ElementEof;
-    boolmem_t URL;
-    boolmem_t OwnCC;
-    boolmem_t Error;
-
-} parser;
+typedef struct parser parser;
 
 typedef struct stream stream;
 
