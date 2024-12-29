@@ -1107,7 +1107,6 @@ void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast3
             tchar_t Name[32];
             uint8_t Data[MAXDATA];
             size_t Size = Node_MaxDataSize(p,i->Id,i->Flags,META_PARAM_GET);
-            assert((i->Id & ~DATA_ENUM)==i->Id);
             assert(Size <= sizeof(Data));
             if (Size)
             {
@@ -1137,7 +1136,7 @@ void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast3
 
 static err_t GetStr(node* p,dataid Id, tchar_t *Data, size_t Size)
 {
-    if (Id-LANG_STRINGS_OFFSET < DATA_ENUM)
+    if (Id-LANG_STRINGS_OFFSET < DATA_ICON)
         tcscpy_s(Data,Size/sizeof(tchar_t),StrTab_GetPos(&Parser_Context(p)->StrTab,Id-LANG_STRINGS_OFFSET));
     else if ((Id-LANG_STRINGS_OFFSET) & DATA_DYNNAME)
         StrTab_GetPosName(&Parser_Context(p)->StrTab,(Id-LANG_STRINGS_OFFSET) & ~DATA_DYNNAME, Data, Size/sizeof(tchar_t));

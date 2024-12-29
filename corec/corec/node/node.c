@@ -74,7 +74,7 @@ static const uint16_t ParamSize[MAX_PARAMTYPE] =
     sizeof(int),        //TYPE_FIX16
     0,                  //TYPE_LUA_REF
     sizeof(notifyex),   //TYPE_NOTIFYEX
-    sizeof(dataenum),   //TYPE_ENUM
+    0,                  //TYPE_ENUM
     sizeof(multi_enum_set), //TYPE_ENUM_MULTI_SET
     sizeof(size_t),     //TYPE_SIZE
 };
@@ -1971,19 +1971,6 @@ static NOINLINE bool_t EqData(datatype Type, const void* a, const void* b, size_
 
 bool_t Node_EqData(node* p, dataid Id, dataflags Type, const void* a, const void* b)
 {
-    if ((Type & TFLAG_MULTI_ENUM) && (Id & DATA_ENUM_MULTI))
-    {
-        // b is a dataenumex with all the set values
-        uint8_t *v;
-        int *IsSet;
-        const dataenum *Values = (const dataenum *)b;
-        for (v=ARRAYBEGIN(Values->Value,uint8_t),IsSet=ARRAYBEGIN(Values->Name,int);v!=ARRAYEND(Values->Value,uint8_t);v+=Values->ValueSize,++IsSet)
-        {
-            if (EqData(Type & TYPE_MASK,a,v,Values->ValueSize))
-                return (*IsSet!=0);
-        }
-        return 0;
-    }
     return EqData(Type & TYPE_MASK,a,b,Node_MaxDataSize(p,Id,Type,META_PARAM_GET));
 }
 
@@ -1995,26 +1982,6 @@ NOINLINE size_t Node_MaxDataSize(node* p, dataid Id, dataflags Flags, int QueryT
     //assert(Flags != 0);
     if (Flags == 0)
         return 0;
-
-    if (Id < (DATA_ENUM_MULTI*2)) // a normal ID (instead of a class ID, sometimes)
-    {
-        if (Id & DATA_ENUM)
-        {
-            if (QueryType==META_PARAM_GET)
-                Flags = TYPE_ENUM;
-            else
-            if (QueryType==META_PARAM_SET)
-                Flags = TYPE_STRING;
-        }
-        if (Id & DATA_ENUM_MULTI)
-        {
-            if (QueryType==META_PARAM_GET)
-                Flags = TYPE_ENUM;
-            else
-            if (QueryType==META_PARAM_SET)
-                Flags = TYPE_ENUM_MULTI_SET;
-        }
-    }
 
     assert(Flags < MAX_PARAMTYPE);
     Size = ParamSize[Flags];
@@ -2808,7 +2775,6 @@ static NOINLINE void CopyData(const nodeclass* Class, node* p, node* Src, array*
                 if (Type != TYPE_EXPR) // batch expressions are already copied
                 {
                     size_t Size = Node_MaxDataSize(Src,Id,Type,META_PARAM_GET);
-                    assert((Id & ~DATA_ENUM)==Id);
                     if (Size && Node_Get(Src,Id,Data,Size) == ERR_NONE)
                     {
                         if (Type == TYPE_PIN)
