@@ -1,5 +1,19 @@
 #include "corec/node/node.h"
 
+#include <stdio.h>
+void DebugMessage(const tchar_t* Msg,...)
+{
+    va_list Args;
+    tchar_t Buffer[1024];
+
+    va_start(Args,Msg);
+    vstprintf_s(Buffer,TSIZEOF(Buffer), Msg, Args);
+    va_end(Args);
+    tcscat_s(Buffer,TSIZEOF(Buffer),T("\r\n"));
+
+    fprintf(stderr, "%s", Buffer);
+}
+
 int main(int argc,char** argv)
 {
     node* p[10000];
