@@ -30,12 +30,6 @@
 #include "file.h"
 #include "streams.h"
 
-//TODO: include from somewhere else or not depend on them at all
-#ifdef CONFIG_BLOCK_RDONLY
-#include "common.h"
-#endif
-//end TODO
-
 static err_t DummySkip(void* p, intptr_t* Skip)
 {
     uint8_t Buf[1024];
