@@ -56,7 +56,6 @@ typedef struct parsercontext
     struct charconv* ToUtf16;
     struct charconv* FromUtf16;
 	strtab StrTab;
-	bool_t LowStartMemory;
 
 } parsercontext;
 
