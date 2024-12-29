@@ -30,7 +30,7 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
-#include "corec/helpers/file/file.h"
+#include <corec/helpers/file/file.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -30,6 +30,8 @@
 #ifndef __STRTYPES_H
 #define __STRTYPES_H
 
+#include <corec/node/node.h> // NODE_DLL
+
 typedef struct datepack_t datepack_t;
 
 NODE_DLL fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper);

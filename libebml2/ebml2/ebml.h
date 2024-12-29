@@ -29,8 +29,8 @@
 #ifndef LIBEBML2_H
 #define LIBEBML2_H
 
-#include "corec/node/node.h"
-#include "corec/helpers/parser/parser.h"
+#include <corec/node/node.h>
+#include <corec/helpers/parser/parser.h>
 #include "ebml2/ebml_config.h"
 
 #ifdef __cplusplus

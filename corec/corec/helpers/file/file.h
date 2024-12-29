@@ -30,7 +30,7 @@
 #ifndef __FILE_H
 #define __FILE_H
 
-#include "corec/node/node.h"
+#include <corec/node/node.h>
 
 #ifdef __cplusplus
 extern "C" {
