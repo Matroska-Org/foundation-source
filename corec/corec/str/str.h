@@ -67,22 +67,11 @@ STR_DLL tchar_t* tcsncpy_s(tchar_t* Out,size_t OutLen,const tchar_t* In,size_t n
 STR_DLL tchar_t* tcscat_s(tchar_t* Out,size_t OutLen,const tchar_t* In);
 STR_DLL tchar_t* tcsncat_s(tchar_t* Out,size_t OutLen,const tchar_t* In,size_t n);
 STR_DLL int stscanf(const tchar_t* In, const tchar_t* Mask, ...);
-STR_DLL int stscanf_s(const tchar_t* In, size_t *InLen, const tchar_t* Mask, ...);
 STR_DLL void stprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask, ...);
 STR_DLL void stcatprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask, ...);
 STR_DLL void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg);
 
-STR_DLL tchar_t* tcsreplace(tchar_t* Out,size_t OutLen, const tchar_t *Src, const tchar_t *Dst);
-STR_DLL tchar_t* tcsreplacechar(tchar_t *ts, tchar_t From, tchar_t To);
-
 STR_DLL size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
-
-static INLINE tchar_t* tcsclr_s(tchar_t *ts, size_t len)   
-{
-    if (ts && len)
-        *ts = 0;
-    return ts;
-}
 
 STR_DLL size_t utf16len(const utf16_t *);
 

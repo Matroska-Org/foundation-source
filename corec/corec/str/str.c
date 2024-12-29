@@ -824,16 +824,6 @@ static int var_stscanf_s(const tchar_t* In, size_t *InLen, const tchar_t* Mask, 
 	return n;
 }
 
-int stscanf_s(const tchar_t* In, size_t *InLen, const tchar_t* Mask, ...)
-{
-    int n;
-	va_list Arg;
-	va_start(Arg, Mask);
-    n = var_stscanf_s(In,InLen,Mask,Arg);
-	va_end(Arg);
-    return n;
-}
-
 int stscanf(const tchar_t* In, const tchar_t* Mask, ...)
 {
     int n;
@@ -903,41 +893,6 @@ size_t utf16len(const utf16_t *In)
     while (*In++)
         ++Result;
     return Result;
-}
-
-tchar_t* tcsreplace(tchar_t* Out, size_t OutLen, const tchar_t *Src, const tchar_t *Dst)
-{
-    tchar_t *s = tcsstr(Out,Src);
-    if (s)
-    {
-        size_t SrcLen,DstLen,Remain;
-        SrcLen = tcslen(Src);
-        DstLen = tcslen(Dst);
-        do
-        {
-            Remain = tcslen(s);
-            if (SrcLen < DstLen)
-            {
-                if (Remain + (DstLen-SrcLen) >= OutLen - (s-Out))
-                    return 0; // not enough room
-                memmove(s+DstLen-SrcLen,s,(Remain+1)*sizeof(tchar_t));
-            }
-            else
-                memmove(s,s+SrcLen-DstLen,(Remain+1)*sizeof(tchar_t));
-            memcpy(s,Dst,DstLen*sizeof(tchar_t));
-            s += DstLen;
-        } while ((s=tcsstr(s,Src)));
-    }
-    return Out;
-}
-
-tchar_t* tcsreplacechar(tchar_t *ts, tchar_t From, tchar_t To)
-{
-    tchar_t *p;
-    for (p=ts;*p;++p)
-        if (*p == From)
-            *p = To;
-    return ts;
 }
 
 size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC)
