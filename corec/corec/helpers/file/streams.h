@@ -119,9 +119,11 @@ typedef struct memstream
 
 } memstream;
 
+#if defined(CONFIG_STDIO)
 #define STDIN_ID		FOURCC('S','T','D','I')
 #define STDOUT_ID		FOURCC('S','T','D','O')
 #define STDERR_ID		FOURCC('S','T','D','E')
+#endif
 
 typedef struct streamdir
 {
