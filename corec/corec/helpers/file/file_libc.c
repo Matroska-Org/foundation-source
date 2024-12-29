@@ -279,12 +279,6 @@ META_DATA(TYPE_FILEPOS,STREAM_LENGTH,filestream,Length)
 META_PARAM(STRING,NODE_PROTOCOL,T("file"))
 META_END(STREAM_CLASS)
 
-bool_t FileExists(nodecontext *p,const tchar_t* Path)
-{
-    struct stat file_stats;
-    return stat(Path, &file_stats) == 0;
-}
-
 bool_t FileErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
 {
     if (Force)
@@ -302,23 +296,6 @@ bool_t FileErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
     return unlink(Path) == 0;
 }
 
-bool_t FolderErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
-{
-    if (Force)
-    {
-        struct stat file_stats;
-        if (stat(Path, &file_stats) == 0)
-        {
-            if ((file_stats.st_mode & S_IWUSR)==0)
-            {
-                file_stats.st_mode |= S_IWUSR;
-                chmod(Path,file_stats.st_mode);
-            }
-        }
-    }
-    return rmdir(Path) == 0;
-}
-
 bool_t PathIsFolder(nodecontext *p,const tchar_t* Path)
 {
     struct stat file_stats;
@@ -327,81 +304,4 @@ bool_t PathIsFolder(nodecontext *p,const tchar_t* Path)
         return (file_stats.st_mode & S_IFDIR) == S_IFDIR;
     }
     return 0;
-}
-
-datetime_t FileDateTime(nodecontext *p,const tchar_t* Path)
-{
-    datetime_t Date = INVALID_DATETIME_T;
-    struct stat file_stats;
-    if (stat(Path, &file_stats) == 0)
-        Date = LinuxToDateTime(file_stats.st_mtime);
-    return Date;
-}
-
-bool_t FileMove(nodecontext *p,const tchar_t* In,const tchar_t* Out)
-{
-    return rename(In,Out) == 0;
-}
-
-bool_t FolderCreate(nodecontext *p,const tchar_t* Path)
-{
-    return mkdir(Path,_RW_ACCESS_DIR) == 0;
-}
-
-void FindFiles(nodecontext *p,const tchar_t* Path, const tchar_t* Mask,void(*Process)(const tchar_t*,void*),void* Param)
-{
-    DIR* Directory;
-    struct dirent* DirectoryInfo;
-    tchar_t TPathToFile[MAXPATH];
-
-    Directory = opendir(Path);
-    if (Directory)
-    {
-        while ( (DirectoryInfo = readdir(Directory)) != NULL )
-        {
-            char* FileExtension = 0;
-            FileExtension = strrchr(DirectoryInfo->d_name, '.');
-            if(FileExtension)
-            {
-                if (strcmp(Mask, FileExtension ) == 0 )
-                {
-                    tcscpy_s(TPathToFile, TSIZEOF(TPathToFile), Path);
-                    tcscat_s(TPathToFile, TSIZEOF(TPathToFile), DirectoryInfo->d_name);
-                    Process(TPathToFile, Param);
-                }
-            }
-        }
-
-        closedir(Directory);
-    }
-
-}
-
-stream *FileTemp(anynode *Any)
-{
-#ifndef TODO
-    assert(NULL); // not supported yet
-#endif
-    return NULL;
-}
-
-bool_t FileTempName(anynode *Any,tchar_t *Out, size_t OutLen)
-{
-#ifndef TODO
-    assert(NULL); // not supported yet
-#endif
-    return 0;
-}
-
-int64_t GetPathFreeSpace(nodecontext* UNUSED_PARAM(p), const tchar_t* Path)
-{
-#ifndef TODO
-    // need to an include (see at includes)
-    struct statfs st;
-    if (statfs(Path, &st) < 0)
-        return -1;
-    return (int64_t)st.f_bsize * (int64_t)st.f_bavail;
-#else
-    return -1;
-#endif
 }

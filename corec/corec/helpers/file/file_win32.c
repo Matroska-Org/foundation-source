@@ -402,16 +402,6 @@ META_PARAM(STRING,NODE_PROTOCOL,T("file"))
 META_END(STREAM_CLASS)
 
 
-bool_t FolderCreate(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
-{
-	return CreateDirectory(Path,NULL) != FALSE;
-}
-
-bool_t FileExists(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
-{
-	return GetFileAttributes(Path) != (DWORD)-1;
-}
-
 static bool_t FileRecycle(const tchar_t* Path)
 {
     tchar_t PathEnded[MAXPATHFULL];
@@ -448,97 +438,9 @@ bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force,
         return FileRecycle(Path);
 }
 
-bool_t FolderErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force, bool_t Safe)
-{
-    if (Force)
-    {
-        DWORD attr = GetFileAttributes(Path);
-        if ((attr != (DWORD)-1) && (attr & FILE_ATTRIBUTE_READONLY))
-        {
-            attr ^= FILE_ATTRIBUTE_READONLY;
-            SetFileAttributes(Path,attr);
-        }
-    }
-
-    if (!Safe)
-    	return RemoveDirectory(Path) != FALSE;
-    else
-        return FileRecycle(Path);
-}
-
 bool_t PathIsFolder(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
     DWORD attr = GetFileAttributes(Path);
 	return (attr != (DWORD)-1) && (attr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
-}
-
-datetime_t FileDateTime(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
-{
-	datetime_t Date = INVALID_DATETIME_T;
-	HANDLE Find;
-	WIN32_FIND_DATA FindData;
-
-	Find = FindFirstFile(Path, &FindData);
-	if (Find != INVALID_HANDLE_VALUE)
-	{
-		Date = FileTimeToRel(&FindData.ftLastWriteTime);
-		FindClose(Find);
-	}
-	return Date;
-}
-
-bool_t FileMove(nodecontext* UNUSED_PARAM(p),const tchar_t* In,const tchar_t* Out)
-{
-    return MoveFile(In,Out) != 0;
-}
-
-void FindFiles(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, const tchar_t* Mask, void(*Process)(const tchar_t*,void*),void* Param)
-{
-	WIN32_FIND_DATA FindData;
-	tchar_t FindPath[MAXPATH];
-	HANDLE Find;
-
-	tcscpy_s(FindPath,TSIZEOF(FindPath),Path);
-	tcscat_s(FindPath,TSIZEOF(FindPath),Mask);
-	Find = FindFirstFile(FindPath,&FindData);
-
-	if (Find != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			tcscpy_s(FindPath,TSIZEOF(FindPath),Path);
-			tcscat_s(FindPath,TSIZEOF(FindPath),FindData.cFileName);
-			Process(FindPath,Param);
-		}
-		while (FindNextFile(Find,&FindData));
-
-		FindClose(Find);
-	}
-}
-
-stream *FileTemp(anynode* UNUSED_PARAM(Any))
-{
-#ifndef TODO
-    assert(NULL); // not supported yet
-#endif
-    return NULL;
-}
-
-bool_t FileTempName(anynode* UNUSED_PARAM(Any),tchar_t* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen))
-{
-#ifndef TODO
-    assert(NULL); // not supported yet
-#endif
-    return 0;
-}
-
-FILE_DLL int64_t GetPathFreeSpace(nodecontext* UNUSED_PARAM(p), const tchar_t* Path)
-{
-    ULARGE_INTEGER lpFreeBytesAvailable;
-    ULARGE_INTEGER lpTotal;
-
-    if (!GetDiskFreeSpaceEx(Path, &lpFreeBytesAvailable, &lpTotal, NULL))
-        return -1;
-    return (int64_t)lpFreeBytesAvailable.QuadPart;
 }
 #endif
