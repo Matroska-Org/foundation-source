@@ -31,7 +31,6 @@
 #define __FILE_H
 
 #include "corec/node/node.h"
-#include "corec/helpers/date/date.h"
 
 #ifdef __cplusplus
 extern "C" {
