@@ -114,21 +114,6 @@ void StrTab_Add(strtab* p, bool_t Secondary, fourcc_t Class, int32_t Id, const t
     }
 }
 
-int StrTab_Enum(strtab* p, fourcc_t Class, size_t Count)
-{
-	int Result = -1;
-	stringdef **i;
-
-	for (i=ARRAYBEGIN(p->Table,stringdef*);i!=ARRAYEND(p->Table,stringdef*);++i)
-		if ((*i)->Class==Class && Count--==0)
-		{
-			Result = (*i)->Id;
-			break;
-		}
-
-	return Result;
-}
-
 static NOINLINE size_t FindPos(strtab *p, fourcc_t Class, int Id)
 {
     size_t Pos;
@@ -163,14 +148,6 @@ const tchar_t *StrTab_GetPos(strtab *p, size_t Pos)
 const tchar_t* StrTab_Find(strtab* p, fourcc_t Class, int Id)
 {
     return GetPos(p,FindPos(p,Class,Id));
-}
-
-bool_t StrTab_Get(strtab* p, fourcc_t Class, int Id, tchar_t* Out, size_t OutLen)
-{
-    size_t Pos;
-    Pos = FindPos(p,Class,Id);
-    tcscpy_s(Out,OutLen,GetPos(p,Pos));
-    return (Pos!=STRTAB_INVALID_POS);
 }
 
 void StrTab_GetPosName(strtab *p, size_t Pos, tchar_t *Out, size_t OutLen)
