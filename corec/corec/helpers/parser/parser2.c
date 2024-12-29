@@ -29,6 +29,7 @@
 
 #include "parser.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/helpers/charconvert/charconvert.h>
 
 extern const nodemeta LangStr_Class[];
 
@@ -187,7 +188,7 @@ void ParserBOM(parser* p)
     }
 }
 
-NOINLINE void ParserCC(parser* p, charconv* CC, bool_t OwnCC)
+NOINLINE void ParserCC(parser* p, struct charconv* CC, bool_t OwnCC)
 {
     if (p->CC && p->OwnCC)
         CharConvClose(p->CC);

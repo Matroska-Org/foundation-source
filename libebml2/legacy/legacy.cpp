@@ -49,6 +49,7 @@
 #include "ebml2/ebml.h"
 
 #include <corec/helpers/file/streams.h>
+#include <corec/helpers/charconvert/charconvert.h>
 
 #define IOCALLBACK_STREAM_CLASS  FOURCC('I','O','C','B')
 
@@ -1070,7 +1071,7 @@ EbmlUnicodeString::operator const UTFstring() const
 {
     ebml_string *Value = (ebml_string*)Node;
     wchar_t TmpStr[MAXLINE];
-    charconv *c = CharConvOpen(CHARSET_UTF8,CHARSET_WCHAR);
+    struct charconv *c = CharConvOpen(CHARSET_UTF8,CHARSET_WCHAR);
     CharConvTS(c, TmpStr, sizeof(TmpStr)/sizeof(wchar_t),Value->Buffer);
     CharConvClose(c);
     return UTFstring(TmpStr);
