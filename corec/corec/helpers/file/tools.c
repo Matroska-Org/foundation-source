@@ -513,20 +513,6 @@ int CheckExts(const tchar_t* URL, const tchar_t* Exts)
     return 0;
 }
 
-int ScaleRound(int_fast32_t v,int_fast32_t Num,int_fast32_t Den)
-{
-    int64_t i;
-    if (!Den)
-        return 0;
-    i = (int64_t)v * Num;
-    if (i<0)
-        i-=Den/2;
-    else
-        i+=Den/2;
-    i/=Den;
-    return (int)i;
-}
-
 extern const nodemeta BufStream_Class[];
 extern const nodemeta MemStream_Class[];
 extern const nodemeta Streams_Class[];
