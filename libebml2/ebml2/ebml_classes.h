@@ -33,7 +33,7 @@
  * ONLY INCLUDE THIS FILE IF YOU PLAN TO CREATE YOUR OWN EBML-BASED CLASS
  */
 
-#include "corec/node/node.h"
+#include <corec/node/node.h>
 
 #ifdef __cplusplus
 extern "C" {
