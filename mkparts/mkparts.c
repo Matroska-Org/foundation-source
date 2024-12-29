@@ -28,6 +28,7 @@
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
 #include "mkparts_project.h"
+#include <corec/helpers/file/streams.h>
 
 static textwriter *StdErr = NULL;
 static bool_t Split = 1;
@@ -140,7 +141,7 @@ typedef struct {
     filepos_t SegmentSize;
 } SegmentStart;
 
-static void CopyTo(stream *Input, stream *Output, filepos_t StartPos, filepos_t Size)
+static void CopyTo(struct stream *Input, struct stream *Output, filepos_t StartPos, filepos_t Size)
 {
     filepos_t SizeToCopy = Size;
     size_t readSize;
@@ -167,7 +168,7 @@ int main(int argc, const char *argv[])
     int ShowVersion = 0;
     parsercontext p;
     textwriter _StdErr;
-    stream *Input = NULL, *Output = NULL;
+    struct stream *Input = NULL, *Output = NULL;
     tchar_t Path[MAXPATHFULL];
     ebml_element *EbmlHead = NULL;
     ebml_parser_context RContext;
@@ -187,7 +188,7 @@ int main(int argc, const char *argv[])
 
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));
-    StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
+    StdErr->Stream = (struct stream*)NodeSingleton(&p,STDERR_ID);
     assert(StdErr->Stream!=NULL);
 
 	for (i=1;i<argc;++i)

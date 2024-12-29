@@ -29,6 +29,7 @@
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
 #include "mkclean_project.h"
+#include <corec/helpers/file/streams.h>
 
 #ifndef CONFIG_EBML_WRITING
 #error libebml2 was not built with writing support!
@@ -254,7 +255,7 @@ static void ReduceSize(ebml_element *Element)
     }
 }
 
-static bool_t ReadClusterData(ebml_master *Cluster, stream *Input)
+static bool_t ReadClusterData(ebml_master *Cluster, struct stream *Input)
 {
     bool_t Changed = 0;
     err_t Result = ERR_NONE;
@@ -313,7 +314,7 @@ static err_t UnReadClusterData(ebml_master *Cluster, bool_t IncludingNotRead)
     return Result;
 }
 
-static void SetClusterPrevSize(array *Clusters, stream *Input)
+static void SetClusterPrevSize(array *Clusters, struct stream *Input)
 {
     ebml_master **Cluster;
     ebml_element *Elt, *Elt2;
@@ -362,7 +363,7 @@ static void UpdateCues(ebml_master *Cues, ebml_master *Segment)
     }
 }
 
-static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_master *Cues, ebml_master *Segment, bool_t SafeClusters, stream *Input)
+static void SettleClustersWithCues(array *Clusters, filepos_t ClusterStart, ebml_master *Cues, ebml_master *Segment, bool_t SafeClusters, struct stream *Input)
 {
     ebml_element *Elt, *Elt2;
     ebml_master **Cluster;
@@ -541,7 +542,7 @@ static int LinkClusters(array *Clusters, ebml_master *RSegmentInfo, ebml_master 
     return 0;
 }
 
-static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegmentInfo, filepos_t StartPos, ebml_master *WSegment, filepos_t TotalSize, bool_t ReLink, bool_t SafeClusters, stream *Input)
+static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegmentInfo, filepos_t StartPos, ebml_master *WSegment, filepos_t TotalSize, bool_t ReLink, bool_t SafeClusters, struct stream *Input)
 {
     matroska_cluster **Cluster;
     matroska_cuepoint *Cue;
@@ -567,7 +568,7 @@ static void OptimizeCues(ebml_master *Cues, array *Clusters, ebml_master *RSegme
     SettleClustersWithCues(Clusters,StartPos,Cues,WSegment,SafeClusters, Input);
 }
 
-static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_parser_context *Parser, stream *Input)
+static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_parser_context *Parser, struct stream *Input)
 {
     ebml_parser_context SubContext;
     ebml_element *SubElement;
@@ -667,7 +668,7 @@ static ebml_element *CheckMatroskaHead(const ebml_element *Head, const ebml_pars
     return NULL;
 }
 
-static bool_t WriteCluster(ebml_master *Cluster, stream *Output, stream *Input, filepos_t PrevSize, mkv_timestamp_t *PrevTimestamp)
+static bool_t WriteCluster(ebml_master *Cluster, struct stream *Output, struct stream *Input, filepos_t PrevSize, mkv_timestamp_t *PrevTimestamp)
 {
     filepos_t IntendedPosition = EBML_ElementPosition((ebml_element*)Cluster);
     ebml_element *Elt;
@@ -1349,7 +1350,7 @@ static bool_t BlockIsCompressed(const matroska_block *Block)
     return 0;
 }
 
-static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, stream *Input)
+static void ShrinkCommonHeader(array *TrackHeader, matroska_block *Block, struct stream *Input)
 {
     size_t Frame,FrameCount,EqualData;
     matroska_frame FrameData;
@@ -1397,7 +1398,7 @@ static void ClearCommonHeader(array *TrackHeader)
         TrackHeader->_Begin = NULL;
 }
 
-static void WriteJunk(stream *Output, size_t Amount)
+static void WriteJunk(struct stream *Output, size_t Amount)
 {
     char Val = 0x0A;
     while (Amount--)
@@ -1415,7 +1416,7 @@ int main(int argc, const char *argv[])
     int ShowVersion = 0;
     parsercontext p;
     textwriter _StdErr;
-    stream *Input = NULL,*Output = NULL;
+    struct stream *Input = NULL,*Output = NULL;
     tchar_t Path[MAXPATHFULL];
     tchar_t String[MAXLINE],Original[MAXLINE],*s;
     ebml_master *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, **Cluster;
@@ -1459,7 +1460,7 @@ int main(int argc, const char *argv[])
 
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));
-    StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
+    StdErr->Stream = (struct stream*)NodeSingleton(&p,STDERR_ID);
 
 #if defined(TARGET_WIN) && defined(UNICODE)
     Node_FromWcs(&p,Path,TSIZEOF(Path),argv[0]);

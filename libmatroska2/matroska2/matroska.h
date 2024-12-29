@@ -105,7 +105,7 @@ MATROSKA_DLL uint16_t MATROSKA_BlockTrackNum(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockKeyframe(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockDiscardable(const matroska_block *Block);
 MATROSKA_DLL bool_t MATROSKA_BlockLaced(const matroska_block *Block);
-MATROSKA_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, stream *Input, int ForProfile);
+MATROSKA_DLL err_t MATROSKA_BlockReadData(matroska_block *Block, struct stream *Input, int ForProfile);
 MATROSKA_DLL err_t MATROSKA_BlockReleaseData(matroska_block *Block, bool_t IncludingNotRead);
 MATROSKA_DLL uint16_t MATROSKA_CueTrackNum(const matroska_cuepoint *Cue);
 MATROSKA_DLL void MATROSKA_CuesSort(ebml_master *Cues);
@@ -141,10 +141,10 @@ MATROSKA_DLL ebml_element *MATROSKA_BlockWriteTrack(const matroska_block *Block)
 MATROSKA_DLL ebml_element *MATROSKA_BlockWriteSegmentInfo(const matroska_block *Block);
 #endif
 
-MATROSKA_DLL err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum);
+MATROSKA_DLL err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, struct stream *Input, size_t FrameNum);
 MATROSKA_DLL void MATROSKA_BlockSetKeyframe(matroska_block *Block, bool_t Set);
 MATROSKA_DLL void MATROSKA_BlockSetDiscardable(matroska_block *Block, bool_t Set);
-MATROSKA_DLL err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input, int ForProfile);
+MATROSKA_DLL err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, struct stream *Input, int ForProfile);
 MATROSKA_DLL size_t MATROSKA_BlockGetFrameCount(const matroska_block *Block);
 MATROSKA_DLL mkv_timestamp_t MATROSKA_BlockGetFrameDuration(const matroska_block *Block, size_t FrameNum);
 MATROSKA_DLL mkv_timestamp_t MATROSKA_BlockGetFrameStart(const matroska_block *Block, size_t FrameNum);

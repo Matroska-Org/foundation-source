@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "streams.h"
 
 #define BUFSTREAM_SIZE      4096
 

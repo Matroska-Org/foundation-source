@@ -37,6 +37,7 @@
 #if defined(CONFIG_LZO1X)
 #include "minilzo.h"
 #endif
+#include <corec/helpers/file/streams.h>
 
 extern const nodemeta Matroska_Class[];
 
@@ -977,7 +978,7 @@ err_t MATROSKA_BlockReleaseData(matroska_block *Block, bool_t IncludingNotRead)
     return ERR_NONE;
 }
 
-err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size_t FrameNum)
+err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, struct stream *Input, size_t FrameNum)
 {
     uint32_t *i;
     filepos_t SeekPos = EBML_ElementPositionData((ebml_element*)Block);
@@ -998,7 +999,7 @@ err_t MATROSKA_BlockSkipToFrame(const matroska_block *Block, stream *Input, size
 
 // TODO: support zero copy reading (read the frames directly into a buffer with a callback per frame)
 //       pass the Input stream and the amount to read per frame, give the timestamp of the frame and get the end timestamp in return, get an error code if reading failed
-err_t MATROSKA_BlockReadData(matroska_block *Element, stream *Input, int ForProfile)
+err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int ForProfile)
 {
     size_t Read,BufSize;
     size_t NumFrame;
@@ -1392,7 +1393,7 @@ static err_t SetBlockGroupParent(ebml_master *Element, void* Parent, void* Befor
     return Result;
 }
 
-static err_t ReadBigBinaryData(ebml_binary *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadBigBinaryData(ebml_binary *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     if (Scope == SCOPE_PARTIAL_DATA)
     {
@@ -1402,7 +1403,7 @@ static err_t ReadBigBinaryData(ebml_binary *Element, stream *Input, const ebml_p
     return INHERITED(Element,ebml_element_vmt,MATROSKA_BIGBINARY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope, DepthCheckCRC);
 }
 
-static err_t ReadBlockData(matroska_block *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadBlockData(matroska_block *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
 {
     err_t Result;
     uint8_t _TempHead[5];
@@ -1720,7 +1721,7 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
         return LACING_EBML;
 }
 
-static err_t RenderBlockData(matroska_block *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderBlockData(matroska_block *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     err_t Err = ERR_NONE;
     uint8_t BlockHead[5], *Cursor;
@@ -2250,7 +2251,7 @@ static err_t CreateCluster(matroska_cluster *p)
     return ERR_NONE;
 }
 
-static err_t ReadTrackEntry(matroska_trackentry *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadTrackEntry(matroska_trackentry *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     Element->CodecPrivateCompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_NONE;
     err_t Result = INHERITED(Element,ebml_element_vmt,MATROSKA_TRACKENTRY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope, DepthCheckCRC);

@@ -69,8 +69,6 @@ FILE_DLL void ReduceLocalPath(tchar_t* Abs, size_t AbsLen);
 FILE_DLL void RelPath(tchar_t* Rel, int RelLen, const tchar_t* Path, const tchar_t* Base);
 FILE_DLL bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen);
 
-#include "corec/helpers/file/streams.h"
-
 #ifdef __cplusplus
 }
 #endif

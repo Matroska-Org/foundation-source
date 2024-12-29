@@ -101,7 +101,7 @@ typedef err_t (*parserexpradd)(node* Node, const datadef* DataDef, exprstate* St
 typedef struct parser
 {
     parsercontext *Context;
-	stream* Stream;
+	struct stream* Stream;
 	buffer Buffer;
 	charconv* CC;
     charconv* EscapeCC;
@@ -113,6 +113,8 @@ typedef struct parser
     boolmem_t Error;
 
 } parser;
+
+typedef struct stream stream;
 
 NODE_DLL err_t ParserStream(parser*, stream* Stream, parsercontext* Context);
 NODE_DLL err_t ParserStreamXML(parser*, stream* Stream, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs);

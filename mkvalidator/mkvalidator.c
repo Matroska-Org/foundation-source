@@ -28,6 +28,7 @@
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
 #include "mkvalidator_project.h"
+#include <corec/helpers/file/streams.h>
 
 /*!
  * \todo verify the track timestamp scale is not null
@@ -881,7 +882,7 @@ int main(int argc, const char *argv[])
     int ShowVersion = 0;
     parsercontext p;
     textwriter _StdErr;
-    stream *Input = NULL;
+    struct stream *Input = NULL;
     tchar_t Path[MAXPATHFULL];
     tchar_t String[MAXLINE];
     ebml_master *EbmlHead = NULL, *RSegment = NULL, *RLevel1 = NULL, *Prev, *RLevelX, **Cluster;
@@ -910,7 +911,7 @@ int main(int argc, const char *argv[])
 
     StdErr = &_StdErr;
     memset(StdErr,0,sizeof(_StdErr));
-    StdErr->Stream = (stream*)NodeSingleton(&p,STDERR_ID);
+    StdErr->Stream = (struct stream*)NodeSingleton(&p,STDERR_ID);
     assert(StdErr->Stream!=NULL);
 
     for (i=1;i<argc;++i)

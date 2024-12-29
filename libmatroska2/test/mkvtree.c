@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #include "matroska2/matroska.h"
+#include <corec/helpers/file/streams.h>
 
 static int ShowPos = 0;
 
@@ -102,7 +103,7 @@ static void EndLine(ebml_element *Element)
         fprintf(stdout,"\r\n");
 }
 
-static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, stream *Input, int *Level)
+static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, struct stream *Input, int *Level)
 {
     int LevelPrint;
     for (LevelPrint=0;LevelPrint<*Level;++LevelPrint)
@@ -260,7 +261,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     return NULL;
 }
 
-static void OutputTree(stream *Input)
+static void OutputTree(struct stream *Input)
 {
     ebml_element *Element = EBML_ElementCreate(Input,MATROSKA_getContextStream(),0,PROFILE_MATROSKA_ANY);
     if (Element)
@@ -275,7 +276,7 @@ static void OutputTree(stream *Input)
 int main(int argc, const char *argv[])
 {
     parsercontext p;
-    stream *Input;
+    struct stream *Input;
     tchar_t Path[MAXPATHFULL];
 
     if ((argc!=2 && argc!=3) || (argc==3 && strcmp(argv[1],"--pos")))

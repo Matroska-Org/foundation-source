@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #include "ebml2/ebml.h"
+#include <corec/helpers/file/streams.h>
 
 void DebugMessage(const tchar_t* Msg,...)
 {
@@ -47,7 +48,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #endif
 }
 
-static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, stream *Input, int *Level)
+static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, struct stream *Input, int *Level)
 {
     int LevelPrint;
     for (LevelPrint=0;LevelPrint<*Level;++LevelPrint)
@@ -175,7 +176,7 @@ static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_cont
     return NULL;
 }
 
-static void OutputTree(stream *Input)
+static void OutputTree(struct stream *Input)
 {
     ebml_element *Element = EBML_ElementCreate(Input,EBML_getContextHead(),0, EBML_ANY_PROFILE);
     if (Element)
@@ -189,7 +190,7 @@ static void OutputTree(stream *Input)
 int main(int argc, const char *argv[])
 {
     parsercontext p;
-    stream *Input;
+    struct stream *Input;
 
     if (argc != 2)
     {

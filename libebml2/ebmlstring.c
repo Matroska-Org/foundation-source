@@ -27,6 +27,7 @@
  */
 #include "ebml2/ebml.h"
 #include "internal.h"
+#include <corec/helpers/file/streams.h>
 
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
 {
@@ -65,7 +66,7 @@ void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
     }
 }
 
-static err_t ReadData(ebml_string *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_string *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     err_t Result;
     char *Buffer = NULL;
@@ -110,7 +111,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_string *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     size_t Written;
     err_t Err = Stream_Write(Output,Element->Buffer,(size_t)Element->Base.DataSize,&Written);
@@ -132,7 +133,7 @@ static err_t RenderData(ebml_string *Element, stream *Output, bool_t bForceWitho
 #endif
 
 #if 0
-err_t EBML_AsciiStringRead(ebml_string *Element, stream *Input, tchar_t *Out, size_t OutLen)
+err_t EBML_AsciiStringRead(ebml_string *Element, struct stream *Input, tchar_t *Out, size_t OutLen)
 {
     if (Node_IsPartOf(Element,EBML_STRING_CLASS))
         return ERR_INVALID_DATA;
@@ -146,7 +147,7 @@ err_t EBML_AsciiStringRead(ebml_string *Element, stream *Input, tchar_t *Out, si
     }
 }
 
-err_t EBML_UnicodeStringRead(ebml_string *Element, stream *Input, tchar_t *Out, size_t OutLen)
+err_t EBML_UnicodeStringRead(ebml_string *Element, struct stream *Input, tchar_t *Out, size_t OutLen)
 {
     if (Node_IsPartOf(Element,EBML_UNISTRING_CLASS))
         return ERR_INVALID_DATA;

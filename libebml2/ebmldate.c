@@ -27,6 +27,7 @@
  */
 #include "ebml2/ebml.h"
 #include "internal.h"
+#include <corec/helpers/file/streams.h>
 
 datetime_t EBML_DateTime(const ebml_date *Element)
 {
@@ -49,7 +50,7 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 8 || p->DataSize == 0);
 }
 
-static err_t ReadData(ebml_date *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_date *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     err_t Result;
     int DataSize;

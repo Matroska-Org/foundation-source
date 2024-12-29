@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "streams.h"
 
 #ifdef CONFIG_FILEPOS_64
 #define __USE_FILE_OFFSET64
