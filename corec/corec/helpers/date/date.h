@@ -30,7 +30,7 @@
 #ifndef __DATE_H
 #define __DATE_H
 
-#include "corec/corec.h"
+#include <corec/corec.h>
 
 #ifdef __cplusplus
 extern "C" {
