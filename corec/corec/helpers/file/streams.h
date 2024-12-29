@@ -30,7 +30,7 @@
 #ifndef __STREAM_H
 #define __STREAM_H
 
-#include "corec/node/node.h"
+#include "file.h" // FILE_DLL
 
 #define FTYPE_DIR           'D'
 #define FTYPE_UNDEFINED     'u'
