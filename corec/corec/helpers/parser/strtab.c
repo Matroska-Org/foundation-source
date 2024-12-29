@@ -30,6 +30,7 @@
 #include "parser.h" // struct strtab
 #include "strtab.h"
 #include <corec/str/str.h>
+#include <corec/memheap.h>
 
 #define TABLEALIGN	1024
 
