@@ -43,7 +43,6 @@ set(corec_node_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/node/node.h
   ${CMAKE_CURRENT_SOURCE_DIR}/node/nodebase.h
   ${CMAKE_CURRENT_SOURCE_DIR}/node/nodetree.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/node/nodetools.h
 )
 add_library("corec_node" ${corec_node_SOURCES} ${corec_node_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
 target_include_directories("corec_node" PUBLIC ".")
