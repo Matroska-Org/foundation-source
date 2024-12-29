@@ -73,7 +73,7 @@
 #define TYPE_FIX16          36      // int
 #define TYPE_LUA_REF        37
 #define TYPE_NOTIFYEX       38
-#define TYPE_ENUM           39      // dataenum
+#define TYPE_ENUM           39
 #define TYPE_ENUM_MULTI_SET 40      // multi_enum_set
 #define TYPE_SIZE           41      // size_t
 
@@ -91,16 +91,12 @@
 #define TFLAG_INPUT         0x00001000
 #define TFLAG_OUTPUT        0x00002000
 #define TFLAG_NOSAVE        0x00004000
-#define TFLAG_ENUM          0x00008000 // Id|DATA_ENUM can be used
 #define TFLAG_NOTIFY        0x00010000
 #define TFLAG_UPDATEMODE    0x00020000
 #define TFLAG_NODUMP        0x00040000
 #define TFLAG_HOTKEY        0x00080000
 #define TFLAG_DISPLAY       0x00100000
 #define TFLAG_AVAILABLE     0x00200000 // Id|DATA_AVAILABLE can be used
-// TFLAG_ENUM (sub)flags
-#define TFLAG_EDITABLE_ENUM 0x00400000
-#define TFLAG_MULTI_ENUM    0x00800000 // Id|DATA_ENUM_MULTI can be used
 #define TFLAG_POPUP         0x01000000
 
 #define TUNIT_SHIFT       24
@@ -298,30 +294,19 @@ struct nodedata
 //---------------------------------------------------------------
 
 // dataid modifiers (max is 0x800000)
-#define DATA_ENUM           0x10000 // get:dataenum / set:add named_value / unset:delete value
 #define DATA_ICON           0x20000 // tchar_t*
 #define DATA_AVAILABLE      0x40000 // bool_t
 #define DATA_UPDATEMODE     0x80000 // bool_t
 #define DATA_DYNNAME       0x100000 // tchar_t*
-#define DATA_ENUM_MULTI    0x200000 // get:dataenum (with .Name a int flag to tell the status of each value) / set:individual value via multi_enum_set
-// TODO: use a new dataenumex type for DATA_ENUM_MULTI
 
-#define DataidBase(Id) ((Id) & ~(DATA_ENUM|DATA_ICON|DATA_AVAILABLE|DATA_UPDATEMODE|DATA_DYNNAME|DATA_ENUM_MULTI))
-#define DataidMask(Id) ((Id) &  (DATA_ENUM|DATA_ICON|DATA_AVAILABLE|DATA_UPDATEMODE|DATA_DYNNAME|DATA_ENUM_MULTI))
+#define DataidBase(Id) ((Id) & ~(DATA_ICON|DATA_AVAILABLE|DATA_UPDATEMODE|DATA_DYNNAME))
+#define DataidMask(Id) ((Id) &  (DATA_ICON|DATA_AVAILABLE|DATA_UPDATEMODE|DATA_DYNNAME))
 
 static INLINE bool_t IsExtendedId(dataid Id, dataid ExtensionStart, size_t ExtensionSize)
 {
     Id = DataidBase(Id);
     return (Id >= ExtensionStart && Id < ExtensionStart+ExtensionSize);
 }
-
-typedef struct dataenum
-{
-    size_t ValueSize;
-    array Name;  // tchar_t
-    array Value; // any type
-
-} dataenum;
 
 typedef struct multi_enum_set
 {
