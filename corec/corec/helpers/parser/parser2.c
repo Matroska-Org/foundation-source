@@ -41,7 +41,7 @@ typedef struct buffer
 
 } buffer;
 
-struct parser
+typedef struct parser
 {
     parsercontext *Context;
     struct stream* Stream;
@@ -55,7 +55,14 @@ struct parser
     boolmem_t OwnCC;
     boolmem_t Error;
 
-};
+} parser;
+
+static intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter);
+static bool_t ParserIsElementNested(parser*, tchar_t* Name, size_t NameLen);
+
+static bool_t ParserIsAttrib(parser*, tchar_t* Name, size_t NameLen);
+static void ParserAttribSkip(parser*);
+
 
 #define Parser_Context(p) ((parsercontext*)Node_Context(p))
 

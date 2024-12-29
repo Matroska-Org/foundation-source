@@ -71,16 +71,7 @@ NODE_DLL void Node_FromWcs(anynode*, tchar_t* Out,size_t OutLen, const wchar_t*)
 NODE_DLL void Node_ToUTF16(anynode*, utf16_t* Out,size_t OutLen, const tchar_t*);
 NODE_DLL void Node_FromUTF16(anynode*, tchar_t* Out,size_t OutLen, const utf16_t*);
 
-typedef struct parser parser;
-
 typedef struct stream stream;
-
-intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter);
-bool_t ParserIsElementNested(parser*, tchar_t* Name, size_t NameLen);
-
-bool_t ParserIsAttrib(parser*, tchar_t* Name, size_t NameLen);
-void ParserAttribSkip(parser*);
-
 
 typedef struct textwriter
 {
