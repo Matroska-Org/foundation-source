@@ -142,7 +142,6 @@ static const tchar_t* ParamFormat[(TUNIT_MASK>>TUNIT_SHIFT)+1] =
     T("password"),      //TUNIT_PASSWORD
 
     T("upper"),         //TUNIT_UPPER
-    T("hotkey"),        //TUNIT_HOTKEY
     T("checklist"),     //TUNIT_CHECKLIST
     T("percent"),       //TUNIT_PERCENT
     T("hex"),           //TUNIT_HEX

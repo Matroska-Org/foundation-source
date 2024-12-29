@@ -119,11 +119,10 @@
 #define TUNIT_PASSWORD    0x0C000000
 // TODO: not really units use the old TFORMAT_ for that (and a TFORMAT_MASK as well)
 #define TUNIT_UPPER       0x0D000000
-#define TUNIT_HOTKEY      0x0E000000
-#define TUNIT_CHECKLIST   0x0F000000 // TYPE_BOOLEAN only
-#define TUNIT_PERCENT     0x10000000
-#define TUNIT_HEX         0x11000000
-#define TUNIT_TASK        0x12000000 // TYPE_BOOLEAN only
+#define TUNIT_CHECKLIST   0x0E000000 // TYPE_BOOLEAN only
+#define TUNIT_PERCENT     0x0F000000
+#define TUNIT_HEX         0x10000000
+#define TUNIT_TASK        0x11000000 // TYPE_BOOLEAN only
 
 typedef uint_fast32_t dataid;
 typedef uint_fast32_t datatype;

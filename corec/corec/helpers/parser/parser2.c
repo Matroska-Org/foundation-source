@@ -1335,9 +1335,6 @@ NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate
             *(int*)Data = ScaleRound(PERCENT_ONE,f.Num,f.Den);
         }
         else
-        if ((Flags & TUNIT_MASK)==TUNIT_HOTKEY)
-            *(int*)Data = StringToHotKey(Value);
-        else
             *(int*)Data = StringToIntEx(Value,Flags,State);
         break;
 
@@ -1648,9 +1645,6 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
             f.Den = PERCENT_ONE;
             FractionToString(Value,ValueLen,&f,-1,1);
         }
-        else
-        if ((Type & TUNIT_MASK)==TUNIT_HOTKEY)
-            HotKeyToString(Value,ValueLen,*(int*)Data,NULL,NULL);
         else
         if (Display && (Type & TUNIT_MASK)==TUNIT_BYTERATE)
             ByteRateToString(Value,ValueLen,*(int*)Data);
