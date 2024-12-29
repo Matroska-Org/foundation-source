@@ -641,115 +641,6 @@ NOINLINE void ExprTrimSpace(tchar_t** p)
     }
 }
 
-static NOINLINE bool_t ReadHex(const tchar_t** p,intptr_t* Out,bool_t RGB, bool_t Neg);
-
-NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
-{
-    const tchar_t* s = *p;
-    bool_t Long = 0;
-    va_list Arg;
-    va_start(Arg, Name);
-
-    if (!*Name)
-        return 0;
-
-    ExprSkipSpace(&s);
-
-    while (*Name && *s)
-    {
-        if (*Name == ' ')
-        {
-            ExprSkipSpace(&s);
-            ++Name;
-        }
-        else
-        if (*Name == '%')
-        {
-            int IntSize = 0;
-            ++Name;
-            if (IsDigit(*Name))
-            {
-                IntSize = *Name - '0';
-                ++Name;
-            }
-            while (*Name == 'l')
-            {
-                Long=1;
-                ++Name; // long
-            }
-            if (*Name=='I' && *(Name+1)=='6' && *(Name+2)=='4')
-            {
-                Long=1;
-                Name += 3;
-            }
-            if (*Name == 'd')
-            {
-                if (Long)
-                {
-                    if ((!IntSize && !ExprIsInt64(&s,va_arg(Arg,int64_t*)))||(IntSize && !ExprIsInt64Ex(&s,IntSize,va_arg(Arg,int64_t*))))
-                        break;
-                }
-                else
-                {
-                    if ((!IntSize && !ExprIsInt(&s,va_arg(Arg,intptr_t*)))||(IntSize && !ExprIsIntEx(&s,IntSize,va_arg(Arg,intptr_t*))))
-                        break;
-                }
-                ++Name;
-            }
-            if (*Name == 'x')
-            {
-                if (!ReadHex(&s,va_arg(Arg,intptr_t*),0,0))
-                    break;
-                ++Name;
-            }
-            else if (*Name == 's')
-            {
-                tchar_t *Out = va_arg(Arg,tchar_t*);
-                size_t OutLen = va_arg(Arg,size_t);
-                ++Name;
-                while (OutLen>1 && *s && (*s != *Name && (*Name || *s != ' ')))
-                {
-                    *Out++ = *s++;
-                    OutLen--;
-                }
-                *Out = 0;
-            }
-            else if (*Name == '%')
-            {
-                if (*s == '%') {
-                    ++s;
-                    ++Name;
-                }
-            }
-        }
-        else
-        {
-            size_t n;
-            for (n=1;Name[n] && Name[n]!=' ' && Name[n]!='%';++n) {}
-
-            if (tcsnicmp_ascii(s,Name,n)!=0)
-                break;
-
-            Name += n;
-            s += n;
-        }
-    }
-
-    va_end(Arg);
-
-    if (*Name==0 && (!IsAlpha(Name[-1]) || !IsAlpha(*s)))
-    {
-        *p = s;
-        return 1;
-    }
-    return 0;
-}
-
-NOINLINE bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name)
-{
-    return ExprIsTokenEx(p,Name);
-}
-
 static const uint8_t Base64[] =
 {
     0x3e,0x80,0x80,0x80,0x3f,0x34,0x35,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x80,
@@ -1111,18 +1002,6 @@ NOINLINE bool_t ExprIsFrac(const tchar_t** p,cc_fraction* Out)
 
     SimplifyFrac(Out,Num,Den);
     return 1;
-}
-
-bool_t ExprIsPoint(const tchar_t** p, cc_point* Out)
-{
-    intptr_t x,y;
-    if (ExprIsTokenEx(p,T("{ %ld , %ld }"),&x,&y))
-    {
-        Out->x = (int)x;
-        Out->y = (int)y;
-        return 1;
-    }
-    return 0;
 }
 
 #define MAX_GCD_ITER 128
