@@ -29,6 +29,7 @@
 #include "matroska2/matroska_sem.h"
 #include "mkparts_project.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/str/str.h>
 
 static textwriter *StdErr = NULL;
 static bool_t Split = 1;

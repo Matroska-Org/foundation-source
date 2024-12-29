@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include <corec/str/str.h>
 
 bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
 {

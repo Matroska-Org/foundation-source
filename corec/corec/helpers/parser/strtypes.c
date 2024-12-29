@@ -30,6 +30,7 @@
 #include "strtypes.h"
 #include "parser.h"
 #include <corec/helpers/date/date.h>
+#include <corec/str/str.h>
 
 fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper)
 {

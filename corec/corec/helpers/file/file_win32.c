@@ -29,6 +29,7 @@
 
 #include "file.h"
 #include "streams.h"
+#include <corec/str/str.h>
 
 #if defined(TARGET_WIN)
 

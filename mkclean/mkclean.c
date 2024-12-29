@@ -32,6 +32,7 @@
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/date/date.h>
 #include <corec/helpers/parser/strtypes.h>
+#include <corec/str/str.h>
 
 #ifndef CONFIG_EBML_WRITING
 #error libebml2 was not built with writing support!

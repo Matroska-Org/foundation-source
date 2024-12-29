@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "node.h"
+#include <corec/str/str.h>
 
 static NOINLINE err_t SetParent(nodetree* p,nodetree* Parent,nodetree* Before)
 {
