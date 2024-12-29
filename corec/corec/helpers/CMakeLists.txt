@@ -54,7 +54,6 @@ set(corec_parser_SOURCES
 )
 set(corec_parser_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtab.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtypes.h
   PARENT_SCOPE
 )

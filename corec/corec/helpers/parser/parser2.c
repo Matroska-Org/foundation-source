@@ -29,6 +29,7 @@
 
 #include "parser.h"
 #include "strtypes.h"
+#include "strtab.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/charconvert/charconvert.h>
 

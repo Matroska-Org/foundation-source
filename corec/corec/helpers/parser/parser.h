@@ -36,13 +36,19 @@
 extern "C" {
 #endif
 
-#include "strtab.h"
 
 #define LANG_STRINGS_ID  FOURCC('L','N','G','S')
 
 #define MAXTOKEN		32
 #define MAXLINE			1024
 #define BIGLINE			16 * 1024
+
+typedef struct strtab
+{
+    const struct cc_memheap* Heap;
+    array Table;
+
+} strtab;
 
 typedef struct parsercontext
 {
