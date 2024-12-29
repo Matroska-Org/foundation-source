@@ -68,7 +68,7 @@ install(EXPORT Ebml2 DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ebml2)
 
 # TODO fix build
 add_executable("ebmltree" test/ebmltree.c)
-target_link_libraries("ebmltree" PUBLIC "ebml2")
+target_link_libraries("ebmltree" PUBLIC "ebml2" "corec")
 
 # TODO finish this
 # configure_file(legacy/ebml2_legacy_project.h.in legacy/ebml2_legacy_project.h)
