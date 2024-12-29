@@ -37,7 +37,6 @@ extern "C" {
 #endif
 
 #include "strtab.h"
-#include "strtypes.h"
 #include "nodelookup.h"
 
 #define LANG_STRINGS_ID  FOURCC('L','N','G','S')

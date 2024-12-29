@@ -29,6 +29,7 @@
 
 #include "parser.h"
 #include "buffer.h"
+#include "strtypes.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/charconvert/charconvert.h>
 
