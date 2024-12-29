@@ -49,6 +49,8 @@ struct parser
 
 };
 
+#define Parser_Context(p) ((parsercontext*)Node_Context(p))
+
 extern const nodemeta LangStr_Class[];
 
 static const tchar_t* ExternalStr(nodecontext* p,fourcc_t Class,int Id)
@@ -136,12 +138,7 @@ void Node_FromUTF16(anynode* p, tchar_t* Out,size_t OutLen, const utf16_t* In)
     CharConvTU(Parser_Context(p)->FromUtf16,Out,OutLen,In);
 }
 
-void ParserDataFeed(parser* p,const void* Ptr,size_t Len)
-{
-    BufferWrite(&p->Buffer,Ptr,Len,4096);
-}
-
-NOINLINE err_t ParserFill(parser* p,size_t Needed)
+static NOINLINE err_t ParserFill(parser* p,size_t Needed) // non-blocking stream could return ERR_NEED_MORE_DATA
 {
     // Needed may be zero (see http.c EnumDir())
 
@@ -171,154 +168,6 @@ NOINLINE err_t ParserFill(parser* p,size_t Needed)
     }
 
     return ERR_NONE;
-}
-
-NOINLINE err_t ParserFillLine(parser* p)
-{
-    err_t Err;
-    do
-    {
-        const uint8_t* i;
-        for (i=p->Buffer.Read;i!=p->Buffer.Write;++i)
-            if (*i == '\n')
-                return ERR_NONE;
-
-        Err = ParserFill(p,1);
-
-    } while (Err==ERR_NONE);
-    return Err;
-}
-
-void ParserBOM(parser* p)
-{
-    //TODO: use BOM detection in more places (playlist,xml,...)
-    //TODO: support 16bit LE/BE encodings
-    const uint8_t* BOM = ParserPeek(p,3);
-    if (BOM)
-    {
-        if (BOM[0]==0xEF && BOM[1]==0xBB && BOM[2]==0xBF)
-        {
-            intptr_t Skip = 3;
-            ParserSkip(p,&Skip);
-            if (p->Context)
-                ParserCC(p,p->Context->FromUTF8,0);
-        }
-    }
-}
-
-NOINLINE void ParserCC(parser* p, struct charconv* CC, bool_t OwnCC)
-{
-    if (p->CC && p->OwnCC)
-        CharConvClose(p->CC);
-    p->CC = CC;
-    p->OwnCC = (boolmem_t)OwnCC;
-}
-
-err_t ParserStream(parser* p, stream* Stream, parsercontext* Context)
-{
-    ParserCC(p,Context ? Context->FromStr:NULL, 0);
-
-    p->Stream = Stream;
-    p->Element = 0;
-    p->ElementEof = 0;
-    p->Error = 0;
-    p->URL = 0;
-    p->Context = Context;
-
-    if (Stream)
-    {
-        if (!p->Buffer.Begin)
-            if (!BufferAlloc(&p->Buffer,4096,1))
-                return ERR_OUT_OF_MEMORY;
-    }
-    else {
-        BufferClear(&p->Buffer);
-        if (p->BigLine) {
-            free(p->BigLine);
-            p->BigLine = NULL;
-        }
-    }
-    return ERR_NONE;
-}
-
-err_t ParserSkip(parser* p, intptr_t* Skip)
-{
-    intptr_t n = min(*Skip,p->Buffer.Write - p->Buffer.Read);
-    if (n>0)
-    {
-        *Skip -= n;
-        p->Buffer.Read += n;
-    }
-    return Stream_Skip(p->Stream,Skip);
-}
-
-err_t ParserReadEx(parser* p, void* Data, size_t Size, size_t* Readed, bool_t Fill)
-{
-    if (!Fill)
-    {
-        size_t n = 0;
-        if (p->Buffer.Write > p->Buffer.Read)
-        {
-            n = min(Size,(size_t)(p->Buffer.Write-p->Buffer.Read));
-            memcpy(Data,p->Buffer.Read,n);
-            p->Buffer.Read += n;
-            Size -= n;
-        }
-        if (Readed)
-            *Readed = n;
-        return !Size ? ERR_NONE:ERR_NEED_MORE_DATA;
-    }
-    return ParserRead(p,Data,Size,Readed);
-}
-
-err_t ParserRead(parser* p, void* Data, size_t Size, size_t* Readed)
-{
-    if (p->Buffer.Write > p->Buffer.Read)
-    {
-        err_t Err = ERR_NONE;
-        size_t n = min(Size,(size_t)(p->Buffer.Write-p->Buffer.Read));
-        memcpy(Data,p->Buffer.Read,n);
-        p->Buffer.Read += n;
-        Size -= n;
-        if (Size>0)
-        {
-            Err = Stream_Read(p->Stream,(uint8_t*)Data+n,Size,&Size);
-            n += Size;
-        }
-        if (Readed)
-            *Readed = n;
-        return Err;
-    }
-
-    return Stream_Read(p->Stream,Data,Size,Readed);
-}
-
-const uint8_t* ParserPeek(parser* p, size_t Len)
-{
-    if (p->Buffer.Write < p->Buffer.Read+Len)
-    {
-        ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
-        if (p->Buffer.Write < p->Buffer.Read+Len)
-            return NULL;
-    }
-    return p->Buffer.Read;
-}
-
-const uint8_t* ParserPeekEx(parser* p, size_t Len, bool_t Fill, err_t* Err)
-{
-    if (p->Buffer.Write < p->Buffer.Read+Len)
-    {
-        if (!Fill)
-        {
-            *Err = ERR_NEED_MORE_DATA;
-            return NULL;
-        }
-        *Err = ParserFill(p,p->Buffer.Read+Len-p->Buffer.Write);
-        if (p->Buffer.Write < p->Buffer.Read+Len)
-            return NULL;
-    }
-    *Err = ERR_NONE;
-    return p->Buffer.Read;
 }
 
 #define PARSER_BEGIN(p) \
@@ -357,7 +206,7 @@ static bool_t SkipAfter(parser* p, int ch)
     return 1;
 }
 
-bool_t ParserIsToken(parser* p, const tchar_t* Token)
+static bool_t ParserIsToken(parser* p, const tchar_t* Token) // case insensitive, ascii
 {
     PARSER_BEGIN(p)
     // space skipping
@@ -387,54 +236,6 @@ bool_t ParserIsToken(parser* p, const tchar_t* Token)
 
     PARSER_SAVE(p)
     return 1;
-}
-
-NOINLINE bool_t ParserIsFormat(parser* p,const tchar_t* Token, void *Value)
-{
-    size_t i,j=0;
-    tchar_t tBuffer[MAXDATA];
-
-    PARSER_BEGIN(p)
-    if (!*Token || *Token!='%')
-        return 0;
-
-    // space skipping
-    for (;;++Read)
-    {
-        if (Read>=Write)
-        {
-            PARSER_FILL(p)
-            if (Read>=Write)
-                return 0;
-        }
-        if (*Read!=' ' && *Read!=9 && *Read!=10 && *Read!=13)
-            break;
-    }
-    PARSER_SAVE(p)
-
-    for (;j<TSIZEOF(tBuffer);++Read)
-    {
-        if (Read>=Write)
-        {
-            PARSER_FILL(p)
-            if (Read>=Write)
-                return 0;
-        }
-        tBuffer[j] = (tchar_t)p->Buffer.Read[j];
-        i=++j;
-        if (!stscanf_s(tBuffer,&i,Token,Value))
-            break;
-        if (i != j)
-            break;
-    }
-    if (j>1) // recover the last working config
-    {
-        --j;
-        stscanf_s(tBuffer,&j,Token,Value);
-    }
-
-    PARSER_SAVE(p)
-    return (j!=0);
 }
 
 static bool_t IsToken(parser* p, const tchar_t* Token)
@@ -568,7 +369,7 @@ static const htmlchar HTMLChar[] =
     {0,T("")}
 };
 
-void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
+static void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
 {
     const tchar_t* i;
     utf16_t ch;
@@ -620,7 +421,7 @@ void ParserHTMLChars(parser *p, tchar_t *Out, size_t OutLen)
     }
 }
 
-void ParserHTMLToURL(tchar_t* URL, size_t OutLen)
+static void ParserHTMLToURL(tchar_t* URL, size_t OutLen)
 {
     for (;*URL && OutLen>0;++URL,--OutLen)
         if (URL[0]=='%' && Hex(URL[1])>=0 && Hex(URL[2])>=0)
@@ -628,30 +429,6 @@ void ParserHTMLToURL(tchar_t* URL, size_t OutLen)
             *URL = (tchar_t)((Hex(URL[1])<<4)+Hex(URL[2]));
             memmove(URL+1,URL+3,sizeof(tchar_t)*(tcslen(URL+3)+1));
         }
-}
-
-void ParserURLToHTML(tchar_t* p,size_t n)
-{
-    for (;*p && n>0;++p,--n)
-        if (*p == ' ' && n>=4)
-        {
-            size_t i = min(n-4,tcslen(p+1));
-            memmove(p+3,p+1,i*sizeof(tchar_t));
-            p[3+i] = 0;
-
-            p[0] = '%';
-            p[1] = '2';
-            p[2] = '0';
-        }
-}
-
-void ParserSkipAfter(parser* p, int Delimiter)
-{
-    tchar_t Del[2];
-    ParserReadUntil(p,NULL,0,Delimiter);
-    Del[0] = (tchar_t)Delimiter;
-    Del[1] = 0;
-    IsToken(p,Del);
 }
 
 intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
@@ -743,28 +520,14 @@ intptr_t ParserReadUntil(parser* p, tchar_t* Out, size_t OutLen, int Delimiter)
     return n;
 }
 
-bool_t ParserLine(parser* p, tchar_t* Out, size_t OutLen)
-{
-    return ParserReadUntil(p,Out,OutLen,'\n')>=0;
-}
-
-bool_t ParserBigLine(parser* p)
-{
-    if (!p->BigLine) {
-        p->BigLine = (tchar_t *) malloc(BIGLINE * sizeof(tchar_t));
-        if (!p->BigLine)
-            return 0;
-    }
-    return ParserLine(p, p->BigLine, BIGLINE);
-}
-
-NOINLINE void ParserElementSkip(parser* p)
+static NOINLINE void ParserElementSkip(parser* p)
 {
     while (ParserIsAttrib(p,NULL,0))
            ParserAttribSkip(p);
 }
 
-NOINLINE void ParserElementSkipNested(parser* p)
+/** Skip all the attributes of the current element and position after the '>' */
+static NOINLINE void ParserElementSkipNested(parser* p)
 {
     ParserElementSkip(p);
     while (ParserIsElementNested(p,NULL,0))
@@ -821,38 +584,6 @@ bool_t ParserIsElementNested(parser* p, tchar_t* Name, size_t NameLen)
     return p->Element;
 }
 
-bool_t ParserIsElement(parser* p, tchar_t* Name, size_t NameLen)
-{
-    ParserElementSkip(p);
-
-    if (!ElementStart(p))
-    {
-        p->Element = 0;
-    }
-    else
-    {
-        if (IsToken(p,T("/")) && NameLen>0)
-        {
-            *(Name++) = '/';
-            --NameLen;
-        }
-
-        p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'>')>0);
-    }
-
-    return p->Element;
-}
-
-bool_t ParserElementContent(parser* p, tchar_t* Out, size_t OutLen)
-{
-    ParserElementSkip(p);
-    if (ParserReadUntil(p,Out,OutLen,'<')<0)
-        return 0;
-    if (ParserIsToken(p,T("![CDATA[")))
-        return ParserReadUntil(p,Out,OutLen,']')>=0;
-    return 1;
-}
-
 bool_t ParserIsAttrib(parser* p, tchar_t* Name, size_t NameLen)
 {
     if (!p->Element)
@@ -865,15 +596,6 @@ bool_t ParserIsAttrib(parser* p, tchar_t* Name, size_t NameLen)
     else
         p->Element = (boolmem_t)(ParserReadUntil(p,Name,NameLen,'=')>0);
     return p->Element;
-}
-
-bool_t ParserAttribLangStr(parser* p, parsercontext* Context, fourcc_t Class, dataid Id)
-{
-    tchar_t Value[MAXDATA/sizeof(tchar_t)+64];
-    if (!ParserAttribString(p,Value,TSIZEOF(Value)))
-        return 0;
-    StrTab_Add(&Context->StrTab,1,Class,(int32_t)Id,Value);
-    return 1;
 }
 
 bool_t ParserAttribString(parser* p, tchar_t* Out, size_t OutLen)
@@ -898,64 +620,6 @@ bool_t ParserAttribString(parser* p, tchar_t* Out, size_t OutLen)
 void ParserAttribSkip(parser* p)
 {
     ParserAttribString(p,NULL,0);
-}
-
-bool_t ParserIsRootElement(parser *p, tchar_t* Root, size_t RootLen)
-{
-    tchar_t Token[MAXTOKEN];
-
-    while (ParserIsElement(p,Token,TSIZEOF(Token)))
-    {
-        if (tcsisame_ascii(Token,T("?xml")))
-        {
-            while (ParserIsAttrib(p,Token,TSIZEOF(Token)))
-            {
-                if (tcsisame_ascii(Token,T("encoding")))
-                {
-                    ParserAttribString(p,Token,TSIZEOF(Token));
-                    ParserCC(p,CharConvOpen(Token,NULL),1);
-                }
-                else
-                    ParserAttribSkip(p);
-            }
-        }
-        else
-        if (tcsisame_ascii(Token,T("!DOCTYPE")) || Token[0]==T('?'))
-        {
-            ParserElementSkip(p);
-        }
-        else
-        {
-            tcscpy_s(Root,RootLen,Token);
-            return 1;
-        }
-    }
-    return 0;
-}
-
-err_t ParserStreamXML(parser* p, stream* s, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs)
-{
-    err_t Result=ERR_NONE;
-    tchar_t FoundRoot[MAXPATH];
-
-    if (!Root || !Root[0])
-        return ERR_INVALID_PARAM;
-    Result = ParserStream(p,s,Context);
-    if (Result==ERR_NONE)
-    {
-        if (Context)
-            ParserCC(p,Context->FromUTF8, 0);
-        if (!ParserIsRootElement(p, FoundRoot, TSIZEOF(FoundRoot)))
-        {
-            Result = ERR_INVALID_DATA;
-        }
-        else
-        {
-            if (tcsisame_ascii(FoundRoot,Root) && !NeedRootAttribs)
-                ParserElementSkip(p);
-        }
-    }
-    return Result;
 }
 
 static NOINLINE bool_t IsName(int ch)
@@ -1064,142 +728,7 @@ static NOINLINE bool_t FindParam(node* Base, findpin* Find, nodecontext* Context
     return 0;
 }
 
-static NOINLINE bool_t FindPin(node* Base, findpin* Find, nodecontext* Context)
-{
-    // Base == NULL, when only singletons are accepted
-    while (Base)
-    {
-        if (FindParam(Base,Find,Context))
-            return 1;
-
-        if (Node_IsPartOf(Base,NODETREE_CLASS))
-            Base = (node*)((nodetree*)Base)->Parent;
-        else
-            Base = NULL;
-    }
-
-    // try singleton
-    return FindParam(NULL,Find,Context);
-}
-
-bool_t StringToPin(pin* Data, datadef* DataDef, exprstate* State, const tchar_t** Expr)
-{
-    findpin Find;
-    Find.ClassId = 0;
-    Find.DataDef = DataDef;
-    Find.Expr = *Expr;
-    Find.Node = NULL;
-
-    if (!ARRAYEMPTY(State->NodeLookup))
-    {
-        tchar_t Id[MAXTOKEN];
-        tchar_t Token[MAXTOKEN];
-        node* Node;
-
-        Id[0]=0;
-        while (ReadName(&Find,Token,TSIZEOF(Token)))
-            tcscpy_s(Id,TSIZEOF(Id),Token);
-
-        Node = NodeLookup_FindUnique(&State->NodeLookup,Id);
-        if (Node)
-        {
-            if (NodeFindDef(Node,Token,DataDef))
-            {
-                Data->Id = DataDef->Id;
-                Data->Node = Node;
-                *Expr = Find.Expr;
-                return 1;
-            }
-            else
-            if (Node_IsPartOf(Node,NODETREE_CLASS) && FindChild((nodetree*)Node,Token,&Find))
-            {
-                Data->Id = DataDef->Id;
-                Data->Node = Find.Node;
-                *Expr = Find.Expr;
-                return 1;
-            }
-            else
-            {
-                Data->Id = 0;
-                Data->Node = NULL;
-                return 0;
-            }
-        }
-
-        Find.Expr = *Expr;
-    }
-
-    if (!FindPin(State->Base,&Find,State->Context))
-    {
-        if (State->Context && ARRAYEMPTY(State->NodeLookup))
-        {
-            bool_t Result;
-            NodeLookup_AddSingletons(&State->NodeLookup,State->Context);
-            Result = StringToPin(Data,DataDef,State,Expr);
-            ArrayClear(&State->NodeLookup);
-            return Result;
-        }
-        else
-        {
-            Data->Id = 0;
-            Data->Node = NULL;
-            return 0;
-        }
-    }
-
-    Data->Id = DataDef->Id;
-    Data->Node = Find.Node;
-    *Expr = Find.Expr;
-    return 1;
-}
-
-bool_t StringToNode(node** Data, exprstate* State, const tchar_t** Expr)
-{
-    findpin Find;
-    Find.ClassId = State->ClassId?State->ClassId:NODE_CLASS;
-    Find.DataDef = NULL;
-    Find.Expr = *Expr;
-    Find.Node = NULL;
-
-    if (!ARRAYEMPTY(State->NodeLookup))
-    {
-        tchar_t Id[MAXTOKEN];
-        node* Node;
-
-        while (ReadName(&Find,Id,TSIZEOF(Id))) {}
-
-        Node = NodeLookup_FindUnique(&State->NodeLookup,Id);
-        if (Node)
-        {
-            if (Node_IsPartOf(Node,Find.ClassId))
-            {
-                *Data = Node;
-                *Expr = Find.Expr;
-                return 1;
-            }
-            else
-            {
-                *Data = NULL;
-                return 0;
-            }
-        }
-
-        Find.Expr = *Expr;
-    }
-
-
-    if (!FindPin(State->Base,&Find,State->Context))
-    {
-        *Data = NULL;
-        return 0;
-    }
-
-    *Data = Find.Node;
-    *Expr = Find.Expr;
-    return 1;
-}
-
-bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base)
+static bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base)
 {
     if (NodeToString(Value,ValueLen,Data->Node,Base) && Data->Node)
     {
@@ -1230,292 +759,6 @@ bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* UNUSED_PA
     }
 
     return 1;
-}
-
-static NOINLINE int StringToIntEx(const tchar_t* Value, dataflags Flags, exprstate* State)
-{
-    int v;
-    if (State && State->EnumList)
-    {
-        v = StrListIndex(Value,State->EnumList);
-        if (v>=0)
-            return v;
-    }
-
-    v = StringToInt(Value,-1);
-
-    if (State)
-    {
-        switch (Flags & TUNIT_MASK)
-        {
-        case TUNIT_XCOORD:
-            if (State->CoordScale.x)
-                v = (v*State->CoordScale.x+(1<<15)) >> 16;
-            break;
-
-        case TUNIT_YCOORD:
-            if (State->CoordScale.y)
-                v = (v*State->CoordScale.y+(1<<15)) >> 16;
-            break;
-        }
-    }
-
-    return v;
-}
-
-NOINLINE bool_t ExprToData(void* Data, size_t* Size, dataflags Flags, exprstate* State, const tchar_t** Expr)
-{
-    cc_point v;
-
-    switch (Flags & TYPE_MASK)
-    {
-    case TYPE_POINT:
-        if (State && ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point))
-        {
-            *(cc_point*)Data = v;
-            *Size = sizeof(cc_point);
-            return 1;
-        }
-        break;
-    case TYPE_POINT16:
-        if (State && ExprIsPoint(Expr,&v) && *Size>=sizeof(cc_point16))
-        {
-            if ((Flags & TUNIT_MASK)==TUNIT_COORD)
-            {
-                if (State->CoordScale.x)
-                    v.x = (v.x*State->CoordScale.x+(1<<15)) >> 16;
-                if (State->CoordScale.y)
-                    v.y = (v.y*State->CoordScale.y+(1<<15)) >> 16;
-            }
-
-            ((cc_point16*)Data)->x = (int16_t)v.x;
-            ((cc_point16*)Data)->y = (int16_t)v.y;
-            *Size = sizeof(cc_point16);
-            return 1;
-        }
-        break;
-    }
-
-    return 0;
-}
-
-NOINLINE bool_t StringToData(void* Data, size_t Size, dataflags Flags, exprstate* State, const tchar_t* Value)
-{
-    datadef DataDef;
-    cc_fraction f;
-    size_t i;
-    int a,b;
-
-    switch (Flags & TYPE_MASK)
-    {
-    case TYPE_STRING:
-        tcscpy_s(Data,Size/sizeof(tchar_t),Value);
-        break;
-
-    case TYPE_BINARY:
-           for (i=0;i<Size && (a=Hex(Value[i*2]))>=0 && (b=Hex(Value[i*2+1]))>=0;++i)
-            ((uint8_t*)Data)[i] = (uint8_t)(a*16+b);
-        break;
-
-    case TYPE_RGB:
-        *(rgbval_t*)Data = StringToRGB(Value);
-        break;
-
-    case TYPE_TICK:
-        *(tick_t*)Data = StringToTick(Value);
-        break;
-
-    case TYPE_SIZE:
-        *(size_t*)Data = StringToIntEx(Value,Flags,State);
-        break;
-
-    case TYPE_INT:
-        if ((Flags & TUNIT_MASK)==TUNIT_PERCENT)
-        {
-            StringToFraction(Value,&f,1);
-            *(int*)Data = ScaleRound(PERCENT_ONE,f.Num,f.Den);
-        }
-        else
-            *(int*)Data = StringToIntEx(Value,Flags,State);
-        break;
-
-    case TYPE_INT8:
-        *(uint8_t*)Data = (uint8_t)StringToIntEx(Value,Flags,State);
-        break;
-
-    case TYPE_INT16:
-        *(uint16_t*)Data = (uint16_t)StringToIntEx(Value,Flags,State);
-        break;
-
-    case TYPE_GUID:
-        StringToGUID(Value,(cc_guid*)Data);
-        break;
-
-    case TYPE_DBNO: //TODO: support for 64 bits
-    case TYPE_DATETIME:
-    case TYPE_INT32:
-        *(int32_t*)Data = (int32_t)StringToIntEx(Value,Flags,State);
-        break;
-
-    case TYPE_INT64:
-        *(int64_t*)Data = StringToInt64(Value);
-        break;
-
-    case TYPE_BOOL_BIT:
-    case TYPE_BOOLEAN:
-        *(bool_t*)Data = StringToInt(Value,-1);
-        break;
-
-    case TYPE_FOURCC:
-        *(fourcc_t*)Data = StringToFourCC(Value,(Flags & TUNIT_MASK)==TUNIT_UPPER);
-        break;
-
-    case TYPE_FIX16:
-        StringToFraction(Value,&f,0);
-        *(int*)Data = Scale32(FIX16_UNIT,f.Num,f.Den);
-        break;
-
-    case TYPE_FRACTION:
-        ((cc_fraction*)Data)->Num = 0;
-        ((cc_fraction*)Data)->Den = 0;
-        if (tcschr(Value,':'))
-        {
-            stscanf(Value,T("%d:%d"),&a,&b);
-            ((cc_fraction*)Data)->Num = a;
-            ((cc_fraction*)Data)->Den = b;
-        }
-        else
-            StringToFraction(Value,(cc_fraction*)Data,(Flags & TUNIT_MASK)==TUNIT_PERCENT);
-        break;
-
-    case TYPE_NODE:
-        if (!State)
-            return 0;
-        return StringToNode((node**)Data,State,&Value);
-
-    case TYPE_PIN:
-        if (!State)
-            return 0;
-        return StringToPin((pin*)Data,&DataDef,State,&Value);
-
-    case TYPE_POINT:
-    case TYPE_POINT16:
-        return ExprToData(Data,&Size,Flags,State,&Value);
-
-    default:
-        return 0;
-    }
-    return 1;
-}
-
-NOINLINE bool_t ParserAttrib(parser* p, void* Data, size_t Size, dataflags Flags, exprstate* State)
-{
-    tchar_t Value[MAXDATA+64];
-    if (!ParserAttribString(p,Value,TSIZEOF(Value)))
-        return 0;
-
-    return StringToData(Data,Size,Flags,State,Value);
-}
-
-void ExprState(exprstate* State, node* Node, dataid Id, dataflags Flags)
-{
-    if (Flags & TFLAG_ENUM)
-        State->EnumList = (const tchar_t*)Node_Meta(Node,Id,META_PARAM_ENUMNAME);
-    else
-        State->EnumList = NULL;
-
-    if ((Flags & TYPE_MASK) == TYPE_NODE)
-        State->ClassId = (fourcc_t)Node_Meta(Node,Id,META_PARAM_CLASS);
-}
-
-bool_t ParserValueData(const tchar_t* Value, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
-{
-    uint8_t Data[MAXDATA];
-    size_t Size = Node_MaxDataSize(Node,DataDef->Id,DataDef->Flags,META_PARAM_SET);
-    datatype Type = DataDef->Flags & TYPE_MASK;
-
-    State->Context = Node_Context(Node);
-    ExprState(State,Node,DataDef->Id,DataDef->Flags);
-
-    if (Type == TYPE_ARRAY)
-    {
-        bool_t Result;
-        array Array;
-        const tchar_t* Expr = Value;
-        dataflags Flags = (dataflags)Node_Meta(Node,DataDef->Id,META_PARAM_ARRAY_TYPE);
-
-        ArrayInit(&Array);
-
-        for (;;)
-        {
-            Size = sizeof(Data);
-
-            if (!ExprToData(Data,&Size,Flags,State,&Expr))
-                break;
-
-            if (!ArrayAppend(&Array,Data,Size,0))
-                break;
-
-            ExprIsSymbol(&Expr,',');
-        }
-
-        Result = Node_SET(Node,DataDef->Id,&Array) == ERR_NONE;
-
-        ArrayClear(&Array);
-        return Result;
-    }
-
-    if (ExprAdd &&
-        !State->EnumList &&
-        (Type == TYPE_INT ||
-        Type == TYPE_STRING ||
-        Type == TYPE_FRACTION ||
-        Type == TYPE_FIX16 ||
-        Type == TYPE_RGB ||
-        Type == TYPE_BOOLEAN ||
-        Type == TYPE_BOOL_BIT ||
-        Type == TYPE_FOURCC ||
-        Type == TYPE_DBNO ||
-        Type == TYPE_TICK ||
-        Type == TYPE_SIZE ||
-        Type == TYPE_PIN ||
-        Type == TYPE_EXPR))
-    {
-        // try to detect constants to skip expression evaluation...
-        const tchar_t* s = Value;
-        if (Type != TYPE_STRING && Type != TYPE_EXPR && Type != TYPE_FOURCC)
-        {
-            if (*s=='-' || *s=='+') ++s;
-            for (;*s;++s)
-                if (IsAlpha(*s) || tcschr(T("+-<>()=*/!%"),*s)!=NULL)
-                    break;
-        }
-
-        if (*s)
-            return ExprAdd(Node,DataDef,State,Value,ExprSave) == ERR_NONE;
-    }
-
-    if (!StringToData(Data,sizeof(Data),DataDef->Flags,State,Value))
-    {
-        // try reference resolving
-        if (Type == TYPE_NODE && ExprAdd)
-            return ExprAdd(Node,DataDef,State,Value,ExprSave) == ERR_NONE;
-
-        // save for later
-        return ExprAdd && ExprSave && ExprAdd(Node,DataDef,NULL,Value,1) == ERR_NONE;
-    }
-
-    return Node_Set(Node,DataDef->Id,Data,Size) == ERR_NONE;
-}
-
-bool_t ParserAttribData(parser* p, node* Node, const datadef* DataDef, exprstate* State, parserexpradd ExprAdd, bool_t ExprSave)
-{
-    tchar_t Value[MAXDATA+64];
-
-    if (!ParserAttribString(p,Value,TSIZEOF(Value)))
-        return 0;
-
-    return ParserValueData(Value,Node,DataDef,State,ExprAdd,ExprSave);
 }
 
 err_t TextPrintf(textwriter* p, const tchar_t* Msg,...)
@@ -1897,42 +1140,6 @@ NOINLINE void ExprTrimSpace(tchar_t** p)
     }
 }
 
-NOINLINE bool_t ExprCmd(const tchar_t** Expr, tchar_t* Out, size_t OutLen)
-{
-    const tchar_t* s;
-    bool_t Quote=0;
-
-    ExprSkipSpace(Expr);
-
-    s = *Expr;
-    if (*s == '\0')
-        return 0;
-
-    assert(*s && (Quote || !IsSpace(*s)));
-
-    for (;*s && (Quote || !IsSpace(*s));++s)
-    {
-        if (*s == '"')
-        {
-            Quote = !Quote;
-            continue;
-        }
-
-        if (OutLen>1)
-        {
-            *(Out++) = *s;
-            --OutLen;
-        }
-    }
-
-    *Expr = s;
-
-    if (OutLen>0)
-        *Out=0;
-
-    return 1;
-}
-
 static NOINLINE bool_t ReadHex(const tchar_t** p,intptr_t* Out,bool_t RGB, bool_t Neg);
 
 NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
@@ -2040,22 +1247,6 @@ NOINLINE bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...)
 NOINLINE bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name)
 {
     return ExprIsTokenEx(p,Name);
-}
-
-uint32_t StringToIP(const tchar_t *Address)
-{
-    uint32_t Result = 0;
-    tchar_t *s;
-    while ((s = tcschr(Address,T('.')))!=NULL)
-    {
-        *s++ = 0;
-        Result <<= 8;
-        Result |= StringToInt(Address,0);
-        Address = s;
-    }
-    Result <<= 8;
-    Result |= StringToInt(Address,0);
-    return Result;
 }
 
 static const uint8_t Base64[] =
@@ -2560,42 +1751,6 @@ void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast3
         }
 
     ArrayClear(&List);
-}
-
-void ParserImport(parser* Parser,node* Node)
-{
-    tchar_t Token[MAXTOKEN];
-    exprstate State;
-    memset(&State,0,sizeof(State));
-
-    while (ParserIsAttrib(Parser,Token,MAXTOKEN))
-    {
-        datadef DataDef;
-        if (NodeFindDef(Node,Token,&DataDef))
-            ParserAttribData(Parser,Node,&DataDef,&State,NULL,0);
-        else
-            ParserAttribSkip(Parser);
-    }
-}
-
-void ParserImportNested(parser* Parser,node* Node)
-{
-    if (Node)
-        ParserImport(Parser,Node);
-
-    if (Node && Node_IsPartOf(Node,NODETREE_CLASS))
-    {
-        tchar_t Token[MAXTOKEN];
-        while (ParserIsElementNested(Parser,Token,MAXTOKEN))
-        {
-            node* Child = NodeCreate(Node,StringToFourCC(Token,0));
-            ParserImportNested(Parser,Child);
-            if (Child)
-                NodeTree_SetParent(Child,Node,NULL);
-        }
-    }
-    else
-        ParserElementSkipNested(Parser);
 }
 
 #define LANG_STRINGS_OFFSET  0x100
