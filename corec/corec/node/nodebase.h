@@ -71,7 +71,7 @@
 #define TYPE_DBNO     		34		// db_no
 #define TYPE_GUID           35      // cc_guid
 #define TYPE_FIX16          36      // int
-#define TYPE_LUA_REF        37      // int
+#define TYPE_LUA_REF        37
 #define TYPE_NOTIFYEX       38
 #define TYPE_ENUM           39      // dataenum
 #define TYPE_ENUM_MULTI_SET 40      // multi_enum_set
@@ -496,11 +496,6 @@ struct nodecontext
     void (*ExprRelease)(nodeexpr*);
     size_t (*ExprSize)(nodeexpr*);
     void (*ExprDup)(node* Node, nodeexpr*, array* Dup);
-#if defined(CONFIG_CORELUA)
-    void *LuaCookie;
-    void (*LuaRelease)(void* Cookie, int* Ref);
-    void (*LuaAddRef)(void* Cookie, int* Ref);
-#endif
 	void (*ReportError)(nodecontext*, node* Node, fourcc_t MsgClass, int MsgNo, va_list Args);
     int Build;
     array Collect;

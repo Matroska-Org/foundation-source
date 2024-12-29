@@ -72,7 +72,7 @@ static const uint16_t ParamSize[MAX_PARAMTYPE] =
     sizeof(int_fast32_t), //TYPE_DBNO
     sizeof(cc_guid),    //TYPE_GUID
     sizeof(int),        //TYPE_FIX16
-    sizeof(int),        //TYPE_LUA_REF
+    0,                  //TYPE_LUA_REF
     sizeof(notifyex),   //TYPE_NOTIFYEX
     sizeof(dataenum),   //TYPE_ENUM
     sizeof(multi_enum_set), //TYPE_ENUM_MULTI_SET
@@ -490,11 +490,6 @@ static NOINLINE bool_t DataFree(nodecontext* p, node* Node, nodedata** i, bool_t
     else
     if (Type == TYPE_EXPR && p->ExprRelease)
         p->ExprRelease((nodeexpr*)NodeData_Data(Data));
-#if defined(CONFIG_CORELUA)
-    else
-    if (Type == TYPE_LUA_REF && p->LuaRelease)
-        p->LuaRelease(p->LuaCookie,(int*)NodeData_Data(Data));
-#endif
     else
     if (Type == TYPE_NODE_REF && *(node**)NodeData_Data(Data))
         Node_Release(*(node**)NodeData_Data(Data));
@@ -565,11 +560,6 @@ NOINLINE void* Node_AddData(node* Node, dataid Id, datatype Type, const void* Da
 
             if (Type == TYPE_NODE_REF && *(node**)NodeData_Data(Ptr))
                 Node_AddRef(*(node**)NodeData_Data(Ptr));
-
-#if defined(CONFIG_CORELUA)
-            if (Type == TYPE_LUA_REF)
-                p->LuaAddRef(p->LuaCookie,(int*)NodeData_Data(Ptr));
-#endif
 
             return NodeData_Data(Ptr);
         }
