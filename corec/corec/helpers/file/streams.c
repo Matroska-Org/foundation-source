@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "streams.h"
 
 //TODO: include from somewhere else or not depend on them at all
 #ifdef CONFIG_BLOCK_RDONLY

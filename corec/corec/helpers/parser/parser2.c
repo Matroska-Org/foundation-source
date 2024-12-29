@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "parser.h"
+#include <corec/helpers/file/streams.h>
 
 extern const nodemeta LangStr_Class[];
 

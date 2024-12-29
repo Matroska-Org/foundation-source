@@ -27,20 +27,21 @@
  */
 #include "ebml2/ebml.h"
 #include "internal.h"
+#include <corec/helpers/file/streams.h>
 
 static bool_t IsDefaultValue(const ebml_element *Element)
 {
     return 0;
 }
 
-static err_t ReadData(ebml_element *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_element *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
 	EBML_ElementSkipData(Element,Input,ParserContext,NULL,AllowDummyElt);
 	return ERR_NONE;
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_element *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_element *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     size_t Written, Left = (size_t)Element->DataSize;
     err_t Err = ERR_NONE;
@@ -93,7 +94,7 @@ bool_t EBML_VoidSetFullSize(ebml_element *Void, filepos_t DataSize)
     return Void->DataSize >= 0;
 }
 
-filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault)
+filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *ReplacedWith, struct stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault)
 {
     filepos_t CurrentPosition;
     assert(Node_IsPartOf(Void,EBML_VOID_CLASS));

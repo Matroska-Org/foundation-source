@@ -28,6 +28,7 @@
 #include "ebml2/ebml.h"
 #include "internal.h"
 #include "ebmlcrc.h"
+#include <corec/helpers/file/streams.h>
 
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault, int ForProfile)
 {
@@ -295,13 +296,13 @@ static void PostCreate(ebml_master *Element, bool_t SetDefault, int ForProfile)
     }
 }
 
-static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_master *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
 {
     int UpperEltFound = 0;
     bool_t bFirst = 1;
     ebml_element *SubElement;
     ebml_crc *CRCElement = NULL;
-    stream *ReadStream = Input;
+    struct stream *ReadStream = Input;
     array CrcBuffer;
     uint8_t *CRCData = NULL;
     size_t CRCDataSize;
@@ -364,7 +365,7 @@ static err_t ReadData(ebml_master *Element, stream *Input, const ebml_parser_con
                                 {
                                     CRCData = ARRAYBEGIN(CrcBuffer,uint8_t);
                                     CRCDataSize = ARRAYCOUNT(CrcBuffer,uint8_t);
-                                    ReadStream = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
+                                    ReadStream = (struct stream*)NodeCreate(Element, MEMSTREAM_CLASS);
                                     if (ReadStream==NULL)
                                     {
                                         ReadStream=Input; // revert back to normal reading
@@ -465,7 +466,7 @@ bool_t EBML_MasterIsChecksumValid(const ebml_master *Element)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t InternalRender(ebml_master *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     ebml_element *i;
     filepos_t ItemRendered;
@@ -482,7 +483,7 @@ static err_t InternalRender(ebml_master *Element, stream *Output, bool_t bForceW
     return Err;
 }
 
-static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_master *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
 {
     filepos_t _Rendered;
     err_t Err = ERR_NONE;
@@ -521,7 +522,7 @@ static err_t RenderData(ebml_master *Element, stream *Output, bool_t bForceWitho
             {
                 if (!IsMemory)
                 {
-                    stream *VOutput = (stream*)NodeCreate(Element, MEMSTREAM_CLASS);
+                    stream *VOutput = (struct stream*)NodeCreate(Element, MEMSTREAM_CLASS);
                     if (!VOutput)
                         Err = ERR_OUT_OF_MEMORY;
                     else

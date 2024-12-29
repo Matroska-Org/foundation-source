@@ -112,9 +112,9 @@ typedef struct ebml_element_vmt
 {
     nodetree_vmt Base;
     bool_t (*ValidateSize)(const void*);
-    err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
+    err_t (*ReadData)(void*, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
 #if defined(CONFIG_EBML_WRITING)
-    err_t (*RenderData)(void*, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered);
+    err_t (*RenderData)(void*, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered);
 #endif
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);
@@ -141,8 +141,8 @@ EBML_DLL err_t EBML_Init(parsercontext *p);
 
 EBML_DLL ebml_element *EBML_ElementCreate(anynode *Any, const ebml_context *Context, bool_t SetDefault, int ForProfile);
 
-EBML_DLL ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize);
-EBML_DLL ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
+EBML_DLL ebml_element *EBML_FindNextId(struct stream *Input, const ebml_context *Context, size_t MaxDataSize);
+EBML_DLL ebml_element *EBML_FindNextElement(struct stream *Input, const ebml_parser_context *Context, int *UpperLevels, bool_t AllowDummy);
 EBML_DLL uint8_t EBML_CodedSizeLength(filepos_t Length, uint8_t SizeLength, bool_t bSizeIsFinite); // TODO: turn into a macro ?
 EBML_DLL uint8_t EBML_CodedSizeLengthSigned(filepos_t Length, uint8_t SizeLength); // TODO: turn into a macro ?
 EBML_DLL uint8_t EBML_CodedValueLength(filepos_t Length, size_t CodedSize, uint8_t *OutBuffer, bool_t bSizeIsFinite); // TODO: turn into a macro ?
@@ -155,7 +155,7 @@ EBML_DLL const char *EBML_ElementGetClassName(const ebml_element *Element);
 
 EBML_DLL const ebml_context *EBML_ElementContext(const ebml_element *Element);
 
-EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
+EBML_DLL ebml_element *EBML_ElementSkipData(ebml_element *Element, struct stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummy);
 EBML_DLL bool_t EBML_ElementIsFiniteSize(const ebml_element *Element);
 EBML_DLL void EBML_ElementSetInfiniteSize(const ebml_element *Element, bool_t Set);
 EBML_DLL bool_t EBML_ElementIsDummy(const ebml_element *Element);
@@ -174,8 +174,8 @@ EBML_DLL bool_t EBML_ElementIsType(const ebml_element *Element, const ebml_conte
 
 #if defined(CONFIG_EBML_WRITING)
 // TODO: replace the list of bools by flags ?
-EBML_DLL err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, int ForProfile, filepos_t *Rendered);
-EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRender(ebml_element *Element, struct stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, int ForProfile, filepos_t *Rendered);
+EBML_DLL err_t EBML_ElementRenderHead(ebml_element *Element, struct stream *Output, bool_t bKeepPosition, filepos_t *Rendered);
 #endif
 
 #if defined(EBML2_UGLY_HACKS_API)
@@ -224,7 +224,7 @@ EBML_DLL const uint8_t *EBML_BinaryGetData(ebml_binary *Element);
 
 #if defined(CONFIG_EBML_WRITING)
 EBML_DLL bool_t EBML_VoidSetFullSize(ebml_element *Void, filepos_t);
-EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
+EBML_DLL filepos_t EBML_VoidReplaceWith(ebml_element *Void, ebml_element *Replaced, struct stream *Output, bool_t ComeBackAfterward, bool_t bWithDefault);
 #endif
 EBML_DLL size_t EBML_FillBufferID(uint8_t *Buffer, size_t BufSize, fourcc_t Id);
 EBML_DLL size_t EBML_IdToString(tchar_t *Out, size_t OutLen, fourcc_t Id);

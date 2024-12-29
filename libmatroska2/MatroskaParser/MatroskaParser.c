@@ -203,7 +203,7 @@ static bool_t parseSeekHead(ebml_element *SeekHead, MatroskaFile *File, char *er
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
 	RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(SeekHead,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(SeekHead,(struct stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the EBML head",err_msgSize);
 		return 0;
@@ -249,7 +249,7 @@ static bool_t parseSegmentInfo(ebml_element *SegmentInfo, MatroskaFile *File, ch
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(SegmentInfo,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(SegmentInfo,(struct stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Segment Info",err_msgSize);
 		File->pSegmentInfo = INVALID_FILEPOS_T;
@@ -641,7 +641,7 @@ static bool_t parseTracks(ebml_element *Tracks, MatroskaFile *File, char *err_ms
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(Tracks,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(Tracks,(struct stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Tracks",err_msgSize);
 		File->pTracks = INVALID_FILEPOS_T;
@@ -670,7 +670,7 @@ static bool_t parseCues(ebml_element *Cues, MatroskaFile *File, char *err_msg, s
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(Cues,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(Cues,(struct stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Cues",err_msgSize);
 		File->pCues = INVALID_FILEPOS_T;
@@ -695,7 +695,7 @@ static bool_t parseAttachments(ebml_element *Attachments, MatroskaFile *File, ch
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(Attachments,(stream*)File->Input,&RContext,1,SCOPE_PARTIAL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(Attachments,(struct stream*)File->Input,&RContext,1,SCOPE_PARTIAL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Attachments",err_msgSize);
 		File->pAttachments = INVALID_FILEPOS_T;
@@ -845,7 +845,7 @@ static bool_t parseChapters(ebml_element *Chapters, MatroskaFile *File, char *er
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(Chapters,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(Chapters,(struct stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Chapters",err_msgSize);
 		File->pChapters = INVALID_FILEPOS_T;
@@ -1010,7 +1010,7 @@ static bool_t parseTags(ebml_element *Tags, MatroskaFile *File, char *err_msg, s
 	else
 		RContext.EndPosition = INVALID_FILEPOS_T;
     RContext.UpContext = &File->L1Context;
-	if (EBML_ElementReadData(Tags,(stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(Tags,(struct stream*)File->Input,&RContext,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the Tags",err_msgSize);
 		File->pTags = INVALID_FILEPOS_T;
@@ -1078,7 +1078,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
     File->L0Context.EndPosition = File->Input->io->getfilesize(File->Input->io);
     File->L0Context.UpContext = NULL;
 	UpperLevel = 0;
-	Head = EBML_FindNextElement((stream*)File->Input,&File->L0Context,&UpperLevel,0);
+	Head = EBML_FindNextElement((struct stream*)File->Input,&File->L0Context,&UpperLevel,0);
 	if (!Head)
 	{
 		strncpy(err_msg,"Out of memory",err_msgSize);
@@ -1091,7 +1091,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 		return NULL;
 	}
 
-	if (EBML_ElementReadData(Head,(stream*)File->Input,&File->L0Context,1,SCOPE_ALL_DATA)!=ERR_NONE)
+	if (EBML_ElementReadData(Head,(struct stream*)File->Input,&File->L0Context,1,SCOPE_ALL_DATA)!=ERR_NONE)
 	{
 		strncpy(err_msg,"Failed to read the EBML head",err_msgSize);
 		NodeDelete((node*)Head);
@@ -1104,7 +1104,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 	}
 	NodeDelete((node*)Head);
 
-	File->Segment = EBML_FindNextElement((stream*)File->Input,&File->L0Context,&UpperLevel,0);
+	File->Segment = EBML_FindNextElement((struct stream*)File->Input,&File->L0Context,&UpperLevel,0);
 	if (!File->Segment)
 	{
 		strncpy(err_msg,"No segments found in the file",err_msgSize);
@@ -1119,7 +1119,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 		File->L1Context.EndPosition = INVALID_FILEPOS_T;
     File->L1Context.UpContext = &File->L0Context;
 	UpperLevel = 0;
-	Head = EBML_FindNextElement((stream*)File->Input,&File->L1Context,&UpperLevel,0);
+	Head = EBML_FindNextElement((struct stream*)File->Input,&File->L1Context,&UpperLevel,0);
 	while (Head && (!EBML_ElementIsFiniteSize(File->Segment) || EBML_ElementPositionEnd(File->Segment) >= EBML_ElementPositionEnd(Head)))
 	{
 		if (EBML_ElementClassID(Head) == MATROSKA_getContextSeekHead()->Id)
@@ -1152,7 +1152,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 		{
 			if (EBML_ElementClassID(Head)==MATROSKA_getContextCluster()->Id && File->pFirstCluster==INVALID_FILEPOS_T)
 				File->pFirstCluster = EBML_ElementPosition(Head);
-			Elt = EBML_ElementSkipData(Head,(stream*)File->Input,&File->L1Context,NULL,1);
+			Elt = EBML_ElementSkipData(Head,(struct stream*)File->Input,&File->L1Context,NULL,1);
 			NodeDelete((node*)Head);
 			if (Elt)
 			{
@@ -1160,7 +1160,7 @@ MatroskaFile *mkv_Open(InputStream *io, char *err_msg, size_t err_msgSize)
 				continue;
 			}
 		}
-		Head = EBML_FindNextElement((stream*)File->Input,&File->L1Context,&UpperLevel,0);
+		Head = EBML_FindNextElement((struct stream*)File->Input,&File->L1Context,&UpperLevel,0);
 	}
 
 	if (File->CueList && File->SegmentInfo)
@@ -1285,7 +1285,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			for (;;)
 			{
 				if (!Elt)
-					Elt = EBML_FindNextElement((stream*)File->Input,&File->L1Context,&UpperLevel,0);
+					Elt = EBML_FindNextElement((struct stream*)File->Input,&File->L1Context,&UpperLevel,0);
 				File->CurrentCluster = Elt;
 				if (!File->CurrentCluster)
 					return EOF;
@@ -1299,7 +1299,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 					break;
 
 				Elt = File->CurrentCluster;
-				File->CurrentCluster = EBML_ElementSkipData(File->CurrentCluster,(stream*)File->Input,&File->L1Context,NULL,1);
+				File->CurrentCluster = EBML_ElementSkipData(File->CurrentCluster,(struct stream*)File->Input,&File->L1Context,NULL,1);
 				NodeDelete((node*)Elt);
 				Elt = NULL;
 			}
@@ -1322,7 +1322,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			if (!Elt)
 			{
 				UpperLevel = 0;
-				Elt = EBML_FindNextElement((stream*)File->Input,&File->ClusterContext,&UpperLevel,1);
+				Elt = EBML_FindNextElement((struct stream*)File->Input,&File->ClusterContext,&UpperLevel,1);
 			}
 			if (!Elt || UpperLevel>0)
 			{
@@ -1335,7 +1335,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			Skip = 0;
 			if (EBML_ElementClassID(Elt) == MATROSKA_getContextClusterTimestamp()->Id)
 			{
-				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
+				if (EBML_ElementReadData(Elt,(struct stream*)File->Input,&File->ClusterContext,1, SCOPE_ALL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
 				Elt2 = EBML_MasterFindFirstElt(File->CurrentCluster,MATROSKA_getContextClusterTimestamp(),1,1);
 				if (!Elt2)
@@ -1346,7 +1346,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			}
 			else if (EBML_ElementClassID(Elt) == MATROSKA_getContextClusterSimpleBlock()->Id)
 			{
-				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
+				if (EBML_ElementReadData(Elt,(struct stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
 
 				TrackNum = MATROSKA_BlockTrackNum((matroska_block*)Elt);
@@ -1365,7 +1365,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			}
 			else if (EBML_ElementClassID(Elt) == MATROSKA_getContextClusterBlockGroup()->Id)
 			{
-				if (EBML_ElementReadData(Elt,(stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
+				if (EBML_ElementReadData(Elt,(struct stream*)File->Input,&File->ClusterContext,1, SCOPE_PARTIAL_DATA)!=ERR_NONE)
 					return EOF; // TODO: memory leak
 
 				Elt2 = EBML_MasterFindFirstElt(Elt, MATROSKA_getContextClusterBlock(), 0, 0);
@@ -1394,7 +1394,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 			if (Skip)
 			{
 				Elt2 = Elt;
-				Elt = EBML_ElementSkipData(Elt2,(stream*)File->Input,&File->L1Context,NULL,1);
+				Elt = EBML_ElementSkipData(Elt2,(struct stream*)File->Input,&File->L1Context,NULL,1);
 				NodeDelete((node*)Elt2);
 			}
 		}
@@ -1433,7 +1433,7 @@ int mkv_ReadFrame(MatroskaFile *File, int mask, unsigned int *track, ulonglong *
 		if (MATROSKA_BlockKeyframe(File->CurrentBlock))
 			*FrameFlags |= FRAME_KF;
 	}
-	MATROSKA_BlockSkipToFrame(File->CurrentBlock, (stream*)File->Input, File->CurrentFrame);
+	MATROSKA_BlockSkipToFrame(File->CurrentBlock, (struct stream*)File->Input, File->CurrentFrame);
 	*FrameRef = File->Input->io->makeref(File->Input->io,MATROSKA_BlockGetLength(File->CurrentBlock,File->CurrentFrame++));
 
 	if (File->CurrentFrame >= MATROSKA_BlockGetFrameCount(File->CurrentBlock))

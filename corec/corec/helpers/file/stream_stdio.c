@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "streams.h"
 
 #include <stdio.h>
 #if defined(TARGET_WIN)

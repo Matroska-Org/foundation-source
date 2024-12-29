@@ -27,6 +27,7 @@
  */
 #include "ebml2/ebml.h"
 #include "internal.h"
+#include <corec/helpers/file/streams.h>
 
 err_t EBML_Init(parsercontext *p)
 {
@@ -319,7 +320,7 @@ static ebml_element *EBML_ElementCreateUsingContext(void *AnyNode, const uint8_t
     return Result;
 }
 
-ebml_element *EBML_FindNextId(stream *Input, const ebml_context *Context, size_t MaxDataSize)
+ebml_element *EBML_FindNextId(struct stream *Input, const ebml_context *Context, size_t MaxDataSize)
 {
     filepos_t aElementPosition, aSizePosition;
     filepos_t SizeFound=0, SizeUnknown=8;
@@ -488,7 +489,7 @@ uint8_t EBML_CodedValueLengthSigned(filepos_t Length, size_t CodedSize, uint8_t 
 }
 
 
-ebml_element *EBML_FindNextElement(stream *Input, const ebml_parser_context *pContext, int *UpperLevels, bool_t AllowDummyElt)
+ebml_element *EBML_FindNextElement(struct stream *Input, const ebml_parser_context *pContext, int *UpperLevels, bool_t AllowDummyElt)
 {
     uint8_t PossibleID_Length = 0;
     uint8_t PossibleIdNSize[16];

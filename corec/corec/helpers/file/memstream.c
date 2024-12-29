@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "file.h"
+#include "streams.h"
 
 static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
 {

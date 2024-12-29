@@ -27,6 +27,7 @@
  */
 #include "ebml2/ebml.h"
 #include "internal.h"
+#include <corec/helpers/file/streams.h>
 
 static bool_t ValidateSize(const ebml_element *p)
 {
@@ -110,7 +111,7 @@ bool_t EBML_ElementIsDummy(const ebml_element *Element)
     return Node_IsPartOf(Element,EBML_DUMMY_ID);
 }
 
-ebml_element *EBML_ElementSkipData(ebml_element *p, stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummyElt)
+ebml_element *EBML_ElementSkipData(ebml_element *p, struct stream *Input, const ebml_parser_context *Context, ebml_element *TestReadElt, bool_t AllowDummyElt)
 {
     ebml_element *Result = NULL;
     if (EBML_ElementIsFiniteSize(p)) {
@@ -275,7 +276,7 @@ fourcc_t EBML_BufferToID(const uint8_t *Buffer)
 }
 
 #if defined(CONFIG_EBML_WRITING)
-err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, int ForProfile, filepos_t *Rendered)
+err_t EBML_ElementRender(ebml_element *Element, struct stream *Output, bool_t bWithDefault, bool_t bKeepPosition, bool_t bForceWithoutMandatory, int ForProfile, filepos_t *Rendered)
 {
     err_t Result;
     filepos_t _Rendered,WrittenSize;
@@ -319,7 +320,7 @@ err_t EBML_ElementRender(ebml_element *Element, stream *Output, bool_t bWithDefa
     return Result;
 }
 
-err_t EBML_ElementRenderHead(ebml_element *Element, stream *Output, bool_t bKeepPosition, filepos_t *Rendered)
+err_t EBML_ElementRenderHead(ebml_element *Element, struct stream *Output, bool_t bKeepPosition, filepos_t *Rendered)
 {
     err_t Err;
     uint8_t FinalHead[4+8]; // Class D + 64 bits coded size

@@ -48,6 +48,8 @@
 
 #include "ebml2/ebml.h"
 
+#include <corec/helpers/file/streams.h>
+
 #define IOCALLBACK_STREAM_CLASS  FOURCC('I','O','C','B')
 
 #define Ebml_Children(x)  (ebml_element*)NodeTree_Children(x)

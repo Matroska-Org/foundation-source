@@ -67,7 +67,7 @@ static const int A_DTS_freq[16] = {
 };
 
 
-err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, stream *Input, int ForProfile)
+err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, struct stream *Input, int ForProfile)
 {
     ebml_master *Track=NULL;
     ebml_element *Elt;
