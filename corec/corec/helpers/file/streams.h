@@ -1,5 +1,5 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
  * All rights reserved.
  *
@@ -42,31 +42,13 @@
 #define STREAM_URL			0x91 // tchar_t*
 #define STREAM_LENGTH		0x92 // filepos_t
 #define STREAM_FLAGS		0x93 // int
-#define STREAM_CONTENTTYPE	0x95 // tchar_t*
-#define STREAM_META		    0x96 // metanotify
-#define STREAM_PRAGMA_SEND	0x97 // tchar_t*
-#define STREAM_PRAGMA_GET	0x98 // tchar_t*
 #define STREAM_ENUM_BASE    0x9A // tchar_t*
-#define STREAM_PLAYING		0x9B // bool_t
-#define STREAM_TIME         0xA0 // tick_t
-#define STREAM_SCOUTING     0xAA // bool_t
-#define STREAM_NO_PAUSE 	0xAB // TODO: find a better solution...
-#define STREAM_KIND			0xAD // fourcc_t
 #define STREAM_ISTTY        0xAF // bool_t
-#define STREAM_FULL_URL     0x99 // tchar_t*
-#define STREAM_TIMEOUT      0x94 // systick_t
-#define STREAM_NATIVE_HANDLER 0x8F // void*
-#define STREAM_DATE         0x8C // datetime_t
 #define STREAM_USERNAME     0x88 // tchar_t*
 #define STREAM_PASSWORD     0x89 // tchar_t*
 #define STREAM_PROXY_USERNAME    0xC0 // tchar_t*
 #define STREAM_PROXY_PASSWORD    0xC1 // tchar_t*
 #define STREAM_CACHE_CLASS  0xB4 // fourcc_t
-#define STREAM_CACHING      0xB6 // bool_t
-
-#define STREAM_KIND_LOCAL        0
-#define STREAM_KIND_NETWORK      1
-#define STREAM_KIND_LIVE_FEED    2
 
 #define SFLAG_RDONLY               0x1
 #define SFLAG_WRONLY               0x2
@@ -74,17 +56,8 @@
 #define SFLAG_SILENT               0x8
 #define SFLAG_BUFFERED            0x10   // used only by StreamOpen helper function
 #define SFLAG_REOPEN              0x20   // private inside stream
-#define SFLAG_NO_PRAGMA           0x40
-#define SFLAG_NO_PROXY            0x80
-#define SFLAG_NO_DELAY           0x100
-#define SFLAG_NO_RETRY           0x200
-#define SFLAG_HIDDEN             0x400
 #define SFLAG_NO_CACHING         0x800
 #define SFLAG_NON_BLOCKING      0x1000   // used only by StreamOpen helper function
-#define SFLAG_CREATE_BLOCKING   0x2000
-#define SFLAG_FORCE_CACHING     0x4000
-#define SFLAG_LONGTERM_CACHING  0x8000
-#define SFLAG_RECONNECT        0x10000
 
 #define MAX_NETWORK_PACKET      2048
 
@@ -93,12 +66,6 @@
 #define SEEK_CUR        1
 #define SEEK_END        2
 #endif
-
-#ifndef EOF
-#define EOF				(-1)
-#endif
-
-#define DIR_TIMEOUT 2 // 2 s
 
 typedef struct stream
 {
@@ -119,7 +86,7 @@ typedef struct streamdir
 {
 	tchar_t FileName[MAXPATH];
 	tchar_t DisplayName[MAXPATH];
-	filepos_t Size;				
+	filepos_t Size;
 	int Type;					// from Exts, FTYPE_DIR for directory
 	datetime_t ModifiedDate;
 
@@ -174,11 +141,10 @@ typedef struct stream_vmt
 #define Stream_ResetReadTimeout(p,a)    VMT_FUNC(p,stream_vmt)->ResetReadTimeout(p,a)
 
 //--------------------------------------------------------------------------
- 
+
 #define STREAMPROCESS_CLASS		FOURCC('S','T','R','P')
 
 #define STREAMPROCESS_INPUT		0xB0
-#define STREAMPROCESS_DATAFEED	0xB1
 
 //---------------------------------------------------------------------------
 
@@ -194,17 +160,7 @@ typedef struct stream_vmt
 
 //---------------------------------------------------------------------------
 
-#define RESOURCEDATA_ID		FOURCC('R','E','S','F')
-#define RESOURCEDATA_SIZE   0x100
-#define RESOURCEDATA_PTR    0x101
-
-//---------------------------------------------------------------------------
-
-FILE_DLL stream* GetStream(anynode*, const tchar_t* URL, int Flags);
 FILE_DLL stream* StreamOpen(anynode*, const tchar_t* URL, int Flags);
 FILE_DLL void StreamClose(stream*);
-FILE_DLL bool_t StreamGenExts(anynode*,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter);
-FILE_DLL char StreamExtType(anynode*, fourcc_t ClassFilter, const tchar_t *Ext);
-FILE_DLL int StreamProtocolPriority(anynode*, const tchar_t* URL);
 
 #endif

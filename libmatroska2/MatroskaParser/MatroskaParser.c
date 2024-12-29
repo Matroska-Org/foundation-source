@@ -35,6 +35,11 @@
 #define snprintf _snprintf
 #endif
 
+#ifndef EOF
+#define EOF				(-1)
+#endif
+
+
 const nodemeta HaaliStream_Class[];
 
 #define HAALI_STREAM_CLASS FOURCC('H','A','L','S')

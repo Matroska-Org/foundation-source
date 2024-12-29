@@ -180,34 +180,13 @@ META_START_CONTINUE(STREAM_CLASS)
 META_CLASS(VMT_SIZE,sizeof(stream_vmt))
 META_CLASS(SIZE,sizeof(stream))
 META_CLASS(FLAGS,CFLAG_ABSTRACT)
-META_PARAM(TYPE,STREAM_KIND,TYPE_FOURCC|TFLAG_RDONLY)
-META_PARAM(CUSTOM,STREAM_KIND,STREAM_KIND_LOCAL)
 META_PARAM(NAME,STREAM_URL,T("URL"))
 META_PARAM(TYPE,STREAM_URL,TYPE_STRING)
 META_PARAM(NAME,STREAM_LENGTH,T("Length"))
 META_PARAM(TYPE,STREAM_LENGTH,TYPE_FILEPOS)
 META_PARAM(NAME,STREAM_FLAGS,T("Flags"))
 META_PARAM(TYPE,STREAM_FLAGS,TYPE_INT)
-META_PARAM(NAME,STREAM_CONTENTTYPE,T("ContentType"))
-META_PARAM(TYPE,STREAM_CONTENTTYPE,TYPE_STRING|TFLAG_RDONLY)
-META_PARAM(NAME,STREAM_PRAGMA_SEND,T("PragmaSet"))
-META_PARAM(TYPE,STREAM_PRAGMA_SEND,TYPE_STRING|TFLAG_RDONLY)
-META_PARAM(NAME,STREAM_PRAGMA_GET,T("PragmaGet"))
-META_PARAM(TYPE,STREAM_PRAGMA_GET,TYPE_STRING|TFLAG_RDONLY)
-META_PARAM(NAME,STREAM_META,T("Meta"))
-META_PARAM(TYPE,STREAM_META,TYPE_META)
-META_PARAM(NAME,STREAM_SCOUTING,T("Scouting"))
-META_PARAM(TYPE,STREAM_SCOUTING,TYPE_BOOLEAN)
-META_PARAM(NAME,STREAM_TIMEOUT,T("TimeOut"))
-META_PARAM(TYPE,STREAM_TIMEOUT,TYPE_INT) // TODO: TYPE_SYSTICK
-META_PARAM(TYPE,STREAM_DATE,TYPE_DATETIME)
-META_PARAM(NAME,STREAM_FULL_URL,T("FullURL"))
-META_PARAM(TYPE,STREAM_FULL_URL,TYPE_STRING)
-META_PARAM(TYPE,STREAM_PLAYING,TYPE_BOOLEAN)
 META_PARAM(TYPE,STREAM_ENUM_BASE,TYPE_STRING)
-META_PARAM(TYPE,STREAM_TIME,TYPE_TICK)
-META_PARAM(TYPE,STREAM_NATIVE_HANDLER,TYPE_PTR|TFLAG_RDONLY)
-META_PARAM(TYPE,STREAM_CACHING,TYPE_BOOLEAN)
 META_PARAM(TYPE,STREAM_USERNAME,TYPE_STRING)
 META_DYNAMIC(TYPE_STRING,STREAM_USERNAME)
 META_PARAM(TYPE,STREAM_PASSWORD,TYPE_STRING)
@@ -242,6 +221,8 @@ META_VMT(TYPE_FUNC,stream_vmt,Blocking,ProcessBlocking)
 META_VMT(TYPE_FUNC,stream_vmt,Wait,ProcessWait)
 META_END(STREAM_CLASS)
 
+static stream* GetStream(anynode*, const tchar_t* URL, int Flags);
+
 stream* StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
 {
     stream* File = GetStream(AnyNode,Path,Flags);
@@ -269,75 +250,6 @@ stream* StreamOpen(anynode *AnyNode, const tchar_t* Path, int Flags)
 void StreamClose(stream* File)
 {
     NodeDelete((node*)File);
-}
-
-bool_t StreamGenExts(anynode* AnyNode,array* Exts, fourcc_t ClassFilter, const tchar_t* TypeFilter)
-{
-    fourcc_t* i;
-    array List;
-    ArrayInit(Exts);
-
-    if (TypeFilter && !TypeFilter[0])
-        TypeFilter = NULL;
-
-    NodeEnumClass(AnyNode,&List,ClassFilter);
-    for (i=ARRAYBEGIN(List,fourcc_t);i!=ARRAYEND(List,fourcc_t);++i)
-    {
-        const tchar_t* s = NodeStr2(AnyNode,*i,NODE_EXTS);
-        while (s && s[0])
-        {
-            size_t n;
-            for (n=0;s[n] && s[n]!=';' && s[n]!=':';++n) {}
-
-            if (!TypeFilter || (s[n]==':' && tcschr(TypeFilter,s[n+1])!=NULL))
-            {
-                while (s[n] && s[n]!=';')
-                    ++n;
-
-                if (n)
-                {
-                    if (!ARRAYEMPTY(*Exts))
-                        ArrayAppend(Exts,T(";"),sizeof(tchar_t),64);
-                    ArrayAppend(Exts,s,n*sizeof(tchar_t),64);
-                }
-            }
-
-            s = tcschr(s,';');
-            if (s) ++s;
-        }
-    }
-    ArrayClear(&List);
-
-    if (!ARRAYEMPTY(*Exts) && !ArrayAppend(Exts,T("\0"),sizeof(tchar_t),64))
-        ArrayClear(Exts);
-
-    return !ARRAYEMPTY(*Exts);
-}
-
-char StreamExtType(anynode* AnyNode, fourcc_t ClassFilter, const tchar_t *Ext)
-{
-    char Result = FTYPE_UNDEFINED;
-    tchar_t *s;
-    size_t i;
-    array List;
-    StreamGenExts(AnyNode,&List,ClassFilter,NULL);
-
-    for (s=ARRAYBEGIN(List,tchar_t);s;)
-    {
-        for (i=0;s[i] && s[i]==Ext[i];i++) {}
-
-        if (!Ext[i] && s[i] == ':')
-        {
-            Result = (char)s[i+1];
-            break;
-        }
-
-        s = tcschr(s,';');
-        if (s) ++s;
-    }
-
-    ArrayClear(&List);
-    return Result;
 }
 
 stream* GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
@@ -371,13 +283,4 @@ stream* GetStream(anynode *AnyNode, const tchar_t* URL, int Flags)
         tcscpy_s(Stream->URL,TSIZEOF(Stream->URL),URL);
 #endif
     return Stream;
-}
-
-int StreamProtocolPriority(anynode *AnyNode, const tchar_t* URL)
-{
-    tchar_t Protocol[MAXPROTOCOL];
-    GetProtocol(URL,Protocol,TSIZEOF(Protocol),NULL);
-    if (tcsicmp(Protocol,T("file"))==0) // override for local files
-        return PRI_MAXIMUM;
-    return NodeClass_Priority(NodeContext_FindClass(AnyNode,NodeEnumClassStr(AnyNode,NULL,STREAM_CLASS,NODE_PROTOCOL,Protocol)));
 }

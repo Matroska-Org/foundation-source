@@ -45,7 +45,7 @@
 #define TYPE_FOURCC			8		// fourcc_t
 #define TYPE_FILEPOS		9		// filepos_t
 #define TYPE_NODE			10		// node* (format1: node class)
-#define TYPE_META		    11		// metanotify
+#define TYPE_META		    11
 #define TYPE_PACKET			12		// flow packet pin
 #define TYPE_TICK			13		// tick_t
 #define TYPE_NODENOTIFY     14      // nodenotify (private)
@@ -424,16 +424,6 @@ typedef struct pin
 typedef pin nodeevt;
 
 typedef err_t (*notifyproc)(void* This, nodeevt* Evt);
-
-typedef	void (*metafunc)(void* Referer, fourcc_t Meta, int32_t Stream, const tchar_t* Value);
-
-typedef struct metanotify
-{
-  	metafunc Func;
-	void* Referer;
-    int Stream;
-
-} metanotify;
 
 typedef	err_t (*notifyfunc)(void* This,intptr_t Param,intptr_t Param2);
 
