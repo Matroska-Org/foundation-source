@@ -30,6 +30,17 @@
 #include "file.h"
 #include "streams.h"
 
+typedef struct memstream
+{
+    stream Base;
+    filepos_t VirtualOffset;
+    const uint8_t* Ptr;
+    size_t Pos;
+    size_t Size;
+
+} memstream;
+
+
 static err_t MemRead(memstream* p,void* Data,size_t Size,size_t* Readed)
 {
     err_t Err = ERR_NONE;

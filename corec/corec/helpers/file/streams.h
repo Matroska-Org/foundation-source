@@ -109,16 +109,6 @@ typedef struct stream
 
 } stream;
 
-typedef struct memstream
-{
-	stream Base;
-    filepos_t VirtualOffset;
-	const uint8_t* Ptr;
-	size_t Pos;
-	size_t Size;
-
-} memstream;
-
 #if defined(CONFIG_STDIO)
 #define STDIN_ID		FOURCC('S','T','D','I')
 #define STDOUT_ID		FOURCC('S','T','D','O')
