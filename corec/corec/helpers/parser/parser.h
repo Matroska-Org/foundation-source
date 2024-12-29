@@ -31,7 +31,6 @@
 #define __PARSER_H
 
 #include "corec/helpers/file/file.h"
-#include "corec/helpers/charconvert/charconvert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,14 +53,14 @@ extern "C" {
 typedef struct parsercontext
 {
     nodecontext Base;
-	charconv* ToUTF8;
-	charconv* FromUTF8;
-	charconv* ToStr;
-	charconv* FromStr;
-	charconv* ToWcs;
-	charconv* FromWcs;
-	charconv* ToUtf16;
-	charconv* FromUtf16;
+    struct charconv* ToUTF8;
+    struct charconv* FromUTF8;
+    struct charconv* ToStr;
+    struct charconv* FromStr;
+    struct charconv* ToWcs;
+    struct charconv* FromWcs;
+    struct charconv* ToUtf16;
+    struct charconv* FromUtf16;
 	strtab StrTab;
 	bool_t LowStartMemory;
 
@@ -103,8 +102,8 @@ typedef struct parser
     parsercontext *Context;
 	struct stream* Stream;
 	buffer Buffer;
-	charconv* CC;
-    charconv* EscapeCC;
+    struct charconv* CC;
+    struct charconv* EscapeCC;
     tchar_t *BigLine;
     boolmem_t Element;
     boolmem_t ElementEof;
@@ -118,7 +117,7 @@ typedef struct stream stream;
 
 NODE_DLL err_t ParserStream(parser*, stream* Stream, parsercontext* Context);
 NODE_DLL err_t ParserStreamXML(parser*, stream* Stream, parsercontext* Context, const tchar_t* Root, bool_t NeedRootAttribs);
-NODE_DLL void ParserCC(parser*, charconv* CC, bool_t OwnCC);
+NODE_DLL void ParserCC(parser*, struct charconv* CC, bool_t OwnCC);
 NODE_DLL void ParserBOM(parser*);
 
 NODE_DLL err_t ParserFill(parser*,size_t AdditionalNeeded); // non-blocking stream could return ERR_NEED_MORE_DATA
@@ -164,7 +163,7 @@ NODE_DLL void ParserImportNested(parser* Parser,node* Node);
 typedef struct textwriter
 {
 	stream* Stream;
-	charconv* CC;
+    struct charconv* CC;
 	bool_t SafeFormat; // use <tag></tag> instead of <tag/>
 
 	// private

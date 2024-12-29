@@ -1,9 +1,9 @@
 #include "corec/str/str.h"
 
 #if defined(UNICODE)
-#include "corec/helpers/charconvert/charconvert.h"
-charconv *ToStr;
-charconv *FromStr;
+#include <corec/helpers/charconvert/charconvert.h>
+struct charconv *ToStr;
+struct charconv *FromStr;
 #endif
 
 #include <stdio.h>
