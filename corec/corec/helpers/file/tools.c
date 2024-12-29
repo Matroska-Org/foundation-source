@@ -100,10 +100,6 @@ const tchar_t* GetProtocol(const tchar_t* URL, tchar_t* Proto, int ProtoLen, boo
             tcsncpy_s(Proto,ProtoLen,URL,s-URL);
         if (HasHost)
         {
-            if (tcsnicmp(URL,T("urlpart"),7)==0)
-                // skip this protocol for the Host checking
-                GetProtocol(URL+10,NULL,0,HasHost);
-            else
             *HasHost = tcsnicmp(URL,T("file"),4)!=0 &&
                        tcsnicmp(URL,T("conf"),3)!=0 &&
                        tcsnicmp(URL,T("res"),3)!=0 &&
