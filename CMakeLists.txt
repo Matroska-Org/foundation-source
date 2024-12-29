@@ -29,6 +29,16 @@ if(DEV_MODE)
                           -Werror=missing-field-initializers
                           -Werror=excess-initializers
                           -Werror=strict-aliasing
+                          -Werror=array-bounds
+                          -Werror=format
+                          -Werror=incompatible-pointer-types
+                          -Werror=restrict
+                          -Werror=int-conversion
+                          -Werror=implicit-int
+                          -Werror=return-mismatch
+                          -Werror=declaration-missing-parameter-type
+                          -Werror=switch
+                          -Werror=return-type
                           -W4)
 endif()
 
