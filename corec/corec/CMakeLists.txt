@@ -45,10 +45,9 @@ set(corec_node_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/node/nodetree.h
   ${CMAKE_CURRENT_SOURCE_DIR}/node/nodetools.h
 )
-add_library("corec_node" INTERFACE)
-target_sources("corec_node" INTERFACE ${corec_node_SOURCES} ${corec_node_PUBLIC_HEADERS})
-target_include_directories("corec_node" INTERFACE ".")
-target_link_libraries("corec_node" INTERFACE "corec_array" "corec_str" "corec_file")
+add_library("corec_node" ${corec_node_SOURCES} ${corec_node_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
+target_include_directories("corec_node" PUBLIC ".")
+target_link_libraries("corec_node" PRIVATE "corec_bare")
 
 # Array API
 set(corec_array_SOURCES
@@ -57,12 +56,10 @@ set(corec_array_SOURCES
 set(corec_array_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/array/array.h
 )
-add_library("corec_array" INTERFACE)
-target_sources("corec_array" INTERFACE ${corec_array_SOURCES} ${corec_array_PUBLIC_HEADERS})
-target_link_libraries("corec_array" INTERFACE "corec_bare")
+add_library("corec_array" ${corec_array_SOURCES} ${corec_array_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
+target_link_libraries("corec_array" PRIVATE "corec_bare")
 
 # String API
-add_library("corec_str" INTERFACE)
 set(corec_str_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/str/str.c
 )
@@ -78,44 +75,52 @@ set(corec_str_LINUX_SOURCES
 set(corec_str_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/str/str.h
 )
-target_sources("corec_str" INTERFACE  ${corec_str_SOURCES} ${corec_str_PUBLIC_HEADERS})
+add_library("corec_str" ${corec_str_SOURCES} ${corec_str_PUBLIC_HEADERS})
 if (WIN32)
-  target_sources("corec_str" INTERFACE ${corec_str_WIN32_SOURCES})
+  target_sources("corec_str" PRIVATE ${corec_str_WIN32_SOURCES})
 elseif(APPLE)
-    target_sources("corec_str" INTERFACE ${corec_str_OSX_SOURCES})
+    target_sources("corec_str" PRIVATE ${corec_str_OSX_SOURCES})
 elseif(UNIX)
-    target_sources("corec_str" INTERFACE ${corec_str_LINUX_SOURCES})
+    target_sources("corec_str" PRIVATE ${corec_str_LINUX_SOURCES})
 endif(WIN32)
+target_include_directories("corec_str" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
+target_include_directories("corec_str" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 add_subdirectory("helpers")
 
-add_library("corec")
+add_library("corec" INTERFACE ${corec_base_PUBLIC_HEADERS})
+set_target_properties("corec" PROPERTIES LINKER_LANGUAGE C)
 target_include_directories("corec"
-  PRIVATE
+  INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/helpers>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 # keep until the sources are split
-target_include_directories("corec" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+target_include_directories("corec" INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 set(corec_INTERNAL_LIBS
-  $<BUILD_INTERFACE:corec_node>
   $<BUILD_INTERFACE:corec_parser>
+  $<BUILD_INTERFACE:corec_node>
+  $<BUILD_INTERFACE:corec_array>
+  $<BUILD_INTERFACE:corec_str>
+  $<BUILD_INTERFACE:corec_charconvert>
+  $<BUILD_INTERFACE:corec_file>
+  $<BUILD_INTERFACE:corec_date>
 )
 
 if (BUILD_SHARED_LIBS)
-  target_link_libraries("corec" PRIVATE ${corec_INTERNAL_LIBS})
-  target_compile_definitions("corec" PUBLIC NODE_IMPORTS ARRAY_IMPORTS CHARCONVERT_IMPORTS DATE_IMPORTS FILE_IMPORTS STR_IMPORTS)
+  target_link_libraries("corec" INTERFACE ${corec_INTERNAL_LIBS})
+  target_compile_definitions("corec" INTERFACE NODE_IMPORTS ARRAY_IMPORTS CHARCONVERT_IMPORTS DATE_IMPORTS FILE_IMPORTS STR_IMPORTS)
 else(BUILD_SHARED_LIBS)
-  target_link_libraries("corec" PUBLIC ${corec_INTERNAL_LIBS})
+  target_link_libraries("corec" INTERFACE ${corec_INTERNAL_LIBS})
 endif(BUILD_SHARED_LIBS)
 
 set(corec_PUBLIC_HEADERS
-  ${corec_node_PUBLIC_HEADERS} ${corec_parser_PUBLIC_HEADERS}
+  ${corec_node_PUBLIC_HEADERS}
+  ${corec_parser_PUBLIC_HEADERS}
 )
 
 set_target_properties("corec" PROPERTIES
