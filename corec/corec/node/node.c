@@ -328,7 +328,7 @@ typedef struct class_ref_t
 
 } class_ref_t;
 
-static int CmpClassRef(void* UNUSED_PARAM(p), const void* va, const void* vb)
+static int CmpClassRef(const void* UNUSED_PARAM(p), const void* va, const void* vb)
 {
     const class_ref_t *a = va;
     const class_ref_t *b = vb;
