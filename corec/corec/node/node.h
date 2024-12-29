@@ -36,10 +36,6 @@
 extern "C" {
 #endif
 
-#include "corec/array/array.h"
-#include "corec/str/str.h"
-#include "corec/memheap.h"
-
 #if defined(corec_EXPORTS)
 #define NODE_DLL DLLEXPORT
 #elif defined(NODE_IMPORTS)

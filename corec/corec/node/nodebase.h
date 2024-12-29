@@ -30,6 +30,8 @@
 #ifndef __NODEBASE_H
 #define __NODEBASE_H
 
+#include <corec/array/array.h>
+
 #define MAXDATA				(MAXPATH*sizeof(tchar_t))
 
 //----------------------------------------------------------------
