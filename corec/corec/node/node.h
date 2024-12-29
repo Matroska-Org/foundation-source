@@ -46,7 +46,6 @@ extern "C" {
 
 #include "nodebase.h"
 #include "nodetree.h"
-#include "nodetools.h"
 
 #ifdef __cplusplus
 }
