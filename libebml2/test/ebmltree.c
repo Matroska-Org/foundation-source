@@ -40,7 +40,11 @@ void DebugMessage(const tchar_t* Msg,...)
     va_end(Args);
     tcscat_s(Buffer,TSIZEOF(Buffer),T("\r\n"));
 
+#ifdef UNICODE
+    fprintf(stderr, "%ls", Buffer);
+#else
     fprintf(stderr, "%s", Buffer);
+#endif
 }
 
 static ebml_element *OutputElement(ebml_element *Element, const ebml_parser_context *Context, stream *Input, int *Level)
