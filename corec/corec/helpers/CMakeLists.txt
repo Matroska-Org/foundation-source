@@ -49,14 +49,12 @@ target_include_directories("corec_file" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT
 # Parser API
 set(corec_parser_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/buffer.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/parser/hotkey.c
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/nodelookup.c
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser2.c
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtab.c
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtypes.c
 )
 set(corec_parser_PUBLIC_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/parser/hotkey.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/nodelookup.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.h
   ${CMAKE_CURRENT_SOURCE_DIR}/parser/strtab.h
