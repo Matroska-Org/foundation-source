@@ -115,8 +115,6 @@ NODE_DLL bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* 
 void ExprSkipSpace(const tchar_t** p);
 NODE_DLL void ExprTrimSpace(tchar_t** p);
 NODE_DLL bool_t ExprSkipAfter(const tchar_t** p,int ch); //ch=0 for general space
-NODE_DLL bool_t ExprIsToken(const tchar_t** p,const tchar_t* Name);
-NODE_DLL bool_t ExprIsTokenEx(const tchar_t** p,const tchar_t* Name,...);
 NODE_DLL bool_t ExprIsSymbol(const tchar_t** p,int ch);
 NODE_DLL bool_t ExprIsSymbol2(const tchar_t** p,int ch, int ch2);
 NODE_DLL void ExprParamEnd(const tchar_t** p);
@@ -129,7 +127,6 @@ NODE_DLL bool_t ExprIsInt64Ex(const tchar_t** p,int size,int64_t*); // no space 
 NODE_DLL bool_t ExprIsHex(const tchar_t** p,intptr_t*); // no space skipping!
 NODE_DLL bool_t ExprIsRGB(const tchar_t** p,intptr_t*); // no space skipping!
 NODE_DLL bool_t ExprIsFourCC(const tchar_t** p,intptr_t*); // no space skipping!
-NODE_DLL bool_t ExprIsPoint(const tchar_t** p,cc_point*);
 NODE_DLL bool_t ExprIsName(const tchar_t** p,tchar_t* Out,size_t OutLen, const tchar_t* Delimiter);
 NODE_DLL size_t ExprIsBase64(const tchar_t** p,uint8_t* Out,size_t OutSize);
 
