@@ -46,7 +46,7 @@ static const uint16_t ParamSize[MAX_PARAMTYPE] =
     sizeof(fourcc_t),	//TYPE_FOURCC
     sizeof(filepos_t),	//TYPE_FILEPOS
     sizeof(node*),		//TYPE_NODE
-    sizeof(metanotify),	//TYPE_META
+    0,                  //TYPE_META
     sizeof(pin),		//TYPE_PACKET
     sizeof(tick_t),		//TYPE_TICK
     sizeof(nodenotify), //TYPE_NODENOTIFY
