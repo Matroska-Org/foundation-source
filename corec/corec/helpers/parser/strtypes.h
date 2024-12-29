@@ -32,29 +32,16 @@
 
 #include <corec/node/node.h> // NODE_DLL
 
-typedef struct datepack_t datepack_t;
-
-NODE_DLL fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper);
-NODE_DLL void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* Fraction, int Percent, int Decimal);
-NODE_DLL void StringToFraction(const tchar_t* In, cc_fraction* Out, bool_t Percent);
+fourcc_t StringToFourCC(const tchar_t* In, bool_t Upper);
+void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* Fraction, int Percent, int Decimal);
 NODE_DLL int StringToInt(const tchar_t* In, int Hex);
 NODE_DLL int64_t StringToInt64(const tchar_t* In);
-NODE_DLL void IntToString(tchar_t* Out, size_t OutLen, int32_t Int, bool_t Hex);
-NODE_DLL void Int64ToString(tchar_t* Out, size_t OutLen, int64_t Int, bool_t Hex);
-NODE_DLL void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
+void IntToString(tchar_t* Out, size_t OutLen, int32_t Int, bool_t Hex);
+void Int64ToString(tchar_t* Out, size_t OutLen, int64_t Int, bool_t Hex);
+void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
 NODE_DLL void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, bool_t Extended, bool_t Fix);
-NODE_DLL tick_t StringToTick(const tchar_t* In);
-NODE_DLL systick_t StringToSysTick(const tchar_t* In);
-NODE_DLL void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB);
-NODE_DLL rgbval_t StringToRGB(const tchar_t* In);
-NODE_DLL void GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid*);
-NODE_DLL bool_t StringToGUID(const tchar_t* In, cc_guid*);
-NODE_DLL void StringToURL(anynode* AnyNode, tchar_t* Out, size_t OutLen, const tchar_t *URL);
-NODE_DLL void URLToString(tchar_t* Out, size_t OutLen, const tchar_t *URL);
-NODE_DLL void LangToIso639_1(tchar_t *Out, size_t OutLen, fourcc_t Lang);
-NODE_DLL void ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate);
-NODE_DLL datetime_t RFC822ToRel(const tchar_t *);
-NODE_DLL datetime_t ISO8601ToRel(const tchar_t *);
-NODE_DLL size_t StrFTime(tchar_t* Out, size_t OutLen, const tchar_t *Format, datepack_t *dp);
+void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB);
+void GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid*);
+void ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate);
 
 #endif
