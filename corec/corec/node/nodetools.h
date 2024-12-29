@@ -32,13 +32,4 @@
 
 //some helper functions
 
-static INLINE bool_t EqFrac(const cc_fraction* a, const cc_fraction* b)
-{
-	if (a->Den == b->Den && a->Num == b->Num)
-		return 1;
-	if (!a->Den) return b->Den==0;
-	if (!b->Den) return 0;
-	return (int64_t)b->Den * a->Num == (int64_t)a->Den * b->Num;
-}
-
 #endif
