@@ -115,7 +115,7 @@ else(BUILD_SHARED_LIBS)
 endif(BUILD_SHARED_LIBS)
 
 set(corec_PUBLIC_HEADERS
-  ${corec_node_PUBLIC_HEADERS} ${corec_parser_PUBLIC_HEADERS} ${core_md5_PUBLIC_HEADERS}
+  ${corec_node_PUBLIC_HEADERS} ${corec_parser_PUBLIC_HEADERS}
 )
 
 set_target_properties("corec" PROPERTIES
