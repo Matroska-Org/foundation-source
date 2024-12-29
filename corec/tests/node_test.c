@@ -11,7 +11,11 @@ void DebugMessage(const tchar_t* Msg,...)
     va_end(Args);
     tcscat_s(Buffer,TSIZEOF(Buffer),T("\r\n"));
 
+#ifdef UNICODE
+    fprintf(stderr, "%ls", Buffer);
+#else
     fprintf(stderr, "%s", Buffer);
+#endif
 }
 
 int main(int argc,char** argv)
