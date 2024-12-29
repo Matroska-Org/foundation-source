@@ -50,6 +50,8 @@ static FILETIME fTimeCache[MAX_CACHED_YEAR - MIN_CACHED_YEAR + 2][2];
 #define TIME_ZONE_ID_INVALID ((DWORD)0xFFFFFFFF)
 #endif
 
+static bool_t GetIsDst(datetime_t t); // may not be correct on all platforms
+
 systick_t GetTimeTick(void)
 {
 	return GetTickCount();

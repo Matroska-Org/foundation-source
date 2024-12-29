@@ -125,17 +125,3 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
 
 	return 0;
 }
-
-bool_t GetIsDst(datetime_t t)
-{
-	time_t ot;
-	struct tm *date;
-
-	if (t == INVALID_DATETIME_T)
-        return 0;
-
-	ot = t + DATETIME_OFFSET;
-    date = localtime(&ot);
-
-    return date->tm_isdst;
-}
