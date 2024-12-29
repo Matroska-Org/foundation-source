@@ -1519,7 +1519,7 @@ int main(int argc, const char *argv[])
 #else
             Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
 #endif
-            TimestampScale = StringToInt(Path,0);
+            TimestampScale = StringToInt64(Path);
             InputPathIndex = i+1;
         }
         else if (tcsisame_ascii(Path,T("--alt-3d")) && i+1<argc-1)
