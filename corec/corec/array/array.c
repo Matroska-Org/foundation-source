@@ -28,6 +28,7 @@
  ****************************************************************************/
 
 #include "array.h"
+#include <corec/memheap.h>
 
 typedef struct datahead
 {
