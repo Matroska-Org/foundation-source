@@ -28,10 +28,18 @@
  ****************************************************************************/
 
 #include "parser.h"
-#include "buffer.h"
 #include "strtypes.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/charconvert/charconvert.h>
+
+typedef struct buffer
+{
+    uint8_t* Begin;
+    uint8_t* Write;
+    uint8_t* Read;
+    uint8_t* End;
+
+} buffer;
 
 struct parser
 {
@@ -136,6 +144,25 @@ void Node_ToUTF16(anynode* p, utf16_t* Out,size_t OutLen, const tchar_t* In)
 void Node_FromUTF16(anynode* p, tchar_t* Out,size_t OutLen, const utf16_t* In)
 {
     CharConvTU(Parser_Context(p)->FromUtf16,Out,OutLen,In);
+}
+
+static void BufferPack(buffer* p, size_t Length)
+{
+    uint8_t* Read = p->Read + Length;
+
+    if (p->Write > Read)
+    {
+        if (Read != p->Begin)
+        {
+            // move end part to the beginning
+            memmove(p->Begin,Read,p->Write - Read);
+            p->Write -= Read - p->Begin;
+        }
+    }
+    else
+        p->Write = p->Begin;
+
+    p->Read = p->Begin;
 }
 
 static NOINLINE err_t ParserFill(parser* p,size_t Needed) // non-blocking stream could return ERR_NEED_MORE_DATA
