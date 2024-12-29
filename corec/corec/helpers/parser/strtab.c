@@ -27,7 +27,8 @@
  *
  ****************************************************************************/
 
-#include "parser.h"
+#include "parser.h" // struct strtab
+#include "strtab.h"
 
 #define TABLEALIGN	1024
 
@@ -46,7 +47,7 @@ void StrTab_Init(strtab* p, const cc_memheap* Heap, size_t Alloc)
 	ArrayAlloc(&p->Table,Alloc,TABLEALIGN);
 }
 
-NOINLINE void StrTab_Clear(strtab* p)
+static NOINLINE void StrTab_Clear(strtab* p)
 {
 	stringdef **i;
 	for (i=ARRAYBEGIN(p->Table,stringdef*);i!=ARRAYEND(p->Table,stringdef*);++i)
@@ -70,48 +71,6 @@ static int CmpDef(const void* UNUSED_PARAM(p), const void* vpa, const void* vpb)
 	if (a->Class > b->Class || a->Id > b->Id)
 		return 1;
 	return 0;
-}
-
-void StrTab_Add(strtab* p, bool_t Secondary, fourcc_t Class, int32_t Id, const tchar_t* s)
-{
-	size_t Pos;
-	bool_t Found;
-
-	stringdef Def;
-	stringdef* Ptr = &Def;
-	Def.Class = Class;
-	Def.Id = Id;
-
-	if (s && !*s)
-        s = NULL;
-
-	// already the same?
-	Pos = ArrayFind(&p->Table,stringdef*,&Ptr,CmpDef,NULL,&Found);
-
-    if (Found)
-    {
-        Ptr = ARRAYBEGIN(p->Table,stringdef*)[Pos];
-
-        if (Secondary || (s && tcscmp(s,(tchar_t*)(Ptr+1))==0))
-            s = NULL; // keep old
-        else
-        {
-            MemHeap_Free(p->Heap,Ptr,sizeof(stringdef)+tcsbytes((tchar_t*)(Ptr+1)));
-            ArrayDelete(&p->Table,Pos*sizeof(stringdef*),sizeof(stringdef*));
-        }
-    }
-
-	if (s)
-	{
-        size_t Size = tcsbytes(s);
-        Ptr = MemHeap_Alloc(p->Heap,sizeof(stringdef)+Size,0);
-        if (Ptr)
-        {
-            MemHeap_Write(p->Heap,Ptr,&Def,0,sizeof(stringdef));
-            MemHeap_Write(p->Heap,Ptr,s,sizeof(stringdef),Size);
-	        ArrayAdd(&p->Table,stringdef*,&Ptr,CmpDef,NULL,TABLEALIGN);
-        }
-    }
 }
 
 static NOINLINE size_t FindPos(strtab *p, fourcc_t Class, int Id)
