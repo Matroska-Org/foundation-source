@@ -1931,6 +1931,15 @@ const tchar_t *NodeContext_UnitName(datatype Unit)
     return ParamFormat[Unit>>TUNIT_SHIFT];
 }
 
+static bool_t EqFrac(const cc_fraction* a, const cc_fraction* b)
+{
+	if (a->Den == b->Den && a->Num == b->Num)
+		return 1;
+	if (!a->Den) return b->Den==0;
+	if (!b->Den) return 0;
+	return (int64_t)b->Den * a->Num == (int64_t)a->Den * b->Num;
+}
+
 static const tchar_t NullString[] = T("");
 
 static NOINLINE bool_t EqData(datatype Type, const void* a, const void* b, size_t Size)
