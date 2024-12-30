@@ -193,7 +193,7 @@
                 <xsl:otherwise><xsl:text>EBML_INTEGER_CLASS, </xsl:text></xsl:otherwise>
             </xsl:choose>
             <xsl:choose>
-                <xsl:when test="$node/@default and (number($node/@default)=number($node/@default))"><xsl:text>1, (intptr_t)</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>, </xsl:text></xsl:when>
+                <xsl:when test="$node/@default and (number($node/@default)=number($node/@default))"><xsl:text>1, </xsl:text><xsl:value-of select="$node/@default" /><xsl:text>, </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
             <xsl:text>"</xsl:text>
@@ -209,7 +209,7 @@
             <xsl:value-of select="$node/@id" /><xsl:text>, </xsl:text>
             <xsl:text>EBML_SINTEGER_CLASS, </xsl:text>
             <xsl:choose>
-                <xsl:when test="$node/@default and (number($node/@default)=number($node/@default))"><xsl:text>1, (intptr_t)</xsl:text><xsl:value-of select="$node/@default" /><xsl:text>, </xsl:text></xsl:when>
+                <xsl:when test="$node/@default and (number($node/@default)=number($node/@default))"><xsl:text>1, </xsl:text><xsl:value-of select="$node/@default" /><xsl:text>, </xsl:text></xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
             </xsl:choose>
             <xsl:text>"</xsl:text>
