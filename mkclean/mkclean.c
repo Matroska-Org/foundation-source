@@ -1410,7 +1410,7 @@ int main(int argc, const char *argv[])
     ebml_parser_context RSegmentContext;
     int UpperElement;
     filepos_t MetaSeekBefore, MetaSeekAfter;
-    filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize;
+    filepos_t NextPos = 0, SegmentSize = 0, ClusterSize, CuesSize = MIN_FILEPOS;
     size_t ExtraVoidSize = 0;
     mkv_timestamp_t PrevTimestamp;
     bool_t CuesChanged;
