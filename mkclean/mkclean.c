@@ -2187,7 +2187,7 @@ int main(int argc, const char *argv[])
         array TrackBlocks; // array of block_info
         matroska_frame FrameData;
         block_info BlockInfo,*pBlockInfo;
-        err_t Result;
+        err_t RemuxErr;
 
         if (!Quiet) TextWrite(StdErr,T("Remuxing...\r\n"));
         // count the number of useful tracks
@@ -2451,7 +2451,7 @@ int main(int argc, const char *argv[])
                             if (MATROSKA_BlockReadData(pBlockInfo->Block,Input,SrcProfile)==ERR_NONE)
                             {
                                 bool_t HasDuration = MATROSKA_BlockProcessFrameDurations(pBlockInfo->Block,Input,SrcProfile)==ERR_NONE;
-                                Result = ERR_NONE;
+                                RemuxErr = ERR_NONE;
                                 if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
                                 {
                                     // This block needs to be split
@@ -2474,7 +2474,7 @@ int main(int argc, const char *argv[])
                                     else
                                     {
                                         if (MATROSKA_BlockGetFrameCount(Block1))
-                                            Result = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)Block1);
+                                            RemuxErr = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)Block1);
                                         else
                                             NodeDelete((node*)Block1);
                                     }
@@ -2504,16 +2504,16 @@ int main(int argc, const char *argv[])
                                     else
                                     {
                                         if (MATROSKA_BlockGetFrameCount(Block1))
-                                            Result = EBML_MasterAppend((ebml_master*)ClusterW,Elt);
+                                            RemuxErr = EBML_MasterAppend((ebml_master*)ClusterW,Elt);
                                         else
                                             NodeDelete((node*)Elt);
                                     }
                                     break; // next track
                                 }
 
-                                if (Result != ERR_NONE)
+                                if (RemuxErr != ERR_NONE)
                                 {
-                                    if (Result==ERR_INVALID_DATA)
+                                    if (RemuxErr==ERR_INVALID_DATA)
                                         TextPrintf(StdErr,T("Impossible to remux, the TimestampScale may be too low, try --timecodescale 1000000\r\n"));
                                     else
                                         TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
@@ -2542,16 +2542,16 @@ int main(int argc, const char *argv[])
                                 }
                                 else
                                 {
-                                    Result = MATROSKA_BlockReadData(prevBlock->Block,Input,SrcProfile);
+                                    RemuxErr = MATROSKA_BlockReadData(prevBlock->Block,Input,SrcProfile);
                                 }
                             }
 
                             if (prevBlock)
                             {
                                 // add the first frame into the previous Block
-                                if (Result==ERR_NONE)
+                                if (RemuxErr==ERR_NONE)
                                 {
-                                    Result = MATROSKA_BlockReadData(pBlockInfo->Block,Input,SrcProfile);
+                                    RemuxErr = MATROSKA_BlockReadData(pBlockInfo->Block,Input,SrcProfile);
                                     if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
                                     {
                                         Block1 = (matroska_block*)pBlockInfo->Block;
@@ -2572,22 +2572,22 @@ int main(int argc, const char *argv[])
                             {
                                 if (EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextSimpleBlock()))
                                 {
-                                    Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
-                                    if (Result == ERR_NONE)
-                                        Result = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)pBlockInfo->Block);
+                                    RemuxErr = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
+                                    if (RemuxErr == ERR_NONE)
+                                        RemuxErr = EBML_MasterAppend((ebml_master*)ClusterW,(ebml_element*)pBlockInfo->Block);
                                 }
                                 else
                                 {
                                     assert(EBML_ElementIsType((ebml_element*)pBlockInfo->Block, MATROSKA_getContextBlock()));
-                                    Result = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
-                                    if (Result == ERR_NONE)
-                                        Result = EBML_MasterAppend((ebml_master*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
+                                    RemuxErr = MATROSKA_LinkBlockWriteSegmentInfo(pBlockInfo->Block,WSegmentInfo);
+                                    if (RemuxErr == ERR_NONE)
+                                        RemuxErr = EBML_MasterAppend((ebml_master*)ClusterW,EBML_ElementParent((ebml_element*)pBlockInfo->Block));
                                 }
                             }
 
-                            if (Result != ERR_NONE)
+                            if (RemuxErr != ERR_NONE)
                             {
-                                if (Result==ERR_INVALID_DATA)
+                                if (RemuxErr==ERR_INVALID_DATA)
                                     TextPrintf(StdErr,T("Impossible to remux, the TimestampScale may be too low, try --timecodescale 1000000\r\n"));
                                 else
                                     TextPrintf(StdErr,T("Impossible to remux, error appending a block\r\n"));
