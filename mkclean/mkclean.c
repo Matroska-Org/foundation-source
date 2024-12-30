@@ -2526,6 +2526,7 @@ int main(int argc, const char *argv[])
 
                         if (MATROSKA_BlockGetFrameCount(pBlockInfo->Block))
                         {
+                            RemuxErr = ERR_NONE;
                             block_info *prevBlock = NULL;
                             if (ARRAYCOUNT(Alternate3DTracks, block_info*) && ARRAYBEGIN(Alternate3DTracks, block_info*)[*pTrackOrder])
                             {
