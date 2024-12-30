@@ -1,29 +1,8 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (c) 2008-2010, CoreCodec, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of CoreCodec, Inc. nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY CoreCodec, Inc. ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL CoreCodec, Inc. BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Copyright (C) CoreCodec, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  ****************************************************************************/
 
@@ -220,7 +199,7 @@ struct codepage
     writecodepage* Write;
 };
 
-struct charconv 
+struct charconv
 {
     const codepage* From;
     const codepage* To;
@@ -284,14 +263,14 @@ static size_t Write_Simple(const codepage* p, char** OutPtr, size_t OutLen, uint
 	        intptr_t Mid;
 	        intptr_t Lower = 0;
 	        intptr_t Upper = 127;
-	        while (Upper >= Lower) 
+	        while (Upper >= Lower)
 	        {
 		        Mid = (Upper + Lower) >> 1;
 		        if (p->UTF[p->Index[Mid]]>ch)
-			        Upper = Mid-1;	
-		        else if (p->UTF[p->Index[Mid]]<ch)  		
-			        Lower = Mid+1;	
-		        else 
+			        Upper = Mid-1;
+		        else if (p->UTF[p->Index[Mid]]<ch)
+			        Lower = Mid+1;
+		        else
                 {
                     ch=p->Index[Mid]+128;
                     goto found;
@@ -448,7 +427,7 @@ void CharConvSW(charconv* CC, char* Out, size_t OutLen, const wchar_t* In)
     }
 }
 
-static const codepage CodePage[] = 
+static const codepage CodePage[] =
 {
     {1252, T("ISO-8859-1"), codepage_1252,codepage_1252_r, Read_Simple, Write_Simple},
     {1250, T("ISO-8859-2"), codepage_1250,codepage_1250_r, Read_Simple, Write_Simple},
