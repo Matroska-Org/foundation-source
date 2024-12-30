@@ -1055,7 +1055,7 @@ void MATROSKA_InitSemantic(void)
     MATROSKA_ContextMaxCache = (ebml_context) {0x6DF8, EBML_INTEGER_CLASS, 0, 0, "MaxCache", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextDefaultDuration = (ebml_context) {0x23E383, EBML_INTEGER_CLASS, 0, 0, "DefaultDuration", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextDefaultDecodedFieldDuration = (ebml_context) {0x234E7A, EBML_INTEGER_CLASS, 0, 0, "DefaultDecodedFieldDuration", NULL, EBML_getSemanticGlobals()};
-    MATROSKA_ContextTrackTimestampScale = (ebml_context) {0x23314F, EBML_FLOAT_CLASS, 1, (intptr_t)1.0, "TrackTimestampScale", NULL, EBML_getSemanticGlobals()};
+    MATROSKA_ContextTrackTimestampScale = (ebml_context) {0x23314F, EBML_FLOAT_CLASS, 1, 1, "TrackTimestampScale", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextTrackOffset = (ebml_context) {0x537F, EBML_SINTEGER_CLASS, 1, (intptr_t)0, "TrackOffset", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextMaxBlockAdditionID = (ebml_context) {0x55EE, EBML_INTEGER_CLASS, 1, (intptr_t)0, "MaxBlockAdditionID", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextBlockAddIDValue = (ebml_context) {0x41F0, EBML_INTEGER_CLASS, 0, 0, "BlockAddIDValue", NULL, EBML_getSemanticGlobals()};
@@ -1126,12 +1126,12 @@ void MATROSKA_InitSemantic(void)
     MATROSKA_ContextColour = (ebml_context) {0x55B0, EBML_MASTER_CLASS, 0, 0, "Colour", EBML_SemanticColour, EBML_getSemanticGlobals()};
     MATROSKA_ContextProjectionType = (ebml_context) {0x7671, EBML_INTEGER_CLASS, 1, (intptr_t)0, "ProjectionType", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextProjectionPrivate = (ebml_context) {0x7672, EBML_BINARY_CLASS, 0, 0, "ProjectionPrivate", NULL, EBML_getSemanticGlobals()};
-    MATROSKA_ContextProjectionPoseYaw = (ebml_context) {0x7673, EBML_FLOAT_CLASS, 1, (intptr_t)0.0, "ProjectionPoseYaw", NULL, EBML_getSemanticGlobals()};
-    MATROSKA_ContextProjectionPosePitch = (ebml_context) {0x7674, EBML_FLOAT_CLASS, 1, (intptr_t)0.0, "ProjectionPosePitch", NULL, EBML_getSemanticGlobals()};
-    MATROSKA_ContextProjectionPoseRoll = (ebml_context) {0x7675, EBML_FLOAT_CLASS, 1, (intptr_t)0.0, "ProjectionPoseRoll", NULL, EBML_getSemanticGlobals()};
+    MATROSKA_ContextProjectionPoseYaw = (ebml_context) {0x7673, EBML_FLOAT_CLASS, 1, 0, "ProjectionPoseYaw", NULL, EBML_getSemanticGlobals()};
+    MATROSKA_ContextProjectionPosePitch = (ebml_context) {0x7674, EBML_FLOAT_CLASS, 1, 0, "ProjectionPosePitch", NULL, EBML_getSemanticGlobals()};
+    MATROSKA_ContextProjectionPoseRoll = (ebml_context) {0x7675, EBML_FLOAT_CLASS, 1, 0, "ProjectionPoseRoll", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextProjection = (ebml_context) {0x7670, EBML_MASTER_CLASS, 0, 0, "Projection", EBML_SemanticProjection, EBML_getSemanticGlobals()};
     MATROSKA_ContextVideo = (ebml_context) {0xE0, EBML_MASTER_CLASS, 0, 0, "Video", EBML_SemanticVideo, EBML_getSemanticGlobals()};
-    MATROSKA_ContextSamplingFrequency = (ebml_context) {0xB5, EBML_FLOAT_CLASS, 1, (intptr_t)8000.0, "SamplingFrequency", NULL, EBML_getSemanticGlobals()};
+    MATROSKA_ContextSamplingFrequency = (ebml_context) {0xB5, EBML_FLOAT_CLASS, 1, 8000, "SamplingFrequency", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextOutputSamplingFrequency = (ebml_context) {0x78B5, EBML_FLOAT_CLASS, 0, 0, "OutputSamplingFrequency", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextChannels = (ebml_context) {0x9F, EBML_INTEGER_CLASS, 1, (intptr_t)1, "Channels", NULL, EBML_getSemanticGlobals()};
     MATROSKA_ContextChannelPositions = (ebml_context) {0x7D7B, EBML_BINARY_CLASS, 0, 0, "ChannelPositions", NULL, EBML_getSemanticGlobals()};

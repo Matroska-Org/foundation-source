@@ -258,12 +258,12 @@
             <xsl:text>EBML_FLOAT_CLASS, </xsl:text>
             <xsl:choose>
                 <xsl:when test="$node/@default and starts-with($node/@default,'0x')">
-                    <xsl:text>1, (intptr_t)</xsl:text>
+                    <xsl:text>1, </xsl:text>
                     <xsl:choose>
-                        <xsl:when test="$node/@default='0x1p+0'">1.0, </xsl:when>
-                        <xsl:when test="$node/@default='0x0p+0'">0.0, </xsl:when>
-                        <xsl:when test="$node/@default='0x1.f4p+12'">8000.0, </xsl:when>
-                        <xsl:otherwise><xsl:text>, </xsl:text><xsl:value-of select="$node/@default" /></xsl:otherwise>>
+                        <xsl:when test="$node/@default='0x1p+0'">1, </xsl:when>
+                        <xsl:when test="$node/@default='0x0p+0'">0, </xsl:when>
+                        <xsl:when test="$node/@default='0x1.f4p+12'">8000, </xsl:when>
+                        <xsl:otherwise><xsl:text>, (intptr_t)</xsl:text><xsl:value-of select="$node/@default" /></xsl:otherwise>>
                     </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise><xsl:text>0, 0, </xsl:text></xsl:otherwise>
