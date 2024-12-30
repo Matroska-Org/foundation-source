@@ -1206,11 +1206,11 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                 size_t Offset = 0;
                 for (NumFrame=0;Err==ERR_NONE && NumFrame<ARRAYCOUNT(Element->SizeList,int32_t);++NumFrame)
                 {
+                    FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
 #if defined(CONFIG_ZLIB)
                     if (EBML_IntegerValue((ebml_integer*)Header)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
                     {
                         size_t UncompressedSize;
-                        FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
                         Err = UnCompressFrameZLib(InBuf, FrameSize, &Element->Data, &UncompressedSize, &Offset);
                         if (Err == ERR_NONE)
                         {
@@ -1227,12 +1227,11 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                         else
                         {
                             lzo_uint outSize = max(2048, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] << 2);
-                            FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
                             if (!ArrayResize(&Element->Data, OutSize + outSize, 0))
                                 Err = ERR_OUT_OF_MEMORY;
                             else
                             {
-                                if (lzo1x_decompress_safe(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame], ARRAYBEGIN(Element->Data,uint8_t) + OutSize, &outSize, NULL) != LZO_E_OK)
+                                if (lzo1x_decompress_safe(InBuf, FrameSize, ARRAYBEGIN(Element->Data,uint8_t) + OutSize, &outSize, NULL) != LZO_E_OK)
                                     Err = ERR_INVALID_DATA;
                                 else
                                 {
@@ -1257,7 +1256,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                         {
                             size_t Count;
                             stream.next_in = (char*)InBuf;
-                            stream.avail_in = FrameSize = ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame];
+                            stream.avail_in = FrameSize;
                             stream.next_out = ARRAYBEGIN(Element->Data,char) + OutSize;
                             do {
                                 Count = stream.next_out - ARRAYBEGIN(Element->Data,char);
