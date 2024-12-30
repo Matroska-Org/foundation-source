@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2010-2015, Matroska (non-profit organisation)
- * Copyright (C) the Matroska association
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "matroska2/matroska.h"

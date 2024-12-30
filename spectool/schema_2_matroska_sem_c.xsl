@@ -14,7 +14,6 @@
  * https://github.com/Matroska-Org/foundation-source/tree/master/spectool
  *
  * Copyright (c) 2008-2020, Matroska (non-profit organisation)
- * Copyright (C) the Matroska association
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "matroska2/matroska.h"

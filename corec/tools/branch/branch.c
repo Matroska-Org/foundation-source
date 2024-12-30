@@ -1,6 +1,5 @@
 /*
   Copyright (c) 2006-2010, CoreCodec, Inc.
-  Copyright (C) CoreCodec, Inc.
   SPDX-License-Identifier: BSD-3-Clause
 */
 
