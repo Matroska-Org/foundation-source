@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2008-2010, Matroska Foundation
- * Copyright (C) the Matroska association
+ * Copyright (c) 2008-2010, Matroska (non-profit organisation)
  * SPDX-License-Identifier: BSD-3-Clause
  */
 

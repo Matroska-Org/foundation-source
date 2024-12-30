@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2010-2011, Matroska (non-profit organisation)
- * Copyright (C) the Matroska association
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #define EBML2_UGLY_HACKS_API // we force some values in the elements we read
