@@ -277,12 +277,12 @@ static err_t ReadData(ebml_master *Element, struct stream *Input, const ebml_par
 {
     int UpperEltFound = 0;
     bool_t bFirst = 1;
-    ebml_element *SubElement;
+    ebml_element *SubElement = NULL;
     ebml_crc *CRCElement = NULL;
     struct stream *ReadStream = Input;
     array CrcBuffer;
     uint8_t *CRCData = NULL;
-    size_t CRCDataSize;
+    size_t CRCDataSize = 0;
 
     // remove all existing elements, including the mandatory ones...
     NodeTree_Clear((nodetree*)Element);
