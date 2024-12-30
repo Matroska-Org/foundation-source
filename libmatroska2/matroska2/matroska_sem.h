@@ -2,7 +2,6 @@
  * DO NOT EDIT, GENERATED WITH schema_2_matroska_sem_h.xsl
  * https://github.com/Matroska-Org/foundation-source/tree/master/spectool
  *
- * $Id$
  * Copyright (c) 2008-2022, Matroska (non-profit organisation)
  * All rights reserved.
  *

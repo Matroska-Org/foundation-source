@@ -1,5 +1,4 @@
 /*
- * $Id$
  * Copyright (c) 2008-2011, Matroska (non-profit organisation)
  * All rights reserved.
  *
