@@ -473,9 +473,11 @@ void * __alloca(size_t size);
 #ifdef CONFIG_FILEPOS_64
 typedef int_fast64_t filepos_t;
 #define MAX_FILEPOS INT_FAST64_MAX
+#define MIN_FILEPOS INT_FAST64_MIN
 #else
 typedef int_fast32_t filepos_t;
 #define MAX_FILEPOS INT_FAST32_MAX
+#define MIN_FILEPOS INT_FAST32_MIN
 #endif
 
 #define INVALID_FILEPOS_T  ((filepos_t)-1)
