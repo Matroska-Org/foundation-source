@@ -749,7 +749,7 @@ static bool_t GenerateCueEntries(ebml_master *Cues, array *Clusters, ebml_master
     matroska_block *Block;
     ebml_element **Cluster;
     matroska_cuepoint *CuePoint;
-    int64_t TrackNum;
+    int64_t TrackNum = INT64_MAX;
     mkv_timestamp_t PrevTimestamp = INVALID_TIMESTAMP_T, BlockTimestamp;
 
     Track = GetMainTrack(Tracks, NULL);
