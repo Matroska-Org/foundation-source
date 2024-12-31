@@ -174,7 +174,6 @@ static char header_magic[MAX_HEADER];
 static size_t redirect_count;
 static char redirect_src[MAX_REDIRECT][MAX_PATH];
 static char redirect_dst[MAX_REDIRECT][MAX_PATH];
-static char redirect_process[MAX_REDIRECT][MAX_PATH];
 
 int gethead(const char* line, int prev)
 {
@@ -207,7 +206,7 @@ int stristr(const char* s, const char* sub)
     return 0;
 }
 
-int preprocess(const char* srcname, const char* dstname, const char* process)
+int preprocess(const char* srcname, const char* dstname)
 {
     char line[MAX_HEADER];
     FILE* src;
@@ -245,9 +244,6 @@ int preprocess(const char* srcname, const char* dstname, const char* process)
         }
     }
 
-    if (process[0])
-        ret = 1;
-
     if (!ret)
     {
         fclose(src);
@@ -266,36 +262,6 @@ int preprocess(const char* srcname, const char* dstname, const char* process)
 
     for (;;)
     {
-        const char* i1;
-        const char* i2;
-        const char* i3;
-        char* j;
-
-        for (i1=process;(i1=strchr(i1,'{'))!=NULL && (i2=strchr(i1,'|'))!=NULL && (i3=strchr(i2,'}'))!=NULL;i1=i3)
-        {
-            size_t n=i2-(++i1);
-            for (j=line;*j;)
-                if (strncmp(j,i1,n)==0)
-                {
-                    char* k;
-                    memmove(j,j+n,strlen(j+n)+1);
-                    n=i3-(++i2);
-                    memmove(j+n,j,strlen(j)+1);
-                    memcpy(j,i2,n);
-                    for (k=j;k<j+n;++k)
-                        if (k[0]=='\\' && k[1]=='n')
-                        {
-                            memmove(k,k+1,strlen(k+1)+1);
-                            k[0] = '\n';
-                            --n;
-                        }
-                    if (strcmp(line,"\n")==0 || strcmp(line,"\r\n")==0)
-                        line[0]=0;
-                }
-                else
-                    ++j;
-        }
-
         fputs(line,dst);
         if (!fgets(line,sizeof(line),src))
             break;
@@ -306,7 +272,7 @@ int preprocess(const char* srcname, const char* dstname, const char* process)
     return 1;
 }
 
-int compare(const char* srcname, const char* dstname, const char* process)
+int compare(const char* srcname, const char* dstname)
 {
     char srcbuf[4096];
     char dstbuf[4096];
@@ -315,10 +281,10 @@ int compare(const char* srcname, const char* dstname, const char* process)
     FILE* dst = NULL;
     int ret=0;
 
-    if (header[0][0] || process[0])
+    if (header[0][0])
     {
         tmpname = tmpnam_safe(NULL);
-        if (preprocess(srcname,tmpname,process))
+        if (preprocess(srcname,tmpname))
             srcname = tmpname;
         else
             tmpname = NULL;
@@ -360,7 +326,7 @@ int compare(const char* srcname, const char* dstname, const char* process)
     return ret;
 }
 
-void copy(const char* srcname, const char* dstname, const char* process)
+void copy(const char* srcname, const char* dstname)
 {
     char buf[4096];
     FILE* src;
@@ -372,10 +338,10 @@ void copy(const char* srcname, const char* dstname, const char* process)
 
     stat(srcname,&s);
 
-    if (header[0][0] || process[0])
+    if (header[0][0])
     {
         tmpname = tmpnam_safe(NULL);
-        if (preprocess(srcname,tmpname,process))
+        if (preprocess(srcname,tmpname))
             srcname = tmpname;
         else
             tmpname = NULL;
@@ -446,7 +412,7 @@ int match(const char* name, const char* mask)
     }
 }
 
-void refresh(const char* src, const char* dst, int force, const char* process)
+void refresh(const char* src, const char* dst, int force)
 {
     DIR* dir;
     size_t i;
@@ -479,7 +445,7 @@ void refresh(const char* src, const char* dst, int force, const char* process)
                     addendpath(src2);
                     strcat(src2,entry->d_name);
                     strcat(dst2,entry->d_name);
-                    refresh(src2,dst2,0,"");
+                    refresh(src2,dst2,0);
                 }
             }
         }
@@ -487,8 +453,8 @@ void refresh(const char* src, const char* dst, int force, const char* process)
     }
     else
     {
-        if (compare(src,dst,process))
-            copy(src,dst,process);
+        if (compare(src,dst))
+            copy(src,dst);
     }
 }
 
@@ -594,16 +560,6 @@ int main(int argc, char** argv)
                     strcpy(redirect_dst[redirect_count],s);
                     s = strchr(redirect_dst[redirect_count],' ');
                 }
-                redirect_process[redirect_count][0]=0;
-
-                if (s)
-                {
-                    while (*s && isspace(*s))
-                        *(s++)=0;
-
-                    if (*s)
-                        strcpy(redirect_process[redirect_count],s);
-                }
 
                 ++redirect_count;
             }
@@ -613,7 +569,7 @@ int main(int argc, char** argv)
     fclose(f);
 
     for (i=0;i<redirect_count;++i)
-        refresh(redirect_src[i],redirect_dst[i],1,redirect_process[i]);
+        refresh(redirect_src[i],redirect_dst[i],1);
 
     return 0;
 }
