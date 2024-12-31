@@ -168,9 +168,6 @@ void create_missing_dirs(const char *path)
     }
 }
 
-static char header[3][MAX_HEADER];
-static char header_magic[MAX_HEADER];
-
 static size_t redirect_count;
 static char redirect_src[MAX_REDIRECT][MAX_PATH];
 static char redirect_dst[MAX_REDIRECT][MAX_PATH];
@@ -211,7 +208,6 @@ int preprocess(const char* srcname, const char* dstname)
     char line[MAX_HEADER];
     FILE* src;
     FILE* dst;
-    int head=-1;
     int ret=0;
 
     src = fopen(srcname,"r");
@@ -219,30 +215,6 @@ int preprocess(const char* srcname, const char* dstname)
         return 0;
 
     fgets(line,sizeof(line),src);
-
-    if (header[0][0])
-    {
-        int i;
-        if ((i = gethead(line,-1))>=0)
-        {
-            int magic=0;
-            do
-            {
-                head = i;
-                if (!fgets(line,sizeof(line),src))
-                    break;
-
-                i = gethead(line,i);
-
-                if (stristr(line,header_magic))
-                    magic = 1;
-            }
-            while (i>=0);
-
-            if (magic)
-                ret = 1;
-        }
-    }
 
     if (!ret)
     {
@@ -256,9 +228,6 @@ int preprocess(const char* srcname, const char* dstname)
         printf("file create error (%s)!\n",dstname);
         exit(1);
     }
-
-    if (head>=0)
-        fputs(header[head],dst);
 
     for (;;)
     {
@@ -280,15 +249,6 @@ int compare(const char* srcname, const char* dstname)
     FILE* src;
     FILE* dst = NULL;
     int ret=0;
-
-    if (header[0][0])
-    {
-        tmpname = tmpnam_safe(NULL);
-        if (preprocess(srcname,tmpname))
-            srcname = tmpname;
-        else
-            tmpname = NULL;
-    }
 
     src = fopen(srcname,"rb");
     if (!src)
@@ -337,15 +297,6 @@ void copy(const char* srcname, const char* dstname)
     printf("%s -> %s\n",srcname,dstname);
 
     stat(srcname,&s);
-
-    if (header[0][0])
-    {
-        tmpname = tmpnam_safe(NULL);
-        if (preprocess(srcname,tmpname))
-            srcname = tmpname;
-        else
-            tmpname = NULL;
-    }
 
     src = fopen(srcname,"rb");
     if (!src)
@@ -463,7 +414,6 @@ int main(int argc, char** argv)
     FILE* f;
     char base[MAX_PATH];
     char line[MAX_PATH*2];
-    int head=0;
     size_t i;
 
     if (argc<=1)
@@ -480,8 +430,6 @@ int main(int argc, char** argv)
             break;
         base[i]=0;
     }
-
-    memset(header,0,sizeof(header));
 
     f = fopen(argv[1],"r");
     if (!f)
@@ -501,26 +449,6 @@ int main(int argc, char** argv)
         if (line[0]=='#')
             continue;
 
-        if (!head && line[0]=='/' && line[1]=='*')
-            head = 1;
-
-        if (head)
-        {
-            strcat(header[0],line);
-            s = strrchr(line,'*');
-            if (s && s[1]=='/')
-            {
-                s[1]='*';
-                head = 0;
-                fgets(header_magic,sizeof(header_magic),f);
-                trim(header_magic);
-            }
-            line[0]=';';
-            strcat(header[1],line);
-            line[0]='@';
-            strcat(header[2],line);
-        }
-        else
         {
             trim(line);
             strcpy(redirect_src[redirect_count],(line[0]!='/')?base:"");
