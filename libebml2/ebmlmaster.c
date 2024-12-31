@@ -405,6 +405,7 @@ processCrc:
     if (CRCData!=NULL)
     {
         Element->CheckSumStatus = EBML_CRCMatches(CRCElement, CRCData, CRCDataSize)?2:1;
+        NodeDelete((node*)CRCElement);
         if (CRCData == ARRAYBEGIN(CrcBuffer,uint8_t))
         {
             StreamClose(ReadStream);
