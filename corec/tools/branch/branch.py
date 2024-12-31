@@ -11,13 +11,6 @@ import shutil
 
 redirect_src=[]
 redirect_dst=[]
-header=[]
-
-def create_missing_dirs(path: str):
-    new_path = os.path.dirname(os.path.abspath(path))
-    if os.path.exists(new_path):
-        return
-    os.makedirs(new_path)
 
 def compare(srcname: str, dstname: str) -> bool:
     if not os.path.exists(dstname):
@@ -26,9 +19,6 @@ def compare(srcname: str, dstname: str) -> bool:
 
 def copy(srcname: str, dstname: str):
     print('{} -> {}'.format(srcname, dstname))
-
-    s = os.stat(srcname)
-    create_missing_dirs(dstname)
 
     shutil.copy2(srcname, dstname)
 
