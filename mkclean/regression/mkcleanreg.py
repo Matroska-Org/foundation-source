@@ -115,6 +115,7 @@ def main():
             hash = values[1]
             testFile(args, i, src_file, mkclean_options, filesize, hash)
             i = i+1
+    return 0
 
 if __name__ == "__main__":
     exit(main())
