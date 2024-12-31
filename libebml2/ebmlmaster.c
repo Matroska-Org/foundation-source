@@ -356,6 +356,7 @@ static err_t ReadData(ebml_master *Element, struct stream *Input, const ebml_par
                                         Stream_Seek(Input,EBML_ElementPositionEnd(SubElement),SEEK_SET);
                                         if (Stream_Read(Input, CRCData, CRCDataSize, NULL)!=ERR_NONE)
                                         {
+                                            StreamClose(ReadStream);
                                             ReadStream=Input; // revert back to normal reading
                                             ArrayClear(&CrcBuffer);
                                         }
