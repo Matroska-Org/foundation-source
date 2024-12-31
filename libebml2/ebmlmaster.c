@@ -418,6 +418,7 @@ processCrc:
     {
         assert(SubElement!=NULL);
         Stream_Seek(Input,SubElement->ElementPosition,SEEK_SET);
+        NodeDelete((node*)SubElement); // forget about it, it will be read again later
     }
     return ERR_NONE;
 }
