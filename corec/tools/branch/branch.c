@@ -12,39 +12,16 @@
 #include <sys/stat.h>
 
 #define MAX_REDIRECT    1024
-#define MAX_HEADER      4096
 
 #ifndef MAX_PATH
 #define MAX_PATH		1024
 #endif
 
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
-# ifndef strcmpi
-#  define strcmpi strcasecmp
-# endif
-# ifndef stricmp
-#  define stricmp strcasecmp
-# endif
-# ifndef strncmpi
-#  define strncmpi strncasecmp
-# endif
-# ifndef strnicmp
-#  define strnicmp strncasecmp
-# endif
 # define make_dir(x) mkdir(x,S_IRWXU)
-# define tmpnam_safe(x) tmpnam(x)
 #else
-static const char *tmpnam_safe(char *str)
-{
-    char *res = tmpnam(str);
-    if (res && res[0] == '\\')
-        ++res;
-    return res;
-}
 # define make_dir(x) mkdir(x)
 #endif
-
-int verbose = 0;
 
 #ifdef _WIN32
 #include <io.h>
@@ -68,7 +45,7 @@ typedef struct DIR
 
 } DIR;
 
-DIR* opendir(const char* name)
+static DIR* opendir(const char* name)
 {
     DIR* p = malloc(sizeof(DIR));
     if (p)
@@ -85,7 +62,7 @@ DIR* opendir(const char* name)
     return p;
 }
 
-struct dirent* readdir(DIR* p)
+static struct dirent* readdir(DIR* p)
 {
     if (p->first || _findnext(p->h,&p->file)==0)
     {
@@ -96,7 +73,7 @@ struct dirent* readdir(DIR* p)
     return NULL;
 }
 
-void closedir(DIR* p)
+static void closedir(DIR* p)
 {
     _findclose(p->h);
     free(p);
@@ -108,25 +85,19 @@ void closedir(DIR* p)
 #include <unistd.h>
 #endif
 
-void trim(char* s)
+static void trim(char* s)
 {
     while (s[0] && isspace(s[strlen(s)-1]))
         s[strlen(s)-1]=0;
 }
 
-void addendpath(char* path)
+static void addendpath(char* path)
 {
     if (path[0] && path[strlen(path)-1]!='/')
         strcat(path,"/");
 }
 
-void delendpath(char* path)
-{
-    if (path[0] && path[strlen(path)-1]=='/')
-        path[strlen(path)-1] = 0;
-}
-
-void create_missing_dirs(const char *path)
+static void create_missing_dirs(const char *path)
 {
     size_t strpos = 0, strpos_i;
     char new_path[MAX_PATH];
@@ -172,76 +143,7 @@ static size_t redirect_count;
 static char redirect_src[MAX_REDIRECT][MAX_PATH];
 static char redirect_dst[MAX_REDIRECT][MAX_PATH];
 
-int gethead(const char* line, int prev)
-{
-    if (prev<0 && strncmp(line,"/*",2)==0)
-        return 3;
-
-    if (prev==3)
-    {
-        const char* s = strrchr(line,'*');
-        if (s && s[1]=='/')
-            return 0;
-        return 3;
-    }
-
-    if (strncmp(line,";*",2)==0)
-        return 1;
-
-    if (strncmp(line,"@*",2)==0)
-        return 2;
-
-    return -1;
-}
-
-int stristr(const char* s, const char* sub)
-{
-    size_t n = strlen(sub);
-    for (;*s;++s)
-        if (strnicmp(s,sub,n)==0)
-            return 1;
-    return 0;
-}
-
-int preprocess(const char* srcname, const char* dstname)
-{
-    char line[MAX_HEADER];
-    FILE* src;
-    FILE* dst;
-    int ret=0;
-
-    src = fopen(srcname,"r");
-    if (!src)
-        return 0;
-
-    fgets(line,sizeof(line),src);
-
-    if (!ret)
-    {
-        fclose(src);
-        return 0;
-    }
-
-    dst = fopen(dstname,"w");
-    if (!dst)
-    {
-        printf("file create error (%s)!\n",dstname);
-        exit(1);
-    }
-
-    for (;;)
-    {
-        fputs(line,dst);
-        if (!fgets(line,sizeof(line),src))
-            break;
-    }
-
-    fclose(src);
-    fclose(dst);
-    return 1;
-}
-
-int compare(const char* srcname, const char* dstname)
+static int compare(const char* srcname, const char* dstname)
 {
     char srcbuf[4096];
     char dstbuf[4096];
@@ -286,7 +188,7 @@ int compare(const char* srcname, const char* dstname)
     return ret;
 }
 
-void copy(const char* srcname, const char* dstname)
+static void copy(const char* srcname, const char* dstname)
 {
     char buf[4096];
     FILE* src;
@@ -330,7 +232,7 @@ void copy(const char* srcname, const char* dstname)
         remove(tmpname);
 }
 
-int same_ch(int a, int b)
+static int same_ch(int a, int b)
 {
 #ifdef _WIN32
     return toupper(a) == toupper(b);
@@ -339,7 +241,7 @@ int same_ch(int a, int b)
 #endif
 }
 
-int match(const char* name, const char* mask)
+static int match(const char* name, const char* mask)
 {
     if (*mask=='*')
     {
@@ -363,7 +265,7 @@ int match(const char* name, const char* mask)
     }
 }
 
-void refresh(const char* src, const char* dst, int force)
+static void refresh(const char* src, const char* dst, int force)
 {
     DIR* dir;
     size_t i;
