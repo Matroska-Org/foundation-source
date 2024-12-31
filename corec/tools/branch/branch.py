@@ -32,10 +32,6 @@ def copy(srcname: str, dstname: str):
 
     shutil.copy2(srcname, dstname)
 
-def same_ch(a :str, b: str) -> bool:
-    # TODO: check depending if file system is case sensitive
-    return a[0:1] == b[0:1]
-
 def match(name: str, mask: str) -> bool:
     if mask.startswith('*'):
         mask = mask[1:]
@@ -44,14 +40,14 @@ def match(name: str, mask: str) -> bool:
                 return False
             name = name[1:]
         return True
-    else:
-        if len(mask) == 0:
-            return len(name) == 0
 
-        if len(name) == 0:
-            return False
+    if len(mask) == 0:
+        return len(name) == 0
 
-        return (mask == '?' or same_ch(name, mask)) and match(name[1:],mask[1:])
+    if len(name) == 0:
+        return False
+
+    return (mask == '?' or name[0:1] == mask[0:1]) and match(name[1:],mask[1:])
 
 def refresh(src: str, dst: str, force: bool):
     if dst == '-' or '*' in src or '?' in src:
@@ -93,10 +89,11 @@ def main():
 
             parts = line.split(' ')
             if '*' in parts[0] or '?' in parts[0] or os.path.isabs(parts[0]):
-                redirect_src.append(parts[0])
+                srcpath = parts[0]
             else:
-                redirect_src.append(os.path.join(base, parts[0]))
-            redirect_dst.append(parts[1])
+                srcpath = os.path.join(base, parts[0])
+            redirect_src.append(os.path.normcase(srcpath))
+            redirect_dst.append(os.path.normcase(parts[1]))
 
         break
 
