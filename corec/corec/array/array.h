@@ -57,7 +57,6 @@ ARRAY_DLL bool_t ArrayRemoveEx(array* p, size_t Count, size_t Width, const void*
 ARRAY_DLL void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void* CmpParam, bool_t Unique);
 ARRAY_DLL bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Length, size_t Align);
 ARRAY_DLL void ArrayDelete(array* p, size_t Ofs,  size_t Length);
-ARRAY_DLL void ArrayRandomize(array* Array,size_t Width,uint32_t RndSeed);
 
 #define ArrayAdd(p,type,Data,Cmp,CmpParam,Align)  ArrayAddEx(p,ARRAYCOUNT(*p,type),sizeof(type),Data,Cmp,CmpParam,Align)
 #define ArrayRemove(p,type,Data,Cmp,CmpParam)     ArrayRemoveEx(p,ARRAYCOUNT(*p,type),sizeof(type),Data,Cmp,CmpParam)
