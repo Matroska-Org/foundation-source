@@ -11,16 +11,20 @@ if (CONFIG_ZLIB)
   if(NOT ZLIB_FOUND)
     include(FetchContent)
 
-    set(ZLIB_BUILD_EXAMPLES OFF)
+    set(WITH_GZFILEOP OFF)
+    set(ZLIB_COMPAT ON)
+    set(ZLIB_ENABLE_TESTS OFF)
+    set(ZLIBNG_ENABLE_TESTS OFF)
+    set(WITH_GTEST OFF)
 
     FetchContent_Declare(
-        zlib
-        URL      "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz"
-        URL_HASH SHA512=580677aad97093829090d4b605ac81c50327e74a6c2de0b85dd2e8525553f3ddde17556ea46f8f007f89e435493c9a20bc997d1ef1c1c2c23274528e3c46b94f
+        zlib-ng
+        URL      "https://github.com/zlib-ng/zlib-ng/archive/refs/tags/2.2.3.tar.gz"
+        URL_HASH SHA512=e71e8972ec2c4dec9eaa2c8f550185f13d0f5c411c38061d1aaf78ca8e522fa3d53f005296e574af7f152e7da3a78adf97ae4bb638b7fd277ef57bba26370b7d
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
 
-    FetchContent_MakeAvailable(zlib)
+    FetchContent_MakeAvailable(zlib-ng)
     target_compile_definitions("zlibstatic" PRIVATE NO_GZIP)
   endif()
 endif()
