@@ -41,7 +41,9 @@ if(DEV_MODE)
                           -Werror=declaration-missing-parameter-type
                           -Werror=switch
                           -Werror=return-type
-                          -W4)
+                          -W4
+                          -we4013 # MSVC: undefined; assuming extern returning int
+                          )
 endif()
 
 add_subdirectory("corec")
