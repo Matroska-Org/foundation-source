@@ -5,6 +5,8 @@ project("foundation sources")
 option(CONFIG_MATROSKA2 "Build libmatroska2 and tools" ON)
 option(DEV_MODE "Developer mode with extra compilation checks" OFF)
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
+
 include(CheckCCompilerFlag)
 include(CMakeParseArguments)
 function(add_c_flag_if_supported)
