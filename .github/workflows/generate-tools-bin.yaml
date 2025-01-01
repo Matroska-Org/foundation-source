@@ -35,13 +35,13 @@ jobs:
         run: cmake --build _build --config Release --parallel
 
       - name: Generate mkclean artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mkclean-${{ matrix.os }}
           path: _build/mkclean/pkg_bin
 
       - name: Generate mkvalidator artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mkvalidator-${{ matrix.os }}
           path: _build/mkvalidator/pkg_bin
