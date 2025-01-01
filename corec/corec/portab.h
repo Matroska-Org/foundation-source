@@ -356,9 +356,6 @@ typedef uint16_t utf16_t;
 #endif
 
 
-#define _INLINE INLINE
-#define _CONST const
-
 /* todo: needs more testing, that nothing broke... */
 #if defined(MAX_PATH)
 #define MAXPATH MAX_PATH
