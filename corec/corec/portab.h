@@ -154,16 +154,6 @@
 #define inline __inline
 #endif
 
-#ifndef _UINTPTR_T_DEFINED
-typedef unsigned int uintptr_t;
-#define _UINTPTR_T_DEFINED
-#endif
-
-#ifndef _INTPTR_T_DEFINED
-typedef signed int intptr_t;
-#define _INTPTR_T_DEFINED
-#endif
-
 #if _MSC_VER >= 1400
 #define NOINLINE __declspec(noinline)
 #else
