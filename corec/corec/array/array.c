@@ -308,6 +308,50 @@ static NOINLINE void InQSort(uint_fast32_t* First, uint_fast32_t* Last, arraycmp
     }
 }
 
+static void SlowSort(array* p, size_t Count, size_t Width, arraycmp Cmp, const void* CmpParam, bool_t Unique)
+{
+    uint8_t* Tmp = (uint8_t*)alloca(Width);
+    uint8_t* End = p->_Begin + Count*Width;
+    uint8_t* i;
+    uint8_t* j;
+
+    j = p->_Begin;
+    for (i=j+Width; i!=End; i+=Width)
+    {
+        if (Cmp(CmpParam,i,j) < 0)
+        {
+            memcpy(Tmp,i,Width);
+            do
+            {
+                memcpy(j+Width,j,Width);
+                if (j == p->_Begin)
+                {
+                    j -= Width;
+                    break;
+                }
+                j -= Width;
+            }
+            while (Cmp(CmpParam,Tmp,j) < 0);
+            memcpy(j+Width,Tmp,Width);
+        }
+        j = i;
+    }
+
+    if (Unique)
+    {
+        j = p->_Begin;
+        for (i=j+Width; i!=End; i+=Width)
+        {
+            if (Cmp(CmpParam,i,j) != 0)
+            {
+                j += Width;
+                memcpy(j,i,Width);
+            }
+        }
+        p->_End = j+Width;
+    }
+}
+
 void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void* CmpParam, bool_t Unique)
 {
     if (Count == ARRAY_AUTO_COUNT)
@@ -352,52 +396,10 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
                 }
                 p->_End = (uint8_t*)(j+1);
             }
+            return;
         }
-        else
-        {
-            // dummy fallback...
 
-            uint8_t* Tmp = (uint8_t*)alloca(Width);
-            uint8_t* End = p->_Begin + Count*Width;
-            uint8_t* i;
-            uint8_t* j;
-
-            j = p->_Begin;
-            for (i=j+Width; i!=End; i+=Width)
-            {
-                if (Cmp(CmpParam,i,j) < 0)
-                {
-                    memcpy(Tmp,i,Width);
-                    do
-                    {
-                        memcpy(j+Width,j,Width);
-                        if (j == p->_Begin)
-                        {
-                            j -= Width;
-                            break;
-                        }
-                        j -= Width;
-                    }
-                    while (Cmp(CmpParam,Tmp,j) < 0);
-                    memcpy(j+Width,Tmp,Width);
-                }
-                j = i;
-            }
-
-            if (Unique)
-            {
-                j = p->_Begin;
-                for (i=j+Width; i!=End; i+=Width)
-                {
-                    if (Cmp(CmpParam,i,j) != 0)
-                    {
-                        j += Width;
-                        memcpy(j,i,Width);
-                    }
-                }
-                p->_End = j+Width;
-            }
-        }
+        SlowSort(p, Count, Width, Cmp, CmpParam, Unique);
 }
 
 intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Data, arraycmp Cmp, const void* CmpParam, bool_t* Found)
