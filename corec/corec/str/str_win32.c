@@ -30,7 +30,7 @@ int tcsicmp(const tchar_t* a,const tchar_t* b)
 #ifdef UNICODE
 	return wcsicmp(a,b);
 #else
-	return stricmp(a,b);
+	return _stricmp(a,b);
 #endif
 }
 

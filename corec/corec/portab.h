@@ -149,12 +149,6 @@
 #ifndef strncasecmp
 #define strncasecmp(x,y,z) _strnicmp(x,y,z)
 #endif
-#ifndef strcasecmp
-#define strcasecmp(x,y)    _stricmp(x,y)
-#endif
-#ifndef stricmp
-#define stricmp(x,y)       _stricmp(x,y)
-#endif
 #ifndef strnicmp
 #define strnicmp(x,y,z)    _strnicmp(x,y,z)
 #endif

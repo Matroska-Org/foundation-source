@@ -53,14 +53,6 @@ STR_DLL size_t FourCCToString(tchar_t* Out, size_t OutLen, fourcc_t FourCC);
 
 STR_DLL size_t utf16len(const utf16_t *);
 
-#ifndef stricmp
-#if defined(TARGET_WIN)
-#define stricmp(x,y) _stricmp(x,y)
-#else
-#define stricmp(x,y) strcasecmp(x,y)
-#endif
-#endif
-
 STR_DLL size_t tcsbytes(const tchar_t*);
 
 #ifdef __cplusplus
