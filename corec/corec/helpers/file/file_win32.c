@@ -287,7 +287,7 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
     if (p->DriveNo>=0)
     {
         size_t n = GetLogicalDriveStrings(0,NULL);
-        tchar_t* Drives = alloca((n+1)*sizeof(tchar_t));
+        tchar_t* Drives = _alloca((n+1)*sizeof(tchar_t));
         if (GetLogicalDriveStrings((DWORD)n,Drives))
         {
             int No = p->DriveNo++;
