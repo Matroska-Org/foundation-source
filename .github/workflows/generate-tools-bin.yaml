@@ -26,7 +26,7 @@ jobs:
       CMAKE_OPTIONS: -DDEV_MODE=ON
     steps:
       - name: Get pushed code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure CMake
         run: cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
