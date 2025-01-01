@@ -2598,7 +2598,12 @@ META_PARAM(TYPE,NODECONTEXT_PROJECT_BUILD,TYPE_INT|TFLAG_SETUP|TFLAG_RDONLY)
 META_DATA(TYPE_INT,NODECONTEXT_PROJECT_BUILD,nodecontext,Build)
 META_END(NODEMODULE_CLASS)
 
-MEMHEAP_DEFAULT
+static void* __HAlloc(const void* UNUSED_PARAM(p),size_t Size,int UNUSED_PARAM(Flags)) { return malloc(Size); }\
+static void __HFree(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(Size)) { free(Ptr); }\
+static void* __HReAlloc(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(OldSize),size_t Size) { return realloc(Ptr,Size); }\
+static void __HWrite(const void* UNUSED_PARAM(p),void* Ptr,const void* Src,size_t Pos,size_t Size) { memcpy((uint8_t*)Ptr+Pos,Src,Size); }\
+static const cc_memheap MemHeap_Default = { __HAlloc,__HFree,__HReAlloc,__HWrite,{ &MemHeap_Default, DATA_FLAG_MEMHEAP } };
+
 
 void NodeContext_Init(nodecontext* p,const nodemeta* Custom, const cc_memheap* Heap, const cc_memheap* ConstHeap)
 {

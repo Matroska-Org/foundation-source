@@ -42,11 +42,4 @@ struct cc_memheap
 #define MemHeap_Write(p,a,b,c,d)   ((cc_memheap*)(p))->Write(p,a,b,c,d)
 #define MemHeap_Null(p)            ((uint8_t*)(&((cc_memheap*)(p))->Null+1))
 
-#define MEMHEAP_DEFAULT \
-static void* __HAlloc(const void* UNUSED_PARAM(p),size_t Size,int UNUSED_PARAM(Flags)) { return malloc(Size); }\
-static void __HFree(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(Size)) { free(Ptr); }\
-static void* __HReAlloc(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(OldSize),size_t Size) { return realloc(Ptr,Size); }\
-static void __HWrite(const void* UNUSED_PARAM(p),void* Ptr,const void* Src,size_t Pos,size_t Size) { memcpy((uint8_t*)Ptr+Pos,Src,Size); }\
-static const cc_memheap MemHeap_Default = { __HAlloc,__HFree,__HReAlloc,__HWrite,{ &MemHeap_Default, DATA_FLAG_MEMHEAP } };
-
 #endif
