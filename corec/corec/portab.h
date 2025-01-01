@@ -150,10 +150,6 @@
 #define strdup(x)          _strdup(x)
 #endif
 
-#ifndef alloca
-#define alloca _alloca
-#endif
-
 #ifndef inline
 #define inline __inline
 #endif
@@ -418,21 +414,6 @@ typedef uint16_t utf16_t;
 #else
 #define FOURCC(a,b,c,d) (fourcc_t)FOURCCLE(a,b,c,d)
 #endif
-
-#if defined(__CW32__)
-void * __alloca(size_t size);
-#ifndef alloca
-#define alloca(size) __alloca(size)
-#endif
-#endif
-
-#if defined(__GNUC__)
-
-#ifndef alloca
-#define alloca(size) __builtin_alloca(size)
-#endif
-
-#endif /* __GNUC__ */
 
 #if defined(_MSC_VER) && defined(TARGET_WIN)
 #define TRY_BEGIN __try {
