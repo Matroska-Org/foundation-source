@@ -38,7 +38,7 @@ jobs:
           xsltproc -o _build/matroska2/matroska_sem.h spectool/schema_2_matroska_sem_h.xsl ebml_matroska.xml
 
       - name: Generate libmatroska2 artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libmatroska2-semantic
           path: _build

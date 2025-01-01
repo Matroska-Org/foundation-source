@@ -43,7 +43,7 @@ jobs:
           curl -o KaxSemantic.h   https://raw.githubusercontent.com/Matroska-Org/libmatroska/master/matroska/KaxSemantic.h
 
       - name: Generate libmatroska artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libmatroska-semantic
           path: _build
