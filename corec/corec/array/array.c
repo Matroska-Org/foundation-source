@@ -310,7 +310,11 @@ static NOINLINE void InQSort(uint_fast32_t* First, uint_fast32_t* Last, arraycmp
 
 static void SlowSort(array* p, size_t Count, size_t Width, arraycmp Cmp, const void* CmpParam, bool_t Unique)
 {
-    uint8_t* Tmp = (uint8_t*)alloca(Width);
+#if defined(_MSC_VER) && !defined (__clang__)
+    uint8_t* Tmp = (uint8_t*)_alloca(Width);
+#else
+    uint8_t Tmp[Width];
+#endif
     uint8_t* End = p->_Begin + Count*Width;
     uint8_t* i;
     uint8_t* j;
