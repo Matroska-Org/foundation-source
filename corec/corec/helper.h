@@ -9,27 +9,12 @@
 #define __HELPER_H
 
 #define OFS(name,item) offsetof(name,item)
-#define ALIGN64(x) (((x) + 63) & ~63)
-#define ALIGN16(x) (((x) + 15) & ~15)
-#define ALIGN8(x) (((x) + 7) & ~7)
-#define ALIGN4(x) (((x) + 3) & ~3)
-#define ALIGN2(x) (((x) + 1) & ~1)
-
-#define GET_R(x)   ((uint8_t)(((x) >> 0) & 255))
-#define GET_G(x)   ((uint8_t)(((x) >> 8) & 255))
-#define GET_B(x)   ((uint8_t)(((x) >> 16) & 255))
 
 #define SWAP32(a) ((((uint32_t)(a) >> 24) & 0x000000FF) | (((uint32_t)(a) >> 8)  & 0x0000FF00)|\
                   (((uint32_t)(a) << 8)  & 0x00FF0000) | (((uint32_t)(a) << 24) & 0xFF000000))
 
 #define SWAP16(a) ((uint16_t)((((uint32_t)(a) >> 8) & 0xFF) | (((uint32_t)(a) << 8) & 0xFF00)))
 #define SWAP64(a) (((uint64_t)SWAP32(a) << 32) | SWAP32((uint64_t)(a)>>32))
-
-#define LSHIFT(v,n)			((v)<<(n))
-#define RSHIFT(v,n)			((v)>>(n))
-#define RLSHIFT(v,n)		(((n)>=0)?RSHIFT(v,n):LSHIFT(v,-(n)))
-#define RSHIFT_ROUND(v,n)	(((v)+(1<<(n-1)))>>(n))
-#define RSHIFT_ROUND_COND(v,n)	((n)>0 ? RSHIFT_ROUND(v,n) : v)
 
 #ifdef IS_BIG_ENDIAN
 #define INT64BE(a) (a)
@@ -61,95 +46,7 @@
 
 #define STORE32LE(p, i)      STORE8(p, 0, i), STORE8(p, 1, ((uint32_t)i) >> 8), STORE8(p, 2, ((uint32_t)i) >> 16), STORE8(p, 3, ((uint32_t)i) >> 24)
 
-// a=(a+c+1)/2
-// b=(b+d+1)/2
-#define AVG32R(a,b,c,d) \
-	c^=a; \
-	d^=b; \
-	a|=c; \
-	b|=d; \
-	c &= 0xFEFEFEFE; \
-	d &= 0xFEFEFEFE; \
-	a-=c>>1; \
-	b-=d>>1;
-
-#define AVG64R(a,b,c,d) \
-	c^=a; \
-	d^=b; \
-	a|=c; \
-	b|=d; \
-	c &= 0xFEFEFEFEFEFEFEFE; \
-	d &= 0xFEFEFEFEFEFEFEFE; \
-	a-=c>>1; \
-	b-=d>>1;
-
-// a=(a+c)/2
-// b=(b+d)/2
-#ifdef ARM
-#define AVG32NR(a,b,c,d) \
-	c^=a; \
-	d^=b; \
-	a &= ~c; \
-	b &= ~d; \
-	c &= 0xFEFEFEFE; \
-	d &= 0xFEFEFEFE; \
-	a+=c>>1; \
-	b+=d>>1;
-#else
-#define AVG32NR(a,b,c,d) \
-	c^=a; \
-	d^=b; \
-	a|=c; \
-	b|=d; \
-	a-=c & 0x01010101; \
-	b-=d & 0x01010101; \
-	c &= 0xFEFEFEFE; \
-	d &= 0xFEFEFEFE; \
-	a-=c>>1; \
-	b-=d>>1;
-#endif
-
-#define AVG64NR(a,b,c,d) \
-	c^=a; \
-	d^=b; \
-	a|=c; \
-	b|=d; \
-	a-=c & 0x0101010101010101; \
-	b-=d & 0x0101010101010101; \
-	c &= 0xFEFEFEFEFEFEFEFE; \
-	d &= 0xFEFEFEFEFEFEFEFE; \
-	a-=c>>1; \
-	b-=d>>1;
-
 #define _abs(a) (((a)>=0)?(a):-(a))
-
-static INLINE int MIDDLE(int a, int b, int c)
-{
-    int bb = b;
-
-    if (a > b)
-    {
-        bb = a;
-        a = b;
-    }
-
-    if (bb > c)
-        bb = c;
-
-    if (a > bb)
-        bb = a;
-
-    return bb;
-}
-
-static INLINE size_t _log2(uint32_t data)
-{
-	size_t i;
-	if (!data) ++data;
-	for (i=0;data;++i)
-		data >>= 1;
-    return i;
-}
 
 static INLINE int64_t Scale64(int64_t v,int64_t Num,int64_t Den)
 {
@@ -179,10 +76,5 @@ typedef int32_t datetime_t;
 #  define max(x,y)  ((x)<(y)?(y):(x))
 #endif
 
-#ifndef sign
-#  define sign(x) ((x)<0?-1:1)
-#endif
-
-#define abs_diff(x,y)  ((x)>(y)?((x)-(y)):((y)-(x)))
 
 #endif
