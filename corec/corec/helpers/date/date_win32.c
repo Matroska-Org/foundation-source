@@ -28,7 +28,9 @@ static FILETIME fTimeCache[MAX_CACHED_YEAR - MIN_CACHED_YEAR + 2][2];
 #define TIME_ZONE_ID_INVALID ((DWORD)0xFFFFFFFF)
 #endif
 
+#ifndef TARGET_WIN2K
 static bool_t GetIsDst(datetime_t t); // may not be correct on all platforms
+#endif
 
 systick_t GetTimeTick(void)
 {
@@ -181,32 +183,9 @@ bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
     return 1;
 }
 
+#ifndef TARGET_WIN2K
 bool_t GetIsDst(datetime_t t)
 {
-#ifdef TARGET_WIN2K
-    FILETIME fTime = {0};
-    TIME_ZONE_INFORMATION timeZoneInfo;
-    SYSTEMTIME sysTimeStruct = {0};
-    SYSTEMTIME TimeStruct = {0};
-    int Hour;
-
-    if (t == INVALID_DATETIME_T)
-        return 0;
-
-    RelToFileTime(t, &fTime);
-    if (!FileTimeToSystemTime(&fTime, &sysTimeStruct))
-        return 0;
-    GetTimeZoneInformation(&timeZoneInfo);
-    if (!SystemTimeToTzSpecificLocalTime(&timeZoneInfo, &sysTimeStruct, &TimeStruct))
-        return 0;
-    Hour = TimeStruct.wHour;
-    timeZoneInfo.DaylightBias = 0;
-    timeZoneInfo.DaylightDate.wMonth = 0;
-    timeZoneInfo.StandardDate.wMonth = 0;
-    if (!SystemTimeToTzSpecificLocalTime(&timeZoneInfo, &sysTimeStruct, &TimeStruct))
-        return 0;
-    return Hour != TimeStruct.wHour;
-#else
     FILETIME fTime;
     FILETIME fTime1, fTime2;
     FILETIME *fTimeStart, *fTimeEnd;
@@ -263,7 +242,7 @@ bool_t GetIsDst(datetime_t t)
         return 0;
 
     return 1;
-#endif
 }
+#endif
 
 #endif
