@@ -2,6 +2,7 @@
  * Copyright (c) 2010-2011, Matroska (non-profit organisation)
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <stdlib.h>
 #define EBML2_UGLY_HACKS_API // we force some values in the elements we read
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"

@@ -2,6 +2,7 @@
  * Copyright (c) 2008-2010, Matroska (non-profit organisation)
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <stdlib.h>
 #include "ebml2/ebml.h"
 #include "internal.h"
 #include <corec/helpers/file/streams.h>

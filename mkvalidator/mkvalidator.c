@@ -2,6 +2,7 @@
  * Copyright (c) 2010-2015, Matroska (non-profit organisation)
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <stdlib.h>
 #include "matroska2/matroska.h"
 #include "matroska2/matroska_sem.h"
 #include "mkvalidator_project.h"

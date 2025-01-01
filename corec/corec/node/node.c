@@ -5,6 +5,7 @@
  *
  ****************************************************************************/
 
+#include <stdlib.h>
 #include "node.h"
 #include "node_internal.h"
 #include <corec/str/str.h>

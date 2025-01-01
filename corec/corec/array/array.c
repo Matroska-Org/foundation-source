@@ -5,6 +5,7 @@
  *
  ****************************************************************************/
 
+#include <stdlib.h>
 #include "array.h"
 #include <corec/memheap.h>
 
