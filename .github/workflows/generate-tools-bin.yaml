@@ -28,8 +28,6 @@ jobs:
       - name: Get pushed code
         uses: actions/checkout@v3
 
-      - uses: lukka/get-cmake@latest
-
       - name: Configure CMake
         run: cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
 
