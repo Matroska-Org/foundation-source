@@ -1,4 +1,8 @@
-#include "corec/str/str.h"
+#include <corec/str/str.h>
+
+#if !defined(strcasecmp) && defined(_WIN32)
+#define strcasecmp _stricmp
+#endif
 
 #if defined(UNICODE)
 #include <corec/helpers/charconvert/charconvert.h>
@@ -36,7 +40,7 @@ void test_float(const char *Format, double Value)
 #endif
 
     printf("Format %-8s: ",Format);
-    if (stricmp(String,corec) != 0)
+    if (strcasecmp(String,corec) != 0)
         printf("failed '%s' != '%s'\n",String,corec);
     else
         printf("passed '%s'\n",String);
@@ -70,7 +74,7 @@ void test_integer(const char *Format, int Value)
 #endif
 
     printf("Format %-8s: ",Format);
-    if (stricmp(String,corec) != 0)
+    if (strcasecmp(String,corec) != 0)
         printf("failed '%s' != '%s'\n",String,corec);
     else
         printf("passed '%s'\n",String);
@@ -104,7 +108,7 @@ void test_ptr(const char *Format, intptr_t Value)
 #endif
 
     printf("Format %-8s: ",Format);
-    if (stricmp(String,corec) != 0)
+    if (strcasecmp(String,corec) != 0)
         printf("failed '%s' != '%s'\n",String,corec);
     else
         printf("passed '%s'\n",String);
