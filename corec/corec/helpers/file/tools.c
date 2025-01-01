@@ -8,36 +8,6 @@
 #include "file.h"
 #include <corec/str/str.h>
 
-bool_t SetFileExt(tchar_t* URL, size_t URLLen, const tchar_t* Ext)
-{
-    tchar_t *p,*q,*p2;
-    bool_t HasHost;
-
-    p = (tchar_t*) GetProtocol(URL,NULL,0,&HasHost);
-    q = p;
-
-    p = tcsrchr(q,'\\');
-    p2 = tcsrchr(q,'/');
-    if (!p || (p2 && p2>p))
-        p=p2;
-    if (p)
-        q = p+1;
-    else
-    if (HasHost) // only hostname
-        return 0;
-
-    if (!q[0]) // no filename at all?
-        return 0;
-
-    p = tcsrchr(q,'.');
-    if (p)
-        *p = 0;
-
-    tcscat_s(URL,URLLen,T("."));
-    tcscat_s(URL,URLLen,Ext);
-    return 1;
-}
-
 void AddPathDelimiter(tchar_t* Path,size_t PathLen)
 {
     size_t n = tcslen(Path);
@@ -102,97 +72,6 @@ const tchar_t* GetProtocol(const tchar_t* URL, tchar_t* Proto, int ProtoLen, boo
         s = URL;
     }
     return s;
-}
-
-bool_t SplitAddr(const tchar_t* URL, tchar_t* Peer, int PeerLen, tchar_t* Local, int LocalLen)
-{
-    const tchar_t* p = NULL;
-    const tchar_t* p2;
-    const tchar_t* Addr;
-    bool_t HasHost;
-    bool_t Result = 0;
-
-    Addr = GetProtocol(URL,NULL,0,&HasHost);
-
-    if (HasHost)
-    {
-        p = tcschr(Addr,'\\');
-        p2 = tcschr(Addr,'/');
-        if (!p || (p2 && p2>p))
-            p=p2;
-    }
-    if (!p)
-        p = Addr+tcslen(Addr);
-
-    p2 = tcschr(Addr,'@');
-    if (!p2 || p2>p)
-        p2 = p;
-    else
-        Result = 1;
-
-    if (Peer)
-        tcsncpy_s(Peer,PeerLen,URL,p2-URL);
-
-    if (Local)
-    {
-        if (p2<p)
-            ++p2;
-        tcsncpy_s(Local,LocalLen,URL,Addr-URL);
-        tcsncat_s(Local,LocalLen,p2,p-p2);
-    }
-    return Result;
-}
-
-void SplitURL(const tchar_t* URL, tchar_t* Protocol, int ProtocolLen, tchar_t* Host, int HostLen, int* Port, tchar_t* Path, int PathLen)
-{
-    bool_t HasHost;
-    URL = GetProtocol(URL,Protocol,ProtocolLen,&HasHost);
-
-    if (HasHost)
-    {
-        const tchar_t* p;
-        const tchar_t* p2;
-
-        p = tcschr(URL,'\\');
-        p2 = tcschr(URL,'/');
-        if (!p || (p2 && p2>p))
-            p=p2;
-        if (!p)
-            p = URL+tcslen(URL);
-
-        p2 = tcschr(URL,':');
-        if (p2 && p2<p)
-        {
-            if (Port)
-                stscanf(p2+1,T("%d"),Port);
-        }
-        else
-            p2 = p;
-
-        if (Host)
-            tcsncpy_s(Host,HostLen,URL,p2-URL);
-
-        URL = p;
-    }
-    else
-    {
-        if (Host && HostLen>0)
-            *Host = 0;
-    }
-
-    if (Path)
-    {
-        if (URL[0])
-        {
-            tchar_t* p;
-            tcscpy_s(Path,PathLen,URL);
-            for (p=Path;*p;++p)
-                if (*p == '\\')
-                    *p = '/';
-        }
-        else
-            tcscpy_s(Path,PathLen,T("/"));
-    }
 }
 
 void SplitPath(const tchar_t* URL, tchar_t* Dir, int DirLen, tchar_t* Name, int NameLen, tchar_t* Ext, int ExtLen)
