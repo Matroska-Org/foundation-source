@@ -313,8 +313,9 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
     if (Count == ARRAY_AUTO_COUNT)
         Count = ArraySize(p)/Width;
 
-    if (Count>1)
-    {
+    if (Count<=1)
+        return;
+
         if (Width == sizeof(uint_fast32_t))
         {
             uint_fast32_t* End = ARRAYBEGIN(*p,uint_fast32_t)+Count;
@@ -397,8 +398,6 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
                 p->_End = j+Width;
             }
         }
-
-    }
 }
 
 intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Data, arraycmp Cmp, const void* CmpParam, bool_t* Found)
