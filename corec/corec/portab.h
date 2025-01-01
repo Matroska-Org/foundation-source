@@ -150,10 +150,6 @@
 #define strdup(x)          _strdup(x)
 #endif
 
-#ifndef inline
-#define inline __inline
-#endif
-
 #if _MSC_VER >= 1400
 #define NOINLINE __declspec(noinline)
 #else
