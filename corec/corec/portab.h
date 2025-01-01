@@ -146,9 +146,6 @@
 #include <malloc.h>
 #include <crtdbg.h>
 
-#ifndef strnicmp
-#define strnicmp(x,y,z)    _strnicmp(x,y,z)
-#endif
 #ifndef strdup
 #define strdup(x)          _strdup(x)
 #endif

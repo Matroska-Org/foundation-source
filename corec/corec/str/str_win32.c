@@ -44,7 +44,7 @@ int tcsnicmp(const tchar_t* a,const tchar_t* b,size_t n)
 #ifdef UNICODE
 	return wcsnicmp(a,b,n);
 #else
-	return strnicmp(a,b,n);
+	return _strnicmp(a,b,n);
 #endif
 }
 
