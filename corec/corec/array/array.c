@@ -360,46 +360,46 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
     if (Count<=1)
         return;
 
-        if (Width == sizeof(uint_fast32_t))
+    if (Width == sizeof(uint_fast32_t))
+    {
+        uint_fast32_t* End = ARRAYBEGIN(*p,uint_fast32_t)+Count;
+        uint_fast32_t* i;
+        uint_fast32_t* j;
+
+        InQSort(ARRAYBEGIN(*p,uint_fast32_t), End-1, Cmp, CmpParam);
+
+        j = ARRAYBEGIN(*p,uint_fast32_t);
+        for (i=j+1; i!=End; ++i)
         {
-            uint_fast32_t* End = ARRAYBEGIN(*p,uint_fast32_t)+Count;
-            uint_fast32_t* i;
-            uint_fast32_t* j;
+            if (Cmp(CmpParam,i,j) < 0)
+            {
+                uint_fast32_t Tmp = *i;
+                do
+                {
+                    j[1] = j[0];
+                    if (j-- == ARRAYBEGIN(*p,uint_fast32_t))
+                        break;
+                }
+                while (Cmp(CmpParam,&Tmp,j) < 0);
+                j[1] = Tmp;
+            }
+            j = i;
+        }
 
-            InQSort(ARRAYBEGIN(*p,uint_fast32_t), End-1, Cmp, CmpParam);
-
+        if (Unique)
+        {
             j = ARRAYBEGIN(*p,uint_fast32_t);
             for (i=j+1; i!=End; ++i)
             {
-                if (Cmp(CmpParam,i,j) < 0)
-                {
-                    uint_fast32_t Tmp = *i;
-                    do
-                    {
-                        j[1] = j[0];
-                        if (j-- == ARRAYBEGIN(*p,uint_fast32_t))
-                            break;
-                    }
-                    while (Cmp(CmpParam,&Tmp,j) < 0);
-                    j[1] = Tmp;
-                }
-                j = i;
+                if (Cmp(CmpParam,i,j) != 0)
+                    *(++j) = *i;
             }
-
-            if (Unique)
-            {
-                j = ARRAYBEGIN(*p,uint_fast32_t);
-                for (i=j+1; i!=End; ++i)
-                {
-                    if (Cmp(CmpParam,i,j) != 0)
-                        *(++j) = *i;
-                }
-                p->_End = (uint8_t*)(j+1);
-            }
-            return;
+            p->_End = (uint8_t*)(j+1);
         }
+        return;
+    }
 
-        SlowSort(p, Count, Width, Cmp, CmpParam, Unique);
+    SlowSort(p, Count, Width, Cmp, CmpParam, Unique);
 }
 
 intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Data, arraycmp Cmp, const void* CmpParam, bool_t* Found)
