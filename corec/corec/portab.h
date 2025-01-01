@@ -404,11 +404,9 @@ typedef uint16_t utf16_t;
 #if defined(_MSC_VER) && defined(TARGET_WIN)
 #define TRY_BEGIN __try {
 #define TRY_END   ;} __except (1) {}
-#define TRY_END_FUNC(func) ;} __except (1) { func; }
 #else
 #define TRY_BEGIN {
 #define TRY_END   }
-#define TRY_END_FUNC(func) }
 #endif
 
 #ifndef NDEBUG
