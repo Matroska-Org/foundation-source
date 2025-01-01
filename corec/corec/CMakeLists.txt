@@ -22,7 +22,6 @@ set(corec_base_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/corec.h
   ${CMAKE_CURRENT_SOURCE_DIR}/err.h
   ${CMAKE_CURRENT_SOURCE_DIR}/helper.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/memalloc.h
   ${CMAKE_CURRENT_SOURCE_DIR}/portab.h
   ${CMAKE_CURRENT_SOURCE_DIR}/confhelper.h
   ${CMAKE_CURRENT_BINARY_DIR}/corec_config.h

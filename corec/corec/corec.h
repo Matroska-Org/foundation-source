@@ -19,7 +19,6 @@ extern "C" {
 #endif
 
 #include "portab.h"
-#include "memalloc.h"
 #include "err.h"
 #include "helper.h"
 
