@@ -12,7 +12,7 @@ import hashlib
 
 def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
     if not os.path.isfile(src_file):
-        print(f"Fail:2:{line_num}: {src_file} doesn't exist", file=sys.stderr)
+        print(f"Fail:2:{line_num}: {src_file} doesn't exist for {mkclean_options}", file=sys.stderr)
         return
     mkclean_exe = cli.mkclean
     if not mkclean_exe:
@@ -47,12 +47,12 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
         return
 
     if not os.path.isfile(outputfile):
-        print(f"Fail:4:{line_num}: failed to stat file {outputfile}", file=sys.stderr)
+        print(f"Fail:4:{line_num}: failed to stat file {outputfile} in {src_file} for {mkclean_options}", file=sys.stderr)
         return
 
     outsize = os.path.getsize(outputfile)
     if not cli.generate and not outsize == filesize:
-        print(f"Fail:5:{line_num}: wanted {filesize} got {outsize} size in {src_file}", file=sys.stderr)
+        print(f"Fail:5:{line_num}: wanted {filesize} got {outsize} size in {src_file} for {mkclean_options}", file=sys.stderr)
         return
 
     if not cli.generate:
@@ -74,14 +74,14 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
         result = subprocess.run(mkvalidator_run)
 
         if not result.returncode == 0:
-            print(f"Fail:6:{line_num}: mkvalidator returned {result} for {outputfile}", file=sys.stderr)
+            print(f"Fail:6:{line_num}: mkvalidator returned {result} for {outputfile} in {src_file} for {mkclean_options}", file=sys.stderr)
             return
 
     filemd5 = hashlib.md5(open(outputfile,'rb').read()).hexdigest()
     if cli.generate:
         print(f"\"{src_file}\" \"{mkclean_options}\" {outsize} {filemd5}", file=sys.stderr)
     elif not filemd5 == hash:
-        print(f"Fail:8:{line_num}: bad MD5 {filemd5} for {outputfile}", file=sys.stderr)
+        print(f"Fail:8:{line_num}: bad MD5 {filemd5} for {outputfile} in {src_file} for {mkclean_options}", file=sys.stderr)
         return
 
     if not cli.keep:
