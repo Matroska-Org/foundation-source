@@ -36,12 +36,13 @@ FILE_DLL void RemovePathDelimiter(tchar_t* Path);
 FILE_DLL void AddPathDelimiter(tchar_t* Path,size_t PathLen);
 FILE_DLL const tchar_t* GetProtocol(const tchar_t* URL, tchar_t *_Protocol, int ProtoLen, bool_t* HasHost);
 FILE_DLL void SplitPath(const tchar_t* Path, tchar_t* Dir, int DirLen, tchar_t* Name, int NameLen, tchar_t* Ext, int ExtLen);
-FILE_DLL int CheckExts(const tchar_t* URL, const tchar_t* Exts);
 FILE_DLL void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base);
 FILE_DLL void AbsPathNormalize(tchar_t* Abs, size_t AbsLen);
 FILE_DLL void ReduceLocalPath(tchar_t* Abs, size_t AbsLen);
 FILE_DLL void RelPath(tchar_t* Rel, int RelLen, const tchar_t* Path, const tchar_t* Base);
 FILE_DLL bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen);
+
+int CheckExts(const tchar_t* URL, const tchar_t* Exts);
 
 #ifdef __cplusplus
 }
