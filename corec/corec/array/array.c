@@ -487,25 +487,6 @@ bool_t ArrayRemoveEx(array* p, size_t Count, size_t Width, const void* Data, arr
     return Found;
 }
 
-static INLINE uint32_t Rand(uint32_t RndSeed)
-{
-    return RndSeed*0x8088405U + 0x251001U;
-}
-
-void ArrayRandomize(array* Array,size_t Width,uint32_t RndSeed)
-{
-    size_t i,j,Count = ArraySize(Array)/Width;
-    uint8_t *Buf=alloca(Width);
-    for (i=0;i<Count;++i)
-    {
-        RndSeed = Rand(RndSeed);
-        j = RndSeed % Count;
-        memcpy(Buf,ARRAYBEGIN(*Array,uint8_t)+i*Width,Width);
-        memcpy(ARRAYBEGIN(*Array,uint8_t)+i*Width,ARRAYBEGIN(*Array,uint8_t)+j*Width,Width);
-        memcpy(ARRAYBEGIN(*Array,uint8_t)+j*Width,Buf,Width);
-    }
-}
-
 void Fifo_Clear(cc_fifo* p)
 {
     ArrayClear(&p->_Base);
