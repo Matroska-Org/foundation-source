@@ -221,18 +221,6 @@ typedef uint64_t uint_fast64_t;
   #define NOINLINE
 #endif
 
-#if (!defined(IX86) && !defined(_M_X64)) || defined(__CW32__)
-#define STDCALL
-#define CDECL
-#else
-#ifndef STDCALL
-#define STDCALL __attribute__((stdcall))
-#endif
-#ifndef CDECL
-#define CDECL __attribute__((cdecl))
-#endif
-#endif
-
 #if !defined(COMPILER_GCC) && defined(__GNUC__)
 #define COMPILER_GCC
 #endif
