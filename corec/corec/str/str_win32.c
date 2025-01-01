@@ -9,11 +9,6 @@
 
 #if defined(TARGET_WIN)
 
-#ifdef _MSC_VER
-#define wcsicmp _wcsicmp
-#define wcsnicmp _wcsnicmp
-#endif
-
 #ifndef STRICT
 #define STRICT
 #endif
@@ -28,7 +23,7 @@ int tcsicmp(const tchar_t* a,const tchar_t* b)
 
     // fallback
 #ifdef UNICODE
-	return wcsicmp(a,b);
+	return _wcsicmp(a,b);
 #else
 	return _stricmp(a,b);
 #endif
@@ -42,7 +37,7 @@ int tcsnicmp(const tchar_t* a,const tchar_t* b,size_t n)
 
     // fallback
 #ifdef UNICODE
-	return wcsnicmp(a,b,n);
+	return _wcsnicmp(a,b,n);
 #else
 	return _strnicmp(a,b,n);
 #endif
