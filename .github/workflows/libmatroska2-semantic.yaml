@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get pushed code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get EBML Schema
         run: curl -o ebml_matroska.xml https://raw.githubusercontent.com/ietf-wg-cellar/matroska-specification/master/ebml_matroska.xml
