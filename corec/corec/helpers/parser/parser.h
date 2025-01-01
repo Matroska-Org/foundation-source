@@ -18,9 +18,7 @@ extern "C" {
 
 #define LANG_STRINGS_ID  FOURCC('L','N','G','S')
 
-#define MAXTOKEN		32
 #define MAXLINE			1024
-#define BIGLINE			16 * 1024
 
 typedef struct strtab
 {

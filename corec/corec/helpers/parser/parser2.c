@@ -149,7 +149,7 @@ static NOINLINE bool_t ReadName(findpin* Find, tchar_t* Token, size_t TokenLen)
 static NOINLINE bool_t FindParam(node* Base, findpin* Find, nodecontext* Context)
 {
     const tchar_t* Expr0 = Find->Expr;
-    tchar_t Token[MAXTOKEN];
+    tchar_t Token[32];
 
     if (!ReadName(Find,Token,TSIZEOF(Token)))
     {
