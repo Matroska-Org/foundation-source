@@ -135,58 +135,6 @@ datetime_t GetTimeDate()
     return INVALID_DATETIME_T;
 }
 
-datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
-{
-    SYSTEMTIME TimeStruct = {0};
-    FILETIME fTime;
-    datetime_t t;
-
-    if (!tp)
-        return INVALID_DATETIME_T;
-
-    TimeStruct.wMilliseconds = (WORD)0;
-    TimeStruct.wSecond = (WORD)tp->Second;
-    TimeStruct.wMinute = (WORD)tp->Minute;
-    TimeStruct.wHour   = (WORD)tp->Hour;
-    TimeStruct.wDay    = (WORD)tp->Day;
-    TimeStruct.wMonth  = (WORD)tp->Month;
-    TimeStruct.wYear   = (WORD)tp->Year;
-	TimeStruct.wDayOfWeek = (WORD)(tp->WeekDay ? tp->WeekDay-1:0);
-
-#ifdef TARGET_WIN2K
-    if (Local)
-    {
-        SYSTEMTIME sysTimeStruct;
-        TIME_ZONE_INFORMATION timeZoneInfo;
-        GetTimeZoneInformation(&timeZoneInfo);
-        if (!TzSpecificLocalTimeToSystemTime(&timeZoneInfo, &TimeStruct, &sysTimeStruct))
-            return INVALID_DATETIME_T;
-        if (!SystemTimeToFileTime( &sysTimeStruct, &fTime ))
-            return INVALID_DATETIME_T;
-    }
-    else
-#endif
-        if (!SystemTimeToFileTime( &TimeStruct, &fTime ))
-            return INVALID_DATETIME_T;
-
-    t = FileTimeToRel(&fTime);
-
-#ifndef TARGET_WIN2K
-    if (Local) {
-        GetFixedTZ();
-        t += fix_tz.Bias * 60;
-        if (GetIsDst(t)) // test with UTC time without daylight (not perfect at the edges)
-            t += fix_tz.DaylightBias * 60;
-        else
-            t += fix_tz.StandardBias * 60;
-        if (t==INVALID_DATETIME_T)
-            ++t;
-    }
-#endif
-
-    return t;
-}
-
 bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
 {
     SYSTEMTIME TimeStruct = {0};

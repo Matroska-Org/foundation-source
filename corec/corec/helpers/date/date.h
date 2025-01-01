@@ -41,7 +41,6 @@ typedef struct datepack_t
 } datepack_t;
 
 DATE_DLL datetime_t GetTimeDate(void); // UTC in s (reference is 1st January 2001 00:00:00.000 UTC, use a helper to get the localized string value)
-DATE_DLL datetime_t TimePackToRel(const datepack_t *tp, bool_t FromLocal);
 DATE_DLL bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t ToLocal);
 
 #ifdef __cplusplus

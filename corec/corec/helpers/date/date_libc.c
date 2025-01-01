@@ -27,52 +27,9 @@ datetime_t LinuxToDateTime(time_t t)
 	return (datetime_t)t;
 }
 
-static time_t DateTimeTZOffset(time_t t)
-{
-	time_t offset = 0;
-	struct tm *tmp = NULL;
-	tmp = localtime(&t);
-	if (tmp) {
-		offset = mktime(tmp);
-		tmp = gmtime(&t);
-		if (tmp) {
-			offset -= mktime(tmp);
-		} else {
-			offset = 0;
-		}
-	}
-	return offset;
-}
-
 datetime_t GetTimeDate(void)
 {
     return LinuxToDateTime(time(NULL));
-}
-
-datetime_t TimePackToRel(const datepack_t *tp, bool_t Local)
-{
-    struct tm date;
-	time_t ot = 0;
-
-	if (!tp)
-        return INVALID_DATETIME_T;
-
-    date.tm_sec = (int)tp->Second;
-    date.tm_min = (int)tp->Minute;
-    date.tm_hour = (int)tp->Hour;
-    date.tm_mday = (int)tp->Day;
-    date.tm_mon = (int)tp->Month - 1;
-    date.tm_year = (int)tp->Year - 1900;
-    date.tm_isdst = -1; // use auto
-
-    ot = mktime(&date);
-    if (ot == (time_t) -1)
-        return INVALID_DATETIME_T;
-
-    if (!Local)
-        ot += DateTimeTZOffset(ot);
-
-    return LinuxToDateTime(ot);
 }
 
 bool_t GetDatePacked(datetime_t t, datepack_t *tp, bool_t Local)
