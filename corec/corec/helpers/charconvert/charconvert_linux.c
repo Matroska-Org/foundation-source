@@ -5,6 +5,7 @@
  *
  ****************************************************************************/
 
+#include <stdlib.h>
 #include "charconvert.h"
 #include <corec/str/str.h>
 

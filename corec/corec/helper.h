@@ -68,6 +68,7 @@ typedef int32_t datetime_t;
 #define MIN_DATETIME_T  ((datetime_t) 0xFFFFFFFF)
 #define MAX_DATETIME_T  ((datetime_t) 0x7FFFFFFF)
 
+// stdlib.h needs to be included first
 #if !defined(min) && !defined(NOMINMAX)
 #  define min(x,y)  ((x)>(y)?(y):(x))
 #endif

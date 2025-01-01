@@ -142,8 +142,6 @@
 #ifdef _MSC_VER
 
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <malloc.h>
 #include <crtdbg.h>
 
 #ifndef strdup
@@ -168,12 +166,9 @@
 
 #if defined(__cplusplus)
 #define SORTPP_PASS // to avoid a problem if winnt.h is included after us
-#define NOMINMAX // conflict with <algorithm>
 #endif
 
 #else /* _MSC_VER */
-
-#include <stdlib.h>
 
 #if __STDC_VERSION__ >= 199901L
 
