@@ -351,7 +351,7 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         break;
 
     case TYPE_TICK:
-        TickToString(Value,ValueLen,*(tick_t*)Data,0,1,0);
+        TickToString(Value,ValueLen,*(tick_t*)Data);
         break;
 
     case TYPE_SIZE:

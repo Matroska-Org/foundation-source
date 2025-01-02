@@ -128,7 +128,7 @@ void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB)
         Out[7] = 0;
 }
 
-void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Extended, bool_t Fix)
+void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick)
 {
     tchar_t Sign[2] = {0};
     if (Tick<0)
@@ -136,37 +136,29 @@ void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick, bool_t MS, bool_t Ex
         Sign[0] = '-';
         Tick = -Tick;
     }
-    if (!MS)
-    {
-        int Hour,Min,Sec;
-        Tick += TICKSPERSEC/2000;
-        Hour = (int)(Tick / 3600 / TICKSPERSEC);
-        Tick -= Hour * 3600 * TICKSPERSEC;
-        Min = (int)(Tick / 60 / TICKSPERSEC);
-        Tick -= Min * 60 * TICKSPERSEC;
-        Sec = (int)(Tick / TICKSPERSEC);
-        Tick -= Sec * TICKSPERSEC;
-        if (!Hour && !Min && !Fix && Extended)
-            stprintf_s(Out,OutLen,T("%s%d"),Sign,Sec);
-        else
-        {
-            if (Hour)
-                stprintf_s(Out,OutLen,T("%s%d:%02d"),Sign,Hour,Min);
-            else
-                stprintf_s(Out,OutLen,Fix?T("%s%02d"):T("%s%d"),Sign,Min);
-            stcatprintf_s(Out,OutLen,T(":%02d"),Sec);
-        }
-        if (Extended)
-            stcatprintf_s(Out,OutLen,T(".%03d"),(int)((Tick*1000)/TICKSPERSEC));
-    }
+
+    int Hour,Min,Sec;
+    Tick += TICKSPERSEC/2000;
+    Hour = (int)(Tick / 3600 / TICKSPERSEC);
+    Tick -= Hour * 3600 * TICKSPERSEC;
+    Min = (int)(Tick / 60 / TICKSPERSEC);
+    Tick -= Min * 60 * TICKSPERSEC;
+    Sec = (int)(Tick / TICKSPERSEC);
+    Tick -= Sec * TICKSPERSEC;
+    if (!Hour && !Min)
+        stprintf_s(Out,OutLen,T("%s%d"),Sign,Sec);
     else
     {
-        int i = Scale32(Tick,100000,TICKSPERSEC);
-        stprintf_s(Out,OutLen,T("%s%d.%02d%s"),Sign,i/100,i%100,Extended?T(" ms"):T(""));
+        if (Hour)
+            stprintf_s(Out,OutLen,T("%s%d:%02d"),Sign,Hour,Min);
+        else
+            stprintf_s(Out,OutLen,T("%s%d"),Sign,Min);
+        stcatprintf_s(Out,OutLen,T(":%02d"),Sec);
     }
+    stcatprintf_s(Out,OutLen,T(".%03d"),(int)((Tick*1000)/TICKSPERSEC));
 }
 
-void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, bool_t Extended, bool_t Fix)
+void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick)
 {
     tchar_t Sign[2] = {0};
     if (Tick<0)
@@ -174,34 +166,26 @@ void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick, bool_t MS, boo
         Sign[0] = '-';
         Tick = -Tick;
     }
-    if (!MS)
-    {
-        int Hour,Min,Sec;
-        //Tick += GetTimeFreq()/2000;
-        Hour = (int)(Tick / 3600 / GetTimeFreq());
-        Tick -= Hour * 3600 * GetTimeFreq();
-        Min = (int)(Tick / 60 / GetTimeFreq());
-        Tick -= Min * 60 * GetTimeFreq();
-        Sec = (int)(Tick / GetTimeFreq());
-        Tick -= Sec * GetTimeFreq();
-        if (!Hour && !Min && !Fix && Extended)
-            stprintf_s(Out,OutLen,T("%s%d"),Sign,Sec);
-        else
-        {
-            if (Hour)
-                stprintf_s(Out,OutLen,T("%s%d:%02d"),Sign,Hour,Min);
-            else
-                stprintf_s(Out,OutLen,Fix?T("%s%02d"):T("%s%d"),Sign,Min);
-            stcatprintf_s(Out,OutLen,T(":%02d"),Sec);
-        }
-        if (Extended)
-            stcatprintf_s(Out,OutLen,T(".%03d"),(int)((Tick*1000)/GetTimeFreq()));
-    }
+
+    int Hour,Min,Sec;
+    //Tick += GetTimeFreq()/2000;
+    Hour = (int)(Tick / 3600 / GetTimeFreq());
+    Tick -= Hour * 3600 * GetTimeFreq();
+    Min = (int)(Tick / 60 / GetTimeFreq());
+    Tick -= Min * 60 * GetTimeFreq();
+    Sec = (int)(Tick / GetTimeFreq());
+    Tick -= Sec * GetTimeFreq();
+    if (!Hour && !Min)
+        stprintf_s(Out,OutLen,T("%s%d"),Sign,Sec);
     else
     {
-        int i = Scale32(Tick,1000,GetTimeFreq());
-        stprintf_s(Out,OutLen,T("%s%d%s"),Sign,i,Extended?T(" ms"):T(""));
+        if (Hour)
+            stprintf_s(Out,OutLen,T("%s%d:%02d"),Sign,Hour,Min);
+        else
+            stprintf_s(Out,OutLen,T("%s%d"),Sign,Min);
+        stcatprintf_s(Out,OutLen,T(":%02d"),Sec);
     }
+    stcatprintf_s(Out,OutLen,T(".%03d"),(int)((Tick*1000)/GetTimeFreq()));
 }
 
 void ByteRateToString(tchar_t* Out, size_t OutLen, int ByteRate)
