@@ -74,7 +74,7 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
         result = subprocess.run(mkvalidator_run)
 
         if not result.returncode == 0:
-            print(f"Fail:6:{line_num}: mkvalidator returned {result} for {outputfile} in {src_file} for {mkclean_options}", file=sys.stderr)
+            print(f"Fail:6:{line_num}: mkvalidator returned 0x{result.returncode:03X} for {outputfile} in {src_file} for {mkclean_options}", file=sys.stderr)
             return
 
     filemd5 = hashlib.md5(open(outputfile,'rb').read()).hexdigest()
