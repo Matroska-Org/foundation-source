@@ -31,21 +31,11 @@
 
 #ifdef TARGET_OS_IPHONE // defined in TargetConditionals.h
 #define TARGET_IPHONE
-
-
-#if defined(__arm__)
-#define ARM
-#endif
-
 #endif
 
 #elif defined(ANDROID)
 
 #define TARGET_ANDROID
-
-#if defined(__arm__)
-#define ARM
-#endif
 
 #elif defined(__linux__) || defined(__CYGWIN__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 
