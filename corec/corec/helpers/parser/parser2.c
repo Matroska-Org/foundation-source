@@ -210,9 +210,9 @@ static NOINLINE bool_t FindParam(node* Base, findpin* Find, nodecontext* Context
     return 0;
 }
 
-static bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node* Base)
+static bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data)
 {
-    if (NodeToString(Value,ValueLen,Data->Node,Base) && Data->Node)
+    if (NodeToString(Value,ValueLen,Data->Node) && Data->Node)
     {
         size_t n;
         if (Value[0])
@@ -224,7 +224,7 @@ static bool_t PinToString(tchar_t* Value, size_t ValueLen, const pin* Data, node
     return 1;
 }
 
-bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* UNUSED_PARAM(Base))
+bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node)
 {
     Value[0]=0;
 
@@ -425,11 +425,11 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         break;
 
     case TYPE_PIN:
-        PinToString(Value,ValueLen,(pin*)Data,NULL);
+        PinToString(Value,ValueLen,(pin*)Data);
         break;
 
     case TYPE_NODE:
-        NodeToString(Value,ValueLen,*(node**)Data,NULL);
+        NodeToString(Value,ValueLen,*(node**)Data);
         break;
 
     case TYPE_STRING:

@@ -277,7 +277,7 @@ bool_t FileErase(const tchar_t* Path, bool_t Force, bool_t UNUSED_PARAM(Safe))
     return unlink(Path) == 0;
 }
 
-bool_t PathIsFolder(nodecontext *p,const tchar_t* Path)
+bool_t PathIsFolder(const tchar_t* Path)
 {
     struct stat file_stats;
     if (stat(Path, &file_stats) == 0)
