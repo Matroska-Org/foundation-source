@@ -1354,7 +1354,7 @@ int main(int argc, const char *argv[])
 
     if (!Quiet) TextWrite(StdErr,T("."));
     if (RTrackInfo)
-        CheckTracks(RTrackInfo, MatroskaProfile);
+        Result |= CheckTracks(RTrackInfo, MatroskaProfile);
 
     for (TI=ARRAYBEGIN(Tracks,track_info); TI!=ARRAYEND(Tracks,track_info); ++TI)
     {
