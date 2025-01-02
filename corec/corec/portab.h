@@ -23,15 +23,7 @@
 
 #elif defined(__APPLE__)
 
-#ifndef TARGET_IPHONE
-#include <TargetConditionals.h> // iPhone information is defined within the SDK in which Xcode is pointed to
-#endif
-
 #define TARGET_OSX
-
-#ifdef TARGET_OS_IPHONE // defined in TargetConditionals.h
-#define TARGET_IPHONE
-#endif
 
 #elif defined(ANDROID)
 
