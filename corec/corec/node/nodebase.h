@@ -28,7 +28,7 @@
 #define TYPE_NODE			10		// node* (format1: node class)
 #define TYPE_META		    11
 #define TYPE_PACKET			12		// flow packet pin
-#define TYPE_TICK			13		// tick_t
+#define TYPE_TICK			13
 #define TYPE_NODENOTIFY     14      // nodenotify (private)
 #define TYPE_PTR			15		// void*
 #define TYPE_BINARY			16		// binary data (format1: size)
@@ -127,8 +127,8 @@ typedef struct datadef
 
 #define META_PARAM_NAME			30 //const tchar_t*
 #define META_PARAM_TYPE		    31 //uint32_t (with flags)
-#define META_PARAM_MIN			32 //int (for TYPE_INT or TYPE_TICK)
-#define META_PARAM_MAX			33 //int (for TYPE_INT or TYPE_TICK)
+#define META_PARAM_MIN			32 //int (for TYPE_INT)
+#define META_PARAM_MAX			33 //int (for TYPE_INT)
 #define META_PARAM_CLASS		34 //fourcc_t (for TYPE_NODE or TYPE_FOURCC)
 #define META_PARAM_ENUMLANG     36 //fourcc_t (for TYPE_INT or TYPE_FOURCC)
 #define META_PARAM_ENUMNAME     37 //const tchar_t* (for TYPE_INT or TYPE_FOURCC)

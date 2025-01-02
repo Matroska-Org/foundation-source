@@ -350,10 +350,6 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         RGBToString(Value,ValueLen,*(rgbval_t*)Data);
         break;
 
-    case TYPE_TICK:
-        TickToString(Value,ValueLen,*(tick_t*)Data);
-        break;
-
     case TYPE_SIZE:
 #if SIZE_MAX > INT32_MAX
         Int64ToString(Value,ValueLen,*(size_t*)Data,0);
