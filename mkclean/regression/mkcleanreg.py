@@ -65,6 +65,7 @@ def testFile(cli, line_num, src_file, mkclean_options, filesize, hash):
                 mkvalidator_exe = "mkvalidator"
         mkvalidator_run = [mkvalidator_exe]
         if cli.quiet:
+            mkvalidator_run.append("--no-warn")
             mkvalidator_run.append("--quiet")
         if '--live' in mkclean_options:
             mkvalidator_run.append("--live")
