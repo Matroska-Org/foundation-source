@@ -12,6 +12,7 @@ include(CMakeParseArguments)
 function(add_c_flag_if_supported)
   foreach(flagname ${ARGN})
     string(REPLACE "-" "_" TEST_RESULT ${flagname})
+    string(REPLACE "=" "_" TEST_RESULT ${TEST_RESULT})
     check_c_compiler_flag(${flagname} HAVE_FLAG_${TEST_RESULT})
     # message(STATUS "supported ${flagname}: ${HAVE_FLAG_${TEST_RESULT}}")
 
