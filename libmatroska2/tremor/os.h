@@ -38,7 +38,7 @@
 
 #ifdef _WIN32
 #  include <malloc.h>
-#  define rint(x)   (floor((x)+0.5f)) 
+#  define rint(x)   (floor((x)+0.5f))
 #  define NO_FLOAT_MATH_LIB
 #  define FAST_HYPOT(a, b) sqrt((a)*(a) + (b)*(b))
 #  define LITTLE_ENDIAN 1
@@ -51,14 +51,6 @@
 
 #ifdef USE_MEMORY_H
 #  include <memory.h>
-#endif
-
-#ifndef min
-#  define min(x,y)  ((x)>(y)?(y):(x))
-#endif
-
-#ifndef max
-#  define max(x,y)  ((x)<(y)?(y):(x))
 #endif
 
 #endif /* _OS_H */
