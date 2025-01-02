@@ -17,7 +17,7 @@
 <h2><a class="anchor" name="intro"></a>Introduction</h2>
 <div class="parag">Core-C is a set of C structures that adds a whole <em>Object Oriented</em> layer to the C language. It is fully and only based on the C language.</div>
 <div class="parag">As any Object Oriented language it uses the concept of classes and of class instances, called <span class="code">node</span> in Core-C.
-  Each class can have <a href="#properties">properties</a>, <a href="#variables">instance variables</a>, <a href="#actions">actions</a> and <a href="#methods">methods</a>. 
+  Each class can have <a href="#properties">properties</a>, <a href="#variables">instance variables</a>, <a href="#actions">actions</a> and <a href="#methods">methods</a>.
   And each class is identified in the code by its <span class="code">FourCC</span> value.</div>
 <div class="parag">Each class can only inherit from one other class (no multiple inheritences). The base class for all classes is the <a class="code" href="NODE.html">node</a> class.
   It inherits its variables, actions and methods and can override them if needed.</div>
@@ -48,7 +48,7 @@
 
 
 <h2><a class="anchor" name="variables"></a>Instance Variables</h2>
-<div class="parag">Most of a class is defined by its instance variables. It defines all that can be read/written on each class instance. 
+<div class="parag">Most of a class is defined by its instance variables. It defines all that can be read/written on each class instance.
   The most basic features of a variable are the Set (<span class="code">Node_Set</span>) and Get (<span class="code">Node_Get</span>) calls.</div>
 <div class="parag">Each variable has a type and flags to define particular use of the variable. It can also have an internal name (use by CoreUI).</div>
 
@@ -178,10 +178,6 @@
 <div class="defblock">
     <span class="variab">Hotkey - <span class="code">TFLAG_INPUT</span></span>
     <div class="definfo">Indicates that a the data with PIN_FORMAT flag is available as input source.</div>
-</div>
-<div class="defblock">
-    <span class="variab">Display - <span class="code">TFLAG_DISPLAY</span></span>
-    <div class="definfo">When reading a data as a string, indicates it's for displaying and not internal use.</div>
 </div>
 <div class="defblock">
     <span class="variab">Available - <span class="code">TFLAG_AVAILABLE</span></span>
