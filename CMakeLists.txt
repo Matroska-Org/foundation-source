@@ -46,6 +46,7 @@ if(DEV_MODE)
                           -W4
                           -we4013 # undefined; assuming extern returning int
                           -we4005 # macro redefinition
+                          -wd4100 # unreferenced formal parameter
                           )
 endif()
 
