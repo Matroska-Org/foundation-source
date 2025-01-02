@@ -1927,7 +1927,7 @@ int main(int argc, const char *argv[])
         {
             Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextTrackNumber());
             if (Elt2)
-                i = max(i,(int)EBML_IntegerValue((ebml_integer*)Elt2));
+                i = MAX(i,(int)EBML_IntegerValue((ebml_integer*)Elt2));
         }
         ArrayResize(&WTracks,sizeof(track_info)*(i+1),0);
         ArrayZero(&WTracks);

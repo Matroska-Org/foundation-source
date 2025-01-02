@@ -212,7 +212,7 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
 
     if (OutBuf && OutSize)
         // TODO: write directly in the output buffer
-        memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), min(*OutSize, stream.total_out));
+        memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), MIN(*OutSize, stream.total_out));
     ArrayClear(&TmpBuf);
 
     if (OutSize)
@@ -1076,7 +1076,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                                 Err = ERR_INVALID_DATA;
                             else
                             {
-                                lzo_uint outSize = max(2048, ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2);
+                                lzo_uint outSize = MAX(2048, ARRAYBEGIN(Element->SizeList,int32_t)[0] << 2);
                                 if (!ArrayResize(&Element->Data, outSize, 0))
                                     Err = ERR_OUT_OF_MEMORY;
                                 else
@@ -1220,7 +1220,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                             Err = ERR_INVALID_DATA;
                         else
                         {
-                            lzo_uint outSize = max(2048, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] << 2);
+                            lzo_uint outSize = MAX(2048, ARRAYBEGIN(Element->SizeList,int32_t)[NumFrame] << 2);
                             if (!ArrayResize(&Element->Data, OutSize + outSize, 0))
                                 Err = ERR_OUT_OF_MEMORY;
                             else

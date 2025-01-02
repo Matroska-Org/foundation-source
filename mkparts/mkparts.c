@@ -130,7 +130,7 @@ static void CopyTo(struct stream *Input, struct stream *Output, filepos_t StartP
     Stream_Seek(Input, StartPos, SEEK_SET);
     while (SizeToCopy)
     {
-        Err = Stream_ReadOneOrMore(Input, Data, min(SizeToCopy, (filepos_t)sizeof(Data)), &readSize);
+        Err = Stream_ReadOneOrMore(Input, Data, MIN(SizeToCopy, (filepos_t)sizeof(Data)), &readSize);
         if (Err==ERR_NONE || Err == ERR_NEED_MORE_DATA)
         {
             if (!Quiet) TextWrite(StdErr,T("."));

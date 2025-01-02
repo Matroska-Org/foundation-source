@@ -96,7 +96,7 @@ tchar_t* tcscpy_s(tchar_t* Out,size_t OutLen,const tchar_t* In)
     assert(In != NULL);
 	if (OutLen>0)
 	{
-		size_t n = min(tcslen(In),OutLen-1);
+		size_t n = MIN(tcslen(In),OutLen-1);
 		memcpy(Out,In,n*sizeof(tchar_t));
 		Out[n] = 0;
 	}
@@ -108,7 +108,7 @@ tchar_t* tcsncpy_s(tchar_t* Out,size_t OutLen,const tchar_t* In,size_t n)
     assert(In != NULL);
 	if (OutLen>0)
 	{
-		n = min(min(tcslen(In),n),OutLen-1);
+		n = MIN(MIN(tcslen(In),n),OutLen-1);
 		memcpy(Out,In,n*sizeof(tchar_t));
 		Out[n] = 0;
 	}
@@ -180,7 +180,7 @@ static int get_decimals(int Decimals, int64_t IntValue)
         TmpVal *= 10;
         Result++;
     }
-    return min(Decimals,Result);
+    return MIN(Decimals,Result);
 }
 
 void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
@@ -360,7 +360,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 				In = va_arg(Arg,const tchar_t*);
                 if (In)
                 {
-				    n = min(tcslen(In),OutLen-1);
+				    n = MIN(tcslen(In),OutLen-1);
 				    Width -= n;
 				    if (!AlignLeft)
 					    while (--Width>=0 && OutLen>1)
@@ -380,7 +380,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
 				break;
 			case 'S':
 				InA = va_arg(Arg,const char*);
-				n = min(strlen(InA),OutLen-1);
+				n = MIN(strlen(InA),OutLen-1);
 				Width -= n;
 				if (!AlignLeft)
 					while (--Width>=0 && OutLen>1)
@@ -429,7 +429,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
                         }
 
                         if (Decimals>0)
-                            max_decimal_digits = max(Decimals,(int)w);
+                            max_decimal_digits = MAX(Decimals,(int)w);
                         else
                             max_decimal_digits = w;
 
@@ -495,7 +495,7 @@ void vstprintf_s(tchar_t* Out,size_t OutLen,const tchar_t* Mask,va_list Arg)
                     }
 
                     if (*Mask==T('f') && w)
-                        w = max(w,6);
+                        w = MAX(w,6);
                     if (w && OutLen>1)
                     {
                         *Out++ = T('.');

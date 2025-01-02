@@ -56,7 +56,7 @@ void CharConvSS(charconv* Conv, char* Out, size_t OutLen, const char* In)
         }
         else
         {
-            size_t n = min(In?strlen(In):0,OutLen-1);
+            size_t n = MIN(In?strlen(In):0,OutLen-1);
             memcpy(Out,In,n*sizeof(char));
             Out[n] = 0;
         }

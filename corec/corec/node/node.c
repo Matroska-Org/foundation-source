@@ -778,7 +778,7 @@ static void MetaConst(const nodemeta* i,void* Data)
     else
     {
         memset((uint8_t*)Data+i->Id,0,Size);
-        memcpy((uint8_t*)Data+i->Id,&i->Data,min(sizeof(uintptr_t),Size));
+        memcpy((uint8_t*)Data+i->Id,&i->Data,MIN(sizeof(uintptr_t),Size));
     }
 }
 
@@ -1164,7 +1164,7 @@ static void InitClass(nodecontext* p,nodeclass* Class)
             assert(NodeClass_Context(Parent) == NodeClass_Context(Class));
 
             ClassId = NodeClass_ClassId(Class);
-            memcpy(Class+1,Parent+1,min(Class->VMTSize,Parent->VMTSize));
+            memcpy(Class+1,Parent+1,MIN(Class->VMTSize,Parent->VMTSize));
             NodeClass_ClassId(Class) = ClassId;
         }
 

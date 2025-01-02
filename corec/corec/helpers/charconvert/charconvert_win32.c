@@ -36,7 +36,7 @@ void CharConvSS(charconv* CC, char* Out, size_t OutLen, const char* In)
 			!MultiByteToWideChar(InCode,0,In,-1,Temp,512) ||
 			!WideCharToMultiByte(OutCode,0,Temp,-1,Out,(int)OutLen,0,0))
 		{
-			size_t n = min(strlen(In),OutLen-1);
+			size_t n = MIN(strlen(In),OutLen-1);
 			memcpy(Out,In,n*sizeof(char));
 			Out[n] = 0;
 		}
@@ -72,7 +72,7 @@ void CharConvWW(charconv* UNUSED_PARAM(CC), wchar_t* Out, size_t OutLen, const w
 #else
 	if (OutLen>0)
 	{
-		size_t n = min(wcslen(In),OutLen-1);
+		size_t n = MIN(wcslen(In),OutLen-1);
 		memcpy(Out,In,n*sizeof(wchar_t));
 		Out[n] = 0;
 	}

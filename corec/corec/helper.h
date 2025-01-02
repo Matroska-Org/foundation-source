@@ -60,13 +60,12 @@ typedef int32_t datetime_t;
 
 #define INVALID_DATETIME_T  0
 
-// stdlib.h needs to be included first
-#if !defined(min) && !defined(NOMINMAX)
-#  define min(x,y)  ((x)>(y)?(y):(x))
+#if !defined(MIN)
+#  define MIN(x,y)  ((x)>(y)?(y):(x))
 #endif
 
-#if !defined(max) && !defined(NOMINMAX)
-#  define max(x,y)  ((x)<(y)?(y):(x))
+#if !defined(MAX)
+#  define MAX(x,y)  ((x)<(y)?(y):(x))
 #endif
 
 
