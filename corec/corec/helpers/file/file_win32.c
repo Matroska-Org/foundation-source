@@ -404,7 +404,7 @@ static bool_t FileRecycle(const tchar_t* Path)
     return Ret == 0;
 }
 
-bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force, bool_t Safe)
+bool_t FileErase(const tchar_t* Path, bool_t Force, bool_t Safe)
 {
     if (Force)
     {
@@ -422,7 +422,7 @@ bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force,
         return FileRecycle(Path);
 }
 
-bool_t PathIsFolder(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
+bool_t PathIsFolder(const tchar_t* Path)
 {
     DWORD attr = GetFileAttributes(Path);
     return (attr != (DWORD)-1) && (attr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;

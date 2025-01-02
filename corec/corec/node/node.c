@@ -432,11 +432,6 @@ static NOINLINE void UnlockModules(const nodeclass* Class)
     }
 }
 
-static void UnlockModulesWithLock(nodecontext* p,const nodeclass* Class)
-{
-    UnlockModules(Class);
-}
-
 static NOINLINE bool_t DataFree(nodecontext* p, node* Node, nodedata** i, bool_t DeletingNode)
 {
     datatype Type;
@@ -852,7 +847,7 @@ void Node_Destructor(node* Node)
         Node->Magic = 0;
 #endif
 
-        UnlockModulesWithLock(p,Class);
+        UnlockModules(Class);
     }
 }
 
@@ -898,7 +893,7 @@ err_t Node_Constructor(anynode* AnyNode, node* Node, size_t Size, fourcc_t Class
         else
         {
             Node->VMT = NULL;
-            UnlockModulesWithLock(p,Class);
+            UnlockModules(Class);
         }
     }
     else
@@ -1260,7 +1255,7 @@ static node* NodeCreateFromClass(nodecontext* p, const nodeclass* Class, bool_t 
     Size = NodeSize(Class);
     if (!Size)
     {
-        UnlockModulesWithLock(p,Class);
+        UnlockModules(Class);
         return NULL;
     }
 
@@ -1277,7 +1272,7 @@ static node* NodeCreateFromClass(nodecontext* p, const nodeclass* Class, bool_t 
 
         if (Singleton && !AddSingleton(p,Node))
         {
-            UnlockModulesWithLock(p,Class);
+            UnlockModules(Class);
             return NULL;
         }
 
@@ -1407,7 +1402,7 @@ static void EraseNode(nodecontext* p,node* Node,const nodeclass* Class)
     Node->Magic = 0;
 #endif
 
-    UnlockModulesWithLock(p,Class);
+    UnlockModules(Class);
 
     if (!(Class->Flags & CFLAG_OWN_MEMORY))
         MemHeap_Free(p->NodeHeap,Node,Size);

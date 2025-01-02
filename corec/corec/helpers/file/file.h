@@ -27,18 +27,18 @@ extern "C" {
 
 FILE_DLL void CoreC_FileInit(nodemodule* Module);
 
-FILE_DLL bool_t PathIsFolder(nodecontext*, const tchar_t*);
+FILE_DLL bool_t PathIsFolder(const tchar_t*);
 // \param Force erase even if the file is read-only
 // \param Safe put in the OS trash rather than a permanent erase
-FILE_DLL bool_t FileErase(nodecontext*, const tchar_t*, bool_t Force, bool_t Safe);
+FILE_DLL bool_t FileErase(const tchar_t*, bool_t Force, bool_t Safe);
 
 FILE_DLL void RemovePathDelimiter(tchar_t* Path);
 FILE_DLL void AddPathDelimiter(tchar_t* Path,size_t PathLen);
 FILE_DLL const tchar_t* GetProtocol(const tchar_t* URL, tchar_t *_Protocol, int ProtoLen, bool_t* HasHost);
 FILE_DLL void SplitPath(const tchar_t* Path, tchar_t* Dir, int DirLen, tchar_t* Name, int NameLen, tchar_t* Ext, int ExtLen);
 FILE_DLL void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base);
-FILE_DLL void AbsPathNormalize(tchar_t* Abs, size_t AbsLen);
-FILE_DLL void ReduceLocalPath(tchar_t* Abs, size_t AbsLen);
+FILE_DLL void AbsPathNormalize(tchar_t* Abs);
+FILE_DLL void ReduceLocalPath(tchar_t* Abs);
 FILE_DLL void RelPath(tchar_t* Rel, int RelLen, const tchar_t* Path, const tchar_t* Base);
 FILE_DLL bool_t UpperPath(tchar_t* Path, tchar_t* Last, size_t LastLen);
 

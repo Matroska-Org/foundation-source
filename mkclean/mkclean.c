@@ -3202,7 +3202,7 @@ exit:
         StreamClose(Output);
 
     if (Result<0 && Path[0])
-        FileErase((nodecontext*)&p,Path,1,0);
+        FileErase(Path,1,0);
 
     // Core-C ending
     if (!Regression) // until all the memory leaks are fixed

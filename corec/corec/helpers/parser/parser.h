@@ -86,7 +86,7 @@ NODE_DLL void TextAttribEx(textwriter*,const tchar_t* Name, const void* Data, si
 NODE_DLL void TextSerializeNode(textwriter* Text, node* p, uint_fast32_t Mask, uint_fast32_t Filter);
 
 NODE_DLL bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, size_t Size, dataflags Type);
-NODE_DLL bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node, node* Base);
+NODE_DLL bool_t NodeToString(tchar_t* Value, size_t ValueLen, node* Node);
 
 void ExprSkipSpace(const tchar_t** p);
 NODE_DLL void ExprTrimSpace(tchar_t** p);

@@ -276,10 +276,10 @@ void AbsPath(tchar_t* Abs, int AbsLen, const tchar_t* Path, const tchar_t* Base)
         Abs[0] = 0;
 
     tcscat_s(Abs,AbsLen,Path);
-    AbsPathNormalize(Abs,AbsLen);
+    AbsPathNormalize(Abs);
 }
 
-void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
+void AbsPathNormalize(tchar_t* Abs)
 {
     if (GetProtocol(Abs,NULL,0,NULL)!=Abs)
     {
@@ -299,7 +299,7 @@ void AbsPathNormalize(tchar_t* Abs,size_t AbsLen)
     }
 }
 
-void ReduceLocalPath(tchar_t* Abs,size_t UNUSED_PARAM(AbsLen))
+void ReduceLocalPath(tchar_t* Abs)
 {
     tchar_t *Folder,*Back;
     Folder = tcsstr(Abs,T("://")); // skip the protocol
