@@ -15,7 +15,7 @@ extern "C" {
 #if defined(_MSC_VER) && (_MSC_VER > 1000)
 #pragma once
 #pragma warning(push, 4)
-#pragma warning(disable : 4100 4710 4514 4201 4714 4115 4206 4055 4214 4998 4273 4127 4114 4512)
+// #pragma warning(disable : 4100 4710 4514 4201 4714 4115 4206 4055 4214 4998 4273 4127 4114 4512)
 #endif
 
 #include "portab.h"
