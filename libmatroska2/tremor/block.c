@@ -26,16 +26,6 @@
 #include "registry.h"
 #include "misc.h"
 
-static int ilog(unsigned int v){
-  int ret=0;
-  if(v)--v;
-  while(v){
-    ret++;
-    v>>=1;
-  }
-  return(ret);
-}
-
 /* pcm accumulator examples (not exhaustive):
 
  <-------------- lW ---------------->

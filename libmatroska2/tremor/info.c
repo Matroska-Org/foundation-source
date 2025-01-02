@@ -40,18 +40,6 @@ void vorbis_comment_init(vorbis_comment *vc){
   memset(vc,0,sizeof(*vc));
 }
 
-/* This is more or less the same as strncasecmp - but that doesn't exist
- * everywhere, and this is a fairly trivial function, so we include it */
-static int tagcompare(const char *s1, const char *s2, int n){
-  int c=0;
-  while(c < n){
-    if(toupper(s1[c]) != toupper(s2[c]))
-      return !0;
-    c++;
-  }
-  return 0;
-}
-
 void vorbis_comment_clear(vorbis_comment *vc){
   if(vc){
     long i;
