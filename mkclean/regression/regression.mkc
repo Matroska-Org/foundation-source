@@ -148,11 +148,11 @@
 "chrome_linux_x64_fail.webm" "--remux --optimize" 138037768 dcdb434ab0c953f5502b84799f09e012
 "chrome_linux_x64_fail.webm" "--remux --unsafe" 138036732 fbe72bfdf6bfe463fe7cf67f25572ac2
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "" 138041303 560ef9192e79c610d040d7f2b82d0950
-"A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux" 138037140 f8b9a51620b53789cfe2ec69c7cb488f
+"A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux" 138037655 a3c59c22899bbcf98120e8eb59fe6106
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--optimize" 138041303 560ef9192e79c610d040d7f2b82d0950
-"A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux --optimize" 138037140 f8b9a51620b53789cfe2ec69c7cb488f
+"A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux --optimize" 138037655 a3c59c22899bbcf98120e8eb59fe6106
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--unsafe" 138039084 63c1c373b73312b0bee1d5847957c48b
-"A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux --unsafe" 138036104 f00a30e724e67fbcef192668175dfb54
+"A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux --unsafe" 138036619 5289dc5076aa59f010c8b982dad7c478
 "fake-side-by-side.webm" "" 138037777 9640e786a92f2ede26b6f45ad70fae62
 "fake-side-by-side.webm" "--remux" 138037777 7f13e2640c0f2c0b885e38c9b5313c78
 "fake-side-by-side.webm" "--optimize" 138037777 9640e786a92f2ede26b6f45ad70fae62
