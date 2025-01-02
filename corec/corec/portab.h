@@ -19,14 +19,8 @@
 #undef IS_LITTLE_ENDIAN
 #undef IS_BIG_ENDIAN
 
-#if defined(_WIN64)
+#if defined(_WIN32)
 
-#define TARGET_WIN64
-#define TARGET_WIN
-
-#elif defined(_WIN32)
-
-#define TARGET_WIN32
 #define TARGET_WIN
 
 #elif defined(__APPLE__)
