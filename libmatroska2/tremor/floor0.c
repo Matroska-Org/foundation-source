@@ -138,6 +138,7 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int *map,int n,int ln,
 			 ogg_int32_t amp,
 			 ogg_int32_t ampoffset,
 			 ogg_int32_t *icos){
+(void)ln;
 
   /* 0 <= m < 256 */
 
@@ -410,6 +411,7 @@ static void *floor0_inverse1(vorbis_block *vb,vorbis_look_floor *i){
 
 static int floor0_inverse2(vorbis_block *vb,vorbis_look_floor *i,
 			   void *memo,ogg_int32_t *out){
+(void)vb;
   vorbis_look_floor0 *look=(vorbis_look_floor0 *)i;
   vorbis_info_floor0 *info=look->vi;
   
