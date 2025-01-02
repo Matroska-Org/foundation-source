@@ -44,8 +44,6 @@
 
 #define STORE32LE(p, i)      STORE8(p, 0, i), STORE8(p, 1, ((uint32_t)i) >> 8), STORE8(p, 2, ((uint32_t)i) >> 16), STORE8(p, 3, ((uint32_t)i) >> 24)
 
-#define _abs(a) (((a)>=0)?(a):-(a))
-
 static INLINE int64_t Scale64(int64_t v,int64_t Num,int64_t Den)
 {
 	if (Den)
