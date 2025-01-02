@@ -290,7 +290,7 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
 #if defined(_MSC_VER) && !defined (__clang__)
         tchar_t* Drives = _alloca((n+1)*sizeof(tchar_t));
 #else
-        tchar_t Drives[n+1];
+        tchar_t Drives_[n+1], *Drives = Drives_;
 #endif
         if (GetLogicalDriveStrings((DWORD)n,Drives))
         {
