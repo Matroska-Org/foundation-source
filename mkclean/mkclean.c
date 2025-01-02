@@ -344,7 +344,6 @@ static void UpdateCues(ebml_master *Cues, ebml_master *Segment)
         NextCue =(ebml_master*)EBML_MasterNext(Cue);
         if (MATROSKA_CuePointUpdate((matroska_cuepoint*)Cue, (ebml_element*)Segment, DstProfile)!=ERR_NONE)
         {
-            EBML_MasterRemove(Cues,(ebml_element*)Cue); // make sure it doesn't remain in the list
             NodeDelete((node*)Cue);
         }
     }

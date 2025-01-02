@@ -94,12 +94,6 @@ err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append)
     return Result;
 }
 
-err_t EBML_MasterRemove(ebml_master *UNUSED_PARAM(Element), ebml_element *Append)
-{
-    err_t Result = NodeTree_SetParent(Append,NULL,NULL);
-    return Result;
-}
-
 size_t EBML_MasterCount(const ebml_master *Element)
 {
     size_t Result = 0;
@@ -638,7 +632,6 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
 				        Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_PROFILE_INVALID,ClassString,i))
                         {
-                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
 					        NodeDelete((node*)i);
 					        i=EBML_MasterChildren(Element);
                             break;
@@ -649,7 +642,6 @@ void EBML_MasterCheckContext(ebml_master *Element, int ProfileMask, bool_t (*Err
 		                Node_FromStr(Element,ClassString,TSIZEOF(ClassString),s->eClass->ElementName);
                         if (ErrCallback && ErrCallback(cookie,MASTER_CHECK_MULTIPLE_UNIQUE,ClassString,SubElt))
                         {
-                            EBML_MasterRemove(Element,i); // make sure it doesn't remain in the list
 			                NodeDelete((node*)i);
 			                i=EBML_MasterChildren(Element);
                             break;

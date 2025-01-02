@@ -168,7 +168,6 @@ EBML_DLL void EBML_ElementForceDataSize(ebml_element *Element, filepos_t Size);
 // type specific routines
 EBML_DLL ebml_element *EBML_MasterFindFirstElt(ebml_master *Element, const ebml_context *Context, bool_t bCreateIfNull, bool_t SetDefault, int ForProfile);
 EBML_DLL err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append);
-EBML_DLL err_t EBML_MasterRemove(ebml_master *Element, ebml_element *Remove);
 EBML_DLL ebml_element *EBML_MasterFindNextElt(ebml_master *Element, const ebml_element *Current, bool_t bCreateIfNull, bool_t SetDefault, int ForProfile);
 EBML_DLL ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault, int ForProfile);
 EBML_DLL size_t EBML_MasterCount(const ebml_master *Element);
