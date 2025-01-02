@@ -59,7 +59,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #ifdef LOGTIME
     {
         tchar_t timed[1024];
-        SysTickToString(timed,TSIZEOF(timed),GetTimeTick(),1,1,0);
+        SysTickToString(timed,TSIZEOF(timed),GetTimeTick(),1);
         stcatprintf_s(timed,TSIZEOF(timed),T(" %s"),s);
         s = timed;
     }
