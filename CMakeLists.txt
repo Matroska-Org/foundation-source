@@ -28,7 +28,6 @@ if(DEV_MODE)
   add_c_flag_if_supported(-Wno-error=unused-command-line-argument
                           -Wall -Wextra -Wpedantic -Wfatal-errors -fstack-protector-strong
                           -Wno-self-assign
-                          -Wno-unused-parameter
                           -Werror=missing-field-initializers
                           -Werror=excess-initializers
                           -Werror=strict-aliasing
