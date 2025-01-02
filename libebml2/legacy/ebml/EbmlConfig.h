@@ -20,12 +20,6 @@ typedef uint8_t binary;
 
 #define countof(x)  (sizeof(x)/sizeof(*(x)))
 
-#ifdef __GNUC__
-#define EBML_PRETTYLONGINT(c) (c ## ll)
-#else // __GNUC__
-#define EBML_PRETTYLONGINT(c) (c)
-#endif // __GNUC__
-
 namespace libebml {
 
     enum endianess {
