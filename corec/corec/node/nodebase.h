@@ -9,6 +9,7 @@
 #define __NODEBASE_H
 
 #include <corec/array/array.h>
+#include <stdarg.h>
 
 #define MAXDATA				(MAXPATH*sizeof(tchar_t))
 

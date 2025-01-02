@@ -9,6 +9,7 @@
 #define __STR_H
 
 #include <corec/corec.h>
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
