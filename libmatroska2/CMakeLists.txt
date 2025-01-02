@@ -3,7 +3,7 @@ project("matroska2" VERSION 0.22.3 LANGUAGES C)
 option(CONFIG_ZLIB "Enable zlib (de)compression" ON)
 option(CONFIG_BZLIB "Enable bzlib decompression in libmatroska2" ON)
 option(CONFIG_LZO1X "Enable lzo decompression in libmatroska2" ON)
-option(CONFIG_NOCODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
+option(CONFIG_CODEC_HELPER "Enable Vorbis frame durations in libmatroska2" ON)
 
 if (CONFIG_ZLIB)
   include(FindZLIB)
@@ -75,10 +75,10 @@ if (CONFIG_BZLIB)
   endif()
 endif(CONFIG_BZLIB)
 
-if (NOT CONFIG_NOCODEC_HELPER)
+if (CONFIG_CODEC_HELPER)
   add_subdirectory("tremor")
   target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:tremor>)
-endif(NOT CONFIG_NOCODEC_HELPER)
+endif(CONFIG_CODEC_HELPER)
 
 set_target_properties("matroska2" PROPERTIES
   PUBLIC_HEADER "${matroska2_PUBLIC_HEADERS}"
