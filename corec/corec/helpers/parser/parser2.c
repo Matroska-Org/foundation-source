@@ -370,13 +370,8 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
             FractionToString(Value,ValueLen,&f,-1,1);
         }
         else
-        if (0 && (Type & TUNIT_MASK)==TUNIT_BYTERATE)
-            ByteRateToString(Value,ValueLen,*(int*)Data);
-        else
         {
             IntToString(Value,ValueLen,*(int*)Data,0);
-            if (0 && (Type & TUNIT_MASK)==TUNIT_KBYTE)
-                tcscat_s(Value,ValueLen,T(" KB"));
         }
         break;
 
@@ -427,10 +422,7 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
 
     case TYPE_FRACTION:
         if ((Type & TUNIT_MASK)==TUNIT_PERCENT)
-            FractionToString(Value,ValueLen,(cc_fraction*)Data,0?1:-1,2);
-        else
-        if (0)
-            FractionToString(Value,ValueLen,(cc_fraction*)Data,0,3); //fps needs 3 decimal
+            FractionToString(Value,ValueLen,(cc_fraction*)Data,-1,2);
         else
             stprintf_s(Value,ValueLen,T("%d:%d"),((cc_fraction*)Data)->Num,((cc_fraction*)Data)->Den);
         break;
