@@ -58,13 +58,9 @@ static INLINE int Scale32(int64_t v, int64_t Num, int64_t Den)
     return (int)Scale64(v,Num,Den);
 }
 
-#define SWAPVAL(type,a,b) { type __t = (a); (a)=(b); (b)=__t; }
-
 typedef int32_t datetime_t;
 
 #define INVALID_DATETIME_T  0
-#define MIN_DATETIME_T  ((datetime_t) 0xFFFFFFFF)
-#define MAX_DATETIME_T  ((datetime_t) 0x7FFFFFFF)
 
 // stdlib.h needs to be included first
 #if !defined(min) && !defined(NOMINMAX)
