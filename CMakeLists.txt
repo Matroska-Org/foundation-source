@@ -43,6 +43,7 @@ if(DEV_MODE)
                           -Werror=switch
                           -Werror=return-type
                           -Werror=strict-prototypes
+                          -Werror=implicit-function-declaration
                           # MSVC
                           -W4
                           -we4013 # undefined; assuming extern returning int
