@@ -143,10 +143,10 @@
 "dts-bz2.mkv" "--remux --optimize" 59610381 98d24b3c6e92782b1f8da4f60ab14b45
 "dts-bz2.mkv" "--unsafe" 59750039 1d8114732e1f9e0d9cb1fecc9f4dbc64
 "dts-bz2.mkv" "--remux --unsafe" 59749650 f868eb64258a40ff3f4b142c25eccd8d
-"chrome_linux_x64_fail.webm" "" 138037768 240d01b22ef925f27868efd48470ab63
-"chrome_linux_x64_fail.webm" "--remux" 138037768 dcdb434ab0c953f5502b84799f09e012
-"chrome_linux_x64_fail.webm" "--remux --optimize" 138037768 dcdb434ab0c953f5502b84799f09e012
-"chrome_linux_x64_fail.webm" "--remux --unsafe" 138036732 fbe72bfdf6bfe463fe7cf67f25572ac2
+"chrome_linux_x64_fail.webm" "" 138037768 40890ec7f3541c5148d35c205e9b3458
+"chrome_linux_x64_fail.webm" "--remux" 138037768 82c7609bac30e124612a09da1c238873
+"chrome_linux_x64_fail.webm" "--remux --optimize" 138037768 82c7609bac30e124612a09da1c238873
+"chrome_linux_x64_fail.webm" "--remux --unsafe" 138036732 ca0f5b52200e70b1348e067cb9ad2dcd
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "" 138041303 560ef9192e79c610d040d7f2b82d0950
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--remux" 138037655 a3c59c22899bbcf98120e8eb59fe6106
 "A_Digital_Media_Primer_For_Geeks-360p.webm" "--optimize" 138041303 560ef9192e79c610d040d7f2b82d0950
