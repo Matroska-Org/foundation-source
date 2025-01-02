@@ -316,7 +316,6 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
 {
     cc_fraction f;
     size_t i;
-    bool_t Display = (Type & TFLAG_DISPLAY)!=0;
 
     if (!Size)
         Size = NodeTypeSize(Type);
@@ -352,7 +351,7 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
         break;
 
     case TYPE_TICK:
-        TickToString(Value,ValueLen,*(tick_t*)Data,0,1,Display);
+        TickToString(Value,ValueLen,*(tick_t*)Data,0,1,0);
         break;
 
     case TYPE_SIZE:
@@ -371,12 +370,12 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
             FractionToString(Value,ValueLen,&f,-1,1);
         }
         else
-        if (Display && (Type & TUNIT_MASK)==TUNIT_BYTERATE)
+        if (0 && (Type & TUNIT_MASK)==TUNIT_BYTERATE)
             ByteRateToString(Value,ValueLen,*(int*)Data);
         else
         {
             IntToString(Value,ValueLen,*(int*)Data,0);
-            if (Display && (Type & TUNIT_MASK)==TUNIT_KBYTE)
+            if (0 && (Type & TUNIT_MASK)==TUNIT_KBYTE)
                 tcscat_s(Value,ValueLen,T(" KB"));
         }
         break;
@@ -428,9 +427,9 @@ NOINLINE bool_t DataToString(tchar_t* Value, size_t ValueLen, const void* Data, 
 
     case TYPE_FRACTION:
         if ((Type & TUNIT_MASK)==TUNIT_PERCENT)
-            FractionToString(Value,ValueLen,(cc_fraction*)Data,Display?1:-1,2);
+            FractionToString(Value,ValueLen,(cc_fraction*)Data,0?1:-1,2);
         else
-        if (Display)
+        if (0)
             FractionToString(Value,ValueLen,(cc_fraction*)Data,0,3); //fps needs 3 decimal
         else
             stprintf_s(Value,ValueLen,T("%d:%d"),((cc_fraction*)Data)->Num,((cc_fraction*)Data)->Den);
