@@ -386,14 +386,6 @@ typedef uint16_t utf16_t;
 #define FOURCC(a,b,c,d) (fourcc_t)FOURCCLE(a,b,c,d)
 #endif
 
-#if defined(_MSC_VER) && defined(TARGET_WIN)
-#define TRY_BEGIN __try {
-#define TRY_END   ;} __except (1) {}
-#else
-#define TRY_BEGIN {
-#define TRY_END   }
-#endif
-
 #ifndef NDEBUG
 # include <assert.h>
 #else // NDEBUG

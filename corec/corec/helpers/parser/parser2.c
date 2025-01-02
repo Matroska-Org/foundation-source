@@ -1165,7 +1165,6 @@ static void NodeDumpObject(node* p,textwriter* Text)
     tchar_t Element[8];
     node** i;
 
-    TRY_BEGIN
     if (!(NodeClassFlags(p) & CFLAG_LOCAL)) // example skin UI stuff
     {
         FourCCToString(Element,TSIZEOF(Element),Node_ClassId(p));
@@ -1179,7 +1178,6 @@ static void NodeDumpObject(node* p,textwriter* Text)
         ArrayClear(&Children);
         TextElementEnd(&Level);
     }
-    TRY_END
 }
 
 void NodeDump(nodecontext* p,textwriter* Text)
