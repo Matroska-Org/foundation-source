@@ -193,7 +193,7 @@ typedef struct nodemeta
 #define META_START_CONTINUE(id) META_CLASS(CLASS_ID,id)
 #define META_CLASS(meta,data) { META_CLASS_##meta,0,(uintptr_t)(data) },
 #define META_PARAM(meta,no,data) { META_PARAM_##meta,no,(uintptr_t)(data) },
-#define META_DATA(type,no,name,param) { META_MODE_DATA|(type),no,(uintptr_t)(OFS(name,param)) },
+#define META_DATA(type,no,name,param) { META_MODE_DATA|(type),no,(uintptr_t)(offsetof(name,param)) },
 #define META_DATA_FLAGS(type,no,name,param,flags) META_DATA(type,no,name,param) META_PARAM(DATA_FLAGS,no,flags)
 #define META_DATA_RDONLY(type,no,name,param) META_DATA_FLAGS(type,no,name,param,DFLAG_RDONLY)
 #define META_DATA_UPDATE(type,no,name,param,update) META_DATA(type,no,name,param) META_PARAM(DATA_UPDATE,no,update)
@@ -206,8 +206,8 @@ typedef struct nodemeta
 #define META_DYNAMIC_UPDATE(type,no,update) META_DYNAMIC(type,no) META_PARAM(DATA_UPDATE,no,update)
 #define META_DYNAMIC_UPDATE_FLAGS(type,no,update,flags) META_DYNAMIC(type,no) META_PARAM(DATA_FLAGS,no,flags) META_PARAM(DATA_UPDATE,no,update)
 #define META_DYNAMIC_UPDATE_CMP(type,no,update) META_DYNAMIC_UPDATE_FLAGS(type,no,update,DFLAG_CMP)
-#define META_VMT(type,name,param,value) { META_MODE_VMT|(type),OFS(name,param),(uintptr_t)(value) },
-#define META_CONST(type,name,param,value) { META_MODE_CONST|(type),OFS(name,param),(uintptr_t)(value) },
+#define META_VMT(type,name,param,value) { META_MODE_VMT|(type),offsetof(name,param),(uintptr_t)(value) },
+#define META_CONST(type,name,param,value) { META_MODE_CONST|(type),offsetof(name,param),(uintptr_t)(value) },
 #define META_END(parentid) { META_CLASS_PARENT_ID,0,(uintptr_t)(parentid) }};
 #define META_END_CONTINUE(parentid) { META_CLASS_PARENT_ID,1,(uintptr_t)(parentid) },
 
@@ -234,11 +234,11 @@ typedef struct nodemeta
 #endif
 #define META_PARAM(meta,no,data) { META_PARAM_##meta,no,(uintptr_t)(data) },\
                                  { TYPE_DOC_PARAM_NO,no,(uintptr_t)T(#no) },
-#define META_DATA(type,no,name,param) { META_MODE_DATA|(type),no,(uintptr_t)(OFS(name,param)) },\
+#define META_DATA(type,no,name,param) { META_MODE_DATA|(type),no,(uintptr_t)(offsetof(name,param)) },\
                                       { TYPE_DOC_PARAM_NO,no,(uintptr_t)T(#no) },
 #define META_DYNAMIC(type,no) { META_MODE_DATA|(type),no,(uintptr_t)-1 },\
                               { TYPE_DOC_PARAM_NO,no,(uintptr_t)T(#no) },
-#define META_VMT(type,name,param,value) { META_MODE_VMT|(type),OFS(name,param),(uintptr_t)(value) }, \
+#define META_VMT(type,name,param,value) { META_MODE_VMT|(type),offsetof(name,param),(uintptr_t)(value) }, \
                                         { TYPE_DOC_VMT_STRUCT,0,(uintptr_t)T(#name) },   \
                                         { TYPE_DOC_VMT_FUNC,0,(uintptr_t)T(#param) },
 
