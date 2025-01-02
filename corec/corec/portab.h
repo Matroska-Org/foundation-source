@@ -138,39 +138,7 @@
 
 #else /* _MSC_VER */
 
-#if __STDC_VERSION__ >= 199901L
-
 #include <inttypes.h>
-
-#elif !defined(__GLIBC__) && !defined(__MINGW32__) && !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(__FreeBSD__)
-
-#include <inttypes.h>
-
-#ifndef PRIdPTR
-#error Not compiled with C99 compatibility!
-#endif // PRIdPTR
-
-
-#ifdef SPARC64
-  typedef int64_t int_fast32_t;
-  typedef uint64_t uint_fast32_t;
-  typedef int64_t int_fast16_t;
-  typedef uint64_t uint_fast16_t;
-#else // !SPARC64
-  typedef int32_t int_fast32_t;
-  typedef uint32_t uint_fast32_t;
-# ifndef __APPLE__
-  typedef int32_t int_fast16_t;
-  typedef uint32_t uint_fast16_t;
-# endif // !__APPLE__
-#endif // !SPARC64
-
-typedef int8_t int_fast8_t;
-typedef uint8_t uint_fast8_t;
-typedef int64_t int_fast64_t;
-typedef uint64_t uint_fast64_t;
-
-#endif
 
 #if defined(__GNUC__) && !defined(always_inline)
 #define INLINE __attribute__((always_inline)) inline
