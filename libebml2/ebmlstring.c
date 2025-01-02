@@ -5,6 +5,7 @@
 #include "ebml2/ebml.h"
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
+#include <string.h>
 
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)
 {
@@ -20,9 +21,12 @@ err_t EBML_StringSetValue(ebml_string *Element,const char *Value)
 {
     if (Element->Base.bValueIsSet && Element->Buffer)
         free((char*)Element->Buffer);
-    Element->Buffer = strdup(Value);
+    Element->Base.DataSize = strlen(Value);
+    Element->Buffer = malloc(Element->Base.DataSize + 1);
+    if (Element->Buffer == NULL)
+        return ERR_OUT_OF_MEMORY;
+    strncpy((char*)Element->Buffer, Value, Element->Base.DataSize + 1);
     Element->Base.bValueIsSet = 1;
-    Element->Base.DataSize = strlen(Element->Buffer);
     Element->Base.bNeedDataSizeUpdate = 0;
     return ERR_NONE;
 }
@@ -185,7 +189,13 @@ static ebml_string *Copy(const ebml_string *Element)
     ebml_string *Result = (ebml_string*)EBML_ElementCreate(Element,Element->Base.Context,0,EBML_ANY_PROFILE);
     if (Result)
     {
-        Result->Buffer = strdup(Element->Buffer);
+        Result->Buffer = malloc(Element->Base.DataSize + 1);
+        if (Result->Buffer == NULL)
+        {
+            NodeDelete((node*)Result);
+            return NULL;
+        }
+        strncpy((char*)Result->Buffer, Element->Buffer, Element->Base.DataSize + 1);
         Result->Base.bValueIsSet = Element->Base.bValueIsSet;
         Result->Base.DataSize = Element->Base.DataSize;
         Result->Base.ElementPosition = Element->Base.ElementPosition;
