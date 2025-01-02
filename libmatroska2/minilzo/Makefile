@@ -4,8 +4,7 @@
 # Copyright (C) 1996-2008 Markus F.X.J. Oberhumer
 #
 
-PROGRAM = testmini
-SOURCES = testmini.c minilzo.c
+SOURCES = minilzo.c
 
 default:
 	@echo "Please choose one of the following targets:"
