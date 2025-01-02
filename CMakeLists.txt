@@ -27,7 +27,6 @@ if(DEV_MODE)
   set(CMAKE_C_EXTENSIONS OFF)
   add_c_flag_if_supported(-Wno-error=unused-command-line-argument
                           -Wall -Wextra -Wpedantic -Wfatal-errors -fstack-protector-strong
-                          -Wno-self-assign
                           -Werror=missing-field-initializers
                           -Werror=excess-initializers
                           -Werror=strict-aliasing
