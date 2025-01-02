@@ -19,7 +19,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #endif
 }
 
-int main(int argc,char** argv)
+int main(int UNUSED_PARAM(argc),char** UNUSED_PARAM(argv))
 {
     node* p[10000];
     int i;

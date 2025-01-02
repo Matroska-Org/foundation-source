@@ -138,7 +138,7 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 4);
 }
 
-static err_t ReadData(ebml_crc *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_crc *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int UNUSED_PARAM(Scope), size_t UNUSED_PARAM(DepthCheckCRC))
 {
     err_t Result;
     uint32_t CRCbuffer;
@@ -152,7 +152,7 @@ static err_t ReadData(ebml_crc *Element, struct stream *Input, const ebml_parser
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_crc *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_crc *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     err_t Result;
     size_t Written = 0;
@@ -182,7 +182,7 @@ static ebml_crc *Copy(const ebml_crc *Element)
     return Result;
 }
 
-static bool_t IsDefaultValue(const ebml_element *Element)
+static bool_t IsDefaultValue(const ebml_element *UNUSED_PARAM(Element))
 {
     return 0; // CRC has no default value
 }

@@ -27,7 +27,7 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 8 || p->DataSize == 0);
 }
 
-static err_t ReadData(ebml_date *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_date *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int Scope, size_t UNUSED_PARAM(DepthCheckCRC))
 {
     err_t Result;
     int DataSize;

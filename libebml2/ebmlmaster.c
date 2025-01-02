@@ -94,7 +94,7 @@ err_t EBML_MasterAppend(ebml_master *Element, ebml_element *Append)
     return Result;
 }
 
-err_t EBML_MasterRemove(ebml_master *Element, ebml_element *Append)
+err_t EBML_MasterRemove(ebml_master *UNUSED_PARAM(Element), ebml_element *Append)
 {
     err_t Result = NodeTree_SetParent(Append,NULL,NULL);
     return Result;
@@ -157,7 +157,7 @@ void EBML_MasterErase(ebml_master *Element)
     	NodeTree_DetachAndRelease(Element->Base.Base.Children);
 }
 
-static bool_t IsDefaultValue(const ebml_element *Element)
+static bool_t IsDefaultValue(const ebml_element *UNUSED_PARAM(Element))
 {
     return 0;
     // TODO: a master element has the default value if all the sub elements are unique and have the default value
@@ -599,7 +599,7 @@ static void AddChild(ebml_master* p,ebml_element* Child,ebml_element* Before)
     INHERITED(p,nodetree_vmt,EBML_MASTER_CLASS)->AddChild(p,Child,Before);
 }
 
-static bool_t ValidateSize(const ebml_element *p)
+static bool_t ValidateSize(const ebml_element *UNUSED_PARAM(p))
 {
     return 1;
 }

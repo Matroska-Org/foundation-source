@@ -144,7 +144,7 @@ static filepos_t Seek(filestream* p,filepos_t Pos,int SeekMode)
     return NewPos;
 }
 
-static err_t SetLength(filestream* p,dataid Id,const filepos_t* Data,size_t Size)
+static err_t SetLength(filestream* p,dataid UNUSED_PARAM(Id),const filepos_t* Data,size_t Size)
 {
     if (Size != sizeof(filepos_t))
         return ERR_INVALID_DATA;
@@ -260,7 +260,7 @@ META_DATA(TYPE_FILEPOS,STREAM_LENGTH,filestream,Length)
 META_PARAM(STRING,NODE_PROTOCOL,T("file"))
 META_END(STREAM_CLASS)
 
-bool_t FileErase(nodecontext *p,const tchar_t* Path, bool_t Force, bool_t Safe)
+bool_t FileErase(const tchar_t* Path, bool_t Force, bool_t UNUSED_PARAM(Safe))
 {
     if (Force)
     {
