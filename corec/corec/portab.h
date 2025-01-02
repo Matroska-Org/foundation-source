@@ -96,10 +96,6 @@
 #define IS_LITTLE_ENDIAN
 #endif
 
-#ifndef M_PI
-#define M_PI    3.14159265358979323846264338327950288
-#endif
-
 #ifdef _MSC_VER
 
 #define _CRTDBG_MAP_ALLOC
