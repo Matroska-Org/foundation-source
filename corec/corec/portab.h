@@ -10,7 +10,6 @@
 
 #include <string.h>
 #include <ctype.h>
-#include <stdarg.h>
 #include <stddef.h>
 
 #undef INLINE
