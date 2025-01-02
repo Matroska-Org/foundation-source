@@ -144,10 +144,6 @@
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 
-#ifndef strdup
-#define strdup(x)          _strdup(x)
-#endif
-
 #if _MSC_VER >= 1400
 #define NOINLINE __declspec(noinline)
 #else
