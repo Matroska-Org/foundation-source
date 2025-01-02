@@ -8,8 +8,6 @@
 #ifndef __HELPER_H
 #define __HELPER_H
 
-#define OFS(name,item) offsetof(name,item)
-
 #define SWAP32(a) ((((uint32_t)(a) >> 24) & 0x000000FF) | (((uint32_t)(a) >> 8)  & 0x0000FF00)|\
                   (((uint32_t)(a) << 8)  & 0x00FF0000) | (((uint32_t)(a) << 24) & 0xFF000000))
 
