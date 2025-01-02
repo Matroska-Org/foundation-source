@@ -5,6 +5,7 @@
  *
  ****************************************************************************/
 
+#include <stdlib.h>
 #include "parser.h"
 #include "strtypes.h"
 #include "strtab.h"
@@ -977,8 +978,8 @@ void SimplifyFrac(cc_fraction* f, int64_t Num, int64_t Den)
 {
     bool_t Sign = (Num<0) != (Den<0);
 
-    Num = _abs(Num);
-    Den = _abs(Den);
+    Num = llabs(Num);
+    Den = llabs(Den);
 
     if (Num>INT_MAX || Den>INT_MAX)
     {

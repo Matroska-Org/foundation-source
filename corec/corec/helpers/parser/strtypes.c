@@ -5,6 +5,7 @@
  *
  ****************************************************************************/
 
+#include <stdlib.h>
 #include "strtypes.h"
 #include "parser.h"
 #include <corec/helpers/date/date.h>
@@ -47,7 +48,7 @@ void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* p, int Per
 
     if (Percent)
     {
-        while (_abs(Num) > INT_MAX/100)
+        while (labs(Num) > INT_MAX/100)
         {
             Num >>= 1;
             Den >>= 1;
