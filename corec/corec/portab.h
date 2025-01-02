@@ -23,13 +23,11 @@
 
 #define TARGET_WIN64
 #define TARGET_WIN
-#define TARGET_DESKTOP
 
 #elif defined(_WIN32)
 
 #define TARGET_WIN32
 #define TARGET_WIN
-#define TARGET_DESKTOP
 
 #elif defined(__APPLE__)
 
@@ -51,10 +49,6 @@
 #define ARM
 #endif
 
-#endif
-
-#ifndef TARGET_IPHONE
-#define TARGET_DESKTOP // only for dekstop (not iPhone or Apple TV)
 #endif
 
 #elif defined(ANDROID)
