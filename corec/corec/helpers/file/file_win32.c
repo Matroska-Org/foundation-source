@@ -218,7 +218,7 @@ static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
     return Err;
 }
 
-static err_t SetLength(filestream* p,dataid UNUSED_PARAM(Id),const filepos_t* Data,size_t UNUSED_PARAM(Size))
+static err_t SetLength(filestream* p,dataid UNUSED_PARAM(Id),const filepos_t* Data,size_t Size)
 {
     err_t Result = ERR_NONE;
     filepos_t Pos;

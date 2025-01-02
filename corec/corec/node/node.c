@@ -1014,7 +1014,7 @@ static const nodemeta* BitLookup(const nodeclass* Class,dataid Id)
     return NULL;
 }
 
-static NOINLINE int CmpLookup(const void* UNUSED_PARAM(p), const void* va, const void* vb)
+static NOINLINE int CmpLookup(const void* p, const void* va, const void* vb)
 {
     const nodemetalookup* a = va;
     const nodemetalookup* b = vb;
