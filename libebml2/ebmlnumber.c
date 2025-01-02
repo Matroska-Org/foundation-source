@@ -225,7 +225,7 @@ static err_t ReadDataFloat(ebml_float *Element, struct stream *Input, const ebml
         goto failed;
     }
 
-    Result = Stream_Read(Input,Value,min((size_t)Element->Base.DataSize,sizeof(Value)),NULL); // min is for code safety
+    Result = Stream_Read(Input,Value,MIN((size_t)Element->Base.DataSize,sizeof(Value)),NULL); // min is for code safety
     if (Result != ERR_NONE)
         goto failed;
 

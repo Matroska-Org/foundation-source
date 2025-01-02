@@ -1149,7 +1149,7 @@ int main(int argc, const char *argv[])
                         assert(EbmlDocVer!=NULL);
                         if (EbmlDocVer)
                         {
-                            TrackMax = max(TrackMax,(size_t)EL_Int(EbmlDocVer));
+                            TrackMax = MAX(TrackMax,(size_t)EL_Int(EbmlDocVer));
                             ARRAYBEGIN(Tracks,track_info)[TrackCount].Num = (int)EL_Int(EbmlDocVer);
                         }
                         EbmlDocVer = EBML_MasterFindChild(Elt,MATROSKA_getContextTrackType());

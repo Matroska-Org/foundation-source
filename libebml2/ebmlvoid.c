@@ -26,9 +26,9 @@ static err_t RenderData(ebml_element *Element, struct stream *Output, bool_t bFo
     memset(Buf,0,sizeof(Buf));
     while (Err==ERR_NONE && Left)
     {
-        Err = Stream_Write(Output,Buf,min(Left,sizeof(Buf)),&Written);
+        Err = Stream_Write(Output,Buf,MIN(Left,sizeof(Buf)),&Written);
         if (Err == ERR_NONE)
-            Left -= min(Left,sizeof(Buf));
+            Left -= MIN(Left,sizeof(Buf));
     }
     if (Rendered)
         *Rendered = Element->DataSize - Left;

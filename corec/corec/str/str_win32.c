@@ -31,7 +31,7 @@ int tcsicmp(const tchar_t* a,const tchar_t* b)
 
 int tcsnicmp(const tchar_t* a,const tchar_t* b,size_t n)
 {
-    int i = CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,a,min(tcslen(a),n),b,min(tcslen(b),n));
+    int i = CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,a,MIN(tcslen(a),n),b,MIN(tcslen(b),n));
     if (i)
         return i-CSTR_EQUAL;
 
@@ -59,7 +59,7 @@ int tcscmp(const tchar_t* a,const tchar_t* b)
 
 int tcsncmp(const tchar_t* a,const tchar_t* b,size_t n)
 {
-    int i = CompareString(LOCALE_USER_DEFAULT,0,a,min(tcslen(a),n),b,min(tcslen(b),n));
+    int i = CompareString(LOCALE_USER_DEFAULT,0,a,MIN(tcslen(a),n),b,MIN(tcslen(b),n));
     if (i)
         return i-CSTR_EQUAL;
 

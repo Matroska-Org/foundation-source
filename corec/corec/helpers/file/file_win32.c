@@ -395,7 +395,7 @@ static bool_t FileRecycle(const tchar_t* Path)
 
     memset(&DelStruct,0,sizeof(DelStruct));
     DelStruct.wFunc = FO_DELETE;
-    l = min(tcslen(Path)+1,TSIZEOF(PathEnded)-1);
+    l = MIN(tcslen(Path)+1,TSIZEOF(PathEnded)-1);
     tcscpy_s(PathEnded,TSIZEOF(PathEnded),Path);
     PathEnded[l]=0;
     DelStruct.pFrom = PathEnded;

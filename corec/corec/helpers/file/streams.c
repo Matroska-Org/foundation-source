@@ -17,7 +17,7 @@ static err_t DummySkip(void* p, intptr_t* Skip)
     err_t Err = ERR_NONE;
     while (n>0 && Err == ERR_NONE)
     {
-        Err = Stream_Read(p,Buf,min(n,(intptr_t)sizeof(Buf)),&Readed);
+        Err = Stream_Read(p,Buf,MIN(n,(intptr_t)sizeof(Buf)),&Readed);
         n -= Readed;
     }
     *Skip = n;
