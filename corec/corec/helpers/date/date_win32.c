@@ -35,7 +35,7 @@ static bool_t GetIsDst(datetime_t t); // may not be correct on all platforms
 
 systick_t GetTimeTick(void)
 {
-	return GetTickCount();
+    return GetTickCount();
 }
 
 datetime_t FileTimeToRel(FILETIME *fTime)

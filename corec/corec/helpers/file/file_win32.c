@@ -43,15 +43,15 @@
 
 typedef struct filestream
 {
-	stream Stream;
-	tchar_t URL[MAXPATH];
-	HANDLE Handle;
-	filepos_t Length;
-	filepos_t Pos;
-	int Flags;
+    stream Stream;
+    tchar_t URL[MAXPATH];
+    HANDLE Handle;
+    filepos_t Length;
+    filepos_t Pos;
+    int Flags;
 
-	void* Find;
-	WIN32_FIND_DATA FindData;
+    void* Find;
+    WIN32_FIND_DATA FindData;
     int DriveNo;
 
 } filestream;
@@ -71,77 +71,77 @@ static filepos_t SetFilePointerFP(HANDLE hFile, filepos_t DistanceToMove, DWORD 
 
 static err_t Open(filestream* p, const tchar_t* URL, int Flags)
 {
-	if (p->Handle)
-		CloseHandle(p->Handle);
-	p->Handle = 0;
-	p->Length = INVALID_FILEPOS_T;
+    if (p->Handle)
+        CloseHandle(p->Handle);
+    p->Handle = 0;
+    p->Length = INVALID_FILEPOS_T;
 
-	if (URL != p->URL)
-		p->URL[0] = 0;
-	else
-		Sleep(200);
+    if (URL != p->URL)
+        p->URL[0] = 0;
+    else
+        Sleep(200);
 
-	if (URL)
-	{
+    if (URL)
+    {
         DWORD FileSizeLow;
         DWORD FileSizeHigh;
-		HANDLE Handle;
+        HANDLE Handle;
 
         Handle = CreateFile(URL,((Flags & SFLAG_RDONLY || !(Flags & SFLAG_WRONLY))?GENERIC_READ:0)|
             ((Flags & SFLAG_WRONLY || !(Flags & SFLAG_RDONLY))?GENERIC_WRITE:0),
-			FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,(Flags & SFLAG_CREATE)?CREATE_ALWAYS:OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,NULL);
+            FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,(Flags & SFLAG_CREATE)?CREATE_ALWAYS:OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,NULL);
 
-		if (Handle == INVALID_HANDLE_VALUE)
-		{
-			if ((Flags & (SFLAG_REOPEN|SFLAG_SILENT))==0)
-			{
-				if (Flags & SFLAG_WRONLY)
-					NodeReportError(p,NULL,ERR_ID,ERR_DEVICE_ERROR,URL);
-				else
-					NodeReportError(p,NULL,ERR_ID,ERR_FILE_NOT_FOUND,URL);
-			}
-			return ERR_FILE_NOT_FOUND;
-		}
+        if (Handle == INVALID_HANDLE_VALUE)
+        {
+            if ((Flags & (SFLAG_REOPEN|SFLAG_SILENT))==0)
+            {
+                if (Flags & SFLAG_WRONLY)
+                    NodeReportError(p,NULL,ERR_ID,ERR_DEVICE_ERROR,URL);
+                else
+                    NodeReportError(p,NULL,ERR_ID,ERR_FILE_NOT_FOUND,URL);
+            }
+            return ERR_FILE_NOT_FOUND;
+        }
 
-		tcscpy_s(p->URL,TSIZEOF(p->URL),URL);
+        tcscpy_s(p->URL,TSIZEOF(p->URL),URL);
         p->Flags = Flags & ~SFLAG_REOPEN;
-		p->Handle = Handle;
+        p->Handle = Handle;
 
-		FileSizeLow = GetFileSize(Handle,&FileSizeHigh);
+        FileSizeLow = GetFileSize(Handle,&FileSizeHigh);
         if (FileSizeLow != INVALID_FILE_SIZE || GetLastError()==NO_ERROR)
             p->Length = (filepos_t)(((int64_t)FileSizeHigh << 32) | FileSizeLow);
 
-		if (Flags & SFLAG_REOPEN)
-			p->Pos = SetFilePointerFP(p->Handle,p->Pos,FILE_BEGIN);
-		else
-		{
-			p->Pos = 0;
-		}
-	}
-	return ERR_NONE;
+        if (Flags & SFLAG_REOPEN)
+            p->Pos = SetFilePointerFP(p->Handle,p->Pos,FILE_BEGIN);
+        else
+        {
+            p->Pos = 0;
+        }
+    }
+    return ERR_NONE;
 }
 
 static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
 {
     err_t Err;
-	DWORD n;
+    DWORD n;
 
-	if (ReadFile(p->Handle,Data,(DWORD)Size,&n,NULL))
-	{
-		p->Pos += n;
+    if (ReadFile(p->Handle,Data,(DWORD)Size,&n,NULL))
+    {
+        p->Pos += n;
         Err = (n == Size) ? ERR_NONE : ERR_END_OF_FILE;
-	}
+    }
     else
     {
-	    DWORD Error = GetLastError();
-	    if (Error == ERROR_DEVICE_REMOVED ||
-		    Error == ERROR_DEVICE_NOT_AVAILABLE ||
-		    Error == ERROR_INVALID_HANDLE ||
-		    Error == ERROR_INVALID_DRIVE_OBJECT ||
-		    Error == ERROR_DEV_NOT_EXIST ||
-		    Error == ERROR_GEN_FAILURE)
-		    Open(p,p->URL,p->Flags|SFLAG_REOPEN);
+        DWORD Error = GetLastError();
+        if (Error == ERROR_DEVICE_REMOVED ||
+            Error == ERROR_DEVICE_NOT_AVAILABLE ||
+            Error == ERROR_INVALID_HANDLE ||
+            Error == ERROR_INVALID_DRIVE_OBJECT ||
+            Error == ERROR_DEV_NOT_EXIST ||
+            Error == ERROR_GEN_FAILURE)
+            Open(p,p->URL,p->Flags|SFLAG_REOPEN);
 
         Err = ERR_READ;
         n = 0;
@@ -155,55 +155,55 @@ static err_t Read(filestream* p,void* Data,size_t Size,size_t* Readed)
 
 static err_t ReadBlock(filestream* p,block* Block,size_t Ofs,size_t Size,size_t* Readed)
 {
-	return Read(p,(void*)(Block->Ptr+Ofs),Size,Readed);
+    return Read(p,(void*)(Block->Ptr+Ofs),Size,Readed);
 }
 
 static filepos_t Seek(filestream* p,filepos_t Pos,int SeekMode)
 {
-	int ReTry=3;
-	filepos_t Result;
-	DWORD Error;
+    int ReTry=3;
+    filepos_t Result;
+    DWORD Error;
 
-	switch (SeekMode)
-	{
-	default:
-	case SEEK_SET: SeekMode = FILE_BEGIN; break;
-	case SEEK_CUR: SeekMode = FILE_CURRENT; break;
-	case SEEK_END: SeekMode = FILE_END; break;
-	}
+    switch (SeekMode)
+    {
+    default:
+    case SEEK_SET: SeekMode = FILE_BEGIN; break;
+    case SEEK_CUR: SeekMode = FILE_CURRENT; break;
+    case SEEK_END: SeekMode = FILE_END; break;
+    }
 
-	do
-	{
-		Result = SetFilePointerFP(p->Handle,Pos,SeekMode);
+    do
+    {
+        Result = SetFilePointerFP(p->Handle,Pos,SeekMode);
 
-		if (Result != -1)
-		{
-			p->Pos = Result;
-			break;
-		}
+        if (Result != -1)
+        {
+            p->Pos = Result;
+            break;
+        }
 
-		Error = GetLastError();
-		if (Error != ERROR_DEVICE_REMOVED && Error != ERROR_INVALID_HANDLE)
-			break;
+        Error = GetLastError();
+        if (Error != ERROR_DEVICE_REMOVED && Error != ERROR_INVALID_HANDLE)
+            break;
 
-		Open(p,p->URL,p->Flags|SFLAG_REOPEN);
-	}
-	while (--ReTry>0);
+        Open(p,p->URL,p->Flags|SFLAG_REOPEN);
+    }
+    while (--ReTry>0);
 
     if (Result==-1)
         Result = INVALID_FILEPOS_T;
 
-	return Result;
+    return Result;
 }
 
 static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
 {
-	DWORD n;
+    DWORD n;
     err_t Err;
 
-	if (WriteFile(p->Handle,Data,(DWORD)Size,&n,NULL))
+    if (WriteFile(p->Handle,Data,(DWORD)Size,&n,NULL))
     {
-    	p->Pos += n;
+        p->Pos += n;
         Err = (n == Size) ? ERR_NONE : ERR_WRITE;
     }
     else
@@ -215,44 +215,44 @@ static err_t Write(filestream* p,const void* Data,size_t Size,size_t* Written)
     if (Written)
         *Written = n;
 
-	return Err;
+    return Err;
 }
 
 static err_t SetLength(filestream* p,dataid UNUSED_PARAM(Id),const filepos_t* Data,size_t UNUSED_PARAM(Size))
 {
-	err_t Result = ERR_NONE;
-	filepos_t Pos;
+    err_t Result = ERR_NONE;
+    filepos_t Pos;
 
     if (Size != sizeof(filepos_t))
         return ERR_INVALID_DATA;
 
-	Pos = SetFilePointerFP(p->Handle,0,SEEK_CUR);
-	if (Pos == -1)
-		return ERR_NOT_SUPPORTED;
+    Pos = SetFilePointerFP(p->Handle,0,SEEK_CUR);
+    if (Pos == -1)
+        return ERR_NOT_SUPPORTED;
 
-	if (SetFilePointerFP(p->Handle,*Data,SEEK_SET) == -1)
-		return ERR_NOT_SUPPORTED;
+    if (SetFilePointerFP(p->Handle,*Data,SEEK_SET) == -1)
+        return ERR_NOT_SUPPORTED;
 
-	if (!SetEndOfFile(p->Handle))
-		Result = ERR_BUFFER_FULL;
+    if (!SetEndOfFile(p->Handle))
+        Result = ERR_BUFFER_FULL;
 
-	Pos = SetFilePointerFP(p->Handle,Pos,SEEK_SET);
-	if (Pos != -1)
-		p->Pos = Pos;
+    Pos = SetFilePointerFP(p->Handle,Pos,SEEK_SET);
+    if (Pos != -1)
+        p->Pos = Pos;
 
-	return Result;
+    return Result;
 }
 
 static err_t OpenDir(filestream* p,const tchar_t* URL,int UNUSED_PARAM(Flags))
 {
-	DWORD Attrib;
-	tchar_t Path[MAXPATHFULL];
+    DWORD Attrib;
+    tchar_t Path[MAXPATHFULL];
 
-	if (p->Find != INVALID_HANDLE_VALUE)
-	{
-		FindClose(p->Find);
-		p->Find = INVALID_HANDLE_VALUE;
-	}
+    if (p->Find != INVALID_HANDLE_VALUE)
+    {
+        FindClose(p->Find);
+        p->Find = INVALID_HANDLE_VALUE;
+    }
     p->DriveNo = -1;
 
     if (!URL[0])
@@ -261,17 +261,17 @@ static err_t OpenDir(filestream* p,const tchar_t* URL,int UNUSED_PARAM(Flags))
     }
     else
     {
-		Attrib = GetFileAttributes(URL);
-		if (Attrib == (DWORD)-1)
-			return ERR_FILE_NOT_FOUND;
+        Attrib = GetFileAttributes(URL);
+        if (Attrib == (DWORD)-1)
+            return ERR_FILE_NOT_FOUND;
 
-		if (!(Attrib & FILE_ATTRIBUTE_DIRECTORY))
-			return ERR_NOT_DIRECTORY;
+        if (!(Attrib & FILE_ATTRIBUTE_DIRECTORY))
+            return ERR_NOT_DIRECTORY;
 
         tcscpy_s(Path,TSIZEOF(Path),URL);
         AddPathDelimiter(Path,TSIZEOF(Path));
         tcscat_s(Path,TSIZEOF(Path),T("*.*"));
-		p->Find = FindFirstFile(Path, &p->FindData);
+        p->Find = FindFirstFile(Path, &p->FindData);
     }
 
     return ERR_NONE;
@@ -281,8 +281,8 @@ extern datetime_t FileTimeToRel(FILETIME*);
 
 static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdir* Item)
 {
-	Item->FileName[0] = 0;
-	Item->DisplayName[0] = 0;
+    Item->FileName[0] = 0;
+    Item->DisplayName[0] = 0;
 
     if (p->DriveNo>=0)
     {
@@ -313,57 +313,57 @@ static err_t EnumDir(filestream* p,const tchar_t* Exts,bool_t ExtFilter,streamdi
     }
     else
     {
-	    while (!Item->FileName[0] && p->Find != INVALID_HANDLE_VALUE)
-	    {
-		    if (p->FindData.cFileName[0]!='.' && // skip unix/mac hidden files and . .. directory entries
+        while (!Item->FileName[0] && p->Find != INVALID_HANDLE_VALUE)
+        {
+            if (p->FindData.cFileName[0]!='.' && // skip unix/mac hidden files and . .. directory entries
                 !(p->FindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
-		    {
-			    tcscpy_s(Item->FileName,TSIZEOF(Item->FileName),p->FindData.cFileName);
+            {
+                tcscpy_s(Item->FileName,TSIZEOF(Item->FileName),p->FindData.cFileName);
 
                 Item->ModifiedDate = FileTimeToRel(&p->FindData.ftLastWriteTime);
 
-			    if (p->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                if (p->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 {
-				    Item->Size = INVALID_FILEPOS_T;
+                    Item->Size = INVALID_FILEPOS_T;
                     Item->Type = FTYPE_DIR;
                 }
-			    else
-			    {
-				    Item->Size = (filepos_t)(((int64_t)p->FindData.nFileSizeHigh << 32) | p->FindData.nFileSizeLow);
-				    Item->Type = CheckExts(Item->FileName,Exts);
+                else
+                {
+                    Item->Size = (filepos_t)(((int64_t)p->FindData.nFileSizeHigh << 32) | p->FindData.nFileSizeLow);
+                    Item->Type = CheckExts(Item->FileName,Exts);
 
-				    if (!Item->Type && ExtFilter)
-					    Item->FileName[0] = 0; // skip
-			    }
-		    }
+                    if (!Item->Type && ExtFilter)
+                        Item->FileName[0] = 0; // skip
+                }
+            }
 
-		    if (!FindNextFile(p->Find,&p->FindData))
-		    {
-			    FindClose(p->Find);
-			    p->Find = INVALID_HANDLE_VALUE;
-		    }
-	    }
+            if (!FindNextFile(p->Find,&p->FindData))
+            {
+                FindClose(p->Find);
+                p->Find = INVALID_HANDLE_VALUE;
+            }
+        }
     }
 
-	if (!Item->FileName[0])
-	{
-		if (p->Find != INVALID_HANDLE_VALUE)
-		{
-			FindClose(p->Find);
-			p->Find = INVALID_HANDLE_VALUE;
-		}
+    if (!Item->FileName[0])
+    {
+        if (p->Find != INVALID_HANDLE_VALUE)
+        {
+            FindClose(p->Find);
+            p->Find = INVALID_HANDLE_VALUE;
+        }
         p->DriveNo = -1;
-		return ERR_END_OF_FILE;
-	}
+        return ERR_END_OF_FILE;
+    }
 
-	return ERR_NONE;
+    return ERR_NONE;
 }
 
 static void Delete(filestream* p)
 {
-	Open(p,NULL,0);
-	if (p->Find != INVALID_HANDLE_VALUE)
-		FindClose(p->Find);
+    Open(p,NULL,0);
+    if (p->Find != INVALID_HANDLE_VALUE)
+        FindClose(p->Find);
 }
 
 META_START(File_Class,FILE_CLASS)
@@ -417,7 +417,7 @@ bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force,
     }
 
     if (!Safe)
-    	return DeleteFile(Path) != FALSE;
+        return DeleteFile(Path) != FALSE;
     else
         return FileRecycle(Path);
 }
@@ -425,6 +425,6 @@ bool_t FileErase(nodecontext* UNUSED_PARAM(p),const tchar_t* Path, bool_t Force,
 bool_t PathIsFolder(nodecontext* UNUSED_PARAM(p),const tchar_t* Path)
 {
     DWORD attr = GetFileAttributes(Path);
-	return (attr != (DWORD)-1) && (attr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
+    return (attr != (DWORD)-1) && (attr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
 }
 #endif
