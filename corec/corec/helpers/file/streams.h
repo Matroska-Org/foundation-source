@@ -78,7 +78,6 @@ struct streamselect
     void* Rd;
     void* Wr;
     void* Er;
-	tick_t Timeout; // TODO: change to systick_t
 	stream* Selected[64];
 };
 
