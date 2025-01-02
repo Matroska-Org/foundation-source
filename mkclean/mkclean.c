@@ -1263,10 +1263,10 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
 
     // disable Alternate3DTracks handling if there is no matching track
     TrackNum = -1;
-    for (TrackType=0; TrackType<ARRAYCOUNT(*Alternate3DTracks, block_info*); ++TrackType)
-        if (ARRAYBEGIN(*Alternate3DTracks, block_info*)[TrackType])
+    for (size_t Track3DNum=0; Track3DNum<ARRAYCOUNT(*Alternate3DTracks, block_info*); ++Track3DNum)
+        if (ARRAYBEGIN(*Alternate3DTracks, block_info*)[Track3DNum])
         {
-            TrackNum = TrackType;
+            TrackNum = Track3DNum;
             break;
         }
     if (TrackNum==-1)
