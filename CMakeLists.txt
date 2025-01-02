@@ -42,8 +42,10 @@ if(DEV_MODE)
                           -Werror=declaration-missing-parameter-type
                           -Werror=switch
                           -Werror=return-type
+                          # MSVC
                           -W4
-                          -we4013 # MSVC: undefined; assuming extern returning int
+                          -we4013 # undefined; assuming extern returning int
+                          -we4005 # macro redefinition
                           )
 endif()
 
