@@ -37,18 +37,11 @@
 typedef __wchar_t tchar_t;
 #else
 typedef wchar_t tchar_t;
-#endif
 
 #define tcsstr wcsstr
 #define tcslen wcslen
 #define tcschr wcschr
 #define tcsrchr wcsrchr
-#define tcscoll wcscoll
-#define tcstod wcstod
-#define tcscspn wcscspn
-#define tcspbrk wcspbrk
-#define tcstoul wcstoul
-#define tcsftime wcsftime
 #define T(a) L ## a
 #else /* UNICODE */
 typedef char tchar_t;
@@ -56,12 +49,6 @@ typedef char tchar_t;
 #define tcslen strlen
 #define tcschr strchr
 #define tcsrchr strrchr
-#define tcscoll strcoll
-#define tcstod strtod
-#define tcscspn strcspn
-#define tcspbrk strpbrk
-#define tcstoul strtoul
-#define tcsftime strftime
 #define T(a) a
 #endif /* UNICODE */
 
