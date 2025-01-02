@@ -40,6 +40,7 @@
  */
 
 #ifdef TARGET_WIN
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 void DebugMessage(const tchar_t* Msg,...)
 {
