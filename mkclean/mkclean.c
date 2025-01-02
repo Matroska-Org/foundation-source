@@ -13,6 +13,10 @@
 #include <corec/str/str.h>
 #include <corec/helpers/parser/parser.h>
 
+#if defined(CONFIG_CODEC_HELPER)
+#include "ivorbiscodec.h"
+#endif
+
 #ifndef CONFIG_EBML_WRITING
 #error libebml2 was not built with writing support!
 #endif
@@ -887,6 +891,87 @@ static bool_t HasTrackUID(ebml_master *Tracks, int TrackUID, const ebml_context 
     return 0;
 }
 
+static double GuessSamplingFreq(ebml_master *Track)
+{
+    double SampleRate = 0x0p+0;
+#if defined(CONFIG_CODEC_HELPER)
+    tchar_t CodecID[MAXPATH];
+    ebml_element *Elt = EBML_MasterGetChild(Track,MATROSKA_getContextCodecID(),DstProfile);
+    EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
+    if (tcsisame_ascii(CodecID,T("A_VORBIS")))
+    {
+        ebml_binary *CodecPrivate = (ebml_binary*) EBML_MasterFindChild(Track,MATROSKA_getContextCodecPrivate());
+        if (CodecPrivate != NULL)
+        {
+            vorbis_info vi;
+            vorbis_comment vc;
+            ogg_packet OggPacket;
+            ogg_reference OggRef;
+            ogg_buffer OggBuffer;
+            int n,i,j;
+
+            vorbis_info_init(&vi);
+            vorbis_comment_init(&vc);
+            memset(&OggPacket,0,sizeof(ogg_packet));
+
+            OggBuffer.data = (uint8_t*)EBML_BinaryGetData(CodecPrivate);
+            OggBuffer.size = (long)EBML_ElementDataSize((ebml_element*)CodecPrivate, 1);
+            OggBuffer.refcount = 1;
+
+            memset(&OggRef,0,sizeof(OggRef));
+            OggRef.buffer = &OggBuffer;
+            OggRef.next = NULL;
+
+            OggPacket.packet = &OggRef;
+            OggPacket.packetno = -1;
+
+            n = OggBuffer.data[0];
+            i = 1+n;
+            j = 1;
+
+            while (OggPacket.packetno < 3 && n>=j)
+            {
+                OggRef.begin = i;
+                OggRef.length = 0;
+                do
+                {
+                    OggRef.length += OggBuffer.data[j];
+                }
+                while (OggBuffer.data[j++] == 255 && n>=j);
+                i += OggRef.length;
+
+                if (i > OggBuffer.size)
+                    return ERR_INVALID_DATA;
+
+                ++OggPacket.packetno;
+                OggPacket.b_o_s = OggPacket.packetno == 0;
+                OggPacket.bytes = OggPacket.packet->length;
+                if (!(vorbis_synthesis_headerin(&vi,&vc,&OggPacket) >= 0) && OggPacket.packetno==0)
+                    return ERR_INVALID_DATA;
+            }
+
+            if (OggPacket.packetno < 3)
+            {
+                OggRef.begin = i;
+                OggRef.length = OggBuffer.size - i;
+
+                ++OggPacket.packetno;
+                OggPacket.b_o_s = OggPacket.packetno == 0;
+                OggPacket.bytes = OggPacket.packet->length;
+
+                if (!(vorbis_synthesis_headerin(&vi,&vc,&OggPacket) >= 0) && OggPacket.packetno==0)
+                    return ERR_INVALID_DATA;
+            }
+
+            SampleRate = vi.rate;
+            vorbis_comment_clear(&vc);
+            vorbis_info_clear(&vi);
+        }
+    }
+#endif
+    return SampleRate;
+}
+
 static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebml_master *Attachments, array *Alternate3DTracks)
 {
     ebml_master *Track, *CurTrack, *OtherTrack;
@@ -1224,11 +1309,26 @@ static int CleanTracks(ebml_master *Tracks, int srcProfile, int *dstProfile, ebm
         Elt = EBML_MasterFindChild(CurTrack,MATROSKA_getContextAudio());
         if (Elt)
         {
+            DisplayH = EBML_MasterGetChild((ebml_master*)Elt,MATROSKA_getContextSamplingFrequency(), DstProfile);
+            if (EBML_FloatValue((ebml_float*)DisplayH) == 0x0p+0)
+            {
+                double SamplingFreq = GuessSamplingFreq(CurTrack);
+                if (SamplingFreq != 0x0p+0)
+                {
+                    if (!Quiet)
+                        TextPrintf(StdErr,T("Invalid 0 SamplingFrequency value codec '%s' for profile '%s' in track %d, detected %f\r\n"),CodecID,GetProfileName(*dstProfile),TrackNum,SamplingFreq);
+                    EBML_FloatSetValue((ebml_float*)DisplayH, SamplingFreq);
+                }
+                else
+                {
+                    if (!Quiet)
+                        TextPrintf(StdErr,T("Invalid 0 SamplingFrequency value codec '%s' for profile '%s' in track %d, using the default value\r\n"),CodecID,GetProfileName(*dstProfile),TrackNum);
+                    NodeDelete((node*)CurTrack);
+                }
+            }
             Elt2 = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextOutputSamplingFrequency());
             if (Elt2)
             {
-                DisplayH = EBML_MasterFindChild((ebml_master*)Elt,MATROSKA_getContextSamplingFrequency());
-                assert(DisplayH!=NULL);
                 if (EBML_FloatValue((ebml_float*)Elt2) == EBML_FloatValue((ebml_float*)DisplayH))
                     NodeDelete((node*)Elt2);
             }

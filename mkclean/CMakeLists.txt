@@ -13,6 +13,10 @@ target_include_directories("mkclean" PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries("mkclean" PUBLIC "matroska2" "ebml2" "corec")
 
+if (CONFIG_CODEC_HELPER)
+  target_link_libraries("mkclean" PRIVATE $<BUILD_INTERFACE:tremor>)
+endif(CONFIG_CODEC_HELPER)
+
 # Source packaging script
 configure_file(pkg.sh.in pkg.sh)
 configure_file(src.br.in src.br)
