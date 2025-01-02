@@ -13,6 +13,3 @@ target_include_directories("minilzo" PUBLIC ".")
 set_target_properties("minilzo" PROPERTIES 
     PUBLIC_HEADER "${MINILZO_GROUP_PUBLIC_HEADERS}"
 )
-
-add_executable("testmini" testmini.c)
-target_link_libraries("testmini" PRIVATE "minilzo")
