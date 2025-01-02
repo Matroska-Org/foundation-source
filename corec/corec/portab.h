@@ -200,13 +200,13 @@ typedef uint64_t uint_fast64_t;
 
 #endif
 
-#if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0) && !defined(always_inline)
+#if defined(__GNUC__) && !defined(always_inline)
 #define INLINE __attribute__((always_inline)) inline
 #else
 #define INLINE inline
 #endif
 
-#if __GNUC__ >= 3
+#if defined(__GNUC__)
   #define NOINLINE __attribute__((noinline))
 #else
   #define NOINLINE
@@ -330,7 +330,7 @@ typedef uint16_t utf16_t;
 #define DLLEXPORT __declspec(dllexport) extern
 #define DLLIMPORT __declspec(dllimport) extern
 #define DLLHIDDEN
-#elif defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 340)
+#elif defined(__GNUC__)
 #define DLLEXPORT __attribute__ ((visibility("default"))) extern
 #define DLLIMPORT __attribute__ ((visibility("default"))) extern
 #define DLLHIDDEN __attribute__ ((visibility("hidden")))

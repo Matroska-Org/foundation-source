@@ -33,9 +33,6 @@
 #include <wchar.h>
 #endif
 
-#if defined(__GNUC__) && (__GNUC__<3) && defined(__cplusplus)
-typedef __wchar_t tchar_t;
-#else
 typedef wchar_t tchar_t;
 
 #define tcsstr wcsstr
