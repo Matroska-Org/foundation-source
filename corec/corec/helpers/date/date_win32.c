@@ -64,7 +64,7 @@ void RelToFileTime(datetime_t t, FILETIME *fTime)
     fTime->dwHighDateTime = (DWORD)int64time;
 }
 
-static void GetFixedTZ()
+static void GetFixedTZ(void)
 {
     if (fix_tz_ready == 0) {
         fix_tz_ready = GetTimeZoneInformation(&fix_tz) == TIME_ZONE_ID_INVALID? -1 : 1;
@@ -126,7 +126,7 @@ static void ConvertDaylightDateToFileTime(int Year, SYSTEMTIME *Date, FILETIME *
     SystemTimeToFileTime(&TimeStruct, fTime);
 }
 
-datetime_t GetTimeDate()
+datetime_t GetTimeDate(void)
 {
     SYSTEMTIME sysTimeStruct;
     FILETIME fTime;
