@@ -1374,7 +1374,7 @@ static err_t ReadBigBinaryData(ebml_binary *Element, struct stream *Input, const
     return INHERITED(Element,ebml_element_vmt,MATROSKA_BIGBINARY_CLASS)->ReadData(Element, Input, ParserContext, AllowDummyElt, Scope, DepthCheckCRC);
 }
 
-static err_t ReadBlockData(matroska_block *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope)
+static err_t ReadBlockData(matroska_block *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t UNUSED_PARAM(AllowDummyElt), int Scope)
 {
     err_t Result;
     uint8_t _TempHead[5];
@@ -1692,7 +1692,7 @@ static char GetBestLacingType(const matroska_block *Element, int ForProfile)
         return LACING_EBML;
 }
 
-static err_t RenderBlockData(matroska_block *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderBlockData(matroska_block *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int ForProfile, filepos_t *Rendered)
 {
     err_t Err = ERR_NONE;
     uint8_t BlockHead[5], *Cursor;

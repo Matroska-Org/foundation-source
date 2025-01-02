@@ -6,7 +6,7 @@
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
 
-static err_t ReadDataInt(ebml_integer *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadDataInt(ebml_integer *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int Scope, size_t UNUSED_PARAM(DepthCheckCRC))
 {
     err_t Result;
     char Buffer[8];
@@ -45,7 +45,7 @@ failed:
     return Result;
 }
 
-static err_t ReadDataSignedInt(ebml_integer *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadDataSignedInt(ebml_integer *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int Scope, size_t UNUSED_PARAM(DepthCheckCRC))
 {
     err_t Result;
     char Buffer[8];
@@ -88,7 +88,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderDataSignedInt(ebml_integer *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderDataSignedInt(ebml_integer *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     uint8_t FinalData[8]; // we don't handle more than 64 bits integers
     size_t i;
@@ -124,7 +124,7 @@ static err_t RenderDataSignedInt(ebml_integer *Element, struct stream *Output, b
     return Err;
 }
 
-static err_t RenderDataInt(ebml_integer *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderDataInt(ebml_integer *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     uint8_t FinalData[8]; // we don't handle more than 64 bits integers
     size_t i;
@@ -160,7 +160,7 @@ static err_t RenderDataInt(ebml_integer *Element, struct stream *Output, bool_t 
     return Err;
 }
 
-static err_t RenderDataFloat(ebml_float *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderDataFloat(ebml_float *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     err_t Err;
     size_t i = 0;
@@ -202,7 +202,7 @@ static bool_t ValidateSizeFloat(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p) && (p->DataSize == 8 || p->DataSize == 4);
 }
 
-static err_t ReadDataFloat(ebml_float *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadDataFloat(ebml_float *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int Scope, size_t UNUSED_PARAM(DepthCheckCRC))
 {
     uint8_t Value[8];
     err_t Result;

@@ -6,19 +6,19 @@
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
 
-static bool_t IsDefaultValue(const ebml_element *Element)
+static bool_t IsDefaultValue(const ebml_element *UNUSED_PARAM(Element))
 {
     return 0;
 }
 
-static err_t ReadData(ebml_element *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_element *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int UNUSED_PARAM(Scope), size_t UNUSED_PARAM(DepthCheckCRC))
 {
 	EBML_ElementSkipData(Element,Input,ParserContext,NULL,AllowDummyElt);
 	return ERR_NONE;
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_element *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_element *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     size_t Written, Left = (size_t)Element->DataSize;
     err_t Err = ERR_NONE;

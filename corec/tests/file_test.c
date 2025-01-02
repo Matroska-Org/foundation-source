@@ -19,7 +19,7 @@ void DebugMessage(const tchar_t* Msg,...)
 #endif
 }
 
-int main(int argc,char** argv)
+int main(int UNUSED_PARAM(argc),char** UNUSED_PARAM(argv))
 {
     nodecontext Context;
     NodeContext_Init(&Context,NULL,NULL,NULL);

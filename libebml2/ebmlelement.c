@@ -13,7 +13,7 @@ static bool_t ValidateSize(const ebml_element *p)
     return EBML_ElementIsFiniteSize(p); /* not allowed outside of master elements */
 }
 
-static void PostCreate(ebml_element *Element, bool_t SetDefault, int ForProfile)
+static void PostCreate(ebml_element *Element, bool_t UNUSED_PARAM(SetDefault), int UNUSED_PARAM(ForProfile))
 {
     Element->DefaultSize = -1;
     Element->ElementPosition = INVALID_FILEPOS_T;
@@ -30,7 +30,7 @@ static bool_t NeedsDataSizeUpdate(ebml_element *Element, bool_t bWithDefault)
     return 1;
 }
 
-static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t bForceWithoutMandatory, int ForProfile)
+static filepos_t UpdateDataSize(ebml_element *Element, bool_t bWithDefault, bool_t UNUSED_PARAM(bForceWithoutMandatory), int UNUSED_PARAM(ForProfile))
 {
     if (!bWithDefault && EBML_ElementIsDefaultValue(Element))
         return 0;
@@ -124,7 +124,7 @@ filepos_t EBML_ElementFullSize(const ebml_element *Element, bool_t bWithDefault)
     return Element->DataSize + GetIdLength(Element->Context->Id) + EBML_CodedSizeLength(Element->DataSize, Element->SizeLength, EBML_ElementIsFiniteSize(Element));
 }
 
-filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t bWithDefault)
+filepos_t EBML_ElementDataSize(const ebml_element *Element, bool_t UNUSED_PARAM(bWithDefault))
 {
     return Element->DataSize;
 }

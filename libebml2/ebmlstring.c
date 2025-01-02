@@ -49,7 +49,7 @@ void EBML_StringGet(ebml_string *Element,tchar_t *Out, size_t OutLen)
     }
 }
 
-static err_t ReadData(ebml_string *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_string *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int Scope, size_t UNUSED_PARAM(DepthCheckCRC))
 {
     err_t Result;
     char *Buffer = NULL;
@@ -94,7 +94,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_string *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_string *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     size_t Written;
     err_t Err = Stream_Write(Output,Element->Buffer,(size_t)Element->Base.DataSize,&Written);

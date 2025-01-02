@@ -131,22 +131,22 @@ void CharConvSU(charconv* Conv, char* Out, size_t OutLen, const utf16_t* In)
 	}
 }
 
-void CharConvSW(charconv* Conv, char* Out, size_t OutLen, const wchar_t* In)
+void CharConvSW(charconv* UNUSED_PARAM(Conv), char* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen), const wchar_t* UNUSED_PARAM(In))
 {
     fprintf(stderr, "Not supported yet: %s with no CC\n", __FUNCTION__);
 }
 
-void CharConvWS(charconv* Conv, wchar_t* Out, size_t OutLen, const char* In)
+void CharConvWS(charconv* UNUSED_PARAM(Conv), wchar_t* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen), const char* UNUSED_PARAM(In))
 {
     fprintf(stderr, "Not supported yet: %s with no CC\n", __FUNCTION__);
 }
 
-void CharConvUW(charconv* Conv, utf16_t* Out, size_t OutLen, const wchar_t* In)
+void CharConvUW(charconv* UNUSED_PARAM(Conv), utf16_t* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen), const wchar_t* UNUSED_PARAM(In))
 {
     fprintf(stderr, "Not supported yet: %s with no CC\n", __FUNCTION__);
 }
 
-void CharConvWU(charconv* Conv, wchar_t* Out, size_t OutLen, const utf16_t* In)
+void CharConvWU(charconv* UNUSED_PARAM(Conv), wchar_t* UNUSED_PARAM(Out), size_t UNUSED_PARAM(OutLen), const utf16_t* UNUSED_PARAM(In))
 {
     fprintf(stderr, "Not supported yet: %s with no CC\n", __FUNCTION__);
 }

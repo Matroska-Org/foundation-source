@@ -6,7 +6,7 @@
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
 
-static err_t ReadData(ebml_binary *Element, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC)
+static err_t ReadData(ebml_binary *Element, struct stream *Input, const ebml_parser_context *UNUSED_PARAM(ParserContext), bool_t UNUSED_PARAM(AllowDummyElt), int Scope, size_t UNUSED_PARAM(DepthCheckCRC))
 {
     err_t Result;
 
@@ -40,7 +40,7 @@ failed:
 }
 
 #if defined(CONFIG_EBML_WRITING)
-static err_t RenderData(ebml_binary *Element, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered)
+static err_t RenderData(ebml_binary *Element, struct stream *Output, bool_t UNUSED_PARAM(bForceWithoutMandatory), bool_t UNUSED_PARAM(bWithDefault), int UNUSED_PARAM(ForProfile), filepos_t *Rendered)
 {
     size_t Written;
     err_t Err = Stream_Write(Output,ARRAYBEGIN(Element->Data,uint8_t),ARRAYCOUNT(Element->Data,uint8_t),&Written);
@@ -55,7 +55,7 @@ static void Delete(ebml_binary *Element)
     ArrayClear(&Element->Data);
 }
 
-static bool_t IsDefaultValue(const ebml_binary *Element)
+static bool_t IsDefaultValue(const ebml_binary *UNUSED_PARAM(Element))
 {
     return 0; // TODO: a default binary value needs a size too (use a structure to set the value in the structure)
 }

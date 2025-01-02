@@ -114,7 +114,7 @@ void test_ptr(const char *Format, intptr_t Value)
         printf("passed '%s'\n",String);
 }
 
-int main(int argc,char** argv)
+int main(int UNUSED_PARAM(argc),char** argv)
 {
 #if defined(UNICODE)
     ToStr = CharConvOpen(NULL,CHARSET_DEFAULT);
