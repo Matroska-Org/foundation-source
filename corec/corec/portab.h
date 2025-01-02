@@ -12,7 +12,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <limits.h>
 
 #undef INLINE
 #undef NOINLINE
