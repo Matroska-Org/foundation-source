@@ -11,6 +11,7 @@
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/charconvert/charconvert.h>
 #include <corec/str/str.h>
+#include <limits.h>
 
 #define Parser_Context(p) ((parsercontext*)Node_Context(p))
 

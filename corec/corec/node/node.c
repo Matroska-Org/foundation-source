@@ -10,6 +10,7 @@
 #include "node_internal.h"
 #include <corec/str/str.h>
 #include <corec/memheap.h>
+#include <limits.h>
 
 #define NODE_MAGIC    0xF0DE0A6C
 #define DYNDATA_SHIFT 8
