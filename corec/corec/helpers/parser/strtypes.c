@@ -128,36 +128,6 @@ void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB)
         Out[7] = 0;
 }
 
-void TickToString(tchar_t* Out, size_t OutLen, tick_t Tick)
-{
-    tchar_t Sign[2] = {0};
-    if (Tick<0)
-    {
-        Sign[0] = '-';
-        Tick = -Tick;
-    }
-
-    int Hour,Min,Sec;
-    Tick += TICKSPERSEC/2000;
-    Hour = (int)(Tick / 3600 / TICKSPERSEC);
-    Tick -= Hour * 3600 * TICKSPERSEC;
-    Min = (int)(Tick / 60 / TICKSPERSEC);
-    Tick -= Min * 60 * TICKSPERSEC;
-    Sec = (int)(Tick / TICKSPERSEC);
-    Tick -= Sec * TICKSPERSEC;
-    if (!Hour && !Min)
-        stprintf_s(Out,OutLen,T("%s%d"),Sign,Sec);
-    else
-    {
-        if (Hour)
-            stprintf_s(Out,OutLen,T("%s%d:%02d"),Sign,Hour,Min);
-        else
-            stprintf_s(Out,OutLen,T("%s%d"),Sign,Min);
-        stcatprintf_s(Out,OutLen,T(":%02d"),Sec);
-    }
-    stcatprintf_s(Out,OutLen,T(".%03d"),(int)((Tick*1000)/TICKSPERSEC));
-}
-
 void SysTickToString(tchar_t* Out, size_t OutLen, systick_t Tick)
 {
     tchar_t Sign[2] = {0};

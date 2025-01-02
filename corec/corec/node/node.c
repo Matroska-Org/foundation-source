@@ -30,7 +30,7 @@ static const uint16_t ParamSize[MAX_PARAMTYPE] =
     sizeof(node*),		//TYPE_NODE
     0,                  //TYPE_META
     sizeof(pin),		//TYPE_PACKET
-    sizeof(tick_t),		//TYPE_TICK
+    0,                  //TYPE_TICK
     sizeof(nodenotify), //TYPE_NODENOTIFY
     sizeof(void*),		//TYPE_PTR
     MAXDATA,			//TYPE_BINARY
@@ -76,7 +76,7 @@ static const tchar_t* ParamName[MAX_PARAMTYPE] =
     T("node"),  		//TYPE_NODE
     NULL,	            //TYPE_META
     T("packet"),		//TYPE_PACKET
-    T("tick"),		    //TYPE_TICK
+    NULL,               //TYPE_TICK
     NULL,               //TYPE_NODENOTIFY
     T("pointer"),		//TYPE_PTR
     NULL,		        //TYPE_BINARY

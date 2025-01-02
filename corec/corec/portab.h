@@ -96,9 +96,6 @@
 #define IS_LITTLE_ENDIAN
 #endif
 
-#define TICKSPERSEC			16384
-#define TIMEPERSEC          (TICKSPERSEC>>4)
-
 #ifndef M_PI
 #define M_PI    3.14159265358979323846264338327950288
 #endif
@@ -191,7 +188,6 @@
 
 typedef int_fast32_t err_t;
 typedef int_fast32_t bool_t;
-typedef int_fast32_t tick_t;
 typedef uint8_t boolmem_t; /* unsigned so ":1" bitmode should work */
 typedef uint32_t fourcc_t;
 typedef uint32_t rgbval_t;
