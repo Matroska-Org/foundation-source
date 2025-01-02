@@ -29,9 +29,7 @@
 
 #if defined(UNICODE)
 
-#if defined(__GNUC__)
 #include <wchar.h>
-#endif
 
 typedef wchar_t tchar_t;
 
