@@ -15,6 +15,7 @@
 #ifndef STRICT
 #define STRICT
 #endif
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #define MIN_CACHED_YEAR 1990

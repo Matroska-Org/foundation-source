@@ -13,6 +13,7 @@
 #ifndef STRICT
 #define STRICT
 #endif
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #ifndef CP_UTF8
