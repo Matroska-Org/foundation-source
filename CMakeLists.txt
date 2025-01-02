@@ -23,7 +23,7 @@ function(add_c_flag_if_supported)
 endfunction()
 
 if(DEV_MODE)
-  message(STATUS "Using developer mode for ${CMAKE_C_COMPILER_ID}")
+  message(STATUS "Using developer mode for ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
   set(CMAKE_C_EXTENSIONS OFF)
   add_c_flag_if_supported(-Wno-error=unused-command-line-argument
                           -Wall -Wextra -Wpedantic -Wfatal-errors -fstack-protector-strong
