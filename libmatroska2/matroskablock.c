@@ -8,7 +8,6 @@
 #if defined(CONFIG_CODEC_HELPER)
 #include "ivorbiscodec.h"
 #include "codec_internal.h"
-#include "misc.h"
 #endif
 
 #include <corec/str/str.h>
