@@ -24,8 +24,8 @@ struct ebml_context
     intptr_t DefaultValue;
     const char *ElementName;
     // TODO: create sub class so we don't have to assign it all the time
-    const ebml_semantic *Semantic; // table with last element class set to NULL
-    const ebml_semantic *GlobalContext; // table with last element class set to NULL
+    const struct ebml_semantic *Semantic; // table with last element class set to NULL
+    const struct ebml_semantic *GlobalContext; // table with last element class set to NULL
 };
 
 struct ebml_element
@@ -35,7 +35,7 @@ struct ebml_element
     filepos_t ElementPosition;
     filepos_t SizePosition; // TODO: is this needed since we have the ElementPosition and SizeLength ?
     filepos_t EndPosition;
-    const ebml_context *Context;
+    const struct ebml_context *Context;
     int DefaultSize;
     int8_t SizeLength;
     boolmem_t bValueIsSet;

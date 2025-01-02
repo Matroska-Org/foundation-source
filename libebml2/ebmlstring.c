@@ -6,6 +6,7 @@
 #include "ebml2/ebml.h"
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/helpers/parser/parser.h>
 #include <string.h>
 
 err_t EBML_UniStringSetValue(ebml_string *Element,const tchar_t *Value)

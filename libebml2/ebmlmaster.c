@@ -6,6 +6,7 @@
 #include "internal.h"
 #include "ebmlcrc.h"
 #include <corec/helpers/file/streams.h>
+#include <corec/helpers/parser/parser.h>
 
 ebml_element *EBML_MasterAddElt(ebml_master *Element, const ebml_context *Context, bool_t SetDefault, int ForProfile)
 {

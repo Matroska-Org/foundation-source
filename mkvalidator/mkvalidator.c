@@ -8,6 +8,7 @@
 #include "mkvalidator_project.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/str/str.h>
+#include <corec/helpers/parser/parser.h>
 
 /*!
  * \todo verify the track timestamp scale is not null
