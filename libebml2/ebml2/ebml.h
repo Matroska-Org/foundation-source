@@ -7,12 +7,15 @@
 #define LIBEBML2_H
 
 #include <corec/node/node.h>
-#include <corec/helpers/parser/parser.h>
 #include "ebml2/ebml_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct stream stream;
+typedef struct parsercontext parsercontext;
+
 
 #define CONTEXT_LIBEBML_VERSION  0x400
 
@@ -89,9 +92,9 @@ typedef struct ebml_element_vmt
 {
     nodetree_vmt Base;
     bool_t (*ValidateSize)(const void*);
-    err_t (*ReadData)(void*, struct stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
+    err_t (*ReadData)(void*, stream *Input, const ebml_parser_context *ParserContext, bool_t AllowDummyElt, int Scope, size_t DepthCheckCRC);
 #if defined(CONFIG_EBML_WRITING)
-    err_t (*RenderData)(void*, struct stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered);
+    err_t (*RenderData)(void*, stream *Output, bool_t bForceWithoutMandatory, bool_t bWithDefault, int ForProfile, filepos_t *Rendered);
 #endif
     bool_t (*IsDefaultValue)(const void*);
     bool_t (*DefaultIsSet)(const void*);

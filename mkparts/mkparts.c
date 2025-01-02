@@ -7,6 +7,7 @@
 #include "mkparts_project.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/str/str.h>
+#include <corec/helpers/parser/parser.h>
 
 static textwriter *StdErr = NULL;
 static bool_t Split = 1;

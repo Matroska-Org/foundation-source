@@ -6,6 +6,7 @@
 #include "internal.h"
 #include <corec/helpers/file/streams.h>
 #include <corec/str/str.h>
+#include <corec/helpers/parser/parser.h>
 
 static bool_t ValidateSize(const ebml_element *p)
 {

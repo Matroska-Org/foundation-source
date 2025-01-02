@@ -9,6 +9,7 @@
 #include <corec/helpers/file/streams.h>
 #include <corec/helpers/date/date.h>
 #include <corec/str/str.h>
+#include <corec/helpers/parser/parser.h>
 
 static int ShowPos = 0;
 

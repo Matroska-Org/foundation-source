@@ -17,6 +17,7 @@
 #endif
 #include <corec/helpers/file/streams.h>
 #include <corec/str/str.h>
+#include <corec/helpers/parser/parser.h>
 
 extern const nodemeta Matroska_Class[];
 
