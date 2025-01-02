@@ -42,6 +42,7 @@ if(DEV_MODE)
                           -Werror=declaration-missing-parameter-type
                           -Werror=switch
                           -Werror=return-type
+                          -Werror=strict-prototypes
                           # MSVC
                           -W4
                           -we4013 # undefined; assuming extern returning int
