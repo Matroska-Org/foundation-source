@@ -38,14 +38,6 @@ void GUIDToString(tchar_t* Out, size_t OutLen, const cc_guid* p)
         p->v4[4],p->v4[5],p->v4[6],p->v4[7]);
 }
 
-// gcc 2.97 bug...
-static const tchar_t mask_d[] = T("%d");
-static const tchar_t mask_dd[] = T("%d%d");
-static const tchar_t mask_X[] = T("%X");
-static const tchar_t mask_0x08X[] = T("0x%08X");
-static const tchar_t mask_0x08Xx08X[] = T("0x%08X%08X");
-static const tchar_t mask_rgb[] = T("#%08X");
-
 void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* p, int Percent, int Decimal)
 {
     int a,b,i;
@@ -89,7 +81,7 @@ void FractionToString(tchar_t* Out, size_t OutLen, const cc_fraction* p, int Per
     if (Decimal)
         stprintf_s(Out,OutLen,T("%d.%0*d"),a,Decimal,b);
     else
-        stprintf_s(Out,OutLen,mask_d,a);
+        stprintf_s(Out,OutLen,T("%d"),a);
 
     if (Percent>0)
         tcscat_s(Out,OutLen,T("%"));
@@ -104,7 +96,7 @@ int StringToInt(const tchar_t* In, int Hex)
         Hex = In[0]=='0' && In[1]=='x';
         if (Hex) In+=2;
     }
-    stscanf(In,Hex ? mask_X:mask_d,&v);
+    stscanf(In,Hex ? T("%X"):T("%d"),&v);
     return v;
 }
 
@@ -118,19 +110,19 @@ int64_t StringToInt64(const tchar_t* In)
 void Int64ToString(tchar_t* Out, size_t OutLen, int64_t p, bool_t Hex)
 {
     if (!Hex && (p & 0xFFFFFFFF)==p)
-        stprintf_s(Out,OutLen,mask_d,(int32_t)p);
+        stprintf_s(Out,OutLen,T("%d"),(int32_t)p);
     else
-        stprintf_s(Out,OutLen,Hex ? mask_0x08Xx08X:mask_dd,(uint32_t)(((uint64_t)p)>>32),(uint32_t)p);
+        stprintf_s(Out,OutLen,Hex ? T("0x%08X%08X"):T("%d%d"),(uint32_t)(((uint64_t)p)>>32),(uint32_t)p);
 }
 
 void IntToString(tchar_t* Out, size_t OutLen, int32_t p, bool_t Hex)
 {
-    stprintf_s(Out,OutLen,Hex ? mask_0x08X:mask_d,p);
+    stprintf_s(Out,OutLen,Hex ? T("0x%08X"):T("%d"),p);
 }
 
 void RGBToString(tchar_t* Out, size_t OutLen, rgbval_t RGB)
 {
-    stprintf_s(Out,OutLen,mask_rgb,(int)INT32BE(RGB));
+    stprintf_s(Out,OutLen,T("#%08X"),(int)INT32BE(RGB));
     if (tcslen(Out)>=1+8 && Out[7]=='0' && Out[8]=='0')
         Out[7] = 0;
 }
