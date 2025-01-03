@@ -51,9 +51,9 @@ static INLINE void MemHeap_Write(const cc_memheap *p, void *ptr, void *src, size
 {
      p->Write(p, ptr, src, pos, size);
 }
-static INLINE uint8_t *MemHeap_Null(const cc_memheap *p)
+static INLINE void *MemHeap_Null(const cc_memheap *p)
 {
-     return (uint8_t*)(&(p)->Null+1);
+     return (void*)(&p->Null+1);
 }
 
 #endif
