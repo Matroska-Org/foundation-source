@@ -110,12 +110,12 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
     return 1;
 }
 
-static NOINLINE void Data_Clear(uint8_t** a)
+static NOINLINE void Data_Clear(array* a)
 {
-    uint8_t* p = *a;
+    uint8_t* p = a->_Begin;
     if (!p)
         return;
-    *a = NULL;
+    a->_Begin = NULL;
     datahead *hp = (datahead *)p;
     if (Data_IsMemHeap(hp))
     {
@@ -123,7 +123,7 @@ static NOINLINE void Data_Clear(uint8_t** a)
         const struct cc_memheap* Heap = dp->Heap;
         if (Data_GetSize(hp))
             MemHeap_Free(Heap,dp,Data_GetSize(hp)+sizeof(dataheaphead));
-        ArrayInitEx((array*)a, Heap);
+        ArrayInitEx(a, Heap);
     }
     else if (Data_IsHeap(hp))
     {
