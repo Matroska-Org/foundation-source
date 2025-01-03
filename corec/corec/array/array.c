@@ -9,6 +9,8 @@
 #include "array.h"
 #include <corec/memheap.h>
 
+#define DATA_FLAG_HEAP              (((size_t)1)<<(sizeof(size_t)*8-2))
+
 typedef struct datahead
 {
     size_t Size;
