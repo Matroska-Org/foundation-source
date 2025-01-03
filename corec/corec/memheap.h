@@ -8,6 +8,13 @@
 #ifndef __MEMHEAP_H
 #define __MEMHEAP_H
 
+#include <stdalign.h>
+
+#if defined(_MSC_VER) && !defined(__clang__)
+// MSVC lacks max_align_t in C11 mode, use the value from the C++ mode
+#define max_align_t  double
+#endif
+
 #define MEMHEAP_OPTIONAL        0x0001
 
 typedef struct cc_memheap cc_memheap;
@@ -31,6 +38,7 @@ struct cc_memheap
     memheap_realloc ReAlloc;
     memheap_write Write;
     dataheaphead Null;
+    alignas(max_align_t) uint8_t data[];
 };
 
 extern const cc_memheap *MemHeap_Default;

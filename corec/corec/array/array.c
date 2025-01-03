@@ -15,6 +15,7 @@
 typedef struct
 {
     size_t Size;
+    alignas(max_align_t) uint8_t data[];
 
 } datahead;
 
