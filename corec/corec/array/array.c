@@ -36,15 +36,27 @@ static INLINE const cc_memheap* Data_HeapHeadHeap(dataheaphead* Name)
     return (Name-1)->Heap;
 }
 
-#define Data_Head(Name)         ((datahead*)(Name)-1)
-#define Data_IsHeap(Name)       (Data_Head(Name)->Size & DATA_FLAG_HEAP)
-#define Data_IsMemHeap(Name)    (Data_Head(Name)->Size & DATA_FLAG_MEMHEAP)
-#define Data_GetSize(Name)      (Data_Head(Name)->Size & ~(DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP))
+static INLINE const datahead* Data_Head(const datahead* Name)
+{
+    return (Name-1);
+}
+static INLINE bool_t Data_IsHeap(const datahead* Name)
+{
+    return (Data_Head(Name)->Size & DATA_FLAG_HEAP) != 0;
+}
+static INLINE bool_t Data_IsMemHeap(const datahead* Name)
+{
+    return (Data_Head(Name)->Size & DATA_FLAG_MEMHEAP) != 0;
+}
+static INLINE size_t Data_GetSize(const datahead* Name)
+{
+    return Data_Head(Name)->Size & ~(DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP);
+}
 
 static size_t Data_Size(const unsigned char* a)
 {
     if (!a) return 0;
-    return Data_GetSize(a);
+    return Data_GetSize((datahead*)a);
 }
 
 static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
@@ -54,16 +66,16 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
 
     if (p)
     {
-        if (!Data_Head(p)->Size) // const?
+        if (!Data_Head((datahead*)p)->Size) // const?
             return 0;
-        oldsize = Data_GetSize(p);
+        oldsize = Data_GetSize((datahead*)p);
     }
     else
         oldsize = 0;
 
     if (oldsize<n)
     {
-        if (p && Data_IsMemHeap(p))
+        if (p && Data_IsMemHeap((datahead*)p))
         {
             const cc_memheap* Heap = Data_HeapHeadHeap((dataheaphead*)p);
             dataheaphead* Head;
@@ -81,7 +93,7 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
         else
         {
             datahead* Head;
-            if (!p || !Data_IsHeap(p))
+            if (!p || !Data_IsHeap((datahead*)p))
             {
                 uint8_t* old = p;
                 Head = malloc(n+sizeof(datahead));
@@ -89,7 +101,7 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
                     memcpy(Head+1,old,oldsize);
             }
             else
-                Head = realloc(Data_Head(p),n+sizeof(datahead));
+                Head = realloc((void*)Data_Head(hp),n+sizeof(datahead));
 
             if (!Head)
                 return 0;
@@ -107,16 +119,16 @@ static NOINLINE void Data_Clear(uint8_t** a)
     if (!p)
         return;
     *a = NULL;
-    if (Data_IsMemHeap(p))
+    if (Data_IsMemHeap((datahead*)p))
     {
         const struct cc_memheap* Heap = Data_HeapHeadHeap((dataheaphead*)p);
-        if (Data_GetSize(p))
-            MemHeap_Free(Heap,Data_HeapHead((dataheaphead*)p),Data_GetSize(p)+sizeof(dataheaphead));
+        if (Data_GetSize((datahead*)p))
+            MemHeap_Free(Heap,Data_HeapHead((dataheaphead*)p),Data_GetSize((datahead*)p)+sizeof(dataheaphead));
         ArrayInitEx((array*)a, Heap);
     }
-    else if (Data_IsHeap(p))
+    else if (Data_IsHeap((datahead*)p))
     {
-        free(Data_Head(p));
+        free((void*)Data_Head((datahead*)p));
     }
 }
 
