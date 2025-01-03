@@ -21,7 +21,6 @@ typedef struct stringdef
 
 void StrTab_Init(strtab* p, const cc_memheap* Heap, size_t Alloc)
 {
-    assert(STRTAB_ITEMSIZE == sizeof(stringdef));
     p->Heap = Heap;
     ArrayInit(&p->Table); // not using Heap, because we need direct write acess
 	ArrayAlloc(&p->Table,Alloc,TABLEALIGN);
@@ -33,6 +32,11 @@ static NOINLINE void StrTab_Clear(strtab* p)
 	for (i=ARRAYBEGIN(p->Table,stringdef*);i!=ARRAYEND(p->Table,stringdef*);++i)
         MemHeap_Free(p->Heap,*i,sizeof(stringdef)+tcsbytes((tchar_t*)(*i+1)));
     ArrayClear(&p->Table);
+}
+
+size_t StrTab_Size(const strtab* p)
+{
+    return ARRAYCOUNT(p->Table, stringdef);
 }
 
 void StrTab_Done(strtab* p)

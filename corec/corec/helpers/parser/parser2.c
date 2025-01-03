@@ -1137,8 +1137,7 @@ static dataid FindStrParam(node* p,const tchar_t* Token)
 static void EnumStr(node *p,array* List)
 {
     dataid Id,*i;
-    size_t StrSize = ArraySize(&Parser_Context(p)->StrTab.Table);
-    StrSize /= STRTAB_ITEMSIZE;
+    size_t StrSize = StrTab_Size(&Parser_Context(p)->StrTab);
 
     ArrayInit(List);
     ArrayResize(List,StrSize*sizeof(dataid),0);
