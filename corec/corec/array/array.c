@@ -108,9 +108,9 @@ static NOINLINE void Data_Clear(uint8_t** a)
     uint8_t* p = *a;
     if (p && Data_IsMemHeap(p))
     {
-        p = MemHeap_Null(Data_HeapHead(p)->Heap);
+        const struct cc_memheap* Heap = Data_HeapHead(p)->Heap;
         Data_Release(a);
-        *a = p;
+        ArrayInitEx((array*)a, Heap);
     }
     else
         Data_Release(a);
