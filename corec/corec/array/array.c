@@ -18,6 +18,14 @@ typedef struct datahead
 
 } datahead;
 
+// get a "NULL" value to recover the cc_memheap of an array
+static INLINE void *MemHeap_Null(const cc_memheap *p)
+{
+    if (p == NULL)
+        return NULL;
+    return (void*)(&p->Null+1);
+}
+
 #define Data_Head(Name)         ((datahead*)(Name)-1)
 #define Data_HeapHead(Name)     ((dataheaphead*)(Name)-1)
 #define Data_IsHeap(Name)       (Data_Head(Name)->Size & DATA_FLAG_HEAP)
@@ -110,7 +118,7 @@ static size_t ArraySize(const array*p)
 
 void ArrayInitEx(array* p,const cc_memheap* Heap)
 {
-    p->_Begin = p->_End = Heap ? MemHeap_Null(Heap):NULL;
+    p->_Begin = p->_End = MemHeap_Null(Heap);
 }
 
 NOINLINE void ArrayClear(array* p)
