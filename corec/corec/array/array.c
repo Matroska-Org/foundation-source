@@ -54,8 +54,9 @@ static size_t Data_Size(const datahead* a)
     return Data_GetSize(a);
 }
 
-static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
+static NOINLINE bool_t Data_ReAlloc(array *ap,size_t n)
 {
+    uint8_t** a = &ap->_Begin;
     uint8_t* p = *a;
     size_t oldsize;
     datahead *hp = (datahead *)p;
@@ -164,7 +165,7 @@ static size_t SizeAlign(size_t Total, size_t Align)
 bool_t ArrayAlloc(array* p,size_t Total,size_t Align)
 {
     size_t Size = ArraySize(p);
-    if (!Data_ReAlloc(&p->_Begin,SizeAlign(Total,Align)))
+    if (!Data_ReAlloc(p,SizeAlign(Total,Align)))
         return 0;
     p->_End = p->_Begin + Size;
     return 1;
