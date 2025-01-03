@@ -17,8 +17,7 @@ typedef void (*memheap_free)(const void* This,void*,size_t);
 typedef void* (*memheap_realloc)(const void* This,void*,size_t Old,size_t New);
 typedef void (*memheap_write)(const void* This,void*,const void* Src,size_t Pos,size_t Size);
 
-#define DATA_FLAG_HEAP              (((size_t)1)<<(sizeof(size_t)*8-1))
-#define DATA_FLAG_MEMHEAP           (((size_t)1)<<(sizeof(size_t)*8-2))
+#define DATA_FLAG_MEMHEAP           (((size_t)1)<<(sizeof(size_t)*8-1))
 
 typedef struct dataheaphead
 {
