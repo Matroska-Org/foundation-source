@@ -84,36 +84,25 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
     return 1;
 }
 
-static NOINLINE void Data_Release(uint8_t** a)
-{
-    uint8_t* p = *a;
-    if (p)
-    {
-        *a = NULL;
-        if (Data_IsHeap(p))
-        {
-            if (Data_IsMemHeap(p))
-            {
-                if (Data_GetSize(p))
-                    MemHeap_Free(Data_HeapHead(p)->Heap,Data_HeapHead(p),Data_GetSize(p)+sizeof(dataheaphead));
-            }
-            else
-                free(Data_Head(p));
-        }
-    }
-}
-
 static NOINLINE void Data_Clear(uint8_t** a)
 {
     uint8_t* p = *a;
     if (p && Data_IsMemHeap(p))
     {
         const struct cc_memheap* Heap = Data_HeapHead(p)->Heap;
-        Data_Release(a);
+        *a = NULL;
+        if (Data_GetSize(p))
+            MemHeap_Free(Data_HeapHead(p)->Heap,Data_HeapHead(p),Data_GetSize(p)+sizeof(dataheaphead));
         ArrayInitEx((array*)a, Heap);
     }
-    else
-        Data_Release(a);
+    else if (p)
+    {
+        *a = NULL;
+        if (Data_IsHeap(p))
+        {
+            free(Data_Head(p));
+        }
+    }
 }
 
 static size_t ArraySize(const array*p)
