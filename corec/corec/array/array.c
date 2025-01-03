@@ -87,21 +87,19 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
 static NOINLINE void Data_Clear(uint8_t** a)
 {
     uint8_t* p = *a;
-    if (p && Data_IsMemHeap(p))
+    if (!p)
+        return;
+    *a = NULL;
+    if (Data_IsMemHeap(p))
     {
         const struct cc_memheap* Heap = Data_HeapHead(p)->Heap;
-        *a = NULL;
         if (Data_GetSize(p))
             MemHeap_Free(Data_HeapHead(p)->Heap,Data_HeapHead(p),Data_GetSize(p)+sizeof(dataheaphead));
         ArrayInitEx((array*)a, Heap);
     }
-    else if (p)
+    else if (Data_IsHeap(p))
     {
-        *a = NULL;
-        if (Data_IsHeap(p))
-        {
-            free(Data_Head(p));
-        }
+        free(Data_Head(p));
     }
 }
 
