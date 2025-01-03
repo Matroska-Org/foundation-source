@@ -97,11 +97,11 @@ typedef struct cc_fifo
 {
 	// private members
 	array _Base;
-	uint8_t* _Read;
+	size_t _Read;
 
 } cc_fifo;
 
-static INLINE void Fifo_Init(cc_fifo* p) { ArrayInit(&p->_Base); p->_Read = NULL; }
+static INLINE void Fifo_Init(cc_fifo* p) { ArrayInit(&p->_Base); p->_Read = 0; }
 ARRAY_DLL void Fifo_Clear(cc_fifo*);
 ARRAY_DLL void Fifo_Drop(cc_fifo*);
 ARRAY_DLL bool_t Fifo_Alloc(cc_fifo* p, size_t Size, size_t Align);
@@ -112,8 +112,8 @@ static INLINE void Fifo_Readed(cc_fifo* p, size_t Length)
     p->_Read += Length;
 }
 
-#define FIFO_SIZE(p)  (ARRAYEND((p)._Base,uint8_t)-(p)._Read)
-#define FIFO_BEGIN(p) ((p)._Read)
+#define FIFO_SIZE(p)  (ARRAYCOUNT((p)._Base,uint8_t) - (p)._Read)
+#define FIFO_BEGIN(p) (ARRAYBEGIN((p)._Base,uint8_t) + (p)._Read)
 #define FIFO_END(p)   ARRAYEND((p)._Base,uint8_t)
 
 #ifdef __cplusplus
