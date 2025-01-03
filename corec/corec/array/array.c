@@ -33,6 +33,7 @@ static INLINE dataheaphead* Data_HeapHead(dataheaphead* Name)
 
 static INLINE datahead* Data_Head(const array *p)
 {
+    assert(p->_Begin);
     return ((datahead*)p->_Begin-1);
 }
 static INLINE bool_t Data_IsHeap(const datahead* Name)
@@ -57,21 +58,25 @@ static size_t Data_Size(const array* a)
 
 static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
 {
-    size_t oldsize;
-    datahead *hp = Data_Head(a);
-
-    if (a->_Begin)
+    if (!a->_Begin)
     {
-        if (!hp->Size) // const?
+        datahead *Head = malloc(n+sizeof(datahead));
+        if (!Head)
             return 0;
-        oldsize = Data_GetSize(hp);
-    }
-    else
-        oldsize = 0;
 
+        Head->Size = n|DATA_FLAG_HEAP;
+        a->_Begin = (uint8_t*)(Head+1);
+        return 1;
+    }
+
+    datahead *hp = Data_Head(a);
+    if (!hp->Size) // const?
+        return 0;
+
+    size_t oldsize = Data_GetSize(hp);
     if (oldsize<n)
     {
-        if (a->_Begin && Data_IsMemHeap(hp))
+        if (Data_IsMemHeap(hp))
         {
             dataheaphead *dp = Data_HeapHead((dataheaphead*)a->_Begin);
             const cc_memheap* Heap = dp->Heap;
@@ -90,11 +95,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
         else
         {
             datahead* Head;
-            if (!a->_Begin)
-            {
-                Head = malloc(n+sizeof(datahead));
-            }
-            else if (Data_IsHeap(hp))
+            if (Data_IsHeap(hp))
             {
                 Head = realloc(hp,n+sizeof(datahead));
             }
