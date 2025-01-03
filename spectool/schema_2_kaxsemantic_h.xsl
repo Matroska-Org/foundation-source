@@ -67,7 +67,6 @@ namespace libmatroska {
             </xsl:when>
             <xsl:when test="@type='binary'">
                 <xsl:text>DECLARE_MKX_BINARY</xsl:text>
-                <xsl:if test="@length"><xsl:text>_LENGTH</xsl:text></xsl:if>
             </xsl:when>
             <xsl:when test="@type='uinteger'">
                 <xsl:text>DECLARE_MKX_UINTEGER</xsl:text>
@@ -98,15 +97,20 @@ namespace libmatroska {
         <xsl:call-template name="get-class-name">
             <xsl:with-param name="node" select="."/>
         </xsl:call-template>
-        <xsl:if test="@length">
-            <xsl:text>, </xsl:text><xsl:value-of select="@length"/>
-        </xsl:if>
         <xsl:text>)&#10;</xsl:text>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
             <xsl:text>public:&#10;</xsl:text>
         </xsl:if>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
             <xsl:text>  libebml::filepos_t RenderData(libebml::IOCallback &amp; output, bool bForceRender, const ShouldWrite &amp; writeFilter) override;&#10;</xsl:text>
+        </xsl:if>
+        <xsl:if test="@length">
+            <xsl:text>  static inline bool SizeIsValid(std::uint64_t Size) {return Size </xsl:text>
+            <xsl:choose>
+                <xsl:when test="contains(@length, '=') or contains(@length, '&lt;') or contains(@length, '&gt;')"><xsl:value-of select="@length"/></xsl:when>
+                <xsl:otherwise><xsl:text>== </xsl:text><xsl:value-of select="@length"/></xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>;}&#10;</xsl:text>
         </xsl:if>
         <xsl:text>};&#10;</xsl:text>
         <!-- <xsl:if test="$minVer &gt; 1 or ebml:extension[@divx='1']">#endif&#10;</xsl:if> -->
