@@ -10,10 +10,10 @@
 
 
 #define STRTAB_INVALID_POS  ((size_t)-1)
-#define STRTAB_ITEMSIZE     8
 
 void StrTab_Init(strtab*, const cc_memheap* Heap, size_t Alloc);
 void StrTab_Done(strtab*);
+size_t StrTab_Size(const strtab*);
 const tchar_t* StrTab_Find(strtab*, fourcc_t Class, int Id);
 size_t StrTab_Pos(strtab*, fourcc_t Class, int Id);
 const tchar_t* StrTab_GetPos(strtab*, size_t Pos);
