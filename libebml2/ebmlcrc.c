@@ -207,7 +207,7 @@ META_VMT(TYPE_FUNC,ebml_element_vmt,RenderData,RenderData)
 #endif
 META_END(EBML_ELEMENT_CLASS)
 
-bool_t EBML_CRCMatches(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
+bool_t EBML_CRCMatches(ebml_crc *CRC, const void *Buf, size_t Size)
 {
     uint32_t testCRC = CRC32_NEGL;
 
@@ -217,40 +217,44 @@ bool_t EBML_CRCMatches(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
 	for(; !aligned(Buf) && Size > 0; Size--)
 		testCRC = m_tab[CRC32_INDEX(testCRC) ^ *Buf++] ^ CRC32_SHIFTED(testCRC);
 */
+	const uint32_t *Buf32 = Buf;
 	while (Size >= 4)
 	{
-		testCRC ^= *(const uint32_t *)Buf;
+		testCRC ^= *Buf32;
 		testCRC = m_tab[CRC32_INDEX(testCRC)] ^ CRC32_SHIFTED(testCRC);
 		testCRC = m_tab[CRC32_INDEX(testCRC)] ^ CRC32_SHIFTED(testCRC);
 		testCRC = m_tab[CRC32_INDEX(testCRC)] ^ CRC32_SHIFTED(testCRC);
 		testCRC = m_tab[CRC32_INDEX(testCRC)] ^ CRC32_SHIFTED(testCRC);
 		Size -= 4;
-		Buf += 4;
+		Buf32++;
 	}
 
+	const uint8_t *Buf8 = (const uint8_t *)Buf32;
 	while (Size--)
-		testCRC = m_tab[CRC32_INDEX(testCRC) ^ *Buf++] ^ CRC32_SHIFTED(testCRC);
+		testCRC = m_tab[CRC32_INDEX(testCRC) ^ *Buf8++] ^ CRC32_SHIFTED(testCRC);
 
 	testCRC ^= CRC32_NEGL;
 
     return (CRC->CRC == testCRC);
 }
 
-void EBML_CRCAddBuffer(ebml_crc *CRC, const uint8_t *Buf, size_t Size)
+void EBML_CRCAddBuffer(ebml_crc *CRC, const void *Buf, size_t Size)
 {
+	const uint32_t *Buf32 = Buf;
 	while (Size >= 4)
 	{
-		CRC->CRC ^= *(const uint32_t *)Buf;
+		CRC->CRC ^= *Buf32;
 		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
 		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
 		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
 		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC)] ^ CRC32_SHIFTED(CRC->CRC);
 		Size -= 4;
-		Buf += 4;
+		Buf32++;
 	}
 
+	const uint8_t *Buf8 = (const uint8_t *)Buf32;
 	while (Size--)
-		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC) ^ *Buf++] ^ CRC32_SHIFTED(CRC->CRC);
+		CRC->CRC = m_tab[CRC32_INDEX(CRC->CRC) ^ *Buf8++] ^ CRC32_SHIFTED(CRC->CRC);
 }
 
 void EBML_CRCFinalize(ebml_crc *CRC)
