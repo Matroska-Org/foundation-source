@@ -8,6 +8,8 @@
 #ifndef __MEMHEAP_H
 #define __MEMHEAP_H
 
+#include <stdalign.h>
+
 #define MEMHEAP_OPTIONAL        0x0001
 
 typedef struct cc_memheap cc_memheap;
@@ -31,6 +33,7 @@ struct cc_memheap
     memheap_realloc ReAlloc;
     memheap_write Write;
     dataheaphead Null;
+    alignas(max_align_t) uint8_t data[];
 };
 
 extern const cc_memheap *MemHeap_Default;
