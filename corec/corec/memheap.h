@@ -35,10 +35,25 @@ struct cc_memheap
 
 extern const cc_memheap *MemHeap_Default;
 
-#define MemHeap_Alloc(p,a,b)       ((cc_memheap*)(p))->Alloc(p,a,b)
-#define MemHeap_Free(p,a,b)        ((cc_memheap*)(p))->Free(p,a,b)
-#define MemHeap_ReAlloc(p,a,b,c)   ((cc_memheap*)(p))->ReAlloc(p,a,b,c)
-#define MemHeap_Write(p,a,b,c,d)   ((cc_memheap*)(p))->Write(p,a,b,c,d)
-#define MemHeap_Null(p)            ((uint8_t*)(&((cc_memheap*)(p))->Null+1))
+static INLINE void *MemHeap_Alloc(const cc_memheap *p, size_t s, int Flags)
+{
+    return p->Alloc(p, s, Flags);
+}
+static INLINE void MemHeap_Free(const cc_memheap *p, void *ptr, size_t s)
+{
+    p->Free(p, ptr, s);
+}
+static INLINE void *MemHeap_ReAlloc(const cc_memheap *p, void *ptr, size_t old, size_t new)
+{
+    return p->ReAlloc(p, ptr, old, new);
+}
+static INLINE void MemHeap_Write(const cc_memheap *p, void *ptr, void *src, size_t pos, size_t size)
+{
+     p->Write(p, ptr, src, pos, size);
+}
+static INLINE uint8_t *MemHeap_Null(const cc_memheap *p)
+{
+     return (uint8_t*)(&(p)->Null+1);
+}
 
 #endif
