@@ -113,7 +113,7 @@ static NOINLINE void Data_Clear(uint8_t** a)
         Data_Release(a);
 }
 
-size_t ArraySize(const array*p)
+static size_t ArraySize(const array*p)
 {
     return p->_End-p->_Begin;
 }
@@ -166,7 +166,7 @@ bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Width, size_t A
 {
     if (!ArrayAppend(p,NULL,Width,Align))
         return 0;
-    memmove(p->_Begin+Ofs+Width,p->_Begin+Ofs,(p->_End-p->_Begin)-Width-Ofs);
+    memmove(p->_Begin+Ofs+Width,p->_Begin+Ofs,ArraySize(p)-Width-Ofs);
     if (Ptr)
         memcpy(p->_Begin+Ofs,Ptr,Width);
     return 1;
@@ -174,7 +174,7 @@ bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Width, size_t A
 
 void ArrayDelete(array* p, size_t Ofs, size_t Width)
 {
-    memmove(p->_Begin+Ofs,p->_Begin+Ofs+Width,(p->_End-p->_Begin)-Width-Ofs);
+    memmove(p->_Begin+Ofs,p->_Begin+Ofs+Width,ArraySize(p)-Width-Ofs);
     p->_End -= Width;
 }
 
@@ -192,7 +192,7 @@ bool_t ArrayAppendStr(array* p, const tchar_t* Ptr, bool_t Merge, size_t Align)
 
 bool_t ArrayAppend(array* p, const void* Ptr, size_t Length, size_t Align)
 {
-    size_t Total = p->_End - p->_Begin + Length;
+    size_t Total = ArraySize(p) + Length;
     if (Total > Data_Size(p->_Begin) && !ArrayAlloc(p,Total,Align))
         return 0;
     if (Ptr)
@@ -227,7 +227,7 @@ bool_t ArrayResize(array* p,size_t Total, size_t Align)
 
 void ArrayZero(array* p)
 {
-    memset(p->_Begin,0,p->_End-p->_Begin);
+    memset(p->_Begin,0,ArraySize(p));
 }
 
 #define QSORTMINLEN 16
