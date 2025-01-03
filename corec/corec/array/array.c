@@ -31,37 +31,38 @@ static INLINE dataheaphead* Data_HeapHead(dataheaphead* Name)
     return (Name-1);
 }
 
-static INLINE const datahead* Data_Head(const datahead* Name)
+static INLINE datahead* Data_Head(const array *p)
 {
-    return (Name-1);
+    return ((datahead*)p->_Begin-1);
 }
 static INLINE bool_t Data_IsHeap(const datahead* Name)
 {
-    return (Data_Head(Name)->Size & DATA_FLAG_HEAP) != 0;
+    return (Name->Size & DATA_FLAG_HEAP) != 0;
 }
 static INLINE bool_t Data_IsMemHeap(const datahead* Name)
 {
-    return (Data_Head(Name)->Size & DATA_FLAG_MEMHEAP) != 0;
+    return (Name->Size & DATA_FLAG_MEMHEAP) != 0;
 }
 static INLINE size_t Data_GetSize(const datahead* Name)
 {
-    return Data_Head(Name)->Size & ~(DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP);
+    return Name->Size & ~(DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP);
 }
 
-static size_t Data_Size(const datahead* a)
+static size_t Data_Size(const array* a)
 {
-    if (!a) return 0;
-    return Data_GetSize(a);
+    if (!a->_Begin) return 0;
+    const datahead *hp = Data_Head(a);
+    return Data_GetSize(hp);
 }
 
 static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
 {
     size_t oldsize;
-    datahead *hp = (datahead *)a->_Begin;
+    datahead *hp = Data_Head(a);
 
     if (a->_Begin)
     {
-        if (!Data_Head(hp)->Size) // const?
+        if (!hp->Size) // const?
             return 0;
         oldsize = Data_GetSize(hp);
     }
@@ -95,7 +96,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
             }
             else if (Data_IsHeap(hp))
             {
-                Head = realloc((void*)Data_Head(hp),n+sizeof(datahead));
+                Head = realloc(hp,n+sizeof(datahead));
             }
             else
             {
@@ -128,7 +129,7 @@ NOINLINE void ArrayClear(array* a)
 {
     if (!a->_Begin)
         return;
-    datahead *hp = (datahead *)a->_Begin;
+    datahead *hp = Data_Head(a);
     if (Data_IsMemHeap(hp))
     {
         dataheaphead *dp = Data_HeapHead((dataheaphead*)a->_Begin);
@@ -139,7 +140,7 @@ NOINLINE void ArrayClear(array* a)
     }
     else if (Data_IsHeap(hp))
     {
-        free((void*)Data_Head(hp));
+        free(hp);
         a->_Begin = a->_End = NULL;
     }
     else
@@ -211,9 +212,8 @@ bool_t ArrayAppendStr(array* p, const tchar_t* Ptr, bool_t Merge, size_t Align)
 
 bool_t ArrayAppend(array* p, const void* Ptr, size_t Length, size_t Align)
 {
-    datahead *hp = (datahead *)p->_Begin;
     size_t Total = ArraySize(p) + Length;
-    if (Total > Data_Size(hp) && !ArrayAlloc(p,Total,Align))
+    if (Total > Data_Size(p) && !ArrayAlloc(p,Total,Align))
         return 0;
     if (Ptr)
         memcpy(p->_End,Ptr,Length);
@@ -239,8 +239,7 @@ bool_t ArrayCopy(array* p, const array* q)
 
 bool_t ArrayResize(array* p,size_t Total, size_t Align)
 {
-    datahead *hp = (datahead *)p->_Begin;
-    if (Total > Data_Size(hp) && !ArrayAlloc(p,Total,Align))
+    if (Total > Data_Size(p) && !ArrayAlloc(p,Total,Align))
         return 0;
     p->_End = p->_Begin + Total;
     return 1;
@@ -537,8 +536,7 @@ void Fifo_Drop(cc_fifo* p)
 
 uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
 {
-    datahead *hp = (datahead *)p->_Base._Begin;
-    size_t Total = Data_Size(hp);
+    size_t Total = Data_Size(&p->_Base);
     size_t Read = p->_Read - p->_Base._Begin;
     size_t End = p->_Base._End - p->_Base._Begin + Length + SAFETAIL;
     uint8_t* Result;
