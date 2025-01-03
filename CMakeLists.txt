@@ -47,6 +47,7 @@ if(DEV_MODE)
                           -we4013 # undefined; assuming extern returning int
                           -we4005 # macro redefinition
                           -wd4100 # unreferenced formal parameter
+                          -wd4200 # nonstandard extension used: zero-sized array in struct/union
                           )
 endif()
 
