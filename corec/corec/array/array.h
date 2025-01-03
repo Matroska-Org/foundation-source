@@ -42,7 +42,6 @@ static INLINE void ArrayInit(array* p) { p->_Begin = NULL; p->_End = NULL; }
 ARRAY_DLL void ArrayInitEx(array*,const cc_memheap*);
 ARRAY_DLL void ArrayClear(array*);
 ARRAY_DLL void ArrayDrop(array*);
-ARRAY_DLL size_t ArraySize(const array*);
 ARRAY_DLL bool_t ArrayEq(const array* a, const array* b);
 ARRAY_DLL bool_t ArrayCopy(array*,const array* In);
 ARRAY_DLL bool_t ArrayResize(array*,size_t Size,size_t Align);
