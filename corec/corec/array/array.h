@@ -22,8 +22,6 @@ extern "C" {
 #define ARRAY_DLL
 #endif
 
-#define Data_Var(type,name,len)  struct { size_t n; type p[len]; } __##name; type* name = (__##name.n = sizeof(__##name.p),__##name.p)
-
 typedef struct cc_memheap cc_memheap;
 
 typedef struct array
