@@ -517,36 +517,36 @@ bool_t ArrayRemoveEx(array* p, size_t Count, size_t Width, const void* Data, arr
 void Fifo_Clear(cc_fifo* p)
 {
     ArrayClear(&p->_Base);
-    p->_Read = NULL;
+    p->_Read = 0;
 }
 
 bool_t Fifo_Alloc(cc_fifo* p, size_t Total, size_t Align)
 {
-    size_t n = p->_Read - p->_Base._Begin;
+    size_t n = p->_Read;
     if (!ArrayAlloc(&p->_Base,Total,Align))
         return 0;
-    p->_Read = p->_Base._Begin+n;
+    p->_Read = n;
     return 1;
 }
 
 void Fifo_Drop(cc_fifo* p)
 {
     ArrayDrop(&p->_Base);
-    p->_Read = p->_Base._Begin;
+    p->_Read = 0;
 }
 
 uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
 {
     size_t Total = Data_Size(&p->_Base);
-    size_t Read = p->_Read - p->_Base._Begin;
-    size_t End = p->_Base._End - p->_Base._Begin + Length + SAFETAIL;
+    size_t Read = p->_Read;
+    size_t End = ArraySize(&p->_Base) + Length + SAFETAIL;
     uint8_t* Result;
 
     if (End>Total && Read>0)
     {
-        memmove(p->_Base._Begin,p->_Read,FIFO_SIZE(*p));
-        p->_Read = p->_Base._Begin;
-        p->_Base._End -= Read;
+        memmove(p->_Base._Begin, FIFO_BEGIN(*p), FIFO_SIZE(*p));
+        p->_Read = 0;
+        p->_Base._End = FIFO_END(*p) - Read;
         End -= Read;
         Read = 0;
     }
@@ -555,11 +555,11 @@ uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
     {
         if (!ArrayAlloc(&p->_Base,End,Align))
             return NULL;
-        p->_Read = p->_Base._Begin+Read;
+        p->_Read = Read;
     }
 
     Result = p->_Base._End;
-    p->_Base._End += Length;
+    p->_Base._End = FIFO_END(*p) + Length;
 
     if (Ptr)
         memcpy(Result,Ptr,Length);
