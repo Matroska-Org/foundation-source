@@ -29,8 +29,8 @@ typedef struct cc_memheap cc_memheap;
 typedef struct array
 {
 	// these are private members, use ARRAY macros to access them
-	uint8_t* _Begin;
-	uint8_t* _End;
+	void* _Begin;
+	void* _End;
 
 } array;
 
@@ -71,7 +71,7 @@ ARRAY_DLL void ArrayDelete(array* p, size_t Ofs,  size_t Length);
 #define ARRAYEND(Array,Type)		((Type*)((Array)._End))
 #define ARRAYEMPTY(Array)			((Array)._Begin==(Array)._End)
 #endif
-#define ARRAYCOUNT(Array,Type)		((size_t)(((Array)._End)-((Array)._Begin))/sizeof(Type))
+#define ARRAYCOUNT(Array,Type)		((size_t)(((uintptr_t)(Array)._End)-((uintptr_t)(Array)._Begin))/sizeof(Type))
 
 // TODO: move this to base/mem and depend on "mem" platform dependently(?)
 typedef struct block
