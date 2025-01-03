@@ -76,7 +76,7 @@ err_t MATROSKA_BlockProcessFrameDurations(matroska_block *Block, struct stream *
                 {
                     EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
                     ReadData = 0;
-                    if (!ArraySize(&Block->Data))
+                    if (!ARRAYCOUNT(Block->Data,uint8_t))
                     {
                         Err = MATROSKA_BlockReadData(Block,Input,ForProfile);
                         if (Err!=ERR_NONE)
