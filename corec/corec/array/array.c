@@ -110,27 +110,6 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
     return 1;
 }
 
-static NOINLINE void Data_Clear(array* a)
-{
-    uint8_t* p = a->_Begin;
-    if (!p)
-        return;
-    a->_Begin = NULL;
-    datahead *hp = (datahead *)p;
-    if (Data_IsMemHeap(hp))
-    {
-        dataheaphead *dp = Data_HeapHead((dataheaphead*)p);
-        const struct cc_memheap* Heap = dp->Heap;
-        if (Data_GetSize(hp))
-            MemHeap_Free(Heap,dp,Data_GetSize(hp)+sizeof(dataheaphead));
-        ArrayInitEx(a, Heap);
-    }
-    else if (Data_IsHeap(hp))
-    {
-        free((void*)Data_Head(hp));
-    }
-}
-
 static size_t ArraySize(const array*p)
 {
     return p->_End-p->_Begin;
@@ -141,10 +120,28 @@ void ArrayInitEx(array* p,const cc_memheap* Heap)
     p->_Begin = p->_End = MemHeap_Null(Heap);
 }
 
-NOINLINE void ArrayClear(array* p)
+NOINLINE void ArrayClear(array* a)
 {
-    Data_Clear(&p->_Begin);
-    p->_End = p->_Begin;
+    if (!a->_Begin)
+        return;
+    datahead *hp = (datahead *)a->_Begin;
+    if (Data_IsMemHeap(hp))
+    {
+        dataheaphead *dp = Data_HeapHead((dataheaphead*)a->_Begin);
+        const struct cc_memheap* Heap = dp->Heap;
+        if (Data_GetSize(hp))
+            MemHeap_Free(Heap,dp,Data_GetSize(hp)+sizeof(dataheaphead));
+        ArrayInitEx(a, Heap);
+    }
+    else if (Data_IsHeap(hp))
+    {
+        free((void*)Data_Head(hp));
+        a->_Begin = a->_End = NULL;
+    }
+    else
+    {
+        a->_Begin = a->_End = NULL;
+    }
 }
 
 void ArrayDrop(array* p)
