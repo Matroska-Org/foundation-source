@@ -118,12 +118,13 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
 
 static size_t ArraySize(const array*p)
 {
-    return (size_t)((uintptr_t)p->_End-(uintptr_t)p->_Begin);
+    return p->_Used;
 }
 
 void ArrayInitEx(array* p,const cc_memheap* Heap)
 {
-    p->_Begin = p->_End = MemHeap_Null(Heap);
+    p->_Begin = MemHeap_Null(Heap);
+    p->_Used = 0;
 }
 
 NOINLINE void ArrayClear(array* a)
@@ -142,17 +143,19 @@ NOINLINE void ArrayClear(array* a)
     else if (Data_IsHeap(hp))
     {
         free(hp);
-        a->_Begin = a->_End = NULL;
+        a->_Begin = NULL;
+        a->_Used = 0;
     }
     else
     {
-        a->_Begin = a->_End = NULL;
+        a->_Begin = NULL;
+        a->_Used = 0;
     }
 }
 
 void ArrayDrop(array* p)
 {
-    p->_End = p->_Begin;
+    p->_Used = 0;
 }
 
 static size_t SizeAlign(size_t Total, size_t Align)
@@ -172,15 +175,16 @@ bool_t ArrayAlloc(array* p,size_t Total,size_t Align)
     size_t Size = ArraySize(p);
     if (!Data_ReAlloc(p,SizeAlign(Total,Align)))
         return 0;
-    p->_End = (uint8_t*)p->_Begin + Size;
+    p->_Used = Size;
     return 1;
 }
 
 void ArrayShrink(array* p, size_t Length)
 {
-    p->_End = (uint8_t*)p->_End - Length;
-    if (p->_End < p->_Begin)
-        p->_End = p->_Begin;
+    if (p->_Used > Length)
+        p->_Used -= Length;
+    else
+        p->_Used = 0;
 }
 
 bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Width, size_t Align)
@@ -196,7 +200,7 @@ bool_t ArrayInsert(array* p, size_t Ofs, const void* Ptr, size_t Width, size_t A
 void ArrayDelete(array* p, size_t Ofs, size_t Width)
 {
     memmove(ARRAYBEGIN(*p,uint8_t)+Ofs, ARRAYBEGIN(*p,uint8_t)+Ofs+Width, ArraySize(p)-Width-Ofs);
-    p->_End = ARRAYEND(*p,uint8_t) - Width;
+    p->_Used -= Width;
 }
 
 bool_t ArrayAppendStr(array* p, const tchar_t* Ptr, bool_t Merge, size_t Align)
@@ -217,8 +221,8 @@ bool_t ArrayAppend(array* p, const void* Ptr, size_t Length, size_t Align)
     if (Total > Data_Size(p) && !ArrayAlloc(p,Total,Align))
         return 0;
     if (Ptr)
-        memcpy(p->_End,Ptr,Length);
-    p->_End = ARRAYEND(*p,uint8_t) + Length;
+        memcpy((uint8_t*)p->_Begin + p->_Used,Ptr,Length);
+    p->_Used += Length;
     return 1;
 }
 
@@ -242,7 +246,7 @@ bool_t ArrayResize(array* p,size_t Total, size_t Align)
 {
     if (Total > Data_Size(p) && !ArrayAlloc(p,Total,Align))
         return 0;
-    p->_End = ARRAYBEGIN(*p,uint8_t) + Total;
+    p->_Used = Total;
     return 1;
 }
 
@@ -374,7 +378,7 @@ static void SlowSort(array* p, size_t Count, size_t Width, arraycmp Cmp, const v
                 memcpy(j,i,Width);
             }
         }
-        p->_End = j+Width;
+        p->_Used = j - (uint8_t*)p->_Begin + Width;
     }
 }
 
@@ -420,7 +424,7 @@ void ArraySortEx(array* p, size_t Count, size_t Width, arraycmp Cmp, const void*
                 if (Cmp(CmpParam,i,j) != 0)
                     *(++j) = *i;
             }
-            p->_End = (uint8_t*)(j+1);
+            p->_Used = ((j+1)-ARRAYBEGIN(*p,uint_fast32_t)) * sizeof(uint_fast32_t);
         }
         return;
     }
@@ -546,7 +550,7 @@ uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
     {
         memmove(p->_Base._Begin, FIFO_BEGIN(*p), FIFO_SIZE(*p));
         p->_Read = 0;
-        p->_Base._End = FIFO_END(*p) - Read;
+        p->_Base._Used -= Read;
         End -= Read;
         Read = 0;
     }
@@ -558,8 +562,8 @@ uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
         p->_Read = Read;
     }
 
-    Result = p->_Base._End;
-    p->_Base._End = FIFO_END(*p) + Length;
+    Result = FIFO_END(*p);
+    p->_Base._Used += Length;
 
     if (Ptr)
         memcpy(Result,Ptr,Length);

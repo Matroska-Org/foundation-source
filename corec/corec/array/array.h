@@ -30,7 +30,7 @@ typedef struct array
 {
 	// these are private members, use ARRAY macros to access them
 	void* _Begin;
-	void* _End;
+	size_t _Used;
 
 } array;
 
@@ -38,7 +38,7 @@ typedef	int (*arraycmp)(const void* Param, const void* a,const void* b);
 
 #define ARRAY_AUTO_COUNT    ((size_t)-1)
 
-static INLINE void ArrayInit(array* p) { p->_Begin = NULL; p->_End = NULL; }
+static INLINE void ArrayInit(array* p) { p->_Begin = NULL; p->_Used = 0; }
 ARRAY_DLL void ArrayInitEx(array*,const cc_memheap*);
 ARRAY_DLL void ArrayClear(array*);
 ARRAY_DLL void ArrayDrop(array*);
@@ -64,14 +64,14 @@ ARRAY_DLL void ArrayDelete(array* p, size_t Ofs,  size_t Length);
 
 #ifdef CONFIG_DEBUGCHECKS
 #define ARRAYBEGIN(Array,Type)		(assert(&(Array)!=NULL),(Type*)((Array)._Begin))
-#define ARRAYEND(Array,Type)		(assert(&(Array)!=NULL),(Type*)((Array)._End))
-#define ARRAYEMPTY(Array)			(assert(&(Array)!=NULL),(Array)._Begin==(Array)._End)
+#define ARRAYEMPTY(Array)			(assert(&(Array)!=NULL),(Array)._Used==0)
+#define ARRAYCOUNT(Array,Type)		(assert(&(Array)!=NULL),(((Array)._Used))/sizeof(Type))
 #else
 #define ARRAYBEGIN(Array,Type)		((Type*)((Array)._Begin))
-#define ARRAYEND(Array,Type)		((Type*)((Array)._End))
-#define ARRAYEMPTY(Array)			((Array)._Begin==(Array)._End)
+#define ARRAYEMPTY(Array)			((Array)._Used==0)
+#define ARRAYCOUNT(Array,Type)		((((Array)._Used))/sizeof(Type))
 #endif
-#define ARRAYCOUNT(Array,Type)		((size_t)(((uintptr_t)(Array)._End)-((uintptr_t)(Array)._Begin))/sizeof(Type))
+#define ARRAYEND(Array,Type)		(ARRAYBEGIN(Array,Type) + ((((Array)._Used))/sizeof(Type)))
 
 // TODO: move this to base/mem and depend on "mem" platform dependently(?)
 typedef struct block
