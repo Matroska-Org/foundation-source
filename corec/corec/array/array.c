@@ -10,6 +10,7 @@
 #include <corec/memheap.h>
 
 #define DATA_FLAG_HEAP              (((size_t)1)<<(sizeof(size_t)*8-2))
+#define DATA_FLAG_MEMHEAP           (((size_t)1)<<(sizeof(size_t)*8-1))
 
 typedef struct datahead
 {
@@ -546,3 +547,10 @@ uint8_t* Fifo_Write(cc_fifo* p, const void* Ptr, size_t Length, size_t Align)
         memcpy(Result,Ptr,Length);
     return Result;
 }
+
+static void* __HAlloc(const void* UNUSED_PARAM(p),size_t Size,int UNUSED_PARAM(Flags)) { return malloc(Size); }\
+static void __HFree(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(Size)) { free(Ptr); }\
+static void* __HReAlloc(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(OldSize),size_t Size) { return realloc(Ptr,Size); }\
+static void __HWrite(const void* UNUSED_PARAM(p),void* Ptr,const void* Src,size_t Pos,size_t Size) { memcpy((uint8_t*)Ptr+Pos,Src,Size); }\
+static const cc_memheap MemHeap_Default_ = { __HAlloc,__HFree,__HReAlloc,__HWrite,{ &MemHeap_Default_, DATA_FLAG_MEMHEAP } };
+const cc_memheap *MemHeap_Default = &MemHeap_Default_;
