@@ -648,7 +648,7 @@ static NOINLINE bool_t CallDelete(nodecontext* p,node* Node,const nodeclass* Cla
                 else
                 if (m->Meta == (META_MODE_DATA | TYPE_ARRAY) && (intptr_t)m->Data>=0)
                 {
-                    array* Ptr = (array*)((uint8_t*)Node+m->Data);
+                    array* Ptr = (void*)((uint8_t*)Node+m->Data);
 #if defined(CONFIG_CORECDOC)
                     if (m[2].Meta == META_PARAM_DATA_FLAGS)
                     {
@@ -675,7 +675,7 @@ static NOINLINE bool_t CallDelete(nodecontext* p,node* Node,const nodeclass* Cla
                 else
                 if (m->Meta == (META_MODE_DATA | TYPE_NODE_REF) && (intptr_t)m->Data>=0)
                 {
-                    node** Ptr = (node**)((uint8_t*)Node+m->Data);
+                    node** Ptr = (void*)((uint8_t*)Node+m->Data);
                     node* v = *Ptr;
                     if (v)
                     {
@@ -769,7 +769,7 @@ static void MetaConst(const nodemeta* i,void* Data)
 {
     size_t Size = ParamSize[i->Meta & TYPE_MASK];
     if (Size == sizeof(uintptr_t))
-        *(uintptr_t*)((uint8_t*)Data+i->Id) = i->Data;
+        memcpy((uint8_t*)Data+i->Id,&i->Data,sizeof(uintptr_t));
     else
     {
         memset((uint8_t*)Data+i->Id,0,Size);
@@ -798,7 +798,7 @@ static err_t CallCreate(nodecontext* p,node* Node,const nodeclass* Class)
             else
             if (i->Meta == (META_MODE_DATA | TYPE_ARRAY) && (intptr_t)i->Data>=0)
             {
-                array* Ptr = (array*)((uint8_t*)Node+i->Data);
+                array* Ptr = (void*)((uint8_t*)Node+i->Data);
                 ArrayInitEx(Ptr,p->NodeHeap);
             }
             else
@@ -2060,7 +2060,7 @@ static err_t MetaGet(node* p,dataid Id,void* Data,size_t Size)
             else
             {
                 const nodemeta* m = Lookup[Mid].Meta;
-                const uint8_t* Ptr;
+                const void* Ptr;
                 datatype Type;
 
                 if (m->Meta == META_PARAM_GET)
@@ -2224,7 +2224,7 @@ static err_t MetaSet(node* p,dataid Id,const void* Data,size_t Size)
                 else
                 {
                     uint32_t Bit;
-                    uint8_t* Ptr = (uint8_t*)p + (intptr_t)MetaData;
+                    void* Ptr = (uint8_t*)p + (intptr_t)MetaData;
                     size_t DataSize = Node_MaxDataSize(p,Id,Type,META_PARAM_SET);
 
                     assert((Type & TYPE_MASK) == TYPE_STRING || !Data || Size == DataSize);
@@ -2433,7 +2433,7 @@ static err_t MetaUnSet(node* p,dataid Id,const void* Data,size_t Size)
                 else
                 {
                     uint32_t Bit;
-                    uint8_t* Ptr = (uint8_t*)p + (intptr_t)MetaData;
+                    void* Ptr = (uint8_t*)p + (intptr_t)MetaData;
                     size_t DataSize = Node_MaxDataSize(p,Id,Type,META_PARAM_UNSET);
 
                     assert((Type & TYPE_MASK) == TYPE_STRING || !Data || Size == DataSize);
@@ -2736,7 +2736,7 @@ NOINLINE void NodeDup_Replace(array* Dup, node** Ptr)
     }
 }
 
-static NOINLINE void CopyData(const nodeclass* Class, node* p, node* Src, array* Dup,  uint8_t* Data)
+static NOINLINE void CopyData(const nodeclass* Class, node* p, node* Src, array* Dup,  void* Data)
 {
     if (Class->ParentClass)
         CopyData(Class->ParentClass,p,Src,Dup,Data);
