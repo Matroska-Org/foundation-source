@@ -26,9 +26,9 @@ static INLINE void *MemHeap_Null(const cc_memheap *p)
     return (void*)(&p->Null+1);
 }
 
-static INLINE dataheaphead* Data_HeapHead(dataheaphead* Name)
+static INLINE dataheaphead* Data_HeapHead(const array *p)
 {
-    return (Name-1);
+    return ((dataheaphead*)p->_Begin-1);
 }
 
 static INLINE datahead* Data_Head(const array *p)
@@ -78,7 +78,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
     {
         if (Data_IsMemHeap(hp))
         {
-            dataheaphead *dp = Data_HeapHead((dataheaphead*)a->_Begin);
+            dataheaphead *dp = Data_HeapHead(a);
             const cc_memheap* Heap = dp->Heap;
             dataheaphead* Head;
             if (!oldsize)
@@ -134,7 +134,7 @@ NOINLINE void ArrayClear(array* a)
     datahead *hp = Data_Head(a);
     if (Data_IsMemHeap(hp))
     {
-        dataheaphead *dp = Data_HeapHead((dataheaphead*)a->_Begin);
+        dataheaphead *dp = Data_HeapHead(a);
         const struct cc_memheap* Heap = dp->Heap;
         if (Data_GetSize(hp))
             MemHeap_Free(Heap,dp,Data_GetSize(hp)+sizeof(dataheaphead));
