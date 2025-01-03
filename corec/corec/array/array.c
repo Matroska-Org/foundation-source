@@ -12,7 +12,7 @@
 #define DATA_FLAG_HEAP              (((size_t)1)<<(sizeof(size_t)*8-2))
 #define DATA_FLAG_MEMHEAP           (((size_t)1)<<(sizeof(size_t)*8-1))
 
-typedef struct datahead
+typedef struct
 {
     size_t Size;
 
@@ -26,8 +26,10 @@ static INLINE void *MemHeap_Null(const cc_memheap *p)
     return (void*)(&p->Null+1);
 }
 
-#define Data_Head(Name)         ((datahead*)(Name)-1)
+#define Data_HeapHeadHeap(Name) ((dataheaphead*)(Name)-1)->Heap
 #define Data_HeapHead(Name)     ((dataheaphead*)(Name)-1)
+
+#define Data_Head(Name)         ((datahead*)(Name)-1)
 #define Data_IsHeap(Name)       (Data_Head(Name)->Size & DATA_FLAG_HEAP)
 #define Data_IsMemHeap(Name)    (Data_Head(Name)->Size & DATA_FLAG_MEMHEAP)
 #define Data_GetSize(Name)      (Data_Head(Name)->Size & ~(DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP))
@@ -56,7 +58,7 @@ static NOINLINE bool_t Data_ReAlloc(uint8_t** a,size_t n)
     {
         if (p && Data_IsMemHeap(p))
         {
-            const cc_memheap* Heap = Data_HeapHead(p)->Heap;
+            const cc_memheap* Heap = Data_HeapHeadHeap(p);
             dataheaphead* Head;
             if (!oldsize)
                 Head = MemHeap_Alloc(Heap,n+sizeof(dataheaphead),0);
@@ -100,9 +102,9 @@ static NOINLINE void Data_Clear(uint8_t** a)
     *a = NULL;
     if (Data_IsMemHeap(p))
     {
-        const struct cc_memheap* Heap = Data_HeapHead(p)->Heap;
+        const struct cc_memheap* Heap = Data_HeapHeadHeap(p);
         if (Data_GetSize(p))
-            MemHeap_Free(Data_HeapHead(p)->Heap,Data_HeapHead(p),Data_GetSize(p)+sizeof(dataheaphead));
+            MemHeap_Free(Heap,Data_HeapHead(p),Data_GetSize(p)+sizeof(dataheaphead));
         ArrayInitEx((array*)a, Heap);
     }
     else if (Data_IsHeap(p))
