@@ -6,8 +6,8 @@
 #ifndef __LIBEBML_CRC_H
 #define __LIBEBML_CRC_H
 
-extern bool_t EBML_CRCMatches(ebml_crc *CRC, const uint8_t *Buf, size_t Size);
-extern void EBML_CRCAddBuffer(ebml_crc *CRC, const uint8_t *Buf, size_t Size);
+extern bool_t EBML_CRCMatches(ebml_crc *CRC, const void *Buf, size_t Size);
+extern void EBML_CRCAddBuffer(ebml_crc *CRC, const void *Buf, size_t Size);
 extern void EBML_CRCFinalize(ebml_crc *CRC);
 
 #endif /* __LIBEBML_CRC_H */
