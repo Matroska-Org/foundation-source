@@ -89,15 +89,20 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
         else
         {
             datahead* Head;
-            if (!hp || !Data_IsHeap(hp))
+            if (!a->_Begin)
             {
-                uint8_t* old = a->_Begin;
                 Head = malloc(n+sizeof(datahead));
-                if (Head && old)
-                    memcpy(Head+1,old,oldsize);
+            }
+            else if (Data_IsHeap(hp))
+            {
+                Head = realloc((void*)Data_Head(hp),n+sizeof(datahead));
             }
             else
-                Head = realloc((void*)Data_Head(hp),n+sizeof(datahead));
+            {
+                Head = malloc(n+sizeof(datahead));
+                if (Head)
+                    memcpy(Head+1,a->_Begin,oldsize);
+            }
 
             if (!Head)
                 return 0;
