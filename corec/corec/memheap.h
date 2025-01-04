@@ -22,12 +22,15 @@ typedef void (*memheap_free)(const void* This,void*,size_t);
 typedef void* (*memheap_realloc)(const void* This,void*,size_t Old,size_t New);
 typedef void (*memheap_write)(const void* This,void*,const void* Src,size_t Pos,size_t Size);
 
-typedef struct dataheaphead
-{
-    const cc_memheap* Heap;
-    size_t Size;
+#define ARRAY_POINTER_HOLDER \
+        size_t Size; \
+        alignas(max_align_t) uint8_t data[]
 
-} dataheaphead;
+// we can't use a type with a flexible array inside another structure, so we
+// use the same define everywhere
+#define MEMHEAD_POINTER_HOLDER \
+        const cc_memheap* Heap; \
+        ARRAY_POINTER_HOLDER
 
 struct cc_memheap
 {
@@ -35,8 +38,8 @@ struct cc_memheap
     memheap_free Free;
     memheap_realloc ReAlloc;
     memheap_write Write;
-    dataheaphead Null;
-    alignas(max_align_t) uint8_t data[];
+
+    MEMHEAD_POINTER_HOLDER;
 };
 
 extern const cc_memheap *MemHeap_Default;

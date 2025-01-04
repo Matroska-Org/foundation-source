@@ -14,21 +14,21 @@
 
 typedef struct
 {
-    size_t Size;
-    alignas(max_align_t) uint8_t data[];
-
+    ARRAY_POINTER_HOLDER;
 } datahead;
+
+typedef struct
+{
+    MEMHEAD_POINTER_HOLDER;
+} dataheaphead;
 
 #define container_of(ptr, type, member) \
     ((type *)((uintptr_t)ptr - offsetof(type, member)))
 
-
 static INLINE dataheaphead* Data_HeapHead(const array *p)
 {
-    // not totally clean as most of the time the data is only preceded by
-    // the dataheaphead, but we can't put a zero size element at the end of
-    // dataheaphead
-    return &(container_of(p->_Begin, cc_memheap, data)->Null);
+    assert(p->_Begin);
+    return container_of(p->_Begin, dataheaphead, data);
 }
 
 static INLINE datahead* Data_Head(const array *p)
@@ -90,7 +90,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
 
             Head->Heap = Heap;
             Head->Size = n|DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP;
-            a->_Begin = Head+1; // FIXME not exact
+            a->_Begin = Head->data;
         }
         else
         {
@@ -577,5 +577,5 @@ static void* __HAlloc(const void* UNUSED_PARAM(p),size_t Size) { return malloc(S
 static void __HFree(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(Size)) { free(Ptr); }\
 static void* __HReAlloc(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(OldSize),size_t Size) { return realloc(Ptr,Size); }\
 static void __HWrite(const void* UNUSED_PARAM(p),void* Ptr,const void* Src,size_t Pos,size_t Size) { memcpy((uint8_t*)Ptr+Pos,Src,Size); }\
-static const cc_memheap MemHeap_Default_ = { __HAlloc,__HFree,__HReAlloc,__HWrite,{ &MemHeap_Default_, DATA_FLAG_MEMHEAP } };
+static const cc_memheap MemHeap_Default_ = { __HAlloc,__HFree,__HReAlloc,__HWrite, &MemHeap_Default_, DATA_FLAG_MEMHEAP };
 const cc_memheap *MemHeap_Default = &MemHeap_Default_;
