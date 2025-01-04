@@ -94,12 +94,12 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
         }
         else
         {
-            datahead* Head;
+            datahead* Head = NULL;
             if (Data_IsHeap(hp))
             {
                 Head = realloc(hp,n+sizeof(datahead));
             }
-            else
+            if (!Head)
             {
                 Head = malloc(n+sizeof(datahead));
                 if (Head)
