@@ -148,8 +148,6 @@
 #include <stdint.h>
 
 #ifdef _MSC_VER
-#define LL(x)   x##i64
-#define ULL(x)  x##ui64
 #define PRId64  "I64d"
 #define PRIu64  "I64u"
 #define PRIx64  "I64x"
@@ -166,8 +164,6 @@
 #define TPRIu64  T("I64u")
 #define TPRIx64  T("I64x")
 #else
-#define LL(x)   x##ll
-#define ULL(x)  x##ull
 #ifndef PRId64
 #define PRId64  "lld"
 #endif

@@ -47,7 +47,7 @@ datetime_t FileTimeToRel(FILETIME *fTime)
     int64time += fTime->dwLowDateTime;
     /* Convert from 100ns to seconds. */
     int64time /= 10000000;
-    int64time -= LL(0x2F0605980); // reference is 1st January 2001 00:00:00.000 UTC
+    int64time -= INT64_C(0x2F0605980); // reference is 1st January 2001 00:00:00.000 UTC
     if (int64time==INVALID_DATETIME_T) ++int64time;
     return (datetime_t)int64time;
 }
@@ -56,7 +56,7 @@ void RelToFileTime(datetime_t t, FILETIME *fTime)
 {
     int64_t int64time = t;
 
-    int64time += LL(0x2F0605980); // reference is 1st January 2001 00:00:00.000 UTC
+    int64time += INT64_C(0x2F0605980); // reference is 1st January 2001 00:00:00.000 UTC
     /* Convert from seconds to 100ns. */
     int64time *= 10000000;
     fTime->dwLowDateTime = (DWORD)int64time;
