@@ -23,9 +23,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
-#if defined(HAVE_SYS_MOUNT_H)
-#include <sys/mount.h>
-#endif
 #if defined(HAVE_SYS_VFS_H)
 #include <sys/vfs.h>
 #elif defined(HAVE_SYS_STATVFS_H)
