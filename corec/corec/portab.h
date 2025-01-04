@@ -283,7 +283,7 @@ typedef uint16_t utf16_t;
 #endif
 #endif // NDEBUG
 
-#if defined(COMPILER_GCC)
+#if defined(COMPILER_GCC) || defined(__clang__)
 #define UNUSED_PARAM(x) (x) __attribute__ ((unused))
 #else
 #define UNUSED_PARAM(x) (x)
