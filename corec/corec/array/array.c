@@ -65,7 +65,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
             return 0;
 
         Head->Size = n|DATA_FLAG_HEAP;
-        a->_Begin = &Head->data;
+        a->_Begin = Head->data;
         return 1;
     }
 
@@ -103,7 +103,10 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
             {
                 Head = malloc(n+sizeof(datahead));
                 if (Head)
-                    memcpy(&Head->data,a->_Begin,oldsize);
+                {
+                    memcpy(Head->data,a->_Begin,oldsize);
+                    free(hp);
+                }
             }
 
             if (!Head)
