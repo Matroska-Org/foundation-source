@@ -15,11 +15,9 @@
 #define max_align_t  double
 #endif
 
-#define MEMHEAP_OPTIONAL        0x0001
-
 typedef struct cc_memheap cc_memheap;
 
-typedef void* (*memheap_alloc)(const void* This,size_t,int Flags);
+typedef void* (*memheap_alloc)(const void* This,size_t);
 typedef void (*memheap_free)(const void* This,void*,size_t);
 typedef void* (*memheap_realloc)(const void* This,void*,size_t Old,size_t New);
 typedef void (*memheap_write)(const void* This,void*,const void* Src,size_t Pos,size_t Size);
@@ -43,9 +41,9 @@ struct cc_memheap
 
 extern const cc_memheap *MemHeap_Default;
 
-static INLINE void *MemHeap_Alloc(const cc_memheap *p, size_t s, int Flags)
+static INLINE void *MemHeap_Alloc(const cc_memheap *p, size_t s)
 {
-    return p->Alloc(p, s, Flags);
+    return p->Alloc(p, s);
 }
 static INLINE void MemHeap_Free(const cc_memheap *p, void *ptr, size_t s)
 {
