@@ -126,7 +126,10 @@ void ArrayInitEx(array* p,const cc_memheap* Heap)
     if (Heap == NULL)
         p->_Begin = NULL;
     else
+    {
+        assert(Heap->Size & DATA_FLAG_MEMHEAP);
         p->_Begin = (void*)Heap->data;
+    }
     p->_Used = 0;
 }
 
