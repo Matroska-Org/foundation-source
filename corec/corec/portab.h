@@ -123,8 +123,6 @@
 
 #else /* _MSC_VER */
 
-#include <inttypes.h>
-
 #if defined(__GNUC__) && !defined(always_inline)
 #define INLINE __attribute__((always_inline)) inline
 #else
@@ -146,33 +144,13 @@
 #include "corec_config.h"
 
 #include <stdint.h>
+#include <inttypes.h>
 
-#ifdef _MSC_VER
-#define PRId64  "I64d"
-#define PRIu64  "I64u"
-#define PRIx64  "I64x"
-
-#ifndef PRIdPTR
-# ifdef _WIN64
-#define PRIdPTR  PRId64
-# else // !_WIN64
-#define PRIdPTR  PRId32
-# endif // !_WIN64
-#endif // PRIdPTR
-
+#if defined(_MSC_VER)
 #define TPRId64  T("I64d")
 #define TPRIu64  T("I64u")
 #define TPRIx64  T("I64x")
 #else
-#ifndef PRId64
-#define PRId64  "lld"
-#endif
-#ifndef PRIu64
-#define PRIu64  "llu"
-#endif
-#ifndef PRIx64
-#define PRIx64  "llx"
-#endif
 #define TPRId64  PRId64
 #define TPRIu64  PRIu64
 #define TPRIx64  PRIx64
