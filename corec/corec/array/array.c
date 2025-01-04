@@ -350,9 +350,9 @@ static void SlowSort(array* p, size_t Count, size_t Width, arraycmp Cmp, const v
 #else
     uint8_t Tmp[Width];
 #endif
-    uint8_t* End = ARRAYBEGIN(*p,uint8_t) + Count*Width;
-    uint8_t* i;
-    uint8_t* j;
+    char* End = ARRAYBEGIN(*p,char) + Count*Width;
+    char* i;
+    char* j;
 
     j = p->_Begin;
     for (i=j+Width; i!=End; i+=Width)
@@ -387,7 +387,7 @@ static void SlowSort(array* p, size_t Count, size_t Width, arraycmp Cmp, const v
                 memcpy(j,i,Width);
             }
         }
-        p->_Used = j - (uint8_t*)p->_Begin + Width;
+        p->_Used = j - p->_Begin + Width;
     }
 }
 
@@ -488,7 +488,7 @@ intptr_t ArrayFindEx(const array* p, size_t Count, size_t Width, const void* Dat
     else
     {
         intptr_t No = 0;
-        const uint8_t* i;
+        const char* i;
         for (i=p->_Begin;Count--;i+=Width,++No)
             if (memcmp(i,Data,Width)==0)
             {

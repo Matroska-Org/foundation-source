@@ -27,7 +27,7 @@ typedef struct cc_memheap cc_memheap;
 typedef struct array
 {
 	// these are private members, use ARRAY macros to access them
-	void* _Begin;
+	char* _Begin;
 	size_t _Used;
 
 } array;
@@ -61,7 +61,7 @@ ARRAY_DLL void ArrayDelete(array* p, size_t Ofs,  size_t Length);
 #define ArraySort(p,type,Cmp,CmpParam,Unique)     ArraySortEx(p,ARRAYCOUNT(*p,type),sizeof(type),Cmp,CmpParam,Unique)
 
 #ifdef CONFIG_DEBUGCHECKS
-#define ARRAYBEGIN(Array,Type)		(assert(&(Array)!=NULL),(Type*)((Array)._Begin))
+#define ARRAYBEGIN(Array,Type)		(assert(&(Array)!=NULL),(Type*)(void*)((Array)._Begin))
 #define ARRAYEMPTY(Array)			(assert(&(Array)!=NULL),(Array)._Used==0)
 #define ARRAYCOUNT(Array,Type)		(assert(&(Array)!=NULL),(((Array)._Used))/sizeof(Type))
 #else
