@@ -7,7 +7,7 @@
 
 #include "str.h"
 
-#include <locale.h>
+#include <strings.h>
 
 int tcscmp(const tchar_t* a,const tchar_t* b)
 {
