@@ -23,7 +23,7 @@ void test_float(const char *Format, double Value)
     char corecString[512];
 #endif
 
-    sprintf(String,Format,Value);
+    snprintf(String,sizeof(String),Format,Value);
 #if defined(UNICODE)
     CharConvTS(FromStr,tFormat,TSIZEOF(tFormat),Format);
     format = tFormat;
@@ -57,7 +57,7 @@ void test_integer(const char *Format, int Value)
     char corecString[512];
 #endif
 
-    sprintf(String,Format,Value);
+    snprintf(String,sizeof(String),Format,Value);
 #if defined(UNICODE)
     CharConvTS(FromStr,tFormat,TSIZEOF(tFormat),Format);
     format = tFormat;
@@ -91,7 +91,7 @@ void test_ptr(const char *Format, intptr_t Value)
     char corecString[512];
 #endif
 
-    sprintf(String,Format,Value);
+    snprintf(String,sizeof(String),Format,Value);
 #if defined(UNICODE)
     CharConvTS(FromStr,tFormat,TSIZEOF(tFormat),Format);
     format = tFormat;
