@@ -18,6 +18,9 @@ endif()
 
 # Base core API
 add_library("corec_bare" INTERFACE)
+set_target_properties("corec_bare" PROPERTIES 
+  C_STANDARD 11
+)
 set(corec_base_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/corec.h
   ${CMAKE_CURRENT_SOURCE_DIR}/err.h
@@ -44,6 +47,9 @@ set(corec_node_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/node/nodetree.h
 )
 add_library("corec_node" ${corec_node_SOURCES} ${corec_node_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
+set_target_properties("corec_node" PROPERTIES 
+  C_STANDARD 11
+)
 target_include_directories("corec_node" PUBLIC ".")
 target_link_libraries("corec_node" PRIVATE "corec_bare")
 
@@ -56,6 +62,9 @@ set(corec_array_PUBLIC_HEADERS
 )
 add_library("corec_array" ${corec_array_SOURCES} ${corec_array_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
 target_link_libraries("corec_array" PRIVATE "corec_bare")
+set_target_properties("corec_array" PROPERTIES 
+  C_STANDARD 11
+)
 
 # String API
 set(corec_str_SOURCES
@@ -74,6 +83,9 @@ set(corec_str_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/str/str.h
 )
 add_library("corec_str" ${corec_str_SOURCES} ${corec_str_PUBLIC_HEADERS})
+set_target_properties("corec_str" PROPERTIES 
+  C_STANDARD 11
+)
 if (WIN32)
   target_sources("corec_str" PRIVATE ${corec_str_WIN32_SOURCES})
 elseif(APPLE)
@@ -87,7 +99,10 @@ target_include_directories("corec_str" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_
 add_subdirectory("helpers")
 
 add_library("corec" INTERFACE ${corec_base_PUBLIC_HEADERS})
-set_target_properties("corec" PROPERTIES LINKER_LANGUAGE C)
+set_target_properties("corec" PROPERTIES 
+  LINKER_LANGUAGE C
+  C_STANDARD 11
+)
 target_include_directories("corec"
   INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
