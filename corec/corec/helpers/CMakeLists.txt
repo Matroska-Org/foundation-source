@@ -32,7 +32,6 @@ if (WIN32)
   # for SHFileOperation to move files in the recycle bin
   target_link_libraries("corec_file" PRIVATE shell32)
 elseif(UNIX)
-  check_include_file(sys/mount.h   HAVE_SYS_MOUNT_H)
   check_include_file(sys/vfs.h     HAVE_SYS_VFS_H)
   check_include_file(sys/statvfs.h HAVE_SYS_STATVFS_H)
   if (HAVE_SYS_MOUNT_H)
