@@ -2610,7 +2610,7 @@ void NodeContext_Init(nodecontext* p,const nodemeta* Custom, const cc_memheap* H
         ArrayInitEx(&p->NodeClass,Heap);
     }
     else
-        Heap = MemHeap_Default;
+        Heap = MemHeap_GetDefault();
 
     if (!ConstHeap)
         ConstHeap=Heap;

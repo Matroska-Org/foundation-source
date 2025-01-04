@@ -42,7 +42,7 @@ struct cc_memheap
     MEMHEAD_POINTER_HOLDER;
 };
 
-extern const cc_memheap *MemHeap_Default;
+const cc_memheap *MemHeap_GetDefault(void);
 
 static INLINE void *MemHeap_Alloc(const cc_memheap *p, size_t s)
 {
