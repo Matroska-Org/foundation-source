@@ -119,7 +119,7 @@ typedef struct block_info
 
 } block_info;
 
-#define TABLE_MARKER (uint8_t*)1
+#define TABLE_MARKER (void*)(uintptr_t)1
 
 typedef struct track_info
 {
