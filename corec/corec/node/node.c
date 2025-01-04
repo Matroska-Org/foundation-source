@@ -521,7 +521,7 @@ NOINLINE void* Node_AddData(node* Node, dataid Id, datatype Type, const void* Da
             nodedata* Ptr;
             nodecontext* p = Node_Context(Node);
 
-            Ptr = (nodedata*)MemHeap_Alloc(p->NodeHeap,sizeof(nodedata)+Size,0);
+            Ptr = (nodedata*)MemHeap_Alloc(p->NodeHeap,sizeof(nodedata)+Size);
             if (!Ptr)
             {
                 return NULL;
@@ -1057,7 +1057,7 @@ static NOINLINE nodemetalookuphead* BuildLookup(nodecontext* p,array* List)
     nodemetalookuphead* v;
     nodemetalookuphead Head;
     Head.Upper = ARRAYCOUNT(*List,nodemetalookup)-1;
-    v = MemHeap_Alloc(p->NodeConstHeap,sizeof(Head)+ARRAYCOUNT(*List,uint8_t),0);
+    v = MemHeap_Alloc(p->NodeConstHeap,sizeof(Head)+ARRAYCOUNT(*List,uint8_t));
     if (v)
     {
         MemHeap_Write(p->NodeConstHeap,v,&Head,0,sizeof(Head));
@@ -1259,7 +1259,7 @@ static node* NodeCreateFromClass(nodecontext* p, const nodeclass* Class, bool_t 
         return NULL;
     }
 
-    Node = (node*)MemHeap_Alloc(p->NodeHeap,Size,0);
+    Node = (node*)MemHeap_Alloc(p->NodeHeap,Size);
     if (Node)
     {
         memset(Node,0,Size);
@@ -1309,7 +1309,7 @@ nodeclass* NodeContext_CreateClass(nodecontext* p, fourcc_t ClassId, size_t VMTS
 
     if (!Class)
     {
-        Class = (nodeclass*) MemHeap_Alloc(p->NodeHeap,Size,0);
+        Class = (nodeclass*) MemHeap_Alloc(p->NodeHeap,Size);
         if (!Class)
             return NULL;
 
@@ -1802,7 +1802,7 @@ NOINLINE void Node_AddNotify(node* Node, dataid Id, notifyproc Func, void* Refer
             }
         }
 
-        n = MemHeap_Alloc(p->NodeHeap,sizeof(nodenotify),0);
+        n = MemHeap_Alloc(p->NodeHeap,sizeof(nodenotify));
         if (!n)
         {
             return;
@@ -2839,7 +2839,7 @@ void NodeSingletonEvent(anynode* Any, dataid Cmd, nodemodule* Module)
 
 void* NodeHeap_Alloc(anynode* AnyNode, size_t Size)
 {
-    return MemHeap_Alloc(Node_Context(AnyNode)->NodeHeap,Size,0);
+    return MemHeap_Alloc(Node_Context(AnyNode)->NodeHeap,Size);
 }
 
 void NodeHeap_Free(anynode* AnyNode, void* Ptr, size_t Size)
