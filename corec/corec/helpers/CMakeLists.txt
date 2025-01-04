@@ -20,6 +20,9 @@ set(corec_file_PUBLIC_HEADERS
   PARENT_SCOPE
 )
 add_library("corec_file" ${corec_file_BASE_SOURCES} ${corec_file_PUBLIC_HEADERS})
+set_target_properties("corec_file" PROPERTIES
+  C_STANDARD 11
+)
 if (CONFIG_STDIO)
   target_sources("corec_file" PRIVATE ${corec_file_STDIO_SOURCES})
 endif(CONFIG_STDIO)
@@ -58,6 +61,9 @@ set(corec_parser_PUBLIC_HEADERS
   PARENT_SCOPE
 )
 add_library("corec_parser" ${corec_parser_SOURCES} ${corec_parser_PUBLIC_HEADERS})
+set_target_properties("corec_parser" PROPERTIES
+  C_STANDARD 11
+)
 target_include_directories("corec_parser" PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
 target_include_directories("corec_parser" PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>)
 if (CYGWIN)
@@ -78,6 +84,9 @@ set(corec_date_PUBLIC_HEADERS
   PARENT_SCOPE
 )
 add_library("corec_date" ${corec_date_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
+set_target_properties("corec_date" PROPERTIES
+  C_STANDARD 11
+)
 if (WIN32)
   target_sources("corec_date" PRIVATE ${corec_date_WIN32_SOURCES})
 elseif(UNIX)
@@ -104,6 +113,9 @@ set(corec_charconvert_PUBLIC_HEADERS
   PARENT_SCOPE
 )
 add_library("corec_charconvert" ${corec_charconvert_PUBLIC_HEADERS} ${corec_base_PUBLIC_HEADERS})
+set_target_properties("corec_charconvert" PROPERTIES
+  C_STANDARD 11
+)
 if (WIN32)
   target_sources("corec_charconvert" PRIVATE ${corec_charconvert_WIN32_SOURCES})
 elseif(APPLE)
