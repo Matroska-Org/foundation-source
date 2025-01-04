@@ -19,16 +19,22 @@ typedef struct
 
 } datahead;
 
+#define container_of(ptr, type, member) \
+    ((type *)((uintptr_t)ptr - offsetof(type, member)))
+
 
 static INLINE dataheaphead* Data_HeapHead(const array *p)
 {
-    return ((dataheaphead*)p->_Begin-1);
+    // not totally clean as most of the time the data is only preceded by
+    // the dataheaphead, but we can't put a zero size element at the end of
+    // dataheaphead
+    return &(container_of(p->_Begin, cc_memheap, data)->Null);
 }
 
 static INLINE datahead* Data_Head(const array *p)
 {
     assert(p->_Begin);
-    return ((datahead*)p->_Begin-1);
+    return container_of(p->_Begin, datahead, data);
 }
 static INLINE bool_t Data_IsHeap(const datahead* Name)
 {
@@ -59,7 +65,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
             return 0;
 
         Head->Size = n|DATA_FLAG_HEAP;
-        a->_Begin = Head+1;
+        a->_Begin = &Head->data;
         return 1;
     }
 
@@ -84,7 +90,7 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
 
             Head->Heap = Heap;
             Head->Size = n|DATA_FLAG_HEAP|DATA_FLAG_MEMHEAP;
-            a->_Begin = Head+1;
+            a->_Begin = Head+1; // FIXME not exact
         }
         else
         {
@@ -97,14 +103,14 @@ static NOINLINE bool_t Data_ReAlloc(array *a,size_t n)
             {
                 Head = malloc(n+sizeof(datahead));
                 if (Head)
-                    memcpy(Head+1,a->_Begin,oldsize);
+                    memcpy(&Head->data,a->_Begin,oldsize);
             }
 
             if (!Head)
                 return 0;
 
             Head->Size = n|DATA_FLAG_HEAP;
-            a->_Begin = Head+1;
+            a->_Begin = Head->data;
         }
     }
     return 1;
@@ -120,7 +126,7 @@ void ArrayInitEx(array* p,const cc_memheap* Heap)
     if (Heap == NULL)
         p->_Begin = NULL;
     else
-        p->_Begin = (void*)(&Heap->Null+1);
+        p->_Begin = (void*)Heap->data;
     p->_Used = 0;
 }
 
