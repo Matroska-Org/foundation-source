@@ -24,7 +24,7 @@ typedef void (*memheap_write)(const void* This,void*,const void* Src,size_t Pos,
 
 #define ARRAY_POINTER_HOLDER \
         size_t Size; \
-        alignas(max_align_t) uint8_t data[]
+        alignas(max_align_t) char data[]
 
 // we can't use a type with a flexible array inside another structure, so we
 // use the same define everywhere
