@@ -5,6 +5,8 @@
  *
  ****************************************************************************/
 
+#define _POSIX_C_SOURCE 200809L
+
 #include "file.h"
 #include "streams.h"
 #include <corec/str/str.h>
