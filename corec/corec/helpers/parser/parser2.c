@@ -1021,7 +1021,7 @@ void DoubleToFrac(cc_fraction* f,int64_t v)
     else
     {
         int e = (int)(((v >> 52) & 0xFFF) - 1023);
-        SimplifyFrac(f,(v & LL(0xFFFFFFFFFFFFF))|LL(0x10000000000000),LL(1)<<(52-e));
+        SimplifyFrac(f,(v & INT64_C(0xFFFFFFFFFFFFF))|INT64_C(0x10000000000000),INT64_C(1)<<(52-e));
         if (v<0)
             f->Num = -f->Num;
     }
