@@ -6,7 +6,7 @@ on:
 
 jobs:
   build_tools:
-    name: Build all tools for ${{ matrix.target.name }}
+    name: Build tools for ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
     strategy:
       fail-fast: false
