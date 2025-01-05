@@ -419,6 +419,11 @@ void MATROSKA_InitSemantic(void);
                 <xsl:with-param name="label" select="concat(substring-before($label, '; see usage notes'), substring-after($label, '; see usage notes'))"/>
             </xsl:call-template>
         </xsl:when>
+        <xsl:when test="contains($label,' `')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' `'), ' ', substring-before(substring-after($label, ' `'), '`'), '', substring-after(substring-after($label, ' `'), '`'))"/>
+            </xsl:call-template>
+        </xsl:when>
         <xsl:otherwise>
             <xsl:value-of select="translate($label, '&#10;', ' ')"/>
         </xsl:otherwise>
@@ -436,6 +441,11 @@ void MATROSKA_InitSemantic(void);
         <xsl:when test="contains($label,' [@?')">
             <xsl:call-template name="cleanEnumTitle">
                 <xsl:with-param name="label" select="concat(substring-before($label, ' [@?'), ' ', substring-before(substring-after($label, ' [@?'), ']'), '', substring-after(substring-after($label, ' [@?'), ']'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="contains($label,' `')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' `'), ' ', substring-before(substring-after($label, ' `'), '`'), '', substring-after(substring-after($label, ' `'), '`'))"/>
             </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
