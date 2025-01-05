@@ -365,6 +365,7 @@ namespace libmatroska {
     <xsl:if test="$node/@maxver='0'">
         <xsl:choose>
             <xsl:when test="ebml:extension[@divx='1']"><xsl:text> // DivX specific</xsl:text></xsl:when>
+            <xsl:when test="$node/@name='TrackOverlay'"/> <!-- ignore deprecation to avoid API/ABI change -->
             <xsl:otherwise><xsl:text> // not supported</xsl:text></xsl:otherwise>
         </xsl:choose>
     </xsl:if>
@@ -414,7 +415,7 @@ namespace libmatroska {
   <xsl:template name="output-blocked-render">
     <xsl:param name="node"/>
 
-    <xsl:if test="$node/@maxver='0' or $node/@maxver='1' or $node/@maxver='2' or $node/@maxver='3'">
+    <xsl:if test="($node/@maxver='0' or $node/@maxver='1' or $node/@maxver='2' or $node/@maxver='3') and ($node/@name!='TrackOverlay')">
         <xsl:text>&#10;filepos_t Kax</xsl:text>
         <xsl:choose>
             <xsl:when test="ebml:extension[@cppname]"><xsl:value-of select="ebml:extension[@cppname][1]/@cppname" /></xsl:when>
