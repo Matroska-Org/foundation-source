@@ -674,6 +674,9 @@
 #elif defined(__arm__) || defined(_M_ARM)
 #  define LZO_ARCH_ARM              1
 #  define LZO_INFO_ARCH             "arm"
+#elif defined(_M_ARM64)
+//#  define LZO_ARCH_ARM              1
+#  define LZO_INFO_ARCH             "arm64"
 #elif (UINT_MAX <= LZO_0xffffL) && defined(__AVR__)
 #  define LZO_ARCH_AVR              1
 #  define LZO_INFO_ARCH             "avr"
