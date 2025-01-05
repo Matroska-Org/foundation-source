@@ -19,9 +19,10 @@ jobs:
           {"name": "macOS arm64",      "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=arm64"},
           {"name": "macOS x86_64",     "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=x86_64"},
           {"name": "Windows",          "os": "windows-latest"},
+          {"name": "Windows Clang-CL", "os": "windows-latest", "cmake_options": "-T ClangCl"},
         ]
     env:
-      CMAKE_OPTIONS: -DDEV_MODE=ON
+      CMAKE_OPTIONS: -DDEV_MODE=ON ${{ matrix.target.cmake_options }}
       CMAKE_ENV: ${{ matrix.target.cmake_env }}
     steps:
       - name: list compilers
