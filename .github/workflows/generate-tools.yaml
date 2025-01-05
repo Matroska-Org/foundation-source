@@ -20,15 +20,6 @@ jobs:
           {"name": "macOS x86_64",     "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=x86_64"},
           {"name": "Windows",          "os": "windows-latest"},
         ]
-        include:
-          - os: windows-latest
-            triplet: x64-windows
-          - os: ubuntu-latest
-            triplet: x64-linux
-          - os: ubuntu-20.04
-            triplet: x64-linux
-          - os: macos-latest
-            triplet: x64-osx
     env:
       CMAKE_OPTIONS: -DDEV_MODE=ON
       CMAKE_ENV: ${{ matrix.target.cmake_env }}
