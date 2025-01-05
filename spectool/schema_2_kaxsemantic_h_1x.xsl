@@ -125,17 +125,17 @@ namespace libmatroska {
         </xsl:if>
         <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3' or @length">
             <xsl:text>public:&#10;</xsl:text>
-        </xsl:if>
-        <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
-            <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, bool bSaveDefault) override;&#10;</xsl:text>
-        </xsl:if>
-        <xsl:if test="@length">
-            <xsl:text>  bool ValidateSize() const override {return IsFiniteSize() &amp;&amp; GetSize() </xsl:text>
-            <xsl:choose>
-                <xsl:when test="contains(@length, '=') or contains(@length, '&lt;') or contains(@length, '&gt;')"><xsl:value-of select="@length"/></xsl:when>
-                <xsl:otherwise><xsl:text>== </xsl:text><xsl:value-of select="@length"/></xsl:otherwise>
-            </xsl:choose>
-            <xsl:text>;}&#10;</xsl:text>
+            <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
+                <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, bool bSaveDefault) override;&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="@length">
+                <xsl:text>  bool ValidateSize() const override {return IsFiniteSize() &amp;&amp; GetSize() </xsl:text>
+                <xsl:choose>
+                    <xsl:when test="contains(@length, '=') or contains(@length, '&lt;') or contains(@length, '&gt;')"><xsl:value-of select="@length"/></xsl:when>
+                    <xsl:otherwise><xsl:text>== </xsl:text><xsl:value-of select="@length"/></xsl:otherwise>
+                </xsl:choose>
+                <xsl:text>;}&#10;</xsl:text>
+            </xsl:if>
         </xsl:if>
         <xsl:text>};&#10;</xsl:text>
         <!-- <xsl:if test="$minVer &gt; 1 or ebml:extension[@divx='1']">#endif&#10;</xsl:if> -->
