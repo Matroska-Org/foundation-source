@@ -257,7 +257,9 @@ namespace libmatroska {
             </xsl:variable>
 
             <xsl:text>/**&#10; *</xsl:text>
-            <xsl:value-of select="ebml:documentation[@purpose='definition']"/>
+            <xsl:call-template name="cleanEnumTitle">
+                <xsl:with-param name="label" select="ebml:documentation[@purpose='definition']"/>
+            </xsl:call-template>
             <xsl:text>&#10; */&#10;</xsl:text>
             <xsl:text>typedef enum {&#10;</xsl:text>
 
@@ -527,6 +529,25 @@ namespace libmatroska {
         </xsl:when>
         <xsl:otherwise>
             <xsl:value-of select="translate($label, '&#10;', ' ')"/>
+        </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="cleanEnumTitle">
+    <xsl:param name="label"/>
+    <xsl:choose>
+        <xsl:when test="contains($label,' [@!')">
+            <xsl:call-template name="cleanEnumTitle">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' [@!'), ' ', substring-before(substring-after($label, ' [@!'), ']'), '', substring-after(substring-after($label, ' [@!'), ']'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="contains($label,' [@?')">
+            <xsl:call-template name="cleanEnumTitle">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' [@?'), ' ', substring-before(substring-after($label, ' [@?'), ']'), '', substring-after(substring-after($label, ' [@?'), ']'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="$label"/>
         </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
