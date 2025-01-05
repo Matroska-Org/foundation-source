@@ -522,6 +522,11 @@ namespace libmatroska {
                 <xsl:with-param name="label" select="concat(substring-before($label, ' [@?'), ' (', substring-before(substring-after($label, ' [@?'), ']'), ')', substring-after(substring-after($label, ' [@?'), ']'))"/>
             </xsl:call-template>
         </xsl:when>
+        <xsl:when test="contains($label,' `')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' `'), ' ', substring-before(substring-after($label, ' `'), '`'), '', substring-after(substring-after($label, ' `'), '`'))"/>
+            </xsl:call-template>
+        </xsl:when>
         <xsl:when test="contains($label,'; see usage notes')">
             <xsl:call-template name="cleanEnumDoc">
                 <xsl:with-param name="label" select="concat(substring-before($label, '; see usage notes'), substring-after($label, '; see usage notes'))"/>
@@ -544,6 +549,11 @@ namespace libmatroska {
         <xsl:when test="contains($label,' [@?')">
             <xsl:call-template name="cleanEnumTitle">
                 <xsl:with-param name="label" select="concat(substring-before($label, ' [@?'), ' ', substring-before(substring-after($label, ' [@?'), ']'), '', substring-after(substring-after($label, ' [@?'), ']'))"/>
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="contains($label,' `')">
+            <xsl:call-template name="cleanEnumDoc">
+                <xsl:with-param name="label" select="concat(substring-before($label, ' `'), ' ', substring-before(substring-after($label, ' `'), '`'), '', substring-after(substring-after($label, ' `'), '`'))"/>
             </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
