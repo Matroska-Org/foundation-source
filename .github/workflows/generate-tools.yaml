@@ -5,7 +5,7 @@ on:
       - 'spectool/**'
 
 jobs:
-  build_tools_win32:
+  build_tools:
     name: Build all tools for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -23,6 +23,10 @@ jobs:
     env:
       CMAKE_OPTIONS: -DDEV_MODE=ON
     steps:
+      - name: list compilers
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        run: dpkg --list | grep compiler
+
       - name: Get pushed code
         uses: actions/checkout@v4
 
