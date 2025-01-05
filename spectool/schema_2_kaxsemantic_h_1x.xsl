@@ -123,7 +123,7 @@ namespace libmatroska {
             <xsl:text>  KaxSegmentUID(EBML_DEF_CONS EBML_DEF_SEP EBML_EXTRA_PARAM);&#10;</xsl:text>
             <xsl:text>#endif&#10;</xsl:text>
         </xsl:if>
-        <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3' or @length">
+        <xsl:if test="(@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3' or @length) and (@name!='TrackOverlay')">
             <xsl:text>public:&#10;</xsl:text>
             <xsl:if test="@maxver='0' or @maxver='1' or @maxver='2' or @maxver='3'">
                 <xsl:text>  filepos_t RenderData(IOCallback &amp; output, bool bForceRender, bool bSaveDefault) override;&#10;</xsl:text>
