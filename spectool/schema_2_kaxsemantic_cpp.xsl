@@ -57,8 +57,8 @@ static constexpr const MatroskaProfile VERSION_WEBM_SINCE_V4 = {true, false, 4};
 static constexpr const MatroskaProfile VERSION_MATROSKA_UP_TO_V2 = {false, false, 0, 2};
 // available since version 1, 2 and 3 of Matroska but not WebM or DivX
 static constexpr const MatroskaProfile VERSION_MATROSKA_UP_TO_V3 = {false, false, 0, 3};
-// available since version 1, 2, 3 and 4 of Matroska and WebM but not DivX
-static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 4};
+// available since version 1, 2, 3 and 4 of Matroska but not WebM or DivX
+static constexpr const MatroskaProfile VERSION_MATROSKA_UP_TO_V4 = {false, false, 0, 4};
 <xsl:for-each select="ebml:element[not(starts-with(@path,'\EBML\'))]">
     <!-- sorting messes the detection of the previous element MATROSKA_VERSION state -->
     <!-- Maybe for each output we create we also create a counterpart call to check if the new MATROSKA_VERSION state that should be used -->
@@ -515,7 +515,7 @@ static constexpr const MatroskaProfile VERSION_WEBM_UP_TO_V4 = {true, false, 0, 
         <xsl:when test="$node/@minver='4' and not($node/@maxver) and ebml:extension[@webm='1'] and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_WEBM_SINCE_V4</xsl:text></xsl:when>
         <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='2' and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_UP_TO_V2</xsl:text></xsl:when>
         <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='3' and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_UP_TO_V3</xsl:text></xsl:when>
-        <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='4' and ebml:extension[@webm='1'] and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_WEBM_UP_TO_V4</xsl:text></xsl:when>
+        <xsl:when test="(not($node/@minver) or $node/@minver='0') and $node/@maxver='4' and not(ebml:extension[@webm='1']) and not(ebml:extension[@divx='1'])"><xsl:text>VERSION_MATROSKA_UP_TO_V4</xsl:text></xsl:when>
         <xsl:otherwise>
             <xsl:text>MatroskaProfile(</xsl:text>
             <xsl:choose>
