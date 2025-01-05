@@ -15,9 +15,9 @@ if (CONFIG_ZLIB)
 
     FetchContent_Declare(
         zlib
-        URL      "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz"
-        URL_HASH SHA512=580677aad97093829090d4b605ac81c50327e74a6c2de0b85dd2e8525553f3ddde17556ea46f8f007f89e435493c9a20bc997d1ef1c1c2c23274528e3c46b94f
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        GIT_REPOSITORY https://github.com/madler/zlib.git
+        GIT_TAG 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf # 1.3.1 tag
+        PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/zlib/0001-CMake-don-t-build-dynamic-zlib.patch"
     )
 
     FetchContent_MakeAvailable(zlib)
