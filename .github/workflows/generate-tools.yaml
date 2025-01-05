@@ -13,6 +13,7 @@ jobs:
       matrix:
         target: [
           {"os": "ubuntu-latest", "cmake_env": "CC=gcc-14"},
+          {"os": "ubuntu-latest", "cmake_env": "CC=clang-18"},
           {"os": "macos-latest"  },
           {"os": "windows-latest"},
         ]
