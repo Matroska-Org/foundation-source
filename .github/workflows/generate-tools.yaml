@@ -16,7 +16,8 @@ jobs:
           {"os": "ubuntu-latest", "cmake_env": "CC=clang-18"},
           {"os": "ubuntu-20.04",  "cmake_env": "CC=gcc-9"},
           {"os": "ubuntu-20.04",  "cmake_env": "CC=clang-10"},
-          {"os": "macos-latest"  },
+          {"os": "macos-latest",  "cmake_env": "CMAKE_OSX_ARCHITECTURES=arm64"},
+          {"os": "macos-latest",  "cmake_env": "CMAKE_OSX_ARCHITECTURES=x86_64"},
           {"os": "windows-latest"},
         ]
         include:
