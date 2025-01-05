@@ -14,7 +14,7 @@ jobs:
         target: [
           {"name": "Linux GCC 14",     "os": "ubuntu-latest",  "cmake_env": "CC=gcc-14"},
           {"name": "Linux Clang 18",   "os": "ubuntu-latest",  "cmake_env": "CC=clang-18"},
-          {"name": "Linux GCC 9",      "os": "ubuntu-20.04",   "cmake_env": "CC=gcc-9"},
+          {"name": "Linux GCC 7",      "os": "ubuntu-20.04",   "cmake_env": "CC=gcc-7", "install": "gcc-7"},
           {"name": "Linux Clang 7",    "os": "ubuntu-20.04",   "cmake_env": "CC=clang-7", "install": "clang-7"},
           {"name": "macOS arm64",      "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=arm64"},
           {"name": "macOS x86_64",     "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=x86_64"},
