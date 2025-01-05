@@ -15,7 +15,7 @@ jobs:
           {"name": "Linux GCC 14",     "os": "ubuntu-latest",  "cmake_env": "CC=gcc-14"},
           {"name": "Linux Clang 18",   "os": "ubuntu-latest",  "cmake_env": "CC=clang-18"},
           {"name": "Linux GCC 9",      "os": "ubuntu-20.04",   "cmake_env": "CC=gcc-9"},
-          {"name": "Linux Clang 10",   "os": "ubuntu-20.04",   "cmake_env": "CC=clang-10"},
+          {"name": "Linux Clang 7",    "os": "ubuntu-20.04",   "cmake_env": "CC=clang-7", "install": "clang-7"},
           {"name": "macOS arm64",      "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=arm64"},
           {"name": "macOS x86_64",     "os": "macos-15",       "cmake_env": "CMAKE_OSX_ARCHITECTURES=x86_64"},
           {"name": "Windows",          "os": "windows-latest"},
@@ -30,6 +30,12 @@ jobs:
       - name: list compilers
         if: ${{ contains(matrix.target.os, 'ubuntu') }}
         run: dpkg --list | grep compiler
+
+      - name: intall compilers
+        if: ${{ contains(matrix.target.os, 'ubuntu') && matrix.target.install != '' }}
+        run: |
+          sudo add-apt-repository --yes --update ppa:ubuntu-toolchain-r/test
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends ${{ matrix.target.install }}
 
       - name: Get pushed code
         uses: actions/checkout@v4
