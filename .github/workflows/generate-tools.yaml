@@ -6,32 +6,36 @@ on:
 
 jobs:
   build_tools:
-    name: Build all tools for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build all tools for ${{ matrix.target.os }} ${{ matrix.target.cmake_env }}
+    runs-on: ${{ matrix.target.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        target: [
+          {"os": "ubuntu-latest", "cmake_env": "CC=gcc-14"},
+          {"os": "macos-latest"  },
+          {"os": "windows-latest"},
+        ]
         include:
           - os: windows-latest
             triplet: x64-windows
           - os: ubuntu-latest
             triplet: x64-linux
-            CMAKE_CC: CC=gcc-14
           - os: macos-latest
             triplet: x64-osx
     env:
       CMAKE_OPTIONS: -DDEV_MODE=ON
+      CMAKE_ENV: ${{ matrix.target.cmake_env }}
     steps:
       - name: list compilers
-        if: ${{ contains(matrix.os, 'ubuntu') }}
+        if: ${{ contains(matrix.target.os, 'ubuntu') }}
         run: dpkg --list | grep compiler
 
       - name: Get pushed code
         uses: actions/checkout@v4
 
       - name: Configure CMake
-        run: ${{ matrix.CMAKE_CC }} cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
+        run: ${{ env.CMAKE_ENV }} cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
 
       - name: Build with CMake
         run: cmake --build _build --config Debug --parallel
