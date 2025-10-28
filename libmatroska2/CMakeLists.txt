@@ -12,12 +12,13 @@ if (CONFIG_ZLIB)
     include(FetchContent)
 
     set(ZLIB_BUILD_EXAMPLES OFF)
+    set(ZLIB_BUILD_SHARED OFF)
+    set(ZLIB_BUILD_TESTING OFF)
 
     FetchContent_Declare(
         zlib
         GIT_REPOSITORY https://github.com/madler/zlib.git
-        GIT_TAG 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf # 1.3.1 tag
-        PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/zlib/0001-CMake-don-t-build-dynamic-zlib.patch"
+        GIT_TAG 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71
     )
 
     FetchContent_MakeAvailable(zlib)
