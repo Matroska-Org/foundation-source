@@ -102,7 +102,7 @@ MATROSKA_DLL bool_t MATROSKA_TrackSetCompressionNone(matroska_trackentry *TrackE
 #if defined(CONFIG_ZLIB)
 MATROSKA_DLL err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
 #else // !CONFIG_ZLIB
-static INLINE err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+static INLINE err_t CompressFrameZLib(const uint8_t * UNUSED_PARAM(Cursor), size_t UNUSED_PARAM(CursorSize), uint8_t ** UNUSED_PARAM(OutBuf), size_t * UNUSED_PARAM(OutSize))
 {
     return ERR_NOT_SUPPORTED;
 }
