@@ -343,6 +343,7 @@ typedef enum {
   MATROSKA_TRACK_ENCODING_COMP_BZLIB            = 1, // bzip2 compression (BZIP2) **SHOULD NOT** be used.
   MATROSKA_TRACK_ENCODING_COMP_LZO1X            = 2, // Lempel-Ziv-Oberhumer compression (LZO) **SHOULD NOT** be used.
   MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP      = 3, // Octets in ContentCompSettings ((#contentcompsettings-element)) have been stripped from each frame.
+  MATROSKA_TRACK_ENCODING_COMP_ZSTD             = 4, // Zstandard (zstd).
 } MatroskaTrackEncodingCompAlgo;
 
 /**
