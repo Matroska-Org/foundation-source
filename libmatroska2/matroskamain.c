@@ -13,7 +13,7 @@
 #include <bzlib.h>
 #endif
 #if defined(CONFIG_LZO1X)
-#include "lzo.h"
+#include "lzokay.h"
 #endif
 #include <corec/helpers/file/streams.h>
 #include <corec/str/str.h>
@@ -224,6 +224,46 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
 }
 #endif // CONFIG_EBML_WRITING
 #endif // CONFIG_ZLIB
+
+#if 0 // defined(CONFIG_LZO1X)
+#if defined(CONFIG_EBML_WRITING)
+err_t CompressFrameLZO1x(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
+{
+    lzo_uint compressed = CursorSize * 2;
+    array TmpBuf;
+
+    void *tmpdict = malloc(LZO1X_MEM_COMPRESS);
+    if (tmpdict == NULL)
+        return ERR_OUT_OF_MEMORY;
+
+    ArrayInit(&TmpBuf);
+    if (!ArrayResize(&TmpBuf,compressed,0))
+    {
+        ArrayClear(&TmpBuf);
+        free(tmpdict);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    int res = lzo1x_1_compress(Cursor, CursorSize, ARRAYBEGIN(TmpBuf,uint8_t), &compressed, tmpdict);
+    free(tmpdict);
+    if (res != LZO_E_OK)
+    {
+        ArrayClear(&TmpBuf);
+        return ERR_NEED_MORE_DATA;
+    }
+
+    if (OutBuf && OutSize)
+        // TODO: write directly in the output buffer
+        memcpy(*OutBuf, ARRAYBEGIN(TmpBuf,uint8_t), MIN(*OutSize, compressed));
+    ArrayClear(&TmpBuf);
+
+    if (OutSize)
+        *OutSize = compressed;
+
+    return ERR_NONE;
+}
+#endif // CONFIG_EBML_WRITING
+#endif // CONFIG_LZO1X
 
 static err_t CheckCompression(matroska_block *Block, int ForProfile)
 {
@@ -1077,8 +1117,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                                 Err = ERR_OUT_OF_MEMORY;
                             else
                             {
-                                size_t inlen = ARRAYBEGIN(Element->SizeList,int32_t)[0];
-                                if (av_lzo1x_decode(ARRAYBEGIN(Element->Data,uint8_t), &outSize, InBuf, &inlen) != AV_LZO_SUCCESS)
+                                if (lzokay_decompress(InBuf, ARRAYBEGIN(Element->SizeList,int32_t)[0], ARRAYBEGIN(Element->Data,uint8_t), &outSize) != EResult_Success)
                                     Err = ERR_INVALID_DATA;
                                 else
                                 {
@@ -1217,8 +1256,7 @@ err_t MATROSKA_BlockReadData(matroska_block *Element, struct stream *Input, int 
                             Err = ERR_OUT_OF_MEMORY;
                         else
                         {
-                            size_t inlen = FrameSize;
-                            if (av_lzo1x_decode(ARRAYBEGIN(Element->Data,uint8_t) + OutSize, &outSize, InBuf, &inlen) != AV_LZO_SUCCESS)
+                            if (lzokay_decompress(InBuf, FrameSize, ARRAYBEGIN(Element->Data,uint8_t) + OutSize, &outSize) != EResult_Success)
                                 Err = ERR_INVALID_DATA;
                             else
                             {
