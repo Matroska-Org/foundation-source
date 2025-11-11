@@ -61,8 +61,8 @@ if (CONFIG_ZLIB)
 endif(CONFIG_ZLIB)
 
 if (CONFIG_LZO1X)
-  add_subdirectory("lavu_lzo")
-  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:lavu_lzo>)
+  add_subdirectory("lzokay")
+  target_link_libraries("matroska2" PRIVATE $<BUILD_INTERFACE:lzokay>)
 endif(CONFIG_LZO1X)
 
 if (CONFIG_BZLIB)
