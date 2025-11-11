@@ -1424,7 +1424,7 @@ static bool_t BlockIsCompressed(const matroska_block *Block)
                     return 1; // we don't support encryption
 
                 Elt = (ebml_master*)EBML_MasterGetChild(Elt, MATROSKA_getContextContentCompAlgo(), DstProfile);
-                if (Elt!=NULL && EBML_IntegerValue((ebml_integer*)Elt)==MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                if (Elt!=NULL && (EBML_IntegerValue((ebml_integer*)Elt)!=MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP))
                     return 1;
             }
         }
@@ -1517,6 +1517,7 @@ int main(int argc, const char *argv[])
     mkv_timestamp_t PrevTimestamp;
     bool_t CuesChanged;
     bool_t KeepCues = 0, Remux = 0, CuesCreated = 0, Optimize = 0, OptimizeVideo = 1, UnOptimize = 0, ClustersNeedRead = 0, Regression = 0;
+    MatroskaTrackEncodingCompAlgo CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_NONE;
     int InputPathIndex = 1;
     int64_t TimestampScale = 0, OldTimestampScale;
     size_t MaxTrackNum = 0;
@@ -1623,6 +1624,24 @@ int main(int argc, const char *argv[])
         else if (tcsisame_ascii(Path,T("--unsafe"))) { Unsafe = 1; InputPathIndex = i+1; }
         else if (tcsisame_ascii(Path,T("--optimize"))) { Optimize = 1; OptimizeVideo = 1; InputPathIndex = i+1; }
         else if (tcsisame_ascii(Path,T("--optimize_nv"))) { Optimize = 1; OptimizeVideo = 0; InputPathIndex = i+1; }
+        else if (tcsisame_ascii(Path,T("--compalgo")) && i+1<argc-1)
+        {
+#if defined(TARGET_WIN) && defined(UNICODE)
+            Node_FromWcs(&p,Path,TSIZEOF(Path),argv[++i]);
+#else
+            Node_FromStr(&p,Path,TSIZEOF(Path),argv[++i]);
+#endif
+            if (tcsisame_ascii(Path,T("0")))
+                CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
+            else
+            {
+                TextPrintf(StdErr,T("Unsupported compression algorithm %s (0: zlib)\r\n"),Path);
+                Path[0] = 0;
+                Result = -8;
+                goto exit;
+            }
+            InputPathIndex = i+1;
+        }
         else if (tcsisame_ascii(Path,T("--regression"))) { Regression = 1; InputPathIndex = i+1; }
         else if (tcsisame_ascii(Path,T("--no-optimize"))) { UnOptimize = 1; InputPathIndex = i+1; }
         else if (tcsisame_ascii(Path,T("--quiet"))) { Quiet = 1; InputPathIndex = i+1; }
@@ -1650,6 +1669,7 @@ int main(int argc, const char *argv[])
             TextWrite(StdErr,T("  --live        the output file resembles a live stream\r\n"));
             TextWrite(StdErr,T("  --timecodescale <v> force the global TimestampScale to <v> (1000000 is a good value)\r\n"));
             TextWrite(StdErr,T("  --unsafe      don't output elements that are used for file recovery (saves more space)\r\n"));
+            TextWrite(StdErr,T("  --compalgo <v> force compression algorithm of all tracks\r\n"));
             TextWrite(StdErr,T("  --optimize    use all possible optimization for the output file\r\n"));
             TextWrite(StdErr,T("  --optimize_nv use all possible optimization for the output file, except video tracks\r\n"));
             TextWrite(StdErr,T("  --no-optimize disable some optimization for the output file\r\n"));
@@ -2772,7 +2792,9 @@ int main(int argc, const char *argv[])
                 {
                     Elt = EBML_MasterFindFirstElt(RLevel1,MATROSKA_getContextCodecID(),1,0,0);
                     EBML_StringGet((ebml_string*)Elt,CodecID,TSIZEOF(CodecID));
-                    if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN"))
+                    if (CompressionAlgo != MATROSKA_TRACK_ENCODING_COMP_NONE)
+                        encoding = CompressionAlgo;
+                    else if (tcsisame_ascii(CodecID,T("S_USF")) || tcsisame_ascii(CodecID,T("S_VOBSUB")) || tcsisame_ascii(CodecID,T("S_HDMV/PGS")) || tcsisame_ascii(CodecID,T("B_VOBBTN"))
                         || tcsisame_ascii(CodecID,T("V_UNCOMPRESSED"))|| tcsstr(CodecID,T("A_PCM"))==CodecID)
                         encoding = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
                     else
@@ -2809,13 +2831,19 @@ int main(int argc, const char *argv[])
                     if (CodecPrivate!=NULL)
                     {
                         size_t ExtraCompHeaderBytes = (encoding == MATROSKA_TRACK_ENCODING_COMP_NONE) ? 13 : 3; // extra bytes needed to add the comp header to the track
+                        if (CompressionAlgo != MATROSKA_TRACK_ENCODING_COMP_ZLIB)
+                            ExtraCompHeaderBytes += 1; // extra for the non default algo
                         size_t CompressedSize = (size_t)EBML_ElementDataSize((ebml_element*)CodecPrivate, 1);
                         size_t origCompressedSize = CompressedSize;
                         uint8_t *Compressed = malloc(CompressedSize);
-                        if (CompressFrameZLib(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &Compressed, &CompressedSize)==ERR_NONE
-                            && (CompressedSize + ExtraCompHeaderBytes) < origCompressedSize)
+                        uint8_t *NewCompressed = Compressed;
+                        int comp_err;
                         {
-                            encoding = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
+                            comp_err = CompressFrameZLib(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &NewCompressed, &CompressedSize);
+                        }
+                        if (comp_err==ERR_NONE && (CompressedSize + ExtraCompHeaderBytes) < origCompressedSize)
+                        {
+                            encoding = CompressionAlgo;
                             compress_scope |= MATROSKA_CONTENTENCODINGSCOPE_PRIVATE;
                         }
                         free(Compressed);
