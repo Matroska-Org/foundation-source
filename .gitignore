@@ -33,3 +33,14 @@ mkvalidator/mkvalidator-*.zip
 *.sh.sh
 
 .DS_Store
+_deps/
+CMakeFiles/
+*.dir/
+Debug/
+Release/
+RelWithDebInfo/
+MinSizeRel/
+Release/
+pkg_bin/
+CMakeCache.txt
+cmake_install.cmake
