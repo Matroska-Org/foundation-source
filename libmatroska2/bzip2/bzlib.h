@@ -8,8 +8,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.6 of 6 September 2010
-   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.8 of 13 July 2019
+   Copyright (C) 1996-2019 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the 
    README file.
@@ -21,6 +21,15 @@
 
 #ifndef _BZLIB_H
 #define _BZLIB_H
+
+#ifndef BZ_NO_STDIO
+/* Need a definitition for FILE */
+#include <stdio.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,13 +79,7 @@ typedef
 #define BZ_EXPORT
 #endif
 
-#ifndef BZ_NO_STDIO
-/* Need a definitition for FILE */
-#include <stdio.h>
-#endif
-
 #ifdef _WIN32
-#   include <windows.h>
 #   ifdef small
       /* windows.h define small to char */
 #      undef small
