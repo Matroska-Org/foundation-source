@@ -12,8 +12,19 @@
 #define DATA_FLAG_HEAP              (((size_t)1)<<(sizeof(size_t)*8-2))
 #define DATA_FLAG_MEMHEAP           (((size_t)1)<<(sizeof(size_t)*8-1))
 
+// datahead and dataheaphead must keep their { Size, data } tail at identical
+// offsets so Data_Head() (which uses the datahead layout) can read the
+// Size+flags word for BOTH plain-heap and memheap-backed arrays. dataheaphead
+// leads with a cc_memheap* pointer; alignas(max_align_t) on data[] then keeps
+// its Size at data-8. Without a matching leading pointer here, the same
+// alignas pads datahead so its Size lands at data-16, and Data_Head() on a
+// memheap-backed array reads the Heap pointer as the size -> a bogus huge
+// capacity -> ArrayResize() skips allocation -> out-of-bounds write into the
+// MemHeap_Default global. The unused pointer below realigns the two headers
+// (no extra space: header stays 16 bytes, data stays max-aligned).
 typedef struct
 {
+    const cc_memheap* _unused_pad;
     ARRAY_POINTER_HOLDER;
 } datahead;
 
