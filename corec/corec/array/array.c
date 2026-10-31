@@ -583,7 +583,7 @@ static void* __HAlloc(const void* UNUSED_PARAM(p),size_t Size) { return malloc(S
 static void __HFree(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(Size)) { free(Ptr); }\
 static void* __HReAlloc(const void* UNUSED_PARAM(p),void* Ptr,size_t UNUSED_PARAM(OldSize),size_t Size) { return realloc(Ptr,Size); }\
 static void __HWrite(const void* UNUSED_PARAM(p),void* Ptr,const void* Src,size_t Pos,size_t Size) { memcpy((uint8_t*)Ptr+Pos,Src,Size); }\
-static const cc_memheap MemHeap_Default = { __HAlloc,__HFree,__HReAlloc,__HWrite, &MemHeap_Default, DATA_FLAG_MEMHEAP };
+static const cc_memheap MemHeap_Default = { __HAlloc,__HFree,__HReAlloc,__HWrite, DATA_FLAG_MEMHEAP, &MemHeap_Default };
 
 const cc_memheap *MemHeap_GetDefault(void)
 {

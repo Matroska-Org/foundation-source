@@ -28,9 +28,12 @@ typedef void (*memheap_write)(const void* This,void*,const void* Src,size_t Pos,
 
 // we can't use a type with a flexible array inside another structure, so we
 // use the same define everywhere
+// Size must come first so that dataheaphead has the same layout as datahead,
+// whose head is read through Data_Head()
 #define MEMHEAD_POINTER_HOLDER \
+        size_t Size; \
         const cc_memheap* Heap; \
-        ARRAY_POINTER_HOLDER
+        alignas(max_align_t) char data[]
 
 struct cc_memheap
 {
